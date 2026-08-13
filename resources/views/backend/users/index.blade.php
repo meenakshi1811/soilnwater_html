@@ -24,6 +24,7 @@
     }
     .text-bg-purple { background-color: #7c3aed; color: #fff; }
     .text-bg-teal { background-color: #0f766e; color: #fff; }
+    .pac-container { z-index: 2000 !important; }
     .user-detail-hero {
         background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 48%, #0f766e 100%);
         border-radius: 22px;
@@ -212,7 +213,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-xl">
         <div class="modal-content ems-modal">
             <div class="modal-header">
@@ -243,7 +244,10 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="createAddress">Address</label>
-                            <textarea name="address" id="createAddress" class="form-control" rows="2" autocomplete="street-address"></textarea>
+                            <input type="text" name="address" id="createAddress" class="form-control" autocomplete="off" placeholder="Search and select your address">
+                            <input type="hidden" name="latitude" id="createLatitude" value="">
+                            <input type="hidden" name="longitude" id="createLongitude" value="">
+                            <small class="text-muted">Start typing and choose a Google address to auto-fill city and pincode. You can edit both fields.</small>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="createCity">City</label>
@@ -424,4 +428,12 @@
 </script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/admin-users.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+    window.initAdminCreateUserLocationAutocomplete = function () {
+        if (window.FormHelper && typeof window.FormHelper.initAdminCreateUserPlaceAutocomplete === 'function') {
+            window.FormHelper.initAdminCreateUserPlaceAutocomplete();
+        }
+    };
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdminCreateUserLocationAutocomplete"></script>
 @endpush

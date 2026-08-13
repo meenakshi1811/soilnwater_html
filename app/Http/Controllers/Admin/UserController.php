@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Services\ConsultantRegistrationService;
 use App\Services\ServiceProviderRegistrationService;
 use App\Services\VendorRegistrationService;
+use App\Support\GoogleGeocoder;
 use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -183,7 +184,7 @@ class UserController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $this->validateNewUser($request);
+        $validated = $this->resolveUserCoordinates($this->validateNewUser($request));
 
         $user = DB::transaction(function () use ($request, $validated) {
             $user = User::create([
@@ -195,6 +196,8 @@ class UserController extends Controller
                 'address' => $validated['address'],
                 'city' => $validated['city'],
                 'pincode' => $validated['pincode'],
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
                 'role' => $validated['role'],
                 'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'is_active' => true,
@@ -381,6 +384,8 @@ class UserController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'role' => ['required', 'in:user,vendor,consultant,service_provider'],
             'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
@@ -402,6 +407,30 @@ class UserController extends Controller
             'date_of_incorporation.required_if' => 'Date of incorporation is required for vendor, consultant, and service provider accounts.',
             'date_of_incorporation.before_or_equal' => 'Date of incorporation cannot be in the future.',
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $details
+     * @return array<string, mixed>
+     */
+    private function resolveUserCoordinates(array $details): array
+    {
+        if (filled($details['latitude'] ?? null) && filled($details['longitude'] ?? null)) {
+            return $details;
+        }
+
+        $coordinates = GoogleGeocoder::coordinatesForAddress(
+            (string) ($details['address'] ?? ''),
+            isset($details['city']) ? (string) $details['city'] : null,
+            isset($details['pincode']) ? (string) $details['pincode'] : null,
+        );
+
+        if ($coordinates['latitude'] !== null && $coordinates['longitude'] !== null) {
+            $details['latitude'] = $coordinates['latitude'];
+            $details['longitude'] = $coordinates['longitude'];
+        }
+
+        return $details;
     }
 
     private function loadRoleDetails(User $user): void

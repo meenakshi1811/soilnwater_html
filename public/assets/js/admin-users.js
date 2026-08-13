@@ -47,6 +47,7 @@
                 $form.validate().resetForm();
             }
             $form.find('.is-invalid').removeClass('is-invalid');
+            $('#createLatitude, #createLongitude').val('');
             $('#createHasGstNo').prop('checked', true);
             $('#createUserAlert').addClass('d-none').empty();
             this.toggleCreateBusinessFields();
@@ -64,6 +65,21 @@
             $('#openCreateUserModalBtn').on('click', function () {
                 self.resetCreateForm();
                 self.createModal.show();
+            });
+
+            document.getElementById('createUserModal').addEventListener('shown.bs.modal', function () {
+                if (window.FormHelper && typeof window.FormHelper.initAdminCreateUserPlaceAutocomplete === 'function') {
+                    window.FormHelper.initAdminCreateUserPlaceAutocomplete();
+                }
+            });
+
+            $('#createAddress').on('input', function () {
+                if (this.dataset.placeJustSelected === '1') {
+                    delete this.dataset.placeJustSelected;
+                    return;
+                }
+
+                $('#createLatitude, #createLongitude').val('');
             });
 
             $('#createRole').on('change', function () {

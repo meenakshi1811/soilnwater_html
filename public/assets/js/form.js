@@ -567,6 +567,21 @@
             this.initRegisterBusinessFields();
         },
 
+        initAdminCreateUserPlaceAutocomplete: function () {
+            if (!document.getElementById('createAddress')) {
+                return;
+            }
+
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'createAddress',
+                cityInputId: 'createCity',
+                pincodeInputId: 'createPincode',
+                latitudeInputId: 'createLatitude',
+                longitudeInputId: 'createLongitude',
+                retryMethod: 'initAdminCreateUserPlaceAutocomplete'
+            });
+        },
+
         initRegisterForm: function () {
             this.initRegisterPlaceAutocomplete();
             this.initRegisterBusinessFields();
@@ -1209,6 +1224,7 @@
         init: function () {
             this.initRegisterForm();
             this.initGoogleCompleteForm();
+            this.initAdminCreateUserPlaceAutocomplete();
             this.initLoginForms();
             this.initOtpVerifyForm();
             this.initPhoneVerificationForm();
