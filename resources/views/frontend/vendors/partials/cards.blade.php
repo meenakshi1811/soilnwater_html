@@ -5,37 +5,80 @@
         $productImage = ! empty($productImages) ? asset($productImages[0]) : null;
         $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
         $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-        $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600&q=70';
+        $coverImage = $bannerImage ?? $productImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=700&q=70';
+        $avatarImage = $logoImage ?? $productImage ?? asset('assets/images/profile-placeholder.svg');
         $primaryBranch = $vendor->branches->first();
         $storeUrl = route('store.show', $vendor->slug);
         $hasLocation = $hasLocation ?? false;
         $vendorLocation = $primaryBranch?->city ?: ($vendor->city ?: 'Local Area');
+        $vendorState = $primaryBranch?->state ?: ($vendor->state ?? null);
+        $locationLabel = $vendorState ? $vendorLocation.', '.$vendorState : $vendorLocation;
+        $featuredLabel = filled($firstProduct?->name)
+            ? $firstProduct->name
+            : (\Illuminate\Support\Str::limit(strip_tags((string) $vendor->description), 56) ?: null);
     @endphp
     <div class="col">
-        <article class="vendor-market-card card h-100 border-0 shadow-sm{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
-            <a href="{{ $storeUrl }}" class="vendor-market-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
-                <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}" class="vendor-market-card__image" loading="lazy">
-                <span class="vendor-market-card__count">{{ $vendor->products_count }} Products</span>
-            </a>
-            <div class="vendor-market-card__body card-body d-flex flex-column">
-                <div class="vendor-market-card__head">
-                    <h3 class="vendor-market-card__name">
-                        <a href="{{ $storeUrl }}" class="text-decoration-none">{{ $vendor->publicDisplayName() }}</a>
-                    </h3>
+        <a
+            href="{{ $storeUrl }}"
+            class="vendor-store-card text-decoration-none{{ $vendor->is_premium ? ' is-premium-card' : '' }}"
+            aria-label="View {{ $vendor->publicDisplayName() }} store"
+        >
+            <div class="vendor-store-card__hero">
+                <img src="{{ $coverImage }}" alt="" class="vendor-store-card__cover" loading="lazy">
+                <div class="vendor-store-card__shade" aria-hidden="true"></div>
+
+                @if ($vendor->is_premium)
+                    <span class="vendor-store-card__premium-tag">
+                        <i class="fa-solid fa-crown me-1" aria-hidden="true"></i>Premium
+                    </span>
+                @endif
+
+                <span class="vendor-store-card__product-tag">
+                    <i class="fa-solid fa-box-open me-1" aria-hidden="true"></i>{{ $vendor->products_count }} Products
+                </span>
+
+                <div class="vendor-store-card__avatar">
+                    <img
+                        src="{{ $avatarImage }}"
+                        alt="{{ $vendor->publicDisplayName() }}"
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='{{ asset('assets/images/profile-placeholder.svg') }}';"
+                    >
+                </div>
+            </div>
+
+            <div class="vendor-store-card__panel">
+                <div class="vendor-store-card__title-row">
+                    <h3 class="vendor-store-card__name">{{ $vendor->publicDisplayName() }}</h3>
                     @if ($vendor->is_premium)
                         @include('frontend.premium.partials.badge', ['size' => 'xs'])
                     @endif
                 </div>
-                <p class="vendor-market-card__meta mb-0">
-                    <i class="fa-solid fa-location-dot me-1" aria-hidden="true"></i>
-                    {{ $vendorLocation }}
+
+                <div class="vendor-store-card__meta">
+                    <span class="vendor-store-card__chip">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $locationLabel }}
+                    </span>
                     @if ($hasLocation && $vendor->nearest_distance_km !== null)
-                        <span class="vendor-market-card__distance">• {{ number_format($vendor->nearest_distance_km, 1) }} km away</span>
+                        <span class="vendor-store-card__chip vendor-store-card__chip--distance">
+                            <i class="fa-solid fa-route" aria-hidden="true"></i>{{ number_format($vendor->nearest_distance_km, 1) }} km
+                        </span>
                     @endif
-                </p>
-                <a href="{{ $storeUrl }}" class="vendor-market-card__btn mt-auto text-center text-decoration-none">View Store</a>
+                </div>
+
+                @if ($featuredLabel)
+                    <p class="vendor-store-card__featured">
+                        <span>Featured</span>
+                        {{ $featuredLabel }}
+                    </p>
+                @endif
+
+                <span class="vendor-store-card__cta">
+                    Visit Store
+                    <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
+                </span>
             </div>
-        </article>
+        </a>
     </div>
 @empty
     <div class="col-12 vendor-empty-state">

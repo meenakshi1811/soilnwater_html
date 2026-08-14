@@ -377,6 +377,10 @@
         },
 
         placeAutocompleteComponentValue: function (components, type) {
+            if (window.SoilnWaterGooglePlaces) {
+                return window.SoilnWaterGooglePlaces.getComponent(components, type);
+            }
+
             var match = (components || []).find(function (component) {
                 return component.types.indexOf(type) !== -1;
             });
@@ -397,7 +401,7 @@
                 return;
             }
 
-            if (!window.google || !google.maps || !google.maps.places) {
+            if (!window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
                 var attempts = Number(addressInput.dataset.googlePlacesAttempts || 0);
                 if (attempts >= 20) {
                     return;
@@ -412,65 +416,52 @@
                 return;
             }
 
-            addressInput.dataset.googlePlacesReady = 'true';
-
-            var fields = ['address_components', 'formatted_address', 'name'];
-            if (latitudeInput && longitudeInput) {
-                fields.push('geometry');
-            }
-
-            var autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                componentRestrictions: { country: 'in' },
-                fields: fields
-            });
-
             var self = this;
 
-            autocomplete.addListener('place_changed', function () {
-                var place = autocomplete.getPlace();
-                var components = place.address_components || [];
+            window.SoilnWaterGooglePlaces.bindAutocomplete(addressInput, {
+                geometry: !!(latitudeInput && longitudeInput),
+                onPlaceChanged: function (place) {
+                    var components = place.address_components || [];
+                    var selectedAddress = window.SoilnWaterGooglePlaces.getSelectedAddress(place);
 
-                var selectedAddress = place.formatted_address || place.name || '';
-                if (selectedAddress) {
-                    addressInput.value = selectedAddress;
-                }
-
-                var city = self.placeAutocompleteComponentValue(components, 'locality')
-                    || self.placeAutocompleteComponentValue(components, 'postal_town')
-                    || self.placeAutocompleteComponentValue(components, 'administrative_area_level_3')
-                    || self.placeAutocompleteComponentValue(components, 'administrative_area_level_2');
-                var pincode = self.placeAutocompleteComponentValue(components, 'postal_code');
-
-                if (cityInput && city) {
-                    cityInput.value = city;
-                    $(cityInput).trigger('input').trigger('change');
-                }
-
-                if (pincodeInput && pincode) {
-                    pincodeInput.value = pincode;
-                    $(pincodeInput).trigger('input').trigger('change');
-                }
-
-                if (latitudeInput && longitudeInput && place.geometry && place.geometry.location) {
-                    var lat = place.geometry.location.lat();
-                    var lng = place.geometry.location.lng();
-
-                    if (typeof lat === 'number' && Number.isFinite(lat)) {
-                        latitudeInput.value = String(lat);
+                    if (selectedAddress) {
+                        addressInput.value = selectedAddress;
                     }
 
-                    if (typeof lng === 'number' && Number.isFinite(lng)) {
-                        longitudeInput.value = String(lng);
+                    var city = window.SoilnWaterGooglePlaces.getCity(components);
+                    var pincode = window.SoilnWaterGooglePlaces.getPincode(components);
+
+                    if (cityInput && city) {
+                        cityInput.value = city;
+                        $(cityInput).trigger('input').trigger('change');
                     }
 
-                    addressInput.dataset.placeJustSelected = '1';
-                }
+                    if (pincodeInput && pincode) {
+                        pincodeInput.value = pincode;
+                        $(pincodeInput).trigger('input').trigger('change');
+                    }
 
-                $(addressInput).trigger('input').trigger('change');
+                    if (latitudeInput && longitudeInput && place.geometry && place.geometry.location) {
+                        var lat = place.geometry.location.lat();
+                        var lng = place.geometry.location.lng();
 
-                if (onPlaceChanged) {
-                    onPlaceChanged();
-                }
+                        if (typeof lat === 'number' && Number.isFinite(lat)) {
+                            latitudeInput.value = String(lat);
+                        }
+
+                        if (typeof lng === 'number' && Number.isFinite(lng)) {
+                            longitudeInput.value = String(lng);
+                        }
+
+                        addressInput.dataset.placeJustSelected = '1';
+                    }
+
+                    $(addressInput).trigger('input').trigger('change');
+
+                    if (onPlaceChanged) {
+                        onPlaceChanged();
+                    }
+                },
             });
         },
 

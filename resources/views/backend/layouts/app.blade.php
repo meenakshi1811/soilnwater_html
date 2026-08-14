@@ -81,6 +81,7 @@
             });
         </script>
     @endif
+    <script src="{{ asset('assets/js/google-places-autocomplete.js') }}?v={{ now()->timestamp }}"></script>
     <script src="{{ asset('assets/js/main.js') }}?v={{ now()->timestamp }}" defer></script>
     <script src="{{ asset('assets/js/password-toggle.js') }}?v={{ now()->timestamp }}" defer></script>
     @stack('scripts')

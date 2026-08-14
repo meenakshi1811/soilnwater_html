@@ -222,30 +222,27 @@
                 if (lngInput) lngInput.value = '';
             });
 
-            if (!window.google || !window.google.maps || !window.google.maps.places) {
+            if (!window.google || !window.google.maps || !window.google.maps.places || !window.SoilnWaterGooglePlaces) {
                 return;
             }
 
-            var autocomplete = new google.maps.places.Autocomplete(input, {
-                fields: ['formatted_address', 'geometry', 'name'],
-                componentRestrictions: { country: 'in' }
-            });
+            window.SoilnWaterGooglePlaces.bindAutocomplete(input, {
+                geometry: true,
+                onPlaceChanged: function (place) {
+                    var hasGeometry = !!(place && place.geometry && place.geometry.location);
 
-            autocomplete.addListener('place_changed', function () {
-                var place = autocomplete.getPlace();
-                var hasGeometry = !!(place && place.geometry && place.geometry.location);
+                    if (!hasGeometry) {
+                        if (latInput) latInput.value = '';
+                        if (lngInput) lngInput.value = '';
+                        $location.valid();
+                        return;
+                    }
 
-                if (!hasGeometry) {
-                    if (latInput) latInput.value = '';
-                    if (lngInput) lngInput.value = '';
+                    input.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place) || input.value;
+                    if (latInput) latInput.value = String(place.geometry.location.lat());
+                    if (lngInput) lngInput.value = String(place.geometry.location.lng());
                     $location.valid();
-                    return;
-                }
-
-                input.value = place.formatted_address || place.name || input.value;
-                if (latInput) latInput.value = String(place.geometry.location.lat());
-                if (lngInput) lngInput.value = String(place.geometry.location.lng());
-                $location.valid();
+                },
             });
         },
 

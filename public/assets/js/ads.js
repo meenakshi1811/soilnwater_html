@@ -887,15 +887,17 @@
             var locationInput = document.getElementById('adLocation');
             var locationLatInput = document.getElementById('adLocationLat');
             var locationLngInput = document.getElementById('adLocationLng');
-            if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
-            var autocomplete = new google.maps.places.Autocomplete(locationInput, { fields: ['formatted_address', 'geometry', 'name'] });
-            autocomplete.addListener('place_changed', function () {
-                var place = autocomplete.getPlace();
-                var lat = place && place.geometry && place.geometry.location && place.geometry.location.lat ? place.geometry.location.lat() : null;
-                var lng = place && place.geometry && place.geometry.location && place.geometry.location.lng ? place.geometry.location.lng() : null;
-                locationInput.value = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : locationInput.value;
-                if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
-                if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+            if (!locationInput || !window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) return;
+
+            window.SoilnWaterGooglePlaces.bindAutocomplete(locationInput, {
+                geometry: true,
+                onPlaceChanged: function (place) {
+                    var lat = place && place.geometry && place.geometry.location && place.geometry.location.lat ? place.geometry.location.lat() : null;
+                    var lng = place && place.geometry && place.geometry.location && place.geometry.location.lng ? place.geometry.location.lng() : null;
+                    locationInput.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place) || locationInput.value;
+                    if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
+                    if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+                },
             });
         };
 

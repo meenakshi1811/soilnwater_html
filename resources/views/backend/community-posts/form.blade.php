@@ -10707,13 +10707,21 @@ The mountains keep.</pre>
 
     function fillStructuredLocationFromPlace(place) {
         const components = place?.address_components || [];
+        const structuredSearchInput = document.getElementById('communityStructuredLocationSearch');
+
+        if (structuredSearchInput && window.SoilnWaterGooglePlaces) {
+            structuredSearchInput.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place);
+        }
+
         const country = readCommunityAddressPart(components, 'country');
         const state = readCommunityAddressPart(components, 'administrative_area_level_1');
         const district = readCommunityAddressPart(components, 'administrative_area_level_2')
             || readCommunityAddressPart(components, 'administrative_area_level_3');
-        const city = readCommunityAddressPart(components, 'locality')
-            || readCommunityAddressPart(components, 'postal_town')
-            || readCommunityAddressPart(components, 'administrative_area_level_2');
+        const city = window.SoilnWaterGooglePlaces
+            ? window.SoilnWaterGooglePlaces.getCity(components)
+            : (readCommunityAddressPart(components, 'locality')
+                || readCommunityAddressPart(components, 'postal_town')
+                || readCommunityAddressPart(components, 'administrative_area_level_2'));
         const locality = readCommunityAddressPart(components, 'sublocality_level_1')
             || readCommunityAddressPart(components, 'sublocality')
             || readCommunityAddressPart(components, 'neighborhood')
@@ -10741,18 +10749,18 @@ The mountains keep.</pre>
     }
 
     window.initCommunityPostLocationAutocomplete = function () {
-        if (!window.google || !google.maps || !google.maps.places) {
+        if (!window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
             return;
         }
 
         const structuredSearchInput = document.getElementById('communityStructuredLocationSearch');
         if (structuredSearchInput && !structuredSearchInput.dataset.autocompleteBound) {
-            const structuredAutocomplete = new google.maps.places.Autocomplete(structuredSearchInput, {
-                fields: ['address_components', 'formatted_address', 'geometry', 'place_id'],
-            });
-
-            structuredAutocomplete.addListener('place_changed', function () {
-                fillStructuredLocationFromPlace(structuredAutocomplete.getPlace());
+            window.SoilnWaterGooglePlaces.bindAutocomplete(structuredSearchInput, {
+                geometry: true,
+                placeId: true,
+                onPlaceChanged: function (place) {
+                    fillStructuredLocationFromPlace(place);
+                },
             });
 
             structuredSearchInput.dataset.autocompleteBound = '1';
@@ -10765,20 +10773,20 @@ The mountains keep.</pre>
             return;
         }
 
-        const autocomplete = new google.maps.places.Autocomplete(locationInput, {
-            fields: ['formatted_address', 'geometry', 'place_id'],
-        });
+        window.SoilnWaterGooglePlaces.bindAutocomplete(locationInput, {
+            geometry: true,
+            placeId: true,
+            onPlaceChanged: function (place) {
+                if (!place?.geometry?.location) {
+                    if (latitudeInput) latitudeInput.value = '';
+                    if (longitudeInput) longitudeInput.value = '';
+                    return;
+                }
 
-        autocomplete.addListener('place_changed', function () {
-            const place = autocomplete.getPlace();
-            if (!place?.geometry?.location) {
-                if (latitudeInput) latitudeInput.value = '';
-                if (longitudeInput) longitudeInput.value = '';
-                return;
-            }
-            locationInput.value = place.formatted_address || locationInput.value;
-            if (latitudeInput) latitudeInput.value = place.geometry.location.lat().toFixed(7);
-            if (longitudeInput) longitudeInput.value = place.geometry.location.lng().toFixed(7);
+                locationInput.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place) || locationInput.value;
+                if (latitudeInput) latitudeInput.value = place.geometry.location.lat().toFixed(7);
+                if (longitudeInput) longitudeInput.value = place.geometry.location.lng().toFixed(7);
+            },
         });
 
         locationInput.addEventListener('input', function () {

@@ -74,6 +74,7 @@
     };
   </script>
   <script src="{{ asset('assets/js/ad-modal.js') }}?v={{ now()->timestamp }}"></script>
+  <script src="{{ asset('assets/js/google-places-autocomplete.js') }}?v={{ now()->timestamp }}"></script>
   <script>window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete || function initHeaderLocationAutocomplete() {};</script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initHeaderLocationAutocomplete"></script>
   <script src="{{ asset('assets/js/main.js') }}?v={{ now()->timestamp }}" defer></script>

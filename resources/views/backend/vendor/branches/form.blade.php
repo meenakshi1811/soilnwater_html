@@ -126,17 +126,16 @@ function getAddressPart(components, type) {
 
 function initBranchAddressAutocomplete() {
     const address = document.getElementById('address');
-    if (!address || !window.google?.maps?.places) return;
-    const autocomplete = new google.maps.places.Autocomplete(address, {
-        fields: ['formatted_address', 'address_components'],
-    });
+    if (!address || !window.google?.maps?.places || !window.SoilnWaterGooglePlaces) return;
 
-    autocomplete.addListener('place_changed', function () {
-        const place = autocomplete.getPlace();
-        const components = place.address_components || [];
-        document.getElementById('city').value = getAddressPart(components, 'locality') || getAddressPart(components, 'administrative_area_level_2');
-        document.getElementById('state').value = getAddressPart(components, 'administrative_area_level_1');
-        document.getElementById('pincode').value = getAddressPart(components, 'postal_code');
+    window.SoilnWaterGooglePlaces.bindAutocomplete(address, {
+        onPlaceChanged: function (place) {
+            const components = place.address_components || [];
+            address.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place);
+            document.getElementById('city').value = window.SoilnWaterGooglePlaces.getCity(components);
+            document.getElementById('state').value = window.SoilnWaterGooglePlaces.getState(components);
+            document.getElementById('pincode').value = window.SoilnWaterGooglePlaces.getPincode(components);
+        },
     });
 }
 

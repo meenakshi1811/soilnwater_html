@@ -893,21 +893,19 @@
         }
 
         window.initAdLocationAutocomplete = function () {
-            if (!locationInput || !window.google || !google.maps || !google.maps.places) {
+            if (!locationInput || !window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
                 return;
             }
 
-            const autocomplete = new google.maps.places.Autocomplete(locationInput, {
-                fields: ['formatted_address', 'geometry', 'name'],
-            });
-
-            autocomplete.addListener('place_changed', function () {
-                const place = autocomplete.getPlace();
-                const lat = place?.geometry?.location?.lat?.();
-                const lng = place?.geometry?.location?.lng?.();
-                locationInput.value = place?.formatted_address || place?.name || locationInput.value;
-                if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
-                if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+            window.SoilnWaterGooglePlaces.bindAutocomplete(locationInput, {
+                geometry: true,
+                onPlaceChanged: function (place) {
+                    const lat = place?.geometry?.location?.lat?.();
+                    const lng = place?.geometry?.location?.lng?.();
+                    locationInput.value = window.SoilnWaterGooglePlaces.getSelectedAddress(place) || locationInput.value;
+                    if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
+                    if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+                },
             });
         };
     })();

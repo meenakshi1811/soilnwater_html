@@ -3,163 +3,229 @@
 @push('styles')
   <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
   <style>
-    .vendors-market-page {
-      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 220px);
-    }
-
-    .vendors-market-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
-    .vendors-market-title {
-      font-family: 'Manrope', sans-serif;
-      font-size: clamp(1.5rem, 2.4vw, 2rem);
-      font-weight: 800;
-      color: #0f3358;
-      margin-bottom: .35rem;
-    }
-
-    .vendors-market-title .icon-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.2rem;
-      height: 2.2rem;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #2e7d32, #1b5e20);
-      color: #fff;
-      font-size: .95rem;
-      margin-right: .55rem;
-      vertical-align: middle;
-    }
-
-    .vendors-market-subtitle {
-      color: #5b6f84;
-      font-size: .95rem;
-      margin-bottom: 0;
-      max-width: 42rem;
-    }
-
-    .vendors-market-filter {
-      background: #fff;
+    .vendors-listing-sec .vendors-search-bar {
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
       border: 1px solid #dbe6f3;
       border-radius: 14px;
-      padding: 1rem;
-      box-shadow: 0 8px 24px rgba(15, 51, 88, 0.05);
+      padding: .95rem;
     }
 
-    .vendor-market-card {
-      border-radius: 16px;
+    .vendors-store-grid {
+      --bs-gutter-x: 1rem;
+      --bs-gutter-y: 1.15rem;
+    }
+
+    .vendor-store-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border: 1px solid #dbe6f3;
+      border-radius: 18px;
       overflow: hidden;
-      transition: transform .22s ease, box-shadow .22s ease;
       background: #fff;
+      color: inherit;
+      box-shadow: 0 8px 24px rgba(15, 51, 88, 0.06);
+      transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
     }
 
-    .vendor-market-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 34px rgba(15, 51, 88, 0.12) !important;
+    .vendor-store-card:hover {
+      transform: translateY(-6px);
+      border-color: #b9d0ea;
+      box-shadow: 0 18px 36px rgba(15, 51, 88, 0.14);
+      color: inherit;
     }
 
-    .vendor-market-card__media {
+    .vendor-store-card__hero {
       position: relative;
-      display: block;
-      aspect-ratio: 4 / 3;
+      height: 148px;
       overflow: hidden;
-      text-decoration: none;
+      background: linear-gradient(135deg, #e8f0ff 0%, #edf7ef 100%);
     }
 
-    .vendor-market-card__image {
+    .vendor-store-card__cover {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform .35s ease;
+      transition: transform .4s ease;
     }
 
-    .vendor-market-card:hover .vendor-market-card__image {
-      transform: scale(1.04);
+    .vendor-store-card:hover .vendor-store-card__cover {
+      transform: scale(1.06);
     }
 
-    .vendor-market-card__count {
+    .vendor-store-card__shade {
       position: absolute;
-      left: .75rem;
-      bottom: .75rem;
-      background: rgba(15, 51, 88, 0.82);
-      color: #fff;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .02em;
-      padding: .35rem .65rem;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(8, 28, 52, 0.08) 0%, rgba(8, 28, 52, 0.58) 100%);
+      pointer-events: none;
+    }
+
+    .vendor-store-card__premium-tag {
+      position: absolute;
+      top: .7rem;
+      left: .7rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: .28rem .62rem;
       border-radius: 999px;
-      backdrop-filter: blur(4px);
+      background: linear-gradient(135deg, #f6e6a8, #c9a227);
+      color: #4a3600;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 16px rgba(201, 162, 39, 0.28);
     }
 
-    .vendor-market-card__body {
-      padding: .95rem 1rem 1rem;
-      gap: .55rem;
+    .vendor-store-card__product-tag {
+      position: absolute;
+      top: .7rem;
+      right: .7rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: .28rem .62rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #0f3358;
+      font-size: .68rem;
+      font-weight: 700;
+      backdrop-filter: blur(6px);
     }
 
-    .vendor-market-card__head {
+    .vendor-store-card__avatar {
+      position: absolute;
+      left: 1rem;
+      bottom: -1.55rem;
+      z-index: 3;
+      width: 4.4rem;
+      height: 4.4rem;
+      border-radius: 16px;
+      padding: .18rem;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 51, 88, 0.16);
+    }
+
+    .vendor-store-card__avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 13px;
+      object-fit: cover;
+      display: block;
+      background: #f3f7fb;
+    }
+
+    .vendor-store-card__panel {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: .7rem;
+      padding: 2.15rem 1rem 1rem;
+      min-height: 0;
+    }
+
+    .vendor-store-card__title-row {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: .5rem;
+      gap: .55rem;
     }
 
-    .vendor-market-card__name {
-      font-family: 'Manrope', sans-serif;
-      font-size: .98rem;
-      font-weight: 800;
-      color: #0f3358;
+    .vendor-store-card__name {
       margin: 0;
+      font-family: 'Manrope', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
       line-height: 1.35;
+      color: #0f3358;
     }
 
-    .vendor-market-card__name a {
-      color: inherit;
+    .vendor-store-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
     }
 
-    .vendor-market-card__meta {
-      font-size: .82rem;
-      color: #66788f;
-    }
-
-    .vendor-market-card__distance {
-      color: #2f68ad;
-      font-weight: 600;
-    }
-
-    .vendor-market-card__btn {
-      border: 0;
+    .vendor-store-card__chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .32rem .62rem;
       border-radius: 999px;
-      background: linear-gradient(90deg, #1f66b4 0%, #1e4f9b 100%);
+      background: #eef4fb;
+      color: #4d6480;
+      font-size: .72rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .vendor-store-card__chip i {
+      color: #2f68ad;
+      font-size: .68rem;
+    }
+
+    .vendor-store-card__chip--distance {
+      background: #e8f3ff;
+      color: #1f66b4;
+    }
+
+    .vendor-store-card__featured {
+      margin: 0;
+      padding: .62rem .72rem;
+      border-radius: 12px;
+      background: #f8fbff;
+      border: 1px dashed #c7dcfa;
+      color: #52667a;
+      font-size: .76rem;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .vendor-store-card__featured span {
+      display: block;
+      margin-bottom: .15rem;
+      color: #1f66b4;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .vendor-store-card__cta {
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      width: 100%;
+      padding: .62rem .85rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1f66b4 0%, #174684 100%);
       color: #fff;
       font-size: .78rem;
-      font-weight: 700;
-      line-height: 1.25;
-      padding: .55rem .85rem;
-      width: 100%;
+      font-weight: 800;
+      letter-spacing: .02em;
       transition: box-shadow .2s ease, transform .2s ease;
     }
 
-    .vendor-market-card__btn:hover {
-      color: #fff;
-      box-shadow: 0 8px 18px rgba(31, 102, 180, 0.28);
+    .vendor-store-card:hover .vendor-store-card__cta {
+      box-shadow: 0 10px 22px rgba(31, 102, 180, 0.28);
       transform: translateY(-1px);
     }
 
-    .vendor-market-card.is-premium-card {
-      border: 1px solid #d9c27a !important;
+    .vendor-store-card.is-premium-card {
+      border: 2px solid #c9a227;
       box-shadow:
-        0 10px 28px rgba(201, 162, 39, 0.16),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.75) !important;
+        0 12px 30px rgba(201, 162, 39, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.75);
     }
 
-    .vendor-market-card.is-premium-card::before {
+    .vendor-store-card.is-premium-card::before {
       content: '';
       position: absolute;
       top: 0;
@@ -167,11 +233,17 @@
       right: 0;
       height: 4px;
       background: linear-gradient(90deg, #f6e6a8 0%, #c9a227 50%, #f6e6a8 100%);
-      z-index: 2;
+      z-index: 4;
     }
 
-    .vendor-market-card.is-premium-card {
+    .vendor-store-card.is-premium-card {
       position: relative;
+    }
+
+    .vendor-store-card.is-premium-card .vendor-store-card__avatar {
+      box-shadow:
+        0 10px 24px rgba(15, 51, 88, 0.16),
+        0 0 0 2px rgba(201, 162, 39, 0.35);
     }
 
     .vendor-empty-state-card {
@@ -207,86 +279,79 @@
       font-size: .92rem;
     }
 
-    @media (max-width: 767.98px) {
-      .vendors-market-filter .btn {
-        width: 100%;
+    @media (max-width: 575.98px) {
+      .vendor-store-card__hero {
+        height: 132px;
+      }
+
+      .vendor-store-card__avatar {
+        width: 3.9rem;
+        height: 3.9rem;
+        bottom: -1.35rem;
       }
     }
   </style>
 @endpush
 
 @section('content')
-@php
-  $marketBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
-@endphp
+<div class="main-wrap">
+  <div class="main-col">
+    @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
 
-<section class="mb-0">
-  <img
-    src="{{ $marketBannerImage ? asset($marketBannerImage) : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=2200&q=80' }}"
-    alt="Vendors marketplace banner"
-    class="w-100"
-    style="display:block;max-height:220px;object-fit:cover;"
-  >
-</section>
+    <section class="sec vendors-listing-sec">
+      <div class="sec-head">
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-store"></i></span> All Vendors</div>
+      </div>
 
-<div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 vendors-market-page">
-  @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
-
-  <div class="vendors-market-head mt-4 mb-3">
-    <div>
-      <h1 class="vendors-market-title">
-        <span class="icon-badge"><i class="fa-solid fa-store"></i></span>
-        Vendor Marketplace
-      </h1>
-      <p class="vendors-market-subtitle">
+      <p class="small text-muted mb-3">
         @if ($hasLocation)
-          Discover nearby premium vendors first, followed by other stores around your location.
+          Showing nearby premium vendors first, then nearby normal vendors.
         @else
-          Browse premium vendors first, then explore the latest stores on SoilnWater.
+          Showing latest premium vendors first, followed by latest normal vendors.
         @endif
       </p>
-    </div>
-  </div>
 
-  <div class="vendors-market-filter mb-4">
-    <div class="row g-2 align-items-end" id="vendorsFilterBar">
-      <div class="col-12 col-lg-8">
-        <label for="vendorsMarketFilterSearch" class="form-label mb-1">Search vendors</label>
-        <input
-          id="vendorsMarketFilterSearch"
-          class="form-control"
-          placeholder="Search by store name or product"
-          value="{{ request('search') }}"
-        >
+      <div class="vendors-search-bar mb-4">
+        <div class="row g-2 align-items-end" id="vendorsFilterBar">
+          <div class="col-12 col-lg-9">
+            <label for="vendorsMarketFilterSearch" class="form-label mb-1">Search vendors</label>
+            <input
+              id="vendorsMarketFilterSearch"
+              class="form-control"
+              placeholder="Search by store name or product"
+              value="{{ request('search') }}"
+            >
+          </div>
+          <div class="col-12 col-lg-3 d-grid">
+            <button type="button" id="vendorsMarketClearSearch" class="btn btn-outline-secondary">
+              <i class="fa-solid fa-filter-circle-xmark me-1"></i> Clear
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="col-12 col-lg-4 d-grid d-lg-flex gap-2">
-        <button type="button" id="vendorsMarketClearSearch" class="btn btn-outline-secondary">
-          <i class="fa-solid fa-filter-circle-xmark me-1"></i> Clear
-        </button>
+
+      <div
+        id="vendorsGrid"
+        class="vendors-store-grid row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3"
+        data-next-page-url="{{ $vendors->nextPageUrl() }}"
+      >
+        @include('frontend.vendors.partials.cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
       </div>
-    </div>
-  </div>
 
-  <div
-    id="vendorsGrid"
-    class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3"
-    data-next-page-url="{{ $vendors->nextPageUrl() }}"
-  >
-    @include('frontend.vendors.partials.cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
-  </div>
+      <div class="mt-4 offer-pagination-wrap" id="vendorsPaginationState">
+        @if ($vendors->total() > 0)
+          <p class="offer-pagination-summary mb-0" id="vendorsSummaryText">
+            Showing {{ $vendors->firstItem() }} to {{ $vendors->lastItem() }} of {{ $vendors->total() }} results
+          </p>
+        @else
+          <p class="offer-pagination-summary mb-0 d-none" id="vendorsSummaryText"></p>
+        @endif
+        <p class="offer-pagination-loading mb-0 d-none" id="vendorsLoadingText">Loading more vendors…</p>
+      </div>
 
-  <div class="mt-4 offer-pagination-wrap" id="vendorsPaginationState">
-    @if ($vendors->total() > 0)
-      <p class="offer-pagination-summary mb-0" id="vendorsSummaryText">
-        Showing {{ $vendors->firstItem() }} to {{ $vendors->lastItem() }} of {{ $vendors->total() }} results
-      </p>
-    @else
-      <p class="offer-pagination-summary mb-0 d-none" id="vendorsSummaryText"></p>
-    @endif
-    <p class="offer-pagination-loading mb-0 d-none" id="vendorsLoadingText">Loading more vendors…</p>
+      <div id="vendorsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
+    </section>
   </div>
-
-  <div id="vendorsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
 </div>
 @endsection
 
