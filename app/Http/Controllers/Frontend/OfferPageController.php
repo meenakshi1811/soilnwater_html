@@ -119,19 +119,33 @@ class OfferPageController extends Controller
         ]);
     }
 
-    public function vendors(Request $request): View
+    public function vendors(Request $request): View|JsonResponse
     {
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+        $hasLocation = is_numeric($lat) && is_numeric($lng);
 
         $vendors = $this->topVendorsQuery($lat, $lng, $request->string('search')->trim()->toString())
             ->paginate(24)
             ->appends($request->query());
         $vendors->getCollection()->each->usePublishedPage();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('frontend.vendors.partials.cards', [
+                    'vendors' => $vendors,
+                    'hasLocation' => $hasLocation,
+                ])->render(),
+                'next_page_url' => $vendors->nextPageUrl(),
+                'loaded_to' => $vendors->lastItem() ?? 0,
+                'total' => $vendors->total(),
+            ]);
+        }
+
         return view('frontend/vendors/index', [
             'vendors' => $vendors,
-            'hasLocation' => is_numeric($lat) && is_numeric($lng),
+            'hasLocation' => $hasLocation,
+            'homepageSetting' => HomepageSetting::query()->find(1),
         ]);
     }
 

@@ -414,15 +414,14 @@
 
             addressInput.dataset.googlePlacesReady = 'true';
 
-            var fields = ['address_components', 'formatted_address'];
+            var fields = ['address_components', 'formatted_address', 'name'];
             if (latitudeInput && longitudeInput) {
                 fields.push('geometry');
             }
 
             var autocomplete = new google.maps.places.Autocomplete(addressInput, {
                 componentRestrictions: { country: 'in' },
-                fields: fields,
-                types: ['geocode']
+                fields: fields
             });
 
             var self = this;
@@ -431,8 +430,9 @@
                 var place = autocomplete.getPlace();
                 var components = place.address_components || [];
 
-                if (place.formatted_address) {
-                    addressInput.value = place.formatted_address;
+                var selectedAddress = place.formatted_address || place.name || '';
+                if (selectedAddress) {
+                    addressInput.value = selectedAddress;
                 }
 
                 var city = self.placeAutocompleteComponentValue(components, 'locality')
