@@ -1,5 +1,6 @@
 @if($post->content_type === 'poetry')
     @php
+        $portalLayout = $portalLayout ?? false;
         $hasClassification = filled($post->category)
             || filled(data_get($post->meta, 'sub_category'))
             || filled(data_get($post->meta, 'poetry_type'))
@@ -9,7 +10,7 @@
             && filled(data_get($post->meta, 'poetry_series_name'));
     @endphp
 
-    @if($hasClassification)
+    @if($hasClassification && ! $portalLayout)
         <div class="poetry-classification-strip mb-4">
             <div class="d-flex flex-wrap gap-4">
                 @if(filled($post->category))
@@ -46,7 +47,7 @@
         </div>
     @endif
 
-    @if($isSeries)
+    @if($isSeries && ! $portalLayout)
         <div class="poetry-series-banner mb-4">
             <div class="poetry-series-banner__kicker mb-1">Poetry collection</div>
             <h4 class="h5 mb-1">{{ data_get($post->meta, 'poetry_series_name') }}</h4>
@@ -56,7 +57,9 @@
         </div>
     @endif
 
+    @unless($portalLayout)
     @include('community.partials.poetry-author-panel', ['post' => $post])
+    @endunless
 
     @if($post->poetryAudioUrl())
         <div class="poetry-audio-player about-box mb-4">

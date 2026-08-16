@@ -158,8 +158,14 @@ class CommunityPostController extends Controller
             ...$this->hubLandingExtras(),
         ];
 
-        if ($viewData['activeType'] === 'news') {
-            $viewData['newsPortal'] = $this->buildNewsPortalData($request, $posts);
+        if (CommunityContentTaxonomy::shouldUsePortalListing(
+            $viewData['activeType'],
+            $viewData['activeHub'],
+            isset($activeAuthor)
+        )) {
+            $portalScope = CommunityContentTaxonomy::resolvePortalScope($viewData['activeType'], $viewData['activeHub']);
+            $viewData['contentPortal'] = $this->buildContentPortalData($request, $posts, $portalScope['content_types']);
+            $viewData['portalKey'] = $portalScope['portal_key'];
         }
 
         return view('community.index', $viewData);
@@ -190,8 +196,14 @@ class CommunityPostController extends Controller
             ...$this->hubLandingExtras(),
         ];
 
-        if ($viewData['activeType'] === 'news') {
-            $viewData['newsPortal'] = $this->buildNewsPortalData($request, $posts);
+        if (CommunityContentTaxonomy::shouldUsePortalListing(
+            $viewData['activeType'],
+            $viewData['activeHub'],
+            true
+        )) {
+            $portalScope = CommunityContentTaxonomy::resolvePortalScope($viewData['activeType'], $viewData['activeHub']);
+            $viewData['contentPortal'] = $this->buildContentPortalData($request, $posts, $portalScope['content_types']);
+            $viewData['portalKey'] = $portalScope['portal_key'];
         }
 
         return view('community.index', $viewData);
@@ -243,11 +255,11 @@ class CommunityPostController extends Controller
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
         ];
 
-        if ($post->content_type === 'news') {
-            $viewData['relatedNews'] = $this->relatedNewsPosts($post);
-            $viewData['trendingNews'] = $this->trendingNewsPosts($post);
-            $viewData['breakingNewsPosts'] = $this->breakingNewsPosts($post);
-            $viewData['activeHub'] = 'knowledge-news';
+        if (CommunityContentTaxonomy::usesContentPortal($post->content_type)) {
+            $viewData['relatedPortalPosts'] = $this->relatedPortalPosts($post);
+            $viewData['trendingPortalPosts'] = $this->trendingPortalPosts($post);
+            $viewData['featuredPortalPosts'] = $this->featuredPortalPosts($post);
+            $viewData['activeHub'] = CommunityContentTaxonomy::hubSectionForType($post->content_type);
             $viewData['activeCategory'] = (string) ($post->category ?? '');
             $viewData['authorPostCount'] = $post->user_id
                 ? CommunityPost::query()
@@ -7832,11 +7844,11 @@ class CommunityPostController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
      */
-    private function relatedNewsPosts(CommunityPost $post, int $limit = 4)
+    private function relatedPortalPosts(CommunityPost $post, int $limit = 4)
     {
         return CommunityPost::query()
             ->with('user')
-            ->where('content_type', 'news')
+            ->where('content_type', $post->content_type)
             ->where('id', '!=', $post->id)
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
@@ -7849,11 +7861,11 @@ class CommunityPostController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
      */
-    private function trendingNewsPosts(CommunityPost $post, int $limit = 5)
+    private function trendingPortalPosts(CommunityPost $post, int $limit = 5)
     {
         return CommunityPost::query()
             ->with('user')
-            ->where('content_type', 'news')
+            ->where('content_type', $post->content_type)
             ->where('id', '!=', $post->id)
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
@@ -7866,11 +7878,13 @@ class CommunityPostController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
      */
-    private function breakingNewsPosts(?CommunityPost $exclude = null, int $limit = 4)
+    private function featuredPortalPosts(?CommunityPost $exclude = null, int $limit = 4, string|array|null $contentTypes = null)
     {
+        $contentTypes = array_values((array) ($contentTypes ?? $exclude?->content_type ?? 'news'));
+
         return CommunityPost::query()
             ->with('user')
-            ->where('content_type', 'news')
+            ->whereIn('content_type', $contentTypes)
             ->when($exclude, fn ($query) => $query->where('id', '!=', $exclude->id))
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
@@ -7880,6 +7894,30 @@ class CommunityPostController extends Controller
             ->latest('published_at')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function relatedNewsPosts(CommunityPost $post, int $limit = 4)
+    {
+        return $this->relatedPortalPosts($post, $limit);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function trendingNewsPosts(CommunityPost $post, int $limit = 5)
+    {
+        return $this->trendingPortalPosts($post, $limit);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function breakingNewsPosts(?CommunityPost $exclude = null, int $limit = 4)
+    {
+        return $this->featuredPortalPosts($exclude, $limit);
     }
 
     /**
@@ -7995,8 +8033,9 @@ class CommunityPostController extends Controller
      *     trendingPosts: \Illuminate\Support\Collection
      * }
      */
-    private function buildNewsPortalData(Request $request, $posts): array
+    private function buildContentPortalData(Request $request, $posts, string|array $contentTypes): array
     {
+        $contentTypes = array_values((array) $contentTypes);
         $items = collect($posts->items());
         $featured = $items->first(fn (CommunityPost $post): bool => $post->is_featured || $post->is_highlighted)
             ?? $items->first();
@@ -8004,15 +8043,11 @@ class CommunityPostController extends Controller
 
         $remaining = $items->filter(fn (CommunityPost $post): bool => $post->id !== $featuredId)->values();
 
-        $newsBaseQuery = CommunityPost::query()
+        $trendingPosts = CommunityPost::query()
             ->with('user')
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
-            ->where('content_type', 'news');
-
-        $breakingPosts = $this->breakingNewsPosts(null, 4);
-
-        $trendingPosts = (clone $newsBaseQuery)
+            ->whereIn('content_type', $contentTypes)
             ->orderByDesc('views_count')
             ->latest('published_at')
             ->limit(5)
@@ -8022,30 +8057,49 @@ class CommunityPostController extends Controller
             'featured' => $featured,
             'sidePosts' => $remaining->take(3)->values(),
             'listPosts' => $remaining->slice(3)->values(),
-            'breakingPosts' => $breakingPosts,
+            'breakingPosts' => $this->featuredPortalPosts(null, 4, $contentTypes),
             'trendingPosts' => $trendingPosts,
         ];
+    }
+
+    private function buildNewsPortalData(Request $request, $posts): array
+    {
+        return $this->buildContentPortalData($request, $posts, 'news');
     }
 
     private function communityPostsAjaxResponse($posts, ?Request $request = null): JsonResponse
     {
         $request ??= request();
-        $isNewsLayout = $request->string('type')->toString() === 'news'
-            && ! $request->routeIs('community.authors.show');
+        $isPortalLayout = CommunityContentTaxonomy::shouldUsePortalListing(
+            $request->string('type')->toString(),
+            CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            ),
+            $request->routeIs('community.authors.show')
+        );
+        $portalScope = CommunityContentTaxonomy::resolvePortalScope(
+            $request->string('type')->toString(),
+            CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            )
+        );
 
-        $partial = $isNewsLayout ? 'community.partials.news-list-items' : 'community.partials.post-cards';
-        $listLayout = $isNewsLayout && $posts->currentPage() > 1 ? 'append' : 'list';
+        $partial = $isPortalLayout ? 'community.partials.news-list-items' : 'community.partials.post-cards';
+        $listLayout = $isPortalLayout && $posts->currentPage() > 1 ? 'append' : 'list';
 
         return response()->json([
             'html' => view($partial, [
                 'posts' => $posts,
                 'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-                'layout' => $isNewsLayout ? $listLayout : 'grid',
+                'layout' => $isPortalLayout ? $listLayout : 'grid',
+                'portalType' => $portalScope['portal_key'],
             ])->render(),
             'next_page_url' => $posts->nextPageUrl(),
             'loaded_to' => $posts->lastItem() ?? 0,
             'total' => $posts->total(),
-            'layout' => $isNewsLayout ? 'news-list' : 'grid',
+            'layout' => $isPortalLayout ? 'news-list' : 'grid',
         ]);
     }
 

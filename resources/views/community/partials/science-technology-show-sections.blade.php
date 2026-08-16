@@ -1,5 +1,6 @@
 @if($post->isScienceTechnologyPost())
     @php
+        $portalLayout = $portalLayout ?? false;
         $postType = data_get($post->meta, 'science_technology_post_type');
         $category = data_get($post->meta, 'science_technology_category', $post->category);
         $level = data_get($post->meta, 'science_technology_level');
@@ -11,6 +12,7 @@
         $galleryCategories = \App\Support\CommunityContentTaxonomy::scienceTechnologyGalleryCategories();
     @endphp
 
+    @unless($portalLayout)
     <div class="env-show-overview mb-4">
         <div class="env-show-overview__kicker">Science &amp; Technology · SoilnWater innovation network</div>
         <div class="env-show-overview__title">Research, engineering, and technology for community impact</div>
@@ -32,6 +34,27 @@
             @endif
         </div>
     </div>
+    @else
+        @if($technologies !== [] || $waterSoilTopics !== [] || $showcaseEnabled || $expertReviewEnabled || filled($postType) || filled($level))
+            <div class="news-detail-highlights mb-4">
+                <h4>Project details</h4>
+                <ul>
+                    @if(filled($postType))
+                        <li><strong>Post type:</strong> {{ $postType }}</li>
+                    @endif
+                    @if(filled($level))
+                        <li><strong>Level:</strong> {{ $level }}</li>
+                    @endif
+                    @if($showcaseEnabled)
+                        <li><strong>Innovation Showcase:</strong> Enabled</li>
+                    @endif
+                    @if($expertReviewEnabled)
+                        <li><strong>Expert Review:</strong> Enabled</li>
+                    @endif
+                </ul>
+            </div>
+        @endif
+    @endunless
 
     @if($technologies !== [])
         <div class="mb-4">

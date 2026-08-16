@@ -1,5 +1,9 @@
 @php
-    $activeHub = $activeHub ?? 'knowledge-news';
+    $portalType = $portalType ?? $post->content_type ?? 'news';
+    $activeHub = $activeHub ?? \App\Support\CommunityContentTaxonomy::hubSectionForType($portalType);
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalType);
+    $types = \App\Support\CommunityContentTaxonomy::formTypes();
+    $portalLabel = $types[$portalType]['label'] ?? 'News';
     $newsPriority = data_get($post->meta, 'news_priority');
     $newsSource = data_get($post->meta, 'news_source') ?: data_get($post->meta, 'reporter_name');
     $locationParts = $post->structuredLocationForDisplay()->only(['city', 'state', 'district', 'country'])->filter()->values();
@@ -9,7 +13,10 @@
     $isBreaking = $newsPriority === 'Breaking';
     $authorInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($post->authorDisplayName(), 0, 1));
     $coverUrl = $post->featuredImageUrl();
-    $newsIndexUrl = route('community.index', ['type' => 'news', 'hub' => $activeHub]);
+    $portalIndexUrl = route('community.index', ['type' => $portalType, 'hub' => $activeHub]);
+    $topBadge = $portalCopy['top_badge'];
+    $breakingBadge = $portalCopy['breaking_badge'];
+    $backLabel = $portalCopy['back_label'];
 @endphp
 
 <header class="community-news-main__header community-news-main__header--detail">
@@ -17,7 +24,7 @@
         <nav class="news-detail-breadcrumb" aria-label="Breadcrumb">
             <a href="{{ route('home') }}">Home</a><span>›</span>
             <a href="{{ route('community.index', ['hub' => $activeHub]) }}">Community Hub</a><span>›</span>
-            <a href="{{ $newsIndexUrl }}">News</a><span>›</span>
+            <a href="{{ $portalIndexUrl }}">{{ $portalLabel }}</a><span>›</span>
             <span aria-current="page">{{ \Illuminate\Support\Str::limit($post->title, 48) }}</span>
         </nav>
         <div class="community-news-detail__actions">
@@ -63,8 +70,8 @@
             @endauth
         </div>
     </div>
-    <a href="{{ $newsIndexUrl }}" class="community-news-detail__back">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to News
+    <a href="{{ $portalIndexUrl }}" class="community-news-detail__back">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ $backLabel }}
     </a>
 </header>
 
@@ -76,10 +83,10 @@
     @endif
 
     <div class="community-news-detail__content">
-        @if($isBreaking)
-            <span class="news-detail-badge news-detail-badge--breaking">Breaking News</span>
+        @if($isBreaking && $portalType === 'news')
+            <span class="news-detail-badge news-detail-badge--breaking">{{ $breakingBadge }}</span>
         @elseif($isTopNews)
-            <span class="news-detail-badge">Top News</span>
+            <span class="news-detail-badge">{{ $topBadge }}</span>
         @elseif(filled($post->category))
             <span class="news-detail-badge">{{ $post->category }}</span>
         @endif

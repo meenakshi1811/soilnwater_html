@@ -1,5 +1,6 @@
 @if($post->content_type === 'autobiography')
     @php
+        $portalLayout = $portalLayout ?? false;
         $birthPlace = data_get($post->meta, 'birth_place');
         $currentLocation = data_get($post->meta, 'current_location');
         $placesMentioned = array_values(array_filter((array) data_get($post->meta, 'places_mentioned', [])));
@@ -9,7 +10,7 @@
         $hasLocationDetails = filled($birthPlace) || filled($currentLocation) || $placesMentioned !== [];
     @endphp
 
-    @if(filled(data_get($post->meta, 'autobiography_type')) || filled($post->category))
+    @if(($portalLayout && (filled(data_get($post->meta, 'autobiography_type')) || filled($post->category) || $chapterCount > 0)) || (! $portalLayout && (filled(data_get($post->meta, 'autobiography_type')) || filled($post->category))))
         <div class="autobiography-hero-strip mb-4">
             @if(filled(data_get($post->meta, 'autobiography_type')))
                 <div class="autobiography-hero-strip__item">
@@ -32,7 +33,9 @@
         </div>
     @endif
 
+    @unless($portalLayout)
     @include('community.partials.autobiography-author-panel', ['post' => $post])
+    @endunless
 
     @if($hasLocationDetails)
         <div class="autobiography-section-panel about-box mb-4">
@@ -134,7 +137,7 @@
         </div>
     @endif
 
-    @if($chapterCount > 0)
+    @if($chapterCount > 0 && ! $portalLayout)
         <div class="autobiography-chapters-intro about-box mb-4">
             <div class="autobiography-section-panel__header mb-2">
                 <i class="fa-solid fa-book-open" aria-hidden="true"></i>

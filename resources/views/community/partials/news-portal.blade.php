@@ -1,24 +1,49 @@
 @php
-    $newsPortal = $newsPortal ?? [];
+    $portalKey = $portalKey ?? $portalType ?? 'news';
+    $activeType = $activeType ?? request('type', '');
+    $contentPortal = $contentPortal ?? $newsPortal ?? [];
     $types = $types ?? \App\Support\CommunityContentTaxonomy::formTypes();
+    $hubSections = $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
     $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
     $activeCategory = $activeCategory ?? '';
-    $activeHub = $activeHub ?? 'knowledge-news';
-    $newsType = $types['news'] ?? ['label' => 'News', 'description' => 'Community and local news.', 'categories' => []];
-    $sidebarTypes = \App\Support\CommunityContentTaxonomy::newsPortalSidebarTypes();
-    $sidebarCategories = \App\Support\CommunityContentTaxonomy::newsPortalSidebarCategories();
-    $categoryIcons = \App\Support\CommunityContentTaxonomy::newsCategoryIcons();
-    $featured = $newsPortal['featured'] ?? null;
-    $sidePosts = collect($newsPortal['sidePosts'] ?? []);
-    $listPosts = collect($newsPortal['listPosts'] ?? []);
-    $breakingPosts = collect($newsPortal['breakingPosts'] ?? []);
-    $trendingPosts = collect($newsPortal['trendingPosts'] ?? []);
+    $activeHub = $activeHub ?? ($portalKey === 'stories-literature'
+        ? 'stories-literature'
+        : \App\Support\CommunityContentTaxonomy::hubSectionForType($activeType ?: $portalKey));
+    $isLiteratureHubView = $portalKey === 'stories-literature';
+    $resolvedType = $activeType ?: ($isLiteratureHubView ? '' : $portalKey);
+    $portalTypeConfig = $isLiteratureHubView && $resolvedType === ''
+        ? [
+            'label' => $hubSections['stories-literature']['label'] ?? 'Stories & Literature',
+            'description' => $hubSections['stories-literature']['description'] ?? 'Stories, poetry, biographies, and personal life journeys.',
+            'categories' => [],
+        ]
+        : ($types[$resolvedType] ?? ['label' => 'News', 'description' => 'Community updates.', 'categories' => []]);
+    $sidebarCategories = \App\Support\CommunityContentTaxonomy::portalSidebarCategories($portalKey);
+    $categoryIcons = \App\Support\CommunityContentTaxonomy::portalCategoryIcons($resolvedType ?: $portalKey);
+    $featured = $contentPortal['featured'] ?? null;
+    $sidePosts = collect($contentPortal['sidePosts'] ?? []);
+    $listPosts = collect($contentPortal['listPosts'] ?? []);
+    $breakingPosts = collect($contentPortal['breakingPosts'] ?? []);
+    $trendingPosts = collect($contentPortal['trendingPosts'] ?? []);
     $currentSort = request('sort', 'latest');
     $currentFilter = request('filter', '');
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalKey);
+    $portalLabel = $portalTypeConfig['label'];
+    $portalLabelShort = $portalCopy['label_short'];
+    $allCategoryLabel = $sidebarCategories[0] ?? ('All '.$portalLabel);
+    $featuredBadge = $portalCopy['featured_badge'];
+    $latestHeading = $portalCopy['latest_heading'];
+    $createLabel = $portalCopy['create_label'];
+    $loadMoreLabel = $portalCopy['load_more_label'];
+    $emptyMessage = $emptyMessage ?? ('No '.$portalLabelShort.' posts found for this filter yet.');
+    $featuredIcon = $portalCopy['featured_icon'];
+    $literatureTypeTabs = \App\Support\CommunityContentTaxonomy::literaturePortalSidebarTypes();
+    $literatureTypeLabels = collect($literatureTypeTabs)->mapWithKeys(fn (array $item) => [$item['label'] => $item['key']])->all();
+    $createType = $resolvedType ?: 'stories';
 
-    $newsQuery = fn (array $extra = []) => array_filter(array_merge([
-        'type' => 'news',
+    $portalQuery = fn (array $extra = []) => array_filter(array_merge([
         'hub' => $activeHub,
+        'type' => $resolvedType ?: null,
         'category' => $activeCategory ?: null,
         'sort' => request('sort'),
         'filter' => request('filter'),
@@ -35,41 +60,61 @@
         @include('community.partials.news-portal-sidebar', [
             'activeHub' => $activeHub,
             'activeCategory' => $activeCategory,
+            'portalKey' => $portalKey,
+            'activeType' => $activeType,
         ])
 
         <main class="community-news-main">
             <header class="community-news-main__header">
                 <div class="community-news-main__heading">
-                    <h1>News</h1>
-                    <p>Stay updated with the latest news, updates and happenings in your community and around the world.</p>
+                    <h1>{{ $portalLabel }}</h1>
+                    <p>{{ $portalTypeConfig['description'] }}</p>
                 </div>
                 @auth
-                    <a href="{{ route('community.posts.create', ['type' => 'news']) }}" class="btn btn-success community-news-main__create">
-                        <i class="fa-solid fa-pen-to-square me-1"></i>Publish News
+                    <a href="{{ route('community.posts.create', ['type' => $createType]) }}" class="btn btn-success community-news-main__create">
+                        <i class="fa-solid fa-pen-to-square me-1"></i>{{ $createLabel }}
                     </a>
                 @endauth
             </header>
 
-            <div class="community-news-tabs" role="tablist" aria-label="News categories">
-                <a href="{{ route('community.index', $newsQuery(['category' => null])) }}" class="community-news-tabs__item {{ $activeCategory === '' ? 'is-active' : '' }}">
-                    <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
-                    <span>All News</span>
-                </a>
-                @foreach (array_slice($newsType['categories'], 0, 8) as $categoryName)
-                    @php $icon = $categoryIcons[$categoryName] ?? 'fa-tag'; @endphp
-                    <a
-                        href="{{ route('community.index', $newsQuery(['category' => $categoryName])) }}"
-                        class="community-news-tabs__item {{ $activeCategory === $categoryName ? 'is-active' : '' }}"
-                    >
-                        <span class="community-news-tabs__icon"><i class="fa-solid {{ $icon }}"></i></span>
-                        <span>{{ str_replace(' News', '', $categoryName) }}</span>
+            <div class="community-news-tabs" role="tablist" aria-label="{{ $portalLabel }} categories">
+                @if($isLiteratureHubView && $resolvedType === '')
+                    <a href="{{ route('community.index', ['hub' => $activeHub]) }}" class="community-news-tabs__item {{ $activeType === '' ? 'is-active' : '' }}">
+                        <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
+                        <span>{{ $allCategoryLabel }}</span>
                     </a>
-                @endforeach
+                    @foreach ($literatureTypeTabs as $typeTab)
+                        <a
+                            href="{{ route('community.index', ['hub' => $activeHub, 'type' => $typeTab['key']]) }}"
+                            class="community-news-tabs__item {{ $activeType === $typeTab['key'] ? 'is-active' : '' }}"
+                        >
+                            <span class="community-news-tabs__icon"><i class="fa-solid {{ $typeTab['icon'] }}"></i></span>
+                            <span>{{ $typeTab['label'] }}</span>
+                        </a>
+                    @endforeach
+                @else
+                    <a href="{{ route('community.index', $portalQuery(['category' => null])) }}" class="community-news-tabs__item {{ $activeCategory === '' ? 'is-active' : '' }}">
+                        <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
+                        <span>{{ $allCategoryLabel }}</span>
+                    </a>
+                    @foreach (array_slice($portalTypeConfig['categories'], 0, 8) as $categoryName)
+                        @php $icon = $categoryIcons[$categoryName] ?? 'fa-tag'; @endphp
+                        <a
+                            href="{{ route('community.index', $portalQuery(['category' => $categoryName])) }}"
+                            class="community-news-tabs__item {{ $activeCategory === $categoryName ? 'is-active' : '' }}"
+                        >
+                            <span class="community-news-tabs__icon"><i class="fa-solid {{ $icon }}"></i></span>
+                            <span>{{ $portalKey === 'news' ? str_replace(' News', '', $categoryName) : $categoryName }}</span>
+                        </a>
+                    @endforeach
+                @endif
             </div>
 
             <form method="GET" action="{{ route('community.index') }}" class="community-news-filters">
-                <input type="hidden" name="type" value="news">
                 <input type="hidden" name="hub" value="{{ $activeHub }}">
+                @if ($resolvedType)
+                    <input type="hidden" name="type" value="{{ $resolvedType }}">
+                @endif
                 @if ($activeCategory)
                     <input type="hidden" name="category" value="{{ $activeCategory }}">
                 @endif
@@ -90,15 +135,15 @@
             </form>
 
             @if ($featured)
-                <section class="community-news-hero" aria-label="Featured news">
+                <section class="community-news-hero" aria-label="Featured {{ $portalLabelShort }}">
                     <a href="{{ route('community.show', $featured) }}" class="community-news-hero__featured">
                         @if ($featured->featuredImageUrl())
                             <img src="{{ $featured->featuredImageUrl() }}" alt="{{ $featured->title }}">
                         @else
-                            <div class="community-news-hero__featured-placeholder"><i class="fa-solid fa-newspaper"></i></div>
+                            <div class="community-news-hero__featured-placeholder"><i class="fa-solid {{ $featuredIcon }}"></i></div>
                         @endif
                         <div class="community-news-hero__featured-overlay">
-                            <span class="community-news-hero__badge">TOP NEWS</span>
+                            <span class="community-news-hero__badge">{{ $featuredBadge }}</span>
                             <h2>{{ $featured->title }}</h2>
                             <p>{{ $featured->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($featured->body), 140) }}</p>
                             <div class="community-news-hero__meta">
@@ -111,7 +156,7 @@
                     <div class="community-news-hero__side">
                         @forelse ($sidePosts as $sidePost)
                             @php
-                                $sideCategory = $sidePost->category ?: 'News';
+                                $sideCategory = $sidePost->category ?: ($types[$sidePost->content_type]['label'] ?? $portalLabelShort);
                                 $sideCategorySlug = \Illuminate\Support\Str::slug($sideCategory);
                             @endphp
                             <a href="{{ route('community.show', $sidePost) }}" class="community-news-hero__side-card">
@@ -129,7 +174,7 @@
                                 </div>
                             </a>
                         @empty
-                            <div class="community-news-hero__side-empty">More featured stories will appear here.</div>
+                            <div class="community-news-hero__side-empty">More featured reads will appear here.</div>
                         @endforelse
                     </div>
                 </section>
@@ -137,19 +182,20 @@
 
             <section class="community-news-latest" aria-labelledby="communityNewsLatestTitle">
                 <div class="community-news-latest__head">
-                    <h2 id="communityNewsLatestTitle">Latest News</h2>
-                    <a href="{{ route('community.index', $newsQuery()) }}">View All News <i class="fa-solid fa-arrow-right"></i></a>
+                    <h2 id="communityNewsLatestTitle">{{ $latestHeading }}</h2>
+                    <a href="{{ route('community.index', $portalQuery()) }}">View All {{ $portalLabelShort }} <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
                 <div id="communityNewsList" class="community-news-list" data-next-page-url="{{ $posts->nextPageUrl() }}">
                     @include('community.partials.news-list-items', [
                         'posts' => $listPosts,
                         'engagement' => $engagement,
-                        'emptyMessage' => $emptyMessage ?? 'No news posts found for this filter yet.',
+                        'emptyMessage' => $emptyMessage,
+                        'portalType' => $portalKey,
                     ])
                 </div>
                 @if ($posts->hasMorePages())
                     <button type="button" class="btn btn-outline-success community-news-load-more" id="communityNewsLoadMore">
-                        Load More News <i class="fa-solid fa-chevron-down ms-1"></i>
+                        {{ $loadMoreLabel }} <i class="fa-solid fa-chevron-down ms-1"></i>
                     </button>
                 @endif
             </section>
@@ -160,6 +206,7 @@
             'activeCategory' => $activeCategory,
             'breakingPosts' => $breakingPosts,
             'trendingPosts' => $trendingPosts,
+            'portalType' => $portalKey,
         ])
     </div>
 
@@ -169,7 +216,7 @@
                 Showing 1 to {{ $posts->lastItem() }} of {{ $posts->total() }} results
             </p>
         @endif
-        <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more news…</p>
+        <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more {{ strtolower($portalLabelShort) }}…</p>
     </div>
     <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
 </div>

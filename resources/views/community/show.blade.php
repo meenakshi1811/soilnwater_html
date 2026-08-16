@@ -469,10 +469,11 @@
     $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
     $isArticlePost = $post->content_type === 'articles';
     $isNewsPost = $post->content_type === 'news';
+    $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
-    class="about-page about-page--community-post{{ $isNewsPost ? ' about-page--news-detail' : '' }}"
+    class="about-page about-page--community-post{{ $isPortalPost ? ' about-page--news-detail' : '' }}"
     data-article-font-root
     data-article-font-step="2"
 >
@@ -500,10 +501,11 @@
             This post is saved as a draft and is not visible on the public community hub yet.
         </div>
     @endif
-    @if($isNewsPost)
+    @if($isPortalPost)
         @php
-            $activeHub = $activeHub ?? 'knowledge-news';
+            $activeHub = $activeHub ?? \App\Support\CommunityContentTaxonomy::hubSectionForType($post->content_type);
             $activeCategory = $activeCategory ?? ($post->category ?? '');
+            $portalType = $post->content_type;
         @endphp
         <div class="community-hub community-hub--news">
             <div class="community-news-portal">
@@ -511,11 +513,13 @@
                     @include('community.partials.news-portal-sidebar', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
+                        'portalType' => $portalType,
                     ])
                     <main class="community-news-main community-news-main--detail">
                         @include('community.partials.news-show-header', [
                             'post' => $post,
                             'activeHub' => $activeHub,
+                            'portalType' => $portalType,
                             'isFollowingAuthor' => $isFollowingAuthor,
                             'isSaved' => $isSaved,
                             'isCategorySubscribed' => $isCategorySubscribed,
@@ -523,11 +527,56 @@
                             'subscriptionCategory' => $subscriptionCategory,
                         ])
                         <section class="community-news-detail__body sec">
+                        @if($post->content_type === 'autobiography')
+                            @include('community.partials.autobiography-show-sections', ['post' => $post, 'portalLayout' => true])
+                        @endif
                         @include('community.partials.news-show-main', [
                             'post' => $post,
                             'isSaved' => $isSaved,
                             'followedTopics' => $followedTopics,
                         ])
+                        @if($post->content_type === 'poetry')
+                            @include('community.partials.poetry-show-sections', ['post' => $post, 'portalLayout' => true])
+                        @endif
+                        @if($post->isScienceTechnologyPost())
+                            @include('community.partials.science-technology-show-sections', ['post' => $post, 'portalLayout' => true])
+                        @endif
+                        @if($isArticlePost)
+                            @include('community.partials.articles-show-sections', ['post' => $post, 'portalLayout' => true])
+                        @endif
+                        @if($post->content_type === 'stories')
+                            @php
+                                $storyBadges = $post->storyAchievementBadges();
+                            @endphp
+                            @if($storyBadges !== [])
+                                <div class="community-article-score-row mb-4">
+                                    @foreach($storyBadges as $badge)
+                                        <span class="badge bg-light text-dark community-story-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($post->storyAudioUrl())
+                                <div class="story-audio-player about-box mb-4">
+                                    <h4 class="mb-2">Audio story</h4>
+                                    <audio controls class="w-100" preload="metadata" src="{{ $post->storyAudioUrl() }}"></audio>
+                                </div>
+                            @endif
+                            @if(filled(data_get($post->meta, 'story_moral_takeaway')))
+                                <div class="story-moral-takeaway news-detail-highlights mb-4">
+                                    <h4>Moral / takeaway</h4>
+                                    <blockquote class="story-moral-takeaway__quote mb-0">{!! nl2br(e(data_get($post->meta, 'story_moral_takeaway'))) !!}</blockquote>
+                                </div>
+                            @endif
+                        @endif
+                        @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_inspiration')))
+                            <div class="poetry-inspiration-panel news-detail-quote mb-4">
+                                <h4>Inspiration</h4>
+                                <blockquote class="poetry-inspiration-panel__quote mb-0">{!! nl2br(e(data_get($post->meta, 'poetry_inspiration'))) !!}</blockquote>
+                            </div>
+                        @endif
+                        @if($post->content_type === 'autobiography')
+                            @include('community.partials.autobiography-after-content', ['post' => $post])
+                        @endif
     @else
     <section
         class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
@@ -610,13 +659,13 @@
     </section>
     @endif
 
-    @if(! $isNewsPost)
+    @if(! $isPortalPost)
     <div class="about-inner">
         <section class="sec">
             @include('community.partials.post-shell-start', ['post' => $post])
     @endif
 
-            @if(! $isArticlePost && ! $isNewsPost)
+            @if(! $isArticlePost && ! $isPortalPost)
                 @php
                     $shellScoreBadges = $post->articleScoreBadges();
                     $shellStoryBadges = $post->content_type === 'stories' ? $post->storyAchievementBadges() : [];
@@ -637,15 +686,15 @@
                 @endif
             @endif
 
-            @if($isArticlePost)
+            @if($isArticlePost && ! $isPortalPost)
                 @include('community.partials.articles-show-sections', ['post' => $post])
             @endif
 
-            @if($post->content_type === 'poetry')
+            @if($post->content_type === 'poetry' && ! $isPortalPost)
                 @include('community.partials.poetry-show-sections', ['post' => $post])
             @endif
 
-            @if($post->content_type === 'autobiography')
+            @if($post->content_type === 'autobiography' && ! $isPortalPost)
                 @include('community.partials.autobiography-show-sections', ['post' => $post])
             @endif
 
@@ -716,7 +765,7 @@
                 ])
             @endif
 
-            @if($post->isScienceTechnologyPost())
+            @if($post->isScienceTechnologyPost() && ! $isPortalPost)
                 @include('community.partials.science-technology-show-sections', ['post' => $post])
             @endif
 
@@ -758,7 +807,7 @@
                 ])
             @endif
 
-            @if($post->content_type === 'stories' && $post->storyAudioUrl())
+            @if($post->content_type === 'stories' && $post->storyAudioUrl() && ! $isPortalPost)
                 <div class="story-audio-player about-box mb-4">
                     <h4 class="mb-2">Audio story</h4>
                     <p class="text-muted small mb-3">
@@ -799,9 +848,9 @@
                 </div>
             @endif
 
-            @if($post->usesBookLayout() && $post->bookPages() !== [])
+            @if($post->usesBookLayout() && $post->bookPages() !== [] && ! $isPortalPost)
                 @include('community.partials.book-reader', ['post' => $post])
-            @elseif(! $isArticlePost && ! $isNewsPost)
+            @elseif(! $isArticlePost && ! $isPortalPost)
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
                     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
@@ -820,7 +869,7 @@
                 @endif
             @endif
 
-            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_inspiration')))
+            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_inspiration')) && ! $isPortalPost)
                 <div class="poetry-inspiration-panel about-box mt-4 mb-0">
                     <h4 class="mb-2">Inspiration</h4>
                     <blockquote class="poetry-inspiration-panel__quote mb-0">
@@ -829,7 +878,7 @@
                 </div>
             @endif
 
-            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_moral_takeaway')))
+            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_moral_takeaway')) && ! $isPortalPost)
                 <div class="story-moral-takeaway about-box mt-4 mb-0">
                     <h4 class="mb-2">Moral / takeaway</h4>
                     <blockquote class="story-moral-takeaway__quote mb-0">
@@ -838,7 +887,7 @@
                 </div>
             @endif
 
-            @if($post->content_type === 'autobiography')
+            @if($post->content_type === 'autobiography' && ! $isPortalPost)
                 @include('community.partials.autobiography-after-content', ['post' => $post])
             @endif
 
@@ -1041,7 +1090,7 @@
                     $visibleMeta = $additionalReportMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'news' && ! $isNewsPost)
+            @if($post->content_type === 'news' && ! $isPortalPost)
                 @include('community.partials.news-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalNewsMeta;
@@ -1227,7 +1276,7 @@
                 </div>
             @endif
 
-            @unless($isNewsPost)
+            @unless($isPortalPost)
             @include('community.partials.post-shell-end', ['post' => $post, 'followedTopics' => $followedTopics])
             @endunless
 
@@ -1331,15 +1380,16 @@
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
                 </section>
             @endif
-    @if($isNewsPost)
+    @if($isPortalPost)
                         </section>
                     </main>
                     @include('community.partials.news-portal-rail', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
-                        'breakingPosts' => $breakingNewsPosts ?? collect(),
-                        'trendingPosts' => $trendingNews ?? collect(),
-                        'relatedNews' => $relatedNews ?? collect(),
+                        'portalType' => $portalType,
+                        'breakingPosts' => $featuredPortalPosts ?? $breakingNewsPosts ?? collect(),
+                        'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
+                        'relatedNews' => $relatedPortalPosts ?? $relatedNews ?? collect(),
                     ])
                 </div>
             </div>
@@ -1371,7 +1421,7 @@
 @push('styles')
 @include('community.partials.story-styles')
 @include('community.partials.articles-styles')
-@if($post->content_type === 'news')
+@if(\App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type))
 <link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
 @include('community.partials.news-show-styles')
 @endif

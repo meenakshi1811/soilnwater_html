@@ -1,8 +1,13 @@
 @php
+    $portalType = $portalType ?? 'news';
+    $itemPortalType = $post->content_type ?? $portalType;
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($itemPortalType);
+    $types = \App\Support\CommunityContentTaxonomy::formTypes();
+    $portalLabel = $types[$itemPortalType]['label'] ?? 'News';
     $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
     $authorDisplayName = $post->authorDisplayName();
     $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 180);
-    $categoryLabel = filled($post->category) ? $post->category : 'News';
+    $categoryLabel = filled($post->category) ? $post->category : $portalLabel;
     $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
     $viewsLabel = $post->views_count >= 1000
         ? number_format($post->views_count / 1000, 1).'K'
@@ -16,7 +21,7 @@
             <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="community-news-list-item__thumb" loading="lazy">
         @else
             <div class="community-news-list-item__thumb community-news-list-item__thumb--placeholder" aria-hidden="true">
-                <i class="fa-solid fa-newspaper"></i>
+                <i class="fa-solid {{ $portalCopy['featured_icon'] }}"></i>
             </div>
         @endif
     </a>

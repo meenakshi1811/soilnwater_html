@@ -1,26 +1,42 @@
 @php
-    $activeHub = $activeHub ?? 'knowledge-news';
+    $portalKey = $portalKey ?? $portalType ?? 'news';
+    $activeType = $activeType ?? request('type', '');
+    $activeHub = $activeHub ?? ($portalKey === 'stories-literature'
+        ? 'stories-literature'
+        : \App\Support\CommunityContentTaxonomy::hubSectionForType($activeType ?: $portalKey));
     $activeCategory = $activeCategory ?? '';
-    $sidebarTypes = \App\Support\CommunityContentTaxonomy::newsPortalSidebarTypes();
-    $sidebarCategories = \App\Support\CommunityContentTaxonomy::newsPortalSidebarCategories();
+    $sidebarTypes = \App\Support\CommunityContentTaxonomy::portalSidebarTypes($portalKey, $activeHub);
+    $sidebarCategories = \App\Support\CommunityContentTaxonomy::portalSidebarCategories($portalKey);
+    $types = \App\Support\CommunityContentTaxonomy::formTypes();
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalKey);
+    $allCategoryLabel = $sidebarCategories[0] ?? ('All '.($types[$portalKey]['label'] ?? 'News'));
+    $categoriesHeading = $portalCopy['categories_heading'];
+    $usesTypeFilters = \App\Support\CommunityContentTaxonomy::portalSidebarUsesTypeFilters($portalKey);
+    $literatureTypeLabels = collect(\App\Support\CommunityContentTaxonomy::literaturePortalSidebarTypes())
+        ->mapWithKeys(fn (array $item) => [$item['label'] => $item['key']])
+        ->all();
+    $resolvedType = $activeType ?: ($portalKey === 'stories-literature' ? '' : $portalKey);
+    $portalLabel = $usesTypeFilters
+        ? ($portalCopy['label_short'])
+        : ($types[$resolvedType]['label'] ?? 'News');
 
-    $newsQuery = fn (array $extra = []) => array_filter(array_merge([
-        'type' => 'news',
+    $portalQuery = fn (array $extra = []) => array_filter(array_merge([
         'hub' => $activeHub,
+        'type' => $resolvedType ?: null,
         'category' => $activeCategory ?: null,
         'sort' => request('sort'),
         'filter' => request('filter'),
     ], $extra));
 @endphp
 
-<aside class="community-news-sidebar" aria-label="News navigation">
+<aside class="community-news-sidebar" aria-label="{{ $portalLabel }} navigation">
     <div class="community-news-sidebar__card">
         <p class="community-news-sidebar__label">Community</p>
         <nav class="community-news-sidebar__nav">
             @foreach ($sidebarTypes as $navItem)
                 <a
                     href="{{ route('community.index', ['type' => $navItem['key'], 'hub' => \App\Support\CommunityContentTaxonomy::hubSectionForType($navItem['key'])]) }}"
-                    class="community-news-sidebar__link {{ $navItem['key'] === 'news' ? 'is-active' : '' }}"
+                    class="community-news-sidebar__link {{ ($usesTypeFilters && $activeType === $navItem['key']) || (! $usesTypeFilters && $navItem['key'] === $resolvedType) ? 'is-active' : '' }}"
                 >
                     <i class="fa-solid {{ $navItem['icon'] }}"></i>
                     <span>{{ $navItem['label'] }}</span>
@@ -30,29 +46,48 @@
     </div>
 
     <div class="community-news-sidebar__card">
-        <p class="community-news-sidebar__label">News Categories</p>
+        <p class="community-news-sidebar__label">{{ $categoriesHeading }}</p>
         <nav class="community-news-sidebar__categories">
             @foreach ($sidebarCategories as $categoryName)
                 @php
-                    $isAll = $categoryName === 'All News';
-                    $isActive = $isAll ? $activeCategory === '' : $activeCategory === $categoryName;
+                    $isAll = $categoryName === $allCategoryLabel;
+                    if ($usesTypeFilters) {
+                        $typeFilter = $literatureTypeLabels[$categoryName] ?? null;
+                        $isActive = $isAll ? $activeType === '' : $activeType === $typeFilter;
+                        $categoryHref = $isAll
+                            ? route('community.index', ['hub' => $activeHub])
+                            : route('community.index', ['hub' => $activeHub, 'type' => $typeFilter]);
+                    } else {
+                        $isActive = $isAll ? $activeCategory === '' : $activeCategory === $categoryName;
+                        $categoryHref = route('community.index', $portalQuery($isAll ? ['category' => null] : ['category' => $categoryName]));
+                    }
                 @endphp
                 <a
-                    href="{{ route('community.index', $newsQuery($isAll ? ['category' => null] : ['category' => $categoryName])) }}"
+                    href="{{ $categoryHref }}"
                     class="community-news-sidebar__category {{ $isActive ? 'is-active' : '' }}"
                 >{{ $categoryName }}</a>
             @endforeach
         </nav>
-        <a href="{{ route('community.index', $newsQuery()) }}" class="btn btn-sm btn-outline-success w-100 mt-2">View All Categories</a>
+        <a href="{{ route('community.index', $usesTypeFilters ? ['hub' => $activeHub] : $portalQuery()) }}" class="btn btn-sm btn-outline-success w-100 mt-2">View All Categories</a>
     </div>
 
     <div class="community-news-sidebar__card">
         <p class="community-news-sidebar__label">Quick Links</p>
         <nav class="community-news-sidebar__quick">
-            <a href="{{ route('community.index', $newsQuery(['sort' => 'latest', 'filter' => null])) }}">Today&rsquo;s Top News</a>
-            <a href="{{ route('community.index', $newsQuery(['sort' => 'views', 'filter' => null])) }}">Most Viewed</a>
-            <a href="{{ route('community.index', $newsQuery(['filter' => 'editors', 'sort' => null])) }}">Editor&rsquo;s Picks</a>
-            <a href="{{ route('community.index', ['type' => 'reports', 'hub' => 'knowledge-news']) }}">Community Reports</a>
+            <a href="{{ route('community.index', $portalQuery(['sort' => 'latest', 'filter' => null])) }}">Today&rsquo;s Top {{ $portalLabel }}</a>
+            <a href="{{ route('community.index', $portalQuery(['sort' => 'views', 'filter' => null])) }}">Most Viewed</a>
+            <a href="{{ route('community.index', $portalQuery(['filter' => 'editors', 'sort' => null])) }}">Editor&rsquo;s Picks</a>
+            @if($portalKey === 'news')
+                <a href="{{ route('community.index', ['type' => 'reports', 'hub' => 'knowledge-news']) }}">Community Reports</a>
+            @elseif($portalKey === 'reports')
+                <a href="{{ route('community.index', ['type' => 'articles', 'hub' => 'knowledge-news']) }}">Community Articles</a>
+            @elseif($portalKey === 'articles')
+                <a href="{{ route('community.index', ['type' => 'reports', 'hub' => 'knowledge-news']) }}">Community Reports</a>
+            @elseif(in_array($portalKey, \App\Support\CommunityContentTaxonomy::storiesLiteratureTypes(), true) || $portalKey === 'stories-literature')
+                <a href="{{ route('community.index', ['hub' => 'knowledge-news', 'type' => 'news']) }}">Community News</a>
+            @else
+                <a href="{{ route('community.index', ['type' => 'news', 'hub' => 'knowledge-news']) }}">Community News</a>
+            @endif
         </nav>
     </div>
 </aside>

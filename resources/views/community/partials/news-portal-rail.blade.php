@@ -1,12 +1,14 @@
 @php
-    $activeHub = $activeHub ?? 'knowledge-news';
+    $portalType = $portalType ?? 'news';
+    $activeHub = $activeHub ?? \App\Support\CommunityContentTaxonomy::hubSectionForType($portalType);
     $activeCategory = $activeCategory ?? '';
-    $breakingPosts = collect($breakingPosts ?? []);
-    $trendingPosts = collect($trendingPosts ?? $trendingNews ?? []);
-    $relatedNews = collect($relatedNews ?? []);
+    $breakingPosts = collect($breakingPosts ?? $featuredPortalPosts ?? $breakingNewsPosts ?? []);
+    $trendingPosts = collect($trendingPosts ?? $trendingPortalPosts ?? $trendingNews ?? []);
+    $relatedNews = collect($relatedNews ?? $relatedPortalPosts ?? []);
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalType);
 
-    $newsQuery = fn (array $extra = []) => array_filter(array_merge([
-        'type' => 'news',
+    $portalQuery = fn (array $extra = []) => array_filter(array_merge([
+        'type' => $portalType,
         'hub' => $activeHub,
         'category' => $activeCategory ?: null,
         'sort' => request('sort'),
@@ -20,9 +22,9 @@
     };
 @endphp
 
-<aside class="community-news-rail" aria-label="News highlights">
+<aside class="community-news-rail" aria-label="{{ $portalCopy['label_short'] }} highlights">
     <div class="community-news-rail__card community-news-rail__card--breaking">
-        <div class="community-news-rail__breaking-head">BREAKING NEWS</div>
+        <div class="community-news-rail__breaking-head">{{ $portalCopy['breaking_heading'] }}</div>
         <div class="community-news-rail__breaking-list">
             @forelse ($breakingPosts as $breakingPost)
                 <a href="{{ route('community.show', $breakingPost) }}" class="community-news-breaking-item">
@@ -31,14 +33,14 @@
                     <span class="community-news-breaking-item__title">{{ $breakingPost->title }}</span>
                 </a>
             @empty
-                <p class="community-news-rail__empty">No breaking stories right now.</p>
+                <p class="community-news-rail__empty">No featured stories right now.</p>
             @endforelse
         </div>
-        <a href="{{ route('community.index', $newsQuery(['filter' => 'editors'])) }}" class="btn btn-sm btn-outline-danger w-100">View All Breaking News</a>
+        <a href="{{ route('community.index', $portalQuery(['filter' => 'editors'])) }}" class="btn btn-sm btn-outline-danger w-100">{{ $portalCopy['breaking_button'] }}</a>
     </div>
 
     <div class="community-news-rail__card">
-        <h3 class="community-news-rail__title">Trending News</h3>
+        <h3 class="community-news-rail__title">{{ $portalCopy['trending_heading'] }}</h3>
         <ol class="community-news-trending">
             @foreach ($trendingPosts as $index => $trendingPost)
                 <li>
@@ -52,12 +54,12 @@
                 </li>
             @endforeach
         </ol>
-        <a href="{{ route('community.index', $newsQuery(['sort' => 'views'])) }}" class="btn btn-sm btn-outline-secondary w-100">View All Trending News</a>
+        <a href="{{ route('community.index', $portalQuery(['sort' => 'views'])) }}" class="btn btn-sm btn-outline-secondary w-100">{{ $portalCopy['trending_button'] }}</a>
     </div>
 
     @if($relatedNews->isNotEmpty())
         <div class="community-news-rail__card">
-            <h3 class="community-news-rail__title">Related News</h3>
+            <h3 class="community-news-rail__title">{{ $portalCopy['related_heading'] }}</h3>
             <div class="community-news-rail__related-list">
                 @foreach($relatedNews->take(4) as $relatedPost)
                     <a href="{{ route('community.show', $relatedPost) }}" class="news-detail-related-item">
@@ -72,14 +74,14 @@
                 @endforeach
             </div>
             @if(filled($activeCategory))
-                <a href="{{ route('community.index', $newsQuery(['category' => $activeCategory])) }}" class="btn btn-outline-success btn-sm w-100 mt-2">View More Related News</a>
+                <a href="{{ route('community.index', $portalQuery(['category' => $activeCategory])) }}" class="btn btn-outline-success btn-sm w-100 mt-2">{{ $portalCopy['related_button'] }}</a>
             @endif
         </div>
     @endif
 
     <div class="community-news-rail__card community-news-rail__card--newsletter">
         <h3 class="community-news-rail__title">Newsletter</h3>
-        <p>Get the latest community news delivered to your inbox.</p>
+        <p>Get the latest community {{ strtolower($portalCopy['label_short']) }} delivered to your inbox.</p>
         @auth
             <a href="{{ route('community.subscriptions.index') }}" class="btn btn-success w-100">Manage subscriptions</a>
         @else

@@ -34,7 +34,7 @@
 @section('meta_image', asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
-@if(($activeType ?? '') === 'news' && !isset($activeAuthor))
+@if(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
 <link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
 @else
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
@@ -902,8 +902,8 @@
         : 'No posts found for this section yet. Try another category or create the first post.';
 @endphp
 
-<div class="community-hub {{ ($activeType ?? '') === 'news' && !isset($activeAuthor) ? 'community-hub--news' : '' }}">
-    @if(($activeType ?? '') !== 'news' || isset($activeAuthor))
+<div class="community-hub {{ \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)) ? 'community-hub--news' : '' }}">
+    @if(! \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
     <section class="community-hero">
         <div class="community-hero__inner">
             <div class="community-hero__top">
@@ -982,12 +982,18 @@
     </section>
     @endif
 
-    @if(($activeType ?? '') === 'news' && !isset($activeAuthor))
+    @if(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
+        @php
+            $portalScope = \App\Support\CommunityContentTaxonomy::resolvePortalScope($activeType ?? '', $activeHub ?? null);
+        @endphp
         @include('community.partials.news-portal', [
             'posts' => $posts,
             'types' => $types,
-            'newsPortal' => $newsPortal ?? [],
-            'activeHub' => $activeHub ?? 'knowledge-news',
+            'hubSections' => $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+            'contentPortal' => $contentPortal ?? $newsPortal ?? [],
+            'portalKey' => $portalKey ?? $portalScope['portal_key'],
+            'activeType' => $activeType ?? '',
+            'activeHub' => $activeHub ?? \App\Support\CommunityContentTaxonomy::storiesLiteratureHubKey(),
             'activeCategory' => $activeCategory ?? '',
             'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
             'emptyMessage' => $emptyMessage,
@@ -1082,7 +1088,7 @@
 @push('scripts')
 <script>
     (function () {
-        const isNewsLayout = @json(($activeType ?? '') === 'news' && !isset($activeAuthor));
+        const isNewsLayout = @json(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)));
         const postsGrid = document.getElementById(isNewsLayout ? 'communityNewsList' : 'communityPostsGrid');
         const loadingText = document.getElementById('communityLoadingText');
         const summaryText = document.getElementById('communitySummaryText');

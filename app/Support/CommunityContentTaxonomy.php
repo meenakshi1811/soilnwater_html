@@ -376,13 +376,358 @@ class CommunityContentTaxonomy
         return [
             ['key' => 'discussions', 'label' => 'Discussions', 'icon' => 'fa-comments'],
             ['key' => 'news', 'label' => 'News', 'icon' => 'fa-newspaper'],
+            ['key' => 'science-technology', 'label' => 'Science & Tech', 'icon' => 'fa-flask'],
             ['key' => 'articles', 'label' => 'Articles', 'icon' => 'fa-file-lines'],
             ['key' => 'stories', 'label' => 'Stories', 'icon' => 'fa-book-open'],
             ['key' => 'poetry', 'label' => 'Poetry', 'icon' => 'fa-feather-pointed'],
             ['key' => 'competitions', 'label' => 'Events', 'icon' => 'fa-calendar-days'],
             ['key' => 'creative-corner', 'label' => 'Photos', 'icon' => 'fa-image'],
-            ['key' => 'reports', 'label' => 'Documents', 'icon' => 'fa-file-pdf'],
+            ['key' => 'reports', 'label' => 'Reports', 'icon' => 'fa-chart-column'],
         ];
+    }
+
+    /**
+     * Content types that use the news-style portal layout.
+     *
+     * @return list<string>
+     */
+    public static function contentPortalTypes(): array
+    {
+        return [
+            'news',
+            'articles',
+            'reports',
+            'science-technology',
+            'stories',
+            'poetry',
+            'biography',
+            'autobiography',
+        ];
+    }
+
+    public static function storiesLiteratureHubKey(): string
+    {
+        return 'stories-literature';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function storiesLiteratureTypes(): array
+    {
+        return self::hubSectionTypeKeys(self::storiesLiteratureHubKey());
+    }
+
+    public static function usesContentPortal(?string $type): bool
+    {
+        return in_array((string) $type, self::contentPortalTypes(), true);
+    }
+
+    public static function shouldUsePortalListing(?string $type, ?string $hub, bool $isAuthorPage = false): bool
+    {
+        if ($isAuthorPage) {
+            return false;
+        }
+
+        if ($type !== null && $type !== '' && self::usesContentPortal($type)) {
+            return true;
+        }
+
+        return $hub === self::storiesLiteratureHubKey();
+    }
+
+    /**
+     * @return array{content_types: list<string>, portal_key: string}
+     */
+    public static function resolvePortalScope(?string $type, ?string $hub): array
+    {
+        if ($type !== null && $type !== '' && self::usesContentPortal($type)) {
+            return [
+                'content_types' => [$type],
+                'portal_key' => $type,
+            ];
+        }
+
+        if ($hub === self::storiesLiteratureHubKey()) {
+            return [
+                'content_types' => self::storiesLiteratureTypes(),
+                'portal_key' => self::storiesLiteratureHubKey(),
+            ];
+        }
+
+        return [
+            'content_types' => [$type ?: 'news'],
+            'portal_key' => $type ?: 'news',
+        ];
+    }
+
+    /**
+     * @return list<array{key: string, label: string, icon: string}>
+     */
+    public static function portalSidebarTypes(?string $portalKey, ?string $activeHub = null): array
+    {
+        if ($portalKey === self::storiesLiteratureHubKey()
+            || $activeHub === self::storiesLiteratureHubKey()
+            || in_array((string) $portalKey, self::storiesLiteratureTypes(), true)) {
+            return self::literaturePortalSidebarTypes();
+        }
+
+        return self::newsPortalSidebarTypes();
+    }
+
+    /**
+     * @return list<array{key: string, label: string, icon: string}>
+     */
+    public static function literaturePortalSidebarTypes(): array
+    {
+        return [
+            ['key' => 'stories', 'label' => 'Stories', 'icon' => 'fa-book-open'],
+            ['key' => 'poetry', 'label' => 'Poetry', 'icon' => 'fa-feather-pointed'],
+            ['key' => 'biography', 'label' => 'Biography', 'icon' => 'fa-user-pen'],
+            ['key' => 'autobiography', 'label' => 'Autobiography', 'icon' => 'fa-book-open-reader'],
+        ];
+    }
+
+    public static function portalSidebarUsesTypeFilters(string $portalKey): bool
+    {
+        return $portalKey === self::storiesLiteratureHubKey();
+    }
+
+    /**
+     * UI copy for the shared news-style portal layout.
+     *
+     * @return array{
+     *     label_short: string,
+     *     featured_badge: string,
+     *     latest_heading: string,
+     *     create_label: string,
+     *     load_more_label: string,
+     *     featured_icon: string,
+     *     breaking_heading: string,
+     *     breaking_button: string,
+     *     trending_heading: string,
+     *     trending_button: string,
+     *     related_heading: string,
+     *     related_button: string,
+     *     top_badge: string,
+     *     breaking_badge: string,
+     *     back_label: string,
+     *     categories_heading: string,
+     *     empty_create_label: string
+     * }
+     */
+    public static function portalCopy(string $contentType): array
+    {
+        $label = self::types()[$contentType]['label'] ?? 'News';
+
+        return match ($contentType) {
+            'articles' => [
+                'label_short' => 'Articles',
+                'featured_badge' => 'TOP ARTICLE',
+                'latest_heading' => 'Latest Articles',
+                'create_label' => 'Publish Article',
+                'load_more_label' => 'Load More Articles',
+                'featured_icon' => 'fa-file-lines',
+                'breaking_heading' => 'FEATURED ARTICLES',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Articles',
+                'trending_button' => 'View All Trending Articles',
+                'related_heading' => 'Related Articles',
+                'related_button' => 'View More Related Articles',
+                'top_badge' => 'Top Article',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Articles',
+                'categories_heading' => 'Article Categories',
+                'empty_create_label' => 'Publish article',
+            ],
+            'reports' => [
+                'label_short' => 'Reports',
+                'featured_badge' => 'TOP REPORT',
+                'latest_heading' => 'Latest Reports',
+                'create_label' => 'Publish Report',
+                'load_more_label' => 'Load More Reports',
+                'featured_icon' => 'fa-chart-column',
+                'breaking_heading' => 'FEATURED REPORTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Reports',
+                'trending_button' => 'View All Trending Reports',
+                'related_heading' => 'Related Reports',
+                'related_button' => 'View More Related Reports',
+                'top_badge' => 'Top Report',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Reports',
+                'categories_heading' => 'Report Categories',
+                'empty_create_label' => 'Publish report',
+            ],
+            'science-technology' => [
+                'label_short' => 'Science & Tech',
+                'featured_badge' => 'TOP STORY',
+                'latest_heading' => 'Latest Science & Technology',
+                'create_label' => 'Publish Project',
+                'load_more_label' => 'Load More Projects',
+                'featured_icon' => 'fa-flask',
+                'breaking_heading' => 'FEATURED PROJECTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Projects',
+                'trending_button' => 'View All Trending Projects',
+                'related_heading' => 'Related Projects',
+                'related_button' => 'View More Related Projects',
+                'top_badge' => 'Featured Project',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Science & Tech',
+                'categories_heading' => 'Science & Tech Categories',
+                'empty_create_label' => 'Publish project',
+            ],
+            'stories-literature' => [
+                'label_short' => 'Stories & Literature',
+                'featured_badge' => 'TOP READ',
+                'latest_heading' => 'Latest Stories & Literature',
+                'create_label' => 'Publish Story',
+                'load_more_label' => 'Load More Reads',
+                'featured_icon' => 'fa-feather-pointed',
+                'breaking_heading' => 'FEATURED READS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Reads',
+                'trending_button' => 'View All Trending Reads',
+                'related_heading' => 'Related Reads',
+                'related_button' => 'View More Related Reads',
+                'top_badge' => 'Featured Read',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Stories & Literature',
+                'categories_heading' => 'Browse by type',
+                'empty_create_label' => 'Publish story',
+            ],
+            'stories' => [
+                'label_short' => 'Stories',
+                'featured_badge' => 'TOP STORY',
+                'latest_heading' => 'Latest Stories',
+                'create_label' => 'Publish Story',
+                'load_more_label' => 'Load More Stories',
+                'featured_icon' => 'fa-book-open',
+                'breaking_heading' => 'FEATURED STORIES',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Stories',
+                'trending_button' => 'View All Trending Stories',
+                'related_heading' => 'Related Stories',
+                'related_button' => 'View More Related Stories',
+                'top_badge' => 'Top Story',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Stories',
+                'categories_heading' => 'Story Categories',
+                'empty_create_label' => 'Publish story',
+            ],
+            'poetry' => [
+                'label_short' => 'Poetry',
+                'featured_badge' => 'TOP POEM',
+                'latest_heading' => 'Latest Poetry',
+                'create_label' => 'Publish Poem',
+                'load_more_label' => 'Load More Poetry',
+                'featured_icon' => 'fa-feather-pointed',
+                'breaking_heading' => 'FEATURED POETRY',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Poetry',
+                'trending_button' => 'View All Trending Poetry',
+                'related_heading' => 'Related Poetry',
+                'related_button' => 'View More Related Poetry',
+                'top_badge' => 'Featured Poem',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Poetry',
+                'categories_heading' => 'Poetry Categories',
+                'empty_create_label' => 'Publish poem',
+            ],
+            'biography' => [
+                'label_short' => 'Biography',
+                'featured_badge' => 'TOP BIOGRAPHY',
+                'latest_heading' => 'Latest Biographies',
+                'create_label' => 'Publish Biography',
+                'load_more_label' => 'Load More Biographies',
+                'featured_icon' => 'fa-user-pen',
+                'breaking_heading' => 'FEATURED BIOGRAPHIES',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Biographies',
+                'trending_button' => 'View All Trending Biographies',
+                'related_heading' => 'Related Biographies',
+                'related_button' => 'View More Related Biographies',
+                'top_badge' => 'Featured Biography',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Biography',
+                'categories_heading' => 'Biography Categories',
+                'empty_create_label' => 'Publish biography',
+            ],
+            'autobiography' => [
+                'label_short' => 'Autobiography',
+                'featured_badge' => 'TOP JOURNEY',
+                'latest_heading' => 'Latest Autobiographies',
+                'create_label' => 'Publish Autobiography',
+                'load_more_label' => 'Load More Autobiographies',
+                'featured_icon' => 'fa-book-open-reader',
+                'breaking_heading' => 'FEATURED JOURNEYS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Autobiographies',
+                'trending_button' => 'View All Trending Autobiographies',
+                'related_heading' => 'Related Autobiographies',
+                'related_button' => 'View More Related Autobiographies',
+                'top_badge' => 'Featured Journey',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Autobiography',
+                'categories_heading' => 'Autobiography Categories',
+                'empty_create_label' => 'Publish autobiography',
+            ],
+            default => [
+                'label_short' => 'News',
+                'featured_badge' => 'TOP NEWS',
+                'latest_heading' => 'Latest News',
+                'create_label' => 'Publish News',
+                'load_more_label' => 'Load More News',
+                'featured_icon' => 'fa-newspaper',
+                'breaking_heading' => 'BREAKING NEWS',
+                'breaking_button' => 'View All Breaking News',
+                'trending_heading' => 'Trending News',
+                'trending_button' => 'View All Trending News',
+                'related_heading' => 'Related News',
+                'related_button' => 'View More Related News',
+                'top_badge' => 'Top News',
+                'breaking_badge' => 'Breaking News',
+                'back_label' => 'Back to News',
+                'categories_heading' => 'News Categories',
+                'empty_create_label' => 'Publish news',
+            ],
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function portalSidebarCategories(string $contentType): array
+    {
+        return match ($contentType) {
+            'science-technology' => self::scienceTechnologyPortalSidebarCategories(),
+            'articles' => self::articlesPortalSidebarCategories(),
+            'reports' => self::reportsPortalSidebarCategories(),
+            'stories-literature' => self::storiesLiteraturePortalSidebarCategories(),
+            'stories' => self::storiesPortalSidebarCategories(),
+            'poetry' => self::poetryPortalSidebarCategories(),
+            'biography' => self::biographyPortalSidebarCategories(),
+            'autobiography' => self::autobiographyPortalSidebarCategories(),
+            default => self::newsPortalSidebarCategories(),
+        };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function portalCategoryIcons(string $contentType): array
+    {
+        return match ($contentType) {
+            'science-technology' => self::scienceTechnologyCategoryIcons(),
+            'articles' => self::articlesCategoryIcons(),
+            'reports' => self::reportsCategoryIcons(),
+            'stories' => self::storiesCategoryIcons(),
+            'poetry' => self::poetryCategoryIcons(),
+            'biography' => self::biographyCategoryIcons(),
+            'autobiography' => self::autobiographyCategoryIcons(),
+            default => self::newsCategoryIcons(),
+        };
     }
 
     /**
@@ -430,6 +775,261 @@ class CommunityContentTaxonomy
             'Infrastructure News',
             'Community News',
             'Sports News',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyPortalSidebarCategories(): array
+    {
+        return [
+            'All Science & Technology',
+            'Agricultural Technology',
+            'Artificial Intelligence',
+            'Environmental Science',
+            'Water Technology',
+            'Renewable Energy',
+            'Robotics',
+            'Software Development',
+            'Internet of Things (IoT)',
+            'Medical Technology',
+            'Research & Innovation',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function scienceTechnologyCategoryIcons(): array
+    {
+        return [
+            'Agricultural Technology' => 'fa-seedling',
+            'Artificial Intelligence' => 'fa-brain',
+            'Electronics' => 'fa-microchip',
+            'Electrical Engineering' => 'fa-bolt',
+            'Mechanical Engineering' => 'fa-gears',
+            'Civil Engineering' => 'fa-bridge',
+            'Environmental Science' => 'fa-leaf',
+            'Water Technology' => 'fa-droplet',
+            'Renewable Energy' => 'fa-solar-panel',
+            'Robotics' => 'fa-robot',
+            'Automation' => 'fa-sliders',
+            'Software Development' => 'fa-code',
+            'Mobile Applications' => 'fa-mobile-screen',
+            'Internet of Things (IoT)' => 'fa-wifi',
+            'Cyber Security' => 'fa-shield-halved',
+            'Space Science' => 'fa-rocket',
+            'Physics' => 'fa-atom',
+            'Chemistry' => 'fa-flask',
+            'Biology' => 'fa-dna',
+            'Medical Technology' => 'fa-heart-pulse',
+            'Nanotechnology' => 'fa-circle-nodes',
+            'Materials Science' => 'fa-cubes',
+            'Biotechnology' => 'fa-vial',
+            '3D Printing' => 'fa-cube',
+            'GIS & Remote Sensing' => 'fa-satellite',
+            'Climate Science' => 'fa-cloud-sun',
+            'Research & Innovation' => 'fa-lightbulb',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function articlesPortalSidebarCategories(): array
+    {
+        return [
+            'All Articles',
+            'Education',
+            'Business',
+            'Technology',
+            'Agriculture',
+            'Real Estate',
+            'Construction',
+            'Water Management',
+            'Environment',
+            'Government Schemes',
+            'Personal Development',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function articlesCategoryIcons(): array
+    {
+        return [
+            'Education' => 'fa-graduation-cap',
+            'Business' => 'fa-briefcase',
+            'Technology' => 'fa-microchip',
+            'Agriculture' => 'fa-seedling',
+            'Real Estate' => 'fa-building',
+            'Construction' => 'fa-hard-hat',
+            'Water Management' => 'fa-droplet',
+            'Environment' => 'fa-leaf',
+            'Government Schemes' => 'fa-landmark',
+            'Personal Development' => 'fa-user-graduate',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function reportsPortalSidebarCategories(): array
+    {
+        return [
+            'All Reports',
+            'Community Report',
+            'Research Report',
+            'Survey Report',
+            'Infrastructure Report',
+            'Environment Report',
+            'Water Report',
+            'Agriculture Report',
+            'Education Report',
+            'Health Report',
+            'Market Report',
+            'Social Impact Report',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function reportsCategoryIcons(): array
+    {
+        return [
+            'Community Report' => 'fa-people-group',
+            'Research Report' => 'fa-magnifying-glass-chart',
+            'Survey Report' => 'fa-square-poll-vertical',
+            'Infrastructure Report' => 'fa-road',
+            'Environment Report' => 'fa-leaf',
+            'Water Report' => 'fa-droplet',
+            'Agriculture Report' => 'fa-seedling',
+            'Education Report' => 'fa-graduation-cap',
+            'Health Report' => 'fa-heart-pulse',
+            'Market Report' => 'fa-chart-line',
+            'Government Scheme Report' => 'fa-landmark',
+            'Social Impact Report' => 'fa-hands-holding-circle',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function storiesLiteraturePortalSidebarCategories(): array
+    {
+        return [
+            'All Stories & Literature',
+            'Stories',
+            'Poetry',
+            'Biography',
+            'Autobiography',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function storiesPortalSidebarCategories(): array
+    {
+        return array_merge(['All Stories'], array_slice(self::storyMainCategories(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function poetryPortalSidebarCategories(): array
+    {
+        return array_merge(['All Poetry'], self::poetryMainCategories());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function biographyPortalSidebarCategories(): array
+    {
+        return array_merge(['All Biographies'], self::types()['biography']['categories']);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function autobiographyPortalSidebarCategories(): array
+    {
+        return array_merge(['All Autobiographies'], self::types()['autobiography']['categories']);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function storiesCategoryIcons(): array
+    {
+        return [
+            'True Story' => 'fa-book-open',
+            'Personal Experience' => 'fa-heart',
+            'Fiction' => 'fa-wand-magic-sparkles',
+            'Historical' => 'fa-landmark',
+            'Educational' => 'fa-graduation-cap',
+            'Motivational' => 'fa-bolt',
+            "Children's Story" => 'fa-child',
+            'Folklore' => 'fa-mountain-sun',
+            'Community Story' => 'fa-people-group',
+            'Travel Diary' => 'fa-route',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function poetryCategoryIcons(): array
+    {
+        return [
+            'Poetry' => 'fa-feather-pointed',
+            'Shayari' => 'fa-quote-left',
+            'Ghazal' => 'fa-music',
+            'Nazm' => 'fa-pen-nib',
+            'Geet (Song)' => 'fa-microphone',
+            'Haiku' => 'fa-leaf',
+            'Doha' => 'fa-scroll',
+            'Free Verse' => 'fa-align-left',
+            "Children's Poetry" => 'fa-child',
+            'Spiritual Poetry' => 'fa-om',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function biographyCategoryIcons(): array
+    {
+        return [
+            'Freedom Fighters' => 'fa-flag',
+            'Scientists' => 'fa-flask',
+            'Entrepreneurs' => 'fa-briefcase',
+            'Teachers' => 'fa-chalkboard-user',
+            'Social Workers' => 'fa-hands-holding-heart',
+            'Local Heroes' => 'fa-star',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function autobiographyCategoryIcons(): array
+    {
+        return [
+            'Personal Journey' => 'fa-road',
+            'Career Journey' => 'fa-briefcase',
+            'Business Journey' => 'fa-chart-line',
+            'Educational Journey' => 'fa-graduation-cap',
+            "Women's Journey" => 'fa-venus',
+            'Senior Citizen Journey' => 'fa-person-cane',
+            "Farmer's Journey" => 'fa-seedling',
+            'Social Service Journey' => 'fa-hand-holding-heart',
+            'Professional Journey' => 'fa-user-tie',
+            'Spiritual Journey' => 'fa-om',
         ];
     }
 

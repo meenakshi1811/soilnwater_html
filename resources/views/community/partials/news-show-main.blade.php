@@ -17,6 +17,8 @@
     $shareUrl = $post->shareUrl();
     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
+    $usesBookReader = $post->usesBookLayout() && $post->bookPages() !== [];
+    $isPoetryPost = $post->content_type === 'poetry';
 @endphp
 
 <div class="community-article-shell mb-3">
@@ -65,11 +67,31 @@
             </div>
         @endif
 
+        @if($usesBookReader)
+            @php $bookPageCount = count($post->bookPages()); @endphp
+            @if($bookPageCount > 0)
+                <div class="news-detail-highlights mb-4">
+                    <h4>{{ $post->usesChapterLayoutForDisplay() ? 'Chapters to read' : 'Pages to read' }}</h4>
+                    <p class="mb-0">Turn through {{ $bookPageCount }} {{ $post->usesChapterLayoutForDisplay() ? 'chapter' : 'page' }}{{ $bookPageCount === 1 ? '' : 's' }} below.</p>
+                </div>
+            @endif
+            @include('community.partials.book-reader', ['post' => $post])
+        @elseif($isPoetryPost)
+            <div class="poetry-reading-card mb-4">
+                <div class="poetry-reading-card__kicker">Poem</div>
+                <div class="community-post-body community-post-body--article community-post-body--poetry community-post-body--scalable"
+                    data-community-font-target
+                    data-community-body-protected
+                    lang="{{ $editorHtmlLang }}"
+                    @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+            </div>
+        @else
         <div class="community-post-body community-post-body--article community-post-body--scalable"
             data-community-font-target
             data-community-body-protected
             lang="{{ $editorHtmlLang }}"
             @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+        @endif
 
         @if($highlights->isNotEmpty())
             <div class="news-detail-highlights">
