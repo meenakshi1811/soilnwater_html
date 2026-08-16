@@ -470,6 +470,7 @@
     $isArticlePost = $post->content_type === 'articles';
     $isNewsPost = $post->content_type === 'news';
     $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
+    $moveDetailExtrasToSidebar = $isPortalPost && ($isArticlePost || $post->content_type === 'reports');
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
@@ -822,7 +823,7 @@
                 ])
             @endif
 
-            @if($post->isReportContent())
+            @if($post->isReportContent() && ! $moveDetailExtrasToSidebar)
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
                 </div>
@@ -1093,7 +1094,11 @@
                 ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
-                @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
+                @include('community.partials.report-meta-details', [
+                    'post' => $post,
+                    'includeLocation' => true,
+                    'hideAttachments' => $moveDetailExtrasToSidebar,
+                ])
                 @php
                     $visibleMeta = $additionalReportMeta;
                 @endphp
@@ -1211,7 +1216,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(! $moveDetailExtrasToSidebar && \App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1239,7 +1244,7 @@
                         </div>
                     @endif
                 </div>
-            @elseif($post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1275,7 +1280,7 @@
                     @endif
                 </div>
             @endif
-            @if($visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
@@ -1408,6 +1413,13 @@
     @if($isPortalPost)
                         </section>
                     </main>
+                    @php
+                        $sidebarAttachments = match ($post->content_type) {
+                            'reports' => data_get($post->meta, 'issue_attachments', []),
+                            'articles' => data_get($post->meta, 'news_documents', []),
+                            default => [],
+                        };
+                    @endphp
                     @include('community.partials.news-portal-rail', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
@@ -1415,6 +1427,12 @@
                         'breakingPosts' => $featuredPortalPosts ?? $breakingNewsPosts ?? collect(),
                         'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
                         'relatedNews' => $relatedPortalPosts ?? $relatedNews ?? collect(),
+                        'post' => $post,
+                        'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
+                        'visibleMeta' => $visibleMeta ?? collect(),
+                        'formFieldLabels' => $formFieldLabels ?? [],
+                        'resolvedLocation' => $resolvedLocation ?? null,
+                        'sidebarAttachments' => $sidebarAttachments,
                     ])
                 </div>
             </div>

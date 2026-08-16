@@ -27,7 +27,7 @@
                 @endforeach
             </div>
         @endif
-        @if(!empty($issueAttachments))
+        @if(!empty($issueAttachments) && ! ($hideAttachments ?? false))
             <h5 class="h6">Evidence files</h5>
             <div class="d-flex flex-wrap gap-2">
                 @foreach($issueAttachments as $attachment)

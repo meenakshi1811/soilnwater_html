@@ -23,6 +23,16 @@
 @endphp
 
 <aside class="community-news-rail" aria-label="{{ $portalCopy['label_short'] }} highlights">
+    @if(isset($post) && ($moveDetailExtrasToSidebar ?? false))
+        @include('community.partials.portal-detail-sidebar-extras', [
+            'post' => $post,
+            'visibleMeta' => $visibleMeta ?? collect(),
+            'formFieldLabels' => $formFieldLabels ?? [],
+            'resolvedLocation' => $resolvedLocation ?? null,
+            'attachments' => $sidebarAttachments ?? null,
+        ])
+    @endif
+
     <div class="community-news-rail__card community-news-rail__card--breaking">
         <div class="community-news-rail__breaking-head">{{ $portalCopy['breaking_heading'] }}</div>
         <div class="community-news-rail__breaking-list">
