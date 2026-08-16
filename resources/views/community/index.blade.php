@@ -40,6 +40,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
 @endif
 <style>
+    @include('community.partials.community-portal-nav-styles')
     .community-hub {
         background: #f4f7fb;
     }
@@ -906,6 +907,16 @@
     @if(! \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
     <section class="community-hero">
         <div class="community-hero__inner">
+            @if (!isset($activeAuthor))
+                @include('community.partials.community-portal-nav', [
+                    'navContext' => 'listing',
+                    'portalKey' => $activeType ?: $activeHub,
+                    'activeType' => $activeType ?? '',
+                    'activeHub' => $activeHub ?? null,
+                    'resolvedType' => $activeType ?? '',
+                    'navTheme' => 'dark',
+                ])
+            @endif
             <div class="community-hero__top">
                 <div class="community-hero__copy">
                     @if ($authorName && isset($activeAuthor))

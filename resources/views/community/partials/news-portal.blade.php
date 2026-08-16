@@ -64,7 +64,17 @@
         ])
 
         <main class="community-news-main">
-            <header class="community-news-main__header">
+            <header class="community-news-main__header community-news-main__header--listing">
+                @include('community.partials.community-portal-nav', [
+                    'navContext' => 'listing',
+                    'portalKey' => $portalKey,
+                    'activeType' => $activeType,
+                    'activeHub' => $activeHub,
+                    'resolvedType' => $resolvedType,
+                    'types' => $types,
+                    'hubSections' => $hubSections,
+                ])
+                <div class="community-news-main__header-row">
                 <div class="community-news-main__heading">
                     <h1>{{ $portalLabel }}</h1>
                     <p>{{ $portalTypeConfig['description'] }}</p>
@@ -74,6 +84,7 @@
                         <i class="fa-solid fa-pen-to-square me-1"></i>{{ $createLabel }}
                     </a>
                 @endauth
+                </div>
             </header>
 
             <div class="community-news-tabs" role="tablist" aria-label="{{ $portalLabel }} categories">

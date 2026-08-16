@@ -1,4 +1,5 @@
 <style>
+    @include('community.partials.community-portal-nav-styles')
     .about-page--news-detail {
         --news-green: #2e7d32;
         --news-green-soft: #e8f5e9;

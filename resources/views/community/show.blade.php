@@ -607,12 +607,13 @@
         @if($coverUrl) style="--article-cover: url('{{ $coverUrl }}')" @endif
     >
         <div class="community-article-hero__inner">
-        <div class="community-post-back-wrap">
-            <a href="{{ route('community.index', $post->isMyAreaPost() ? ['type' => 'local-voices'] : []) }}" class="community-post-back">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                {{ $post->isMyAreaPost() ? 'Back to Local Voices' : 'Back to Community' }}
-            </a>
-        </div>
+        @include('community.partials.community-portal-nav', [
+            'navContext' => 'detail',
+            'portalType' => $post->content_type,
+            'activeHub' => \App\Support\CommunityContentTaxonomy::hubSectionForType($post->content_type),
+            'currentLabel' => $post->title,
+            'navTheme' => 'dark',
+        ])
         <div class="community-article-hero__kicker">
             SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
             @if(filled($post->category))
@@ -1443,6 +1444,9 @@
 @include('community.partials.toastr-assets')
 
 @push('styles')
+<style>
+    @include('community.partials.community-portal-nav-styles')
+</style>
 @include('community.partials.story-styles')
 @include('community.partials.articles-styles')
 @if(\App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type))
