@@ -433,6 +433,7 @@ class CommunityContentTaxonomy
     public static function hubPortalKeys(): array
     {
         return [
+            self::knowledgeNewsHubKey(),
             self::storiesLiteratureHubKey(),
             self::lifeLearningHubKey(),
             'environment-agriculture',
@@ -441,6 +442,11 @@ class CommunityContentTaxonomy
             'local-civic',
             'creative-community',
         ];
+    }
+
+    public static function knowledgeNewsHubKey(): string
+    {
+        return 'knowledge-news';
     }
 
     public static function storiesLiteratureHubKey(): string
@@ -1154,6 +1160,7 @@ class CommunityContentTaxonomy
                 'empty_create_label' => 'Publish post',
             ],
             'environment-agriculture' => self::hubSectionPortalCopy('environment-agriculture'),
+            'knowledge-news' => self::hubSectionPortalCopy('knowledge-news'),
             'career-business' => self::hubSectionPortalCopy('career-business'),
             'culture-spirituality' => self::hubSectionPortalCopy('culture-spirituality'),
             'local-civic' => self::hubSectionPortalCopy('local-civic'),
@@ -1186,6 +1193,7 @@ class CommunityContentTaxonomy
             'womens-world' => self::womensWorldPortalSidebarCategories(),
             'health-wellness' => self::healthWellnessPortalSidebarCategories(),
             'environment-agriculture' => self::hubPortalSidebarCategories('environment-agriculture'),
+            'knowledge-news' => self::hubPortalSidebarCategories('knowledge-news'),
             'career-business' => self::hubPortalSidebarCategories('career-business'),
             'culture-spirituality' => self::hubPortalSidebarCategories('culture-spirituality'),
             'local-civic' => self::hubPortalSidebarCategories('local-civic'),
