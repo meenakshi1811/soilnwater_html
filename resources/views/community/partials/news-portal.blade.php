@@ -65,15 +65,6 @@
 
         <main class="community-news-main">
             <header class="community-news-main__header community-news-main__header--listing">
-                @include('community.partials.community-portal-nav', [
-                    'navContext' => 'listing',
-                    'portalKey' => $portalKey,
-                    'activeType' => $activeType,
-                    'activeHub' => $activeHub,
-                    'resolvedType' => $resolvedType,
-                    'types' => $types,
-                    'hubSections' => $hubSections,
-                ])
                 <div class="community-news-main__header-row">
                 <div class="community-news-main__heading">
                     <h1>{{ $portalLabel }}</h1>

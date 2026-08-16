@@ -34,10 +34,9 @@
 @section('meta_image', asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
 @if(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
 <link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
-@else
-<link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
 @endif
 <style>
     @include('community.partials.community-portal-nav-styles')
@@ -50,9 +49,10 @@
             linear-gradient(90deg, rgba(8, 42, 48, 0.78) 0%, rgba(12, 58, 52, 0.58) 48%, rgba(10, 48, 44, 0.42) 100%),
             url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
         color: #fff;
-        padding: clamp(36px, 4.5vw, 56px) 24px 32px;
+        padding: clamp(36px, 4.5vw, 56px) clamp(16px, 2.5vw, 40px) 32px;
         position: relative;
         overflow: hidden;
+        width: 100%;
     }
 
     .community-hero::before {
@@ -61,9 +61,22 @@
 
     .community-hero__inner {
         margin: 0 auto;
-        max-width: min(1720px, calc(100vw - 48px));
+        max-width: none;
         position: relative;
+        width: 100%;
         z-index: 1;
+    }
+
+    .community-hub-sections-bar {
+        background: #f4f7fb;
+        margin: 0 auto;
+        max-width: none;
+        padding: 1.15rem clamp(16px, 2.5vw, 40px) 0.35rem;
+        width: 100%;
+    }
+
+    .community-hub-nav--sections-only {
+        margin-bottom: 0;
     }
 
     .community-hero__top {
@@ -229,8 +242,9 @@
 
     .community-shell {
         margin: 0 auto;
-        max-width: min(1720px, calc(100vw - 48px));
-        padding: 1.5rem 1rem 3rem;
+        max-width: none;
+        padding: 1.5rem clamp(16px, 2.5vw, 40px) 3rem;
+        width: 100%;
     }
 
     .community-hub-layout {
@@ -901,99 +915,29 @@
     $emptyMessage = isset($activeAuthor)
         ? 'No posts found for this author yet. Try another section or check back later.'
         : 'No posts found for this section yet. Try another category or create the first post.';
+    $usePortalListing = \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor));
 @endphp
 
-<div class="community-hub {{ \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)) ? 'community-hub--news' : '' }}">
-    @if(! \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
-    <section class="community-hero">
-        <div class="community-hero__inner">
-            @if (!isset($activeAuthor))
-                @include('community.partials.community-portal-nav', [
-                    'navContext' => 'listing',
-                    'portalKey' => $activeType ?: $activeHub,
-                    'activeType' => $activeType ?? '',
-                    'activeHub' => $activeHub ?? null,
-                    'resolvedType' => $activeType ?? '',
-                    'navTheme' => 'dark',
-                ])
-            @endif
-            <div class="community-hero__top">
-                <div class="community-hero__copy">
-                    @if ($authorName && isset($activeAuthor))
-                        <div class="community-hero__profile">
-                            @include('community.partials.author-avatar', [
-                                'avatarUrl' => $activeAuthor->authorImageUrl(),
-                                'initials' => $activeAuthor->authorInitials(),
-                                'alt' => $authorName,
-                                'sizeClass' => 'community-hero__avatar',
-                            ])
-                            <div>
-                                <h1 class="community-hero__title mb-2">{{ $authorName }}&rsquo;s Posts</h1>
-                                <p class="community-hero__subtitle mb-0">
-                                    Browse published stories, reports, and updates from {{ $authorName }}.
-                                </p>
-                            </div>
-                        </div>
-                    @else
-                        <h1 class="community-hero__title">
-                            {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
-                        </h1>
-                        @if ($authorName)
-                            <p class="community-hero__subtitle">
-                                Browse published stories, reports, and updates from {{ $authorName }}.
-                            </p>
-                        @else
-                            <p class="community-hero__subtitle">Community Hub, Knowledge Centre, and Local Voices Network</p>
-                        @endif
-                    @endif
-                </div>
-                @if (!isset($activeAuthor) && !empty($hubStats))
-                    <div class="community-hero__stats">
-                        @foreach ($hubStats as $stat)
-                            <div class="community-hero__stat-block">
-                                <i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i>
-                                <span class="community-hero__stat-value">{{ $stat['value'] }}</span>
-                                <span class="community-hero__stat-label">{{ $stat['label'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-            <div class="community-hero__actions">
-                @auth
-                    <a href="{{ route('community.posts.create') }}" class="community-btn-create">
-                        <i class="fa-solid fa-plus"></i> Create a Post
-                    </a>
-                    @if (!isset($activeAuthor))
-                        <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
-                            <i class="fa-solid fa-microphone-lines"></i> Local Voices
-                        </a>
-                    @endif
-                    <a href="{{ route('community.saved.index') }}" class="community-hero__ghost">
-                        <i class="fa-solid fa-bookmark"></i> Saved Posts
-                    </a>
-                    <a href="{{ route('community.subscriptions.index') }}" class="community-hero__ghost">
-                        <i class="fa-solid fa-bell"></i> My Subscriptions
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="community-btn-create">
-                        <i class="fa-solid fa-plus"></i> Create a Post
-                    </a>
-                    <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
-                        <i class="fa-solid fa-microphone-lines"></i> Local Voices
-                    </a>
-                @endauth
-                @if ($posts->total() > 0)
-                    <span class="community-hero__stat">
-                        <i class="fa-solid fa-file-lines"></i>{{ number_format($posts->total()) }} published {{ \Illuminate\Support\Str::plural('post', $posts->total()) }}
-                    </span>
-                @endif
-            </div>
-        </div>
-    </section>
+<div class="community-hub {{ $usePortalListing ? 'community-hub--news' : '' }}">
+    @include('community.partials.community-hero', [
+        'posts' => $posts,
+        'hubStats' => $hubStats ?? [],
+        'activeAuthor' => $activeAuthor ?? null,
+        'authorName' => $authorName,
+        'activeType' => $activeType ?? '',
+        'activeHub' => $activeHub ?? null,
+    ])
+
+    @if (!isset($activeAuthor))
+        @include('community.partials.community-hub-sections-nav', [
+            'hubSections' => $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+            'activeHub' => $activeHub ?? null,
+            'sectionRoute' => $sectionRoute,
+            'sectionRouteParams' => $sectionRouteParams,
+        ])
     @endif
 
-    @if(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
+    @if($usePortalListing)
         @php
             $portalScope = \App\Support\CommunityContentTaxonomy::resolvePortalScope($activeType ?? '', $activeHub ?? null);
         @endphp
@@ -1020,6 +964,7 @@
             'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
             'sectionRoute' => $sectionRoute,
             'sectionRouteParams' => $sectionRouteParams,
+            'hideSectionCards' => true,
         ])
 
         @php

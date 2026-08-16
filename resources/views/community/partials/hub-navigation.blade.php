@@ -17,6 +17,7 @@
 @endphp
 
 <nav class="community-hub-nav" aria-label="Community sections">
+    @unless($hideSectionCards ?? false)
     <div class="community-hub-nav__intro">
         <h2 class="community-hub-nav__title">Browse by Sections</h2>
     </div>
@@ -38,6 +39,7 @@
             </a>
         @endforeach
     </div>
+    @endunless
 
     @if ($currentHub)
         <div class="community-hub-panel" style="--hub-accent: {{ $currentHub['accent'] }};">
