@@ -19,6 +19,8 @@
     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
     $usesBookReader = $post->usesBookLayout() && $post->bookPages() !== [];
     $isPoetryPost = $post->content_type === 'poetry';
+    $isChildrensPoemPost = $post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem';
+    $usesPoetryBodyLayout = $isPoetryPost || $isChildrensPoemPost;
 @endphp
 
 <div class="community-article-shell mb-3">
@@ -76,7 +78,7 @@
                 </div>
             @endif
             @include('community.partials.book-reader', ['post' => $post])
-        @elseif($isPoetryPost)
+        @elseif($usesPoetryBodyLayout)
             <div class="poetry-reading-card mb-4">
                 <div class="poetry-reading-card__kicker">Poem</div>
                 <div class="community-post-body community-post-body--article community-post-body--poetry community-post-body--scalable"

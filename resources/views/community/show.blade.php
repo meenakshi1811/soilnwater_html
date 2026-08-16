@@ -530,6 +530,18 @@
                         @if($post->content_type === 'autobiography')
                             @include('community.partials.autobiography-show-sections', ['post' => $post, 'portalLayout' => true])
                         @endif
+                        @include('community.partials.life-learning-portal-sections', ['post' => $post, 'placement' => 'before'])
+                        @include('community.partials.community-hub-portal-sections', [
+                            'post' => $post,
+                            'placement' => 'before',
+                            'awarenessEngagement' => $awarenessEngagement ?? null,
+                            'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
+                            'businessEngagement' => $businessEngagement ?? null,
+                            'environmentEngagement' => $environmentEngagement ?? null,
+                            'astroConsultancyEngagement' => $astroConsultancyEngagement ?? null,
+                            'localVoiceEngagement' => $localVoiceEngagement ?? null,
+                            'reportEngagement' => $reportEngagement ?? null,
+                        ])
                         @include('community.partials.news-show-main', [
                             'post' => $post,
                             'isSaved' => $isSaved,
@@ -577,6 +589,18 @@
                         @if($post->content_type === 'autobiography')
                             @include('community.partials.autobiography-after-content', ['post' => $post])
                         @endif
+                        @include('community.partials.life-learning-portal-sections', ['post' => $post, 'placement' => 'after'])
+                        @include('community.partials.community-hub-portal-sections', [
+                            'post' => $post,
+                            'placement' => 'after',
+                            'awarenessEngagement' => $awarenessEngagement ?? null,
+                            'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
+                            'businessEngagement' => $businessEngagement ?? null,
+                            'environmentEngagement' => $environmentEngagement ?? null,
+                            'astroConsultancyEngagement' => $astroConsultancyEngagement ?? null,
+                            'localVoiceEngagement' => $localVoiceEngagement ?? null,
+                            'reportEngagement' => $reportEngagement ?? null,
+                        ])
     @else
     <section
         class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
@@ -698,11 +722,11 @@
                 @include('community.partials.autobiography-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isChildrensCornerPost())
+            @if($post->isChildrensCornerPost() && ! $isPortalPost)
                 @include('community.partials.childrens-corner-show-sections', ['post' => $post, 'placement' => 'intro'])
             @endif
 
-            @if($post->isAwarenessPost())
+            @if($post->isAwarenessPost() && ! $isPortalPost)
                 @include('community.partials.awareness-show-sections', [
                     'post' => $post,
                     'awarenessEngagement' => $awarenessEngagement ?? null,
@@ -710,26 +734,26 @@
                 ])
             @endif
 
-            @if($post->isBusinessPost())
+            @if($post->isBusinessPost() && ! $isPortalPost)
                 @include('community.partials.business-show-sections', [
                     'post' => $post,
                     'businessEngagement' => $businessEngagement ?? null,
                 ])
             @endif
 
-            @if($post->isWomensWorldPost())
+            @if($post->isWomensWorldPost() && ! $isPortalPost)
                 @include('community.partials.womens-world-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isSeniorCitizensForumPost())
+            @if($post->isSeniorCitizensForumPost() && ! $isPortalPost)
                 @include('community.partials.senior-citizens-forum-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isStudentCornerPost())
+            @if($post->isStudentCornerPost() && ! $isPortalPost)
                 @include('community.partials.student-corner-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isYouthCornerPost())
+            @if($post->isYouthCornerPost() && ! $isPortalPost)
                 @include('community.partials.youth-corner-show-sections', ['post' => $post])
             @endif
 
@@ -741,7 +765,7 @@
                 ])
             @endif
 
-            @if($post->isCommunityIssuesPost())
+            @if($post->isCommunityIssuesPost() && ! $isPortalPost)
                 @include('community.partials.community-issues-show-sections', [
                     'post' => $post,
                     'reportEngagement' => $reportEngagement,
@@ -752,12 +776,12 @@
                 ])
             @endif
 
-            @if($post->isAgriculturePost())
+            @if($post->isAgriculturePost() && ! $isPortalPost)
                 @include('community.partials.agriculture-show-sections', ['post' => $post])
                 @include('community.partials.agriculture-community-actions', ['post' => $post])
             @endif
 
-            @if($post->isEnvironmentPost())
+            @if($post->isEnvironmentPost() && ! $isPortalPost)
                 @include('community.partials.environment-show-sections', ['post' => $post])
                 @include('community.partials.environment-community-actions', [
                     'post' => $post,
@@ -769,7 +793,7 @@
                 @include('community.partials.science-technology-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isAstroConsultancyPost())
+            @if($post->isAstroConsultancyPost() && ! $isPortalPost)
                 @include('community.partials.astro-consultancy-show-sections', ['post' => $post])
                 @include('community.partials.astro-consultancy-community-actions', [
                     'post' => $post,
@@ -777,19 +801,19 @@
                 ])
             @endif
 
-            @if($post->isReligionSpiritualityPost())
+            @if($post->isReligionSpiritualityPost() && ! $isPortalPost)
                 @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isCreativeCornerPost())
+            @if($post->isCreativeCornerPost() && ! $isPortalPost)
                 @include('community.partials.creative-corner-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isCompetitionsPost())
+            @if($post->isCompetitionsPost() && ! $isPortalPost)
                 @include('community.partials.competitions-show-sections', ['post' => $post])
             @endif
 
-            @if($post->isLocalVoicesPost())
+            @if($post->isLocalVoicesPost() && ! $isPortalPost)
                 @include('community.partials.local-voices-show-sections', ['post' => $post])
                 @include('community.partials.local-voices-community-actions', [
                     'post' => $post,
@@ -891,19 +915,19 @@
                 @include('community.partials.autobiography-after-content', ['post' => $post])
             @endif
 
-            @if($post->isSeniorCitizensForumPost())
+            @if($post->isSeniorCitizensForumPost() && ! $isPortalPost)
                 @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
             @endif
 
-            @if($post->isStudentCornerPost())
+            @if($post->isStudentCornerPost() && ! $isPortalPost)
                 @include('community.partials.student-corner-meta-details', ['post' => $post])
             @endif
 
-            @if($post->isYouthCornerPost())
+            @if($post->isYouthCornerPost() && ! $isPortalPost)
                 @include('community.partials.youth-corner-meta-details', ['post' => $post])
             @endif
 
-            @if($post->isChildrensCornerPost())
+            @if($post->isChildrensCornerPost() && ! $isPortalPost)
                 @include('community.partials.childrens-corner-show-sections', ['post' => $post, 'placement' => 'media'])
             @endif
 
@@ -1116,19 +1140,19 @@
                     $visibleMeta = $visibleMeta->except(\App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys());
                 @endphp
             @endif
-            @if($post->isChildrensCornerPost())
+            @if($post->isChildrensCornerPost() && ! $isPortalPost)
                 @include('community.partials.childrens-corner-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalChildrensCornerMeta;
                 @endphp
             @endif
-            @if($post->isAwarenessPost())
+            @if($post->isAwarenessPost() && ! $isPortalPost)
                 @include('community.partials.awareness-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalAwarenessMeta;
                 @endphp
             @endif
-            @if($post->isBusinessPost())
+            @if($post->isBusinessPost() && ! $isPortalPost)
                 @include('community.partials.business-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalBusinessMeta;

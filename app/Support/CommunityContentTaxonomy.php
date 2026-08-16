@@ -402,6 +402,44 @@ class CommunityContentTaxonomy
             'poetry',
             'biography',
             'autobiography',
+            'childrens-corner',
+            'student-corner',
+            'youth-corner',
+            'senior-citizens-forum',
+            'womens-world',
+            'health-wellness',
+            'agriculture',
+            'environment',
+            'awareness',
+            'career',
+            'jobs-employment',
+            'business',
+            'culture-heritage',
+            'travel-diaries',
+            'religion-spirituality',
+            'astro-consultancy',
+            'local-voices',
+            'community-issues',
+            'opinions-views',
+            'creative-corner',
+            'competitions',
+            'discussions',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function hubPortalKeys(): array
+    {
+        return [
+            self::storiesLiteratureHubKey(),
+            self::lifeLearningHubKey(),
+            'environment-agriculture',
+            'career-business',
+            'culture-spirituality',
+            'local-civic',
+            'creative-community',
         ];
     }
 
@@ -410,12 +448,119 @@ class CommunityContentTaxonomy
         return 'stories-literature';
     }
 
+    public static function lifeLearningHubKey(): string
+    {
+        return 'life-learning';
+    }
+
     /**
      * @return list<string>
      */
     public static function storiesLiteratureTypes(): array
     {
         return self::hubSectionTypeKeys(self::storiesLiteratureHubKey());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function lifeLearningTypes(): array
+    {
+        return self::hubSectionTypeKeys(self::lifeLearningHubKey());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentAgricultureTypes(): array
+    {
+        return self::hubSectionTypeKeys('environment-agriculture');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function careerBusinessTypes(): array
+    {
+        return self::hubSectionTypeKeys('career-business');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function cultureSpiritualityTypes(): array
+    {
+        return self::hubSectionTypeKeys('culture-spirituality');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localCivicTypes(): array
+    {
+        return self::hubSectionTypeKeys('local-civic');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCommunityTypes(): array
+    {
+        return self::hubSectionTypeKeys('creative-community');
+    }
+
+    public static function isHubPortalKey(?string $hubKey): bool
+    {
+        return in_array((string) $hubKey, self::hubPortalKeys(), true);
+    }
+
+    public static function resolveHubPortalKey(?string $portalKey, ?string $activeHub = null): ?string
+    {
+        if (self::isHubPortalKey($portalKey)) {
+            return $portalKey;
+        }
+
+        if (self::isHubPortalKey($activeHub)) {
+            return $activeHub;
+        }
+
+        $typeHub = self::hubSectionForType((string) $portalKey);
+
+        return self::isHubPortalKey($typeHub) ? $typeHub : null;
+    }
+
+    public static function hubPortalDefaultCreateType(string $hubKey): string
+    {
+        return self::hubSectionTypeKeys($hubKey)[0] ?? 'news';
+    }
+
+    /**
+     * @return list<array{key: string, label: string, icon: string}>
+     */
+    public static function hubPortalTypeTabs(string $hubKey): array
+    {
+        if (! self::isHubPortalKey($hubKey)) {
+            return [];
+        }
+
+        return collect(self::hubSectionTypeKeys($hubKey))
+            ->map(fn (string $typeKey): array => [
+                'key' => $typeKey,
+                'label' => self::types()[$typeKey]['label'] ?? \Illuminate\Support\Str::headline($typeKey),
+                'icon' => self::typeIcon($typeKey),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function hubPortalTypeFilterLabels(string $hubKey): array
+    {
+        return collect(self::hubPortalTypeTabs($hubKey))
+            ->mapWithKeys(fn (array $item): array => [$item['label'] => $item['key']])
+            ->all();
     }
 
     public static function usesContentPortal(?string $type): bool
@@ -433,7 +578,7 @@ class CommunityContentTaxonomy
             return true;
         }
 
-        return $hub === self::storiesLiteratureHubKey();
+        return self::isHubPortalKey($hub);
     }
 
     /**
@@ -448,10 +593,10 @@ class CommunityContentTaxonomy
             ];
         }
 
-        if ($hub === self::storiesLiteratureHubKey()) {
+        if (self::isHubPortalKey($hub)) {
             return [
-                'content_types' => self::storiesLiteratureTypes(),
-                'portal_key' => self::storiesLiteratureHubKey(),
+                'content_types' => self::hubSectionTypeKeys($hub),
+                'portal_key' => $hub,
             ];
         }
 
@@ -466,10 +611,9 @@ class CommunityContentTaxonomy
      */
     public static function portalSidebarTypes(?string $portalKey, ?string $activeHub = null): array
     {
-        if ($portalKey === self::storiesLiteratureHubKey()
-            || $activeHub === self::storiesLiteratureHubKey()
-            || in_array((string) $portalKey, self::storiesLiteratureTypes(), true)) {
-            return self::literaturePortalSidebarTypes();
+        $hubKey = self::resolveHubPortalKey($portalKey, $activeHub);
+        if ($hubKey !== null) {
+            return self::hubPortalTypeTabs($hubKey);
         }
 
         return self::newsPortalSidebarTypes();
@@ -488,9 +632,212 @@ class CommunityContentTaxonomy
         ];
     }
 
+    /**
+     * @return list<array{key: string, label: string, icon: string}>
+     */
+    public static function lifeLearningPortalSidebarTypes(): array
+    {
+        return [
+            ['key' => 'childrens-corner', 'label' => "Children's Corner", 'icon' => 'fa-child'],
+            ['key' => 'student-corner', 'label' => 'Student Corner', 'icon' => 'fa-graduation-cap'],
+            ['key' => 'youth-corner', 'label' => 'Youth Corner', 'icon' => 'fa-user-group'],
+            ['key' => 'senior-citizens-forum', 'label' => 'Senior Citizens Forum', 'icon' => 'fa-person-cane'],
+            ['key' => 'womens-world', 'label' => "Women's World", 'icon' => 'fa-venus'],
+            ['key' => 'health-wellness', 'label' => 'Health & Wellness', 'icon' => 'fa-heart-pulse'],
+        ];
+    }
+
     public static function portalSidebarUsesTypeFilters(string $portalKey): bool
     {
-        return $portalKey === self::storiesLiteratureHubKey();
+        return self::isHubPortalKey($portalKey);
+    }
+
+    /**
+     * @return array{
+     *     label_short: string,
+     *     featured_badge: string,
+     *     latest_heading: string,
+     *     create_label: string,
+     *     load_more_label: string,
+     *     featured_icon: string,
+     *     breaking_heading: string,
+     *     breaking_button: string,
+     *     trending_heading: string,
+     *     trending_button: string,
+     *     related_heading: string,
+     *     related_button: string,
+     *     top_badge: string,
+     *     breaking_badge: string,
+     *     back_label: string,
+     *     categories_heading: string,
+     *     empty_create_label: string
+     * }
+     */
+    public static function hubSectionPortalCopy(string $hubKey): array
+    {
+        $section = self::hubSections()[$hubKey] ?? null;
+        $label = $section['label'] ?? 'Community';
+        $icon = $section['icon'] ?? 'fa-folder-open';
+
+        return [
+            'label_short' => $label,
+            'featured_badge' => 'TOP POST',
+            'latest_heading' => 'Latest '.$label,
+            'create_label' => 'Publish Post',
+            'load_more_label' => 'Load More Posts',
+            'featured_icon' => $icon,
+            'breaking_heading' => 'FEATURED POSTS',
+            'breaking_button' => 'View All Featured',
+            'trending_heading' => 'Trending Posts',
+            'trending_button' => 'View All Trending Posts',
+            'related_heading' => 'Related Posts',
+            'related_button' => 'View More Related Posts',
+            'top_badge' => 'Featured Post',
+            'breaking_badge' => 'Featured',
+            'back_label' => 'Back to '.$label,
+            'categories_heading' => 'Browse by type',
+            'empty_create_label' => 'Publish post',
+        ];
+    }
+
+    /**
+     * @return array{
+     *     label_short: string,
+     *     featured_badge: string,
+     *     latest_heading: string,
+     *     create_label: string,
+     *     load_more_label: string,
+     *     featured_icon: string,
+     *     breaking_heading: string,
+     *     breaking_button: string,
+     *     trending_heading: string,
+     *     trending_button: string,
+     *     related_heading: string,
+     *     related_button: string,
+     *     top_badge: string,
+     *     breaking_badge: string,
+     *     back_label: string,
+     *     categories_heading: string,
+     *     empty_create_label: string
+     * }
+     */
+    public static function typeStandardPortalCopy(string $typeKey): array
+    {
+        $label = self::types()[$typeKey]['label'] ?? 'News';
+        $icon = self::typeIcon($typeKey);
+
+        return [
+            'label_short' => $label,
+            'featured_badge' => 'TOP POST',
+            'latest_heading' => 'Latest '.$label,
+            'create_label' => 'Publish Post',
+            'load_more_label' => 'Load More Posts',
+            'featured_icon' => $icon,
+            'breaking_heading' => 'FEATURED POSTS',
+            'breaking_button' => 'View All Featured',
+            'trending_heading' => 'Trending Posts',
+            'trending_button' => 'View All Trending Posts',
+            'related_heading' => 'Related Posts',
+            'related_button' => 'View More Related Posts',
+            'top_badge' => 'Featured Post',
+            'breaking_badge' => 'Featured',
+            'back_label' => 'Back to '.$label,
+            'categories_heading' => $label.' Categories',
+            'empty_create_label' => 'Publish post',
+        ];
+    }
+
+    /**
+     * @return array{
+     *     label_short: string,
+     *     featured_badge: string,
+     *     latest_heading: string,
+     *     create_label: string,
+     *     load_more_label: string,
+     *     featured_icon: string,
+     *     breaking_heading: string,
+     *     breaking_button: string,
+     *     trending_heading: string,
+     *     trending_button: string,
+     *     related_heading: string,
+     *     related_button: string,
+     *     top_badge: string,
+     *     breaking_badge: string,
+     *     back_label: string,
+     *     categories_heading: string,
+     *     empty_create_label: string
+     * }
+     */
+    public static function defaultNewsPortalCopy(): array
+    {
+        return [
+            'label_short' => 'News',
+            'featured_badge' => 'TOP NEWS',
+            'latest_heading' => 'Latest News',
+            'create_label' => 'Publish News',
+            'load_more_label' => 'Load More News',
+            'featured_icon' => 'fa-newspaper',
+            'breaking_heading' => 'BREAKING NEWS',
+            'breaking_button' => 'View All Breaking News',
+            'trending_heading' => 'Trending News',
+            'trending_button' => 'View All Trending News',
+            'related_heading' => 'Related News',
+            'related_button' => 'View More Related News',
+            'top_badge' => 'Top News',
+            'breaking_badge' => 'Breaking News',
+            'back_label' => 'Back to News',
+            'categories_heading' => 'News Categories',
+            'empty_create_label' => 'Publish news',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function hubPortalSidebarCategories(string $hubKey): array
+    {
+        $section = self::hubSections()[$hubKey] ?? null;
+        if ($section === null) {
+            return self::newsPortalSidebarCategories();
+        }
+
+        return array_merge(
+            ['All '.$section['label']],
+            collect(self::hubSectionTypeKeys($hubKey))
+                ->map(fn (string $typeKey): string => self::types()[$typeKey]['label'] ?? \Illuminate\Support\Str::headline($typeKey))
+                ->all()
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function typePortalSidebarCategories(string $typeKey, int $limit = 11): array
+    {
+        $type = self::types()[$typeKey] ?? null;
+        if ($type === null) {
+            return self::newsPortalSidebarCategories();
+        }
+
+        return array_merge(
+            ['All '.$type['label']],
+            array_slice($type['categories'], 0, $limit)
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function genericTypeCategoryIcons(string $typeKey): array
+    {
+        $categories = self::types()[$typeKey]['categories'] ?? [];
+        if ($categories === []) {
+            return self::newsCategoryIcons();
+        }
+
+        return collect($categories)
+            ->mapWithKeys(fn (string $category): array => [$category => 'fa-tag'])
+            ->all();
     }
 
     /**
@@ -673,25 +1020,147 @@ class CommunityContentTaxonomy
                 'categories_heading' => 'Autobiography Categories',
                 'empty_create_label' => 'Publish autobiography',
             ],
-            default => [
-                'label_short' => 'News',
-                'featured_badge' => 'TOP NEWS',
-                'latest_heading' => 'Latest News',
-                'create_label' => 'Publish News',
-                'load_more_label' => 'Load More News',
-                'featured_icon' => 'fa-newspaper',
-                'breaking_heading' => 'BREAKING NEWS',
-                'breaking_button' => 'View All Breaking News',
-                'trending_heading' => 'Trending News',
-                'trending_button' => 'View All Trending News',
-                'related_heading' => 'Related News',
-                'related_button' => 'View More Related News',
-                'top_badge' => 'Top News',
-                'breaking_badge' => 'Breaking News',
-                'back_label' => 'Back to News',
-                'categories_heading' => 'News Categories',
-                'empty_create_label' => 'Publish news',
+            'life-learning' => [
+                'label_short' => 'Life & Learning',
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => 'Latest Life & Learning',
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-graduation-cap',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Life & Learning',
+                'categories_heading' => 'Browse by type',
+                'empty_create_label' => 'Publish post',
             ],
+            'childrens-corner' => [
+                'label_short' => "Children's Corner",
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => "Latest Children's Corner",
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-child',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => "Back to Children's Corner",
+                'categories_heading' => "Children's Corner Categories",
+                'empty_create_label' => 'Publish post',
+            ],
+            'student-corner' => [
+                'label_short' => 'Student Corner',
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => 'Latest Student Corner',
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-graduation-cap',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Student Corner',
+                'categories_heading' => 'Student Corner Categories',
+                'empty_create_label' => 'Publish post',
+            ],
+            'youth-corner' => [
+                'label_short' => 'Youth Corner',
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => 'Latest Youth Corner',
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-user-group',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Youth Corner',
+                'categories_heading' => 'Youth Corner Categories',
+                'empty_create_label' => 'Publish post',
+            ],
+            'senior-citizens-forum' => [
+                'label_short' => 'Senior Citizens Forum',
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => 'Latest Senior Citizens Forum',
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-person-cane',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Senior Citizens Forum',
+                'categories_heading' => 'Senior Citizens Categories',
+                'empty_create_label' => 'Publish post',
+            ],
+            'womens-world' => [
+                'label_short' => "Women's World",
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => "Latest Women's World",
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-venus',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => "Back to Women's World",
+                'categories_heading' => "Women's World Categories",
+                'empty_create_label' => 'Publish post',
+            ],
+            'health-wellness' => [
+                'label_short' => 'Health & Wellness',
+                'featured_badge' => 'TOP POST',
+                'latest_heading' => 'Latest Health & Wellness',
+                'create_label' => 'Publish Post',
+                'load_more_label' => 'Load More Posts',
+                'featured_icon' => 'fa-heart-pulse',
+                'breaking_heading' => 'FEATURED POSTS',
+                'breaking_button' => 'View All Featured',
+                'trending_heading' => 'Trending Posts',
+                'trending_button' => 'View All Trending Posts',
+                'related_heading' => 'Related Posts',
+                'related_button' => 'View More Related Posts',
+                'top_badge' => 'Featured Post',
+                'breaking_badge' => 'Featured',
+                'back_label' => 'Back to Health & Wellness',
+                'categories_heading' => 'Health & Wellness Categories',
+                'empty_create_label' => 'Publish post',
+            ],
+            'environment-agriculture' => self::hubSectionPortalCopy('environment-agriculture'),
+            'career-business' => self::hubSectionPortalCopy('career-business'),
+            'culture-spirituality' => self::hubSectionPortalCopy('culture-spirituality'),
+            'local-civic' => self::hubSectionPortalCopy('local-civic'),
+            'creative-community' => self::hubSectionPortalCopy('creative-community'),
+            default => self::usesContentPortal($contentType) && isset(self::types()[$contentType])
+                ? self::typeStandardPortalCopy($contentType)
+                : self::defaultNewsPortalCopy(),
         };
     }
 
@@ -705,11 +1174,25 @@ class CommunityContentTaxonomy
             'articles' => self::articlesPortalSidebarCategories(),
             'reports' => self::reportsPortalSidebarCategories(),
             'stories-literature' => self::storiesLiteraturePortalSidebarCategories(),
+            'life-learning' => self::lifeLearningPortalSidebarCategories(),
             'stories' => self::storiesPortalSidebarCategories(),
             'poetry' => self::poetryPortalSidebarCategories(),
             'biography' => self::biographyPortalSidebarCategories(),
             'autobiography' => self::autobiographyPortalSidebarCategories(),
-            default => self::newsPortalSidebarCategories(),
+            'childrens-corner' => self::childrensCornerPortalSidebarCategories(),
+            'student-corner' => self::studentCornerPortalSidebarCategories(),
+            'youth-corner' => self::youthCornerPortalSidebarCategories(),
+            'senior-citizens-forum' => self::seniorCitizensForumPortalSidebarCategories(),
+            'womens-world' => self::womensWorldPortalSidebarCategories(),
+            'health-wellness' => self::healthWellnessPortalSidebarCategories(),
+            'environment-agriculture' => self::hubPortalSidebarCategories('environment-agriculture'),
+            'career-business' => self::hubPortalSidebarCategories('career-business'),
+            'culture-spirituality' => self::hubPortalSidebarCategories('culture-spirituality'),
+            'local-civic' => self::hubPortalSidebarCategories('local-civic'),
+            'creative-community' => self::hubPortalSidebarCategories('creative-community'),
+            default => self::usesContentPortal($contentType) && isset(self::types()[$contentType])
+                ? self::typePortalSidebarCategories($contentType)
+                : self::newsPortalSidebarCategories(),
         };
     }
 
@@ -719,6 +1202,7 @@ class CommunityContentTaxonomy
     public static function portalCategoryIcons(string $contentType): array
     {
         return match ($contentType) {
+            'news' => self::newsCategoryIcons(),
             'science-technology' => self::scienceTechnologyCategoryIcons(),
             'articles' => self::articlesCategoryIcons(),
             'reports' => self::reportsCategoryIcons(),
@@ -726,7 +1210,13 @@ class CommunityContentTaxonomy
             'poetry' => self::poetryCategoryIcons(),
             'biography' => self::biographyCategoryIcons(),
             'autobiography' => self::autobiographyCategoryIcons(),
-            default => self::newsCategoryIcons(),
+            'childrens-corner' => self::childrensCornerCategoryIcons(),
+            'student-corner' => self::studentCornerCategoryIcons(),
+            'youth-corner' => self::youthCornerCategoryIcons(),
+            'senior-citizens-forum' => self::seniorCitizensForumCategoryIcons(),
+            'womens-world' => self::womensWorldCategoryIcons(),
+            'health-wellness' => self::healthWellnessCategoryIcons(),
+            default => self::genericTypeCategoryIcons($contentType),
         };
     }
 
@@ -1030,6 +1520,165 @@ class CommunityContentTaxonomy
             'Social Service Journey' => 'fa-hand-holding-heart',
             'Professional Journey' => 'fa-user-tie',
             'Spiritual Journey' => 'fa-om',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function lifeLearningPortalSidebarCategories(): array
+    {
+        return [
+            'All Life & Learning',
+            "Children's Corner",
+            'Student Corner',
+            'Youth Corner',
+            'Senior Citizens Forum',
+            "Women's World",
+            'Health & Wellness',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerPortalSidebarCategories(): array
+    {
+        return array_merge(["All Children's Corner"], array_slice(self::childrensCornerShareTypes(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerPortalSidebarCategories(): array
+    {
+        return array_merge(['All Student Corner'], array_slice(self::studentCornerMainCategories(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerPortalSidebarCategories(): array
+    {
+        return array_merge(['All Youth Corner'], array_slice(self::youthCornerMainCategories(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumPortalSidebarCategories(): array
+    {
+        return array_merge(['All Senior Citizens Forum'], array_slice(self::seniorCitizensForumMainCategories(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldPortalSidebarCategories(): array
+    {
+        return array_merge(["All Women's World"], array_slice(self::womensWorldMainCategories(), 0, 11));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function healthWellnessPortalSidebarCategories(): array
+    {
+        return array_merge(['All Health & Wellness'], self::types()['health-wellness']['categories']);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function childrensCornerCategoryIcons(): array
+    {
+        return [
+            'Story' => 'fa-book-open',
+            'Poem' => 'fa-feather-pointed',
+            'Drawing' => 'fa-palette',
+            'Artwork' => 'fa-paintbrush',
+            'Craft' => 'fa-scissors',
+            'School Project' => 'fa-school',
+            'Achievement' => 'fa-trophy',
+            'Quiz' => 'fa-circle-question',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerCategoryIcons(): array
+    {
+        return [
+            'Academic Help' => 'fa-book',
+            'Career Guidance' => 'fa-compass',
+            'Exam Preparation' => 'fa-file-lines',
+            'Skill Development' => 'fa-lightbulb',
+            'Student Achievement' => 'fa-trophy',
+            'Study Tips' => 'fa-graduation-cap',
+            'College Admission' => 'fa-building-columns',
+            'Scholarship' => 'fa-award',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerCategoryIcons(): array
+    {
+        return [
+            'Career Guidance' => 'fa-briefcase',
+            'Skill Development' => 'fa-lightbulb',
+            'Motivation' => 'fa-bolt',
+            'Education' => 'fa-graduation-cap',
+            'Entrepreneurship' => 'fa-rocket',
+            'Social Impact' => 'fa-hands-holding-heart',
+            'Personal Growth' => 'fa-seedling',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumCategoryIcons(): array
+    {
+        return [
+            'Health & Wellness' => 'fa-heart-pulse',
+            'Retirement Life' => 'fa-person-cane',
+            'Family & Relationships' => 'fa-people-roof',
+            'Hobbies & Interests' => 'fa-palette',
+            'Community Support' => 'fa-hands-helping',
+            'Financial Planning' => 'fa-piggy-bank',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function womensWorldCategoryIcons(): array
+    {
+        return [
+            'Health & Wellness' => 'fa-heart-pulse',
+            'Career & Business' => 'fa-briefcase',
+            'Parenting & Family' => 'fa-people-roof',
+            'Empowerment' => 'fa-venus',
+            'Education' => 'fa-graduation-cap',
+            'Safety & Rights' => 'fa-shield-heart',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function healthWellnessCategoryIcons(): array
+    {
+        return [
+            'Health Awareness' => 'fa-heart-pulse',
+            'Fitness' => 'fa-dumbbell',
+            'Mental Wellness' => 'fa-brain',
+            'Nutrition' => 'fa-apple-whole',
+            'Preventive Care' => 'fa-shield-virus',
+            'Community Health' => 'fa-people-group',
         ];
     }
 

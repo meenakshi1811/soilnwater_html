@@ -993,7 +993,7 @@
             'contentPortal' => $contentPortal ?? $newsPortal ?? [],
             'portalKey' => $portalKey ?? $portalScope['portal_key'],
             'activeType' => $activeType ?? '',
-            'activeHub' => $activeHub ?? \App\Support\CommunityContentTaxonomy::storiesLiteratureHubKey(),
+            'activeHub' => $activeHub ?? null,
             'activeCategory' => $activeCategory ?? '',
             'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
             'emptyMessage' => $emptyMessage,

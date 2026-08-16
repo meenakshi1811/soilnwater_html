@@ -1,8 +1,8 @@
 @php
     $portalKey = $portalKey ?? $portalType ?? 'news';
     $activeType = $activeType ?? request('type', '');
-    $activeHub = $activeHub ?? ($portalKey === 'stories-literature'
-        ? 'stories-literature'
+    $activeHub = $activeHub ?? (\App\Support\CommunityContentTaxonomy::isHubPortalKey($portalKey)
+        ? $portalKey
         : \App\Support\CommunityContentTaxonomy::hubSectionForType($activeType ?: $portalKey));
     $activeCategory = $activeCategory ?? '';
     $sidebarTypes = \App\Support\CommunityContentTaxonomy::portalSidebarTypes($portalKey, $activeHub);
@@ -12,10 +12,11 @@
     $allCategoryLabel = $sidebarCategories[0] ?? ('All '.($types[$portalKey]['label'] ?? 'News'));
     $categoriesHeading = $portalCopy['categories_heading'];
     $usesTypeFilters = \App\Support\CommunityContentTaxonomy::portalSidebarUsesTypeFilters($portalKey);
-    $literatureTypeLabels = collect(\App\Support\CommunityContentTaxonomy::literaturePortalSidebarTypes())
-        ->mapWithKeys(fn (array $item) => [$item['label'] => $item['key']])
-        ->all();
-    $resolvedType = $activeType ?: ($portalKey === 'stories-literature' ? '' : $portalKey);
+    $hubTypeFilterLabels = \App\Support\CommunityContentTaxonomy::hubPortalTypeFilterLabels(
+        \App\Support\CommunityContentTaxonomy::isHubPortalKey($portalKey) ? $portalKey : $activeHub
+    );
+    $isHubPortalView = \App\Support\CommunityContentTaxonomy::isHubPortalKey($portalKey);
+    $resolvedType = $activeType ?: ($isHubPortalView ? '' : $portalKey);
     $portalLabel = $usesTypeFilters
         ? ($portalCopy['label_short'])
         : ($types[$resolvedType]['label'] ?? 'News');
@@ -52,7 +53,7 @@
                 @php
                     $isAll = $categoryName === $allCategoryLabel;
                     if ($usesTypeFilters) {
-                        $typeFilter = $literatureTypeLabels[$categoryName] ?? null;
+                        $typeFilter = $hubTypeFilterLabels[$categoryName] ?? null;
                         $isActive = $isAll ? $activeType === '' : $activeType === $typeFilter;
                         $categoryHref = $isAll
                             ? route('community.index', ['hub' => $activeHub])
@@ -83,7 +84,7 @@
                 <a href="{{ route('community.index', ['type' => 'articles', 'hub' => 'knowledge-news']) }}">Community Articles</a>
             @elseif($portalKey === 'articles')
                 <a href="{{ route('community.index', ['type' => 'reports', 'hub' => 'knowledge-news']) }}">Community Reports</a>
-            @elseif(in_array($portalKey, \App\Support\CommunityContentTaxonomy::storiesLiteratureTypes(), true) || $portalKey === 'stories-literature')
+            @elseif(\App\Support\CommunityContentTaxonomy::resolveHubPortalKey($portalKey, $activeHub))
                 <a href="{{ route('community.index', ['hub' => 'knowledge-news', 'type' => 'news']) }}">Community News</a>
             @else
                 <a href="{{ route('community.index', ['type' => 'news', 'hub' => 'knowledge-news']) }}">Community News</a>

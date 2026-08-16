@@ -6,15 +6,16 @@
     $hubSections = $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
     $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
     $activeCategory = $activeCategory ?? '';
-    $activeHub = $activeHub ?? ($portalKey === 'stories-literature'
-        ? 'stories-literature'
+    $activeHub = $activeHub ?? (\App\Support\CommunityContentTaxonomy::isHubPortalKey($portalKey)
+        ? $portalKey
         : \App\Support\CommunityContentTaxonomy::hubSectionForType($activeType ?: $portalKey));
-    $isLiteratureHubView = $portalKey === 'stories-literature';
-    $resolvedType = $activeType ?: ($isLiteratureHubView ? '' : $portalKey);
-    $portalTypeConfig = $isLiteratureHubView && $resolvedType === ''
+    $isHubPortalView = \App\Support\CommunityContentTaxonomy::isHubPortalKey($portalKey);
+    $resolvedType = $activeType ?: ($isHubPortalView ? '' : $portalKey);
+    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalKey);
+    $portalTypeConfig = $isHubPortalView && $resolvedType === ''
         ? [
-            'label' => $hubSections['stories-literature']['label'] ?? 'Stories & Literature',
-            'description' => $hubSections['stories-literature']['description'] ?? 'Stories, poetry, biographies, and personal life journeys.',
+            'label' => $hubSections[$portalKey]['label'] ?? $portalCopy['label_short'] ?? 'Community',
+            'description' => $hubSections[$portalKey]['description'] ?? '',
             'categories' => [],
         ]
         : ($types[$resolvedType] ?? ['label' => 'News', 'description' => 'Community updates.', 'categories' => []]);
@@ -27,7 +28,6 @@
     $trendingPosts = collect($contentPortal['trendingPosts'] ?? []);
     $currentSort = request('sort', 'latest');
     $currentFilter = request('filter', '');
-    $portalCopy = \App\Support\CommunityContentTaxonomy::portalCopy($portalKey);
     $portalLabel = $portalTypeConfig['label'];
     $portalLabelShort = $portalCopy['label_short'];
     $allCategoryLabel = $sidebarCategories[0] ?? ('All '.$portalLabel);
@@ -37,9 +37,8 @@
     $loadMoreLabel = $portalCopy['load_more_label'];
     $emptyMessage = $emptyMessage ?? ('No '.$portalLabelShort.' posts found for this filter yet.');
     $featuredIcon = $portalCopy['featured_icon'];
-    $literatureTypeTabs = \App\Support\CommunityContentTaxonomy::literaturePortalSidebarTypes();
-    $literatureTypeLabels = collect($literatureTypeTabs)->mapWithKeys(fn (array $item) => [$item['label'] => $item['key']])->all();
-    $createType = $resolvedType ?: 'stories';
+    $hubTypeTabs = \App\Support\CommunityContentTaxonomy::hubPortalTypeTabs($portalKey);
+    $createType = $resolvedType ?: \App\Support\CommunityContentTaxonomy::hubPortalDefaultCreateType($portalKey);
 
     $portalQuery = fn (array $extra = []) => array_filter(array_merge([
         'hub' => $activeHub,
@@ -78,12 +77,12 @@
             </header>
 
             <div class="community-news-tabs" role="tablist" aria-label="{{ $portalLabel }} categories">
-                @if($isLiteratureHubView && $resolvedType === '')
+                @if($isHubPortalView && $resolvedType === '')
                     <a href="{{ route('community.index', ['hub' => $activeHub]) }}" class="community-news-tabs__item {{ $activeType === '' ? 'is-active' : '' }}">
                         <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
                         <span>{{ $allCategoryLabel }}</span>
                     </a>
-                    @foreach ($literatureTypeTabs as $typeTab)
+                    @foreach ($hubTypeTabs as $typeTab)
                         <a
                             href="{{ route('community.index', ['hub' => $activeHub, 'type' => $typeTab['key']]) }}"
                             class="community-news-tabs__item {{ $activeType === $typeTab['key'] ? 'is-active' : '' }}"
