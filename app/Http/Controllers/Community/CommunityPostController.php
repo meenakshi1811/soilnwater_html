@@ -149,7 +149,7 @@ class CommunityPostController extends Controller
             'types' => CommunityContentTaxonomy::formTypes(),
             'hubSections' => CommunityContentTaxonomy::hubSections(),
             'activeType' => $request->string('type')->toString(),
-            'activeHub' => CommunityContentTaxonomy::resolveActiveHubSection(
+            'activeHub' => CommunityContentTaxonomy::resolveCommunityListingHub(
                 $request->string('hub')->toString() ?: null,
                 $request->string('type')->toString() ?: null
             ),
@@ -185,9 +185,10 @@ class CommunityPostController extends Controller
             'types' => CommunityContentTaxonomy::formTypes(),
             'hubSections' => CommunityContentTaxonomy::hubSections(),
             'activeType' => $request->string('type')->toString(),
-            'activeHub' => CommunityContentTaxonomy::resolveActiveHubSection(
+            'activeHub' => CommunityContentTaxonomy::resolveCommunityListingHub(
                 $request->string('hub')->toString() ?: null,
-                $request->string('type')->toString() ?: null
+                $request->string('type')->toString() ?: null,
+                true
             ),
             'activeCategory' => $request->string('category')->toString(),
             'activeAuthor' => $author,
@@ -7982,6 +7983,16 @@ class CommunityPostController extends Controller
 
     private function paginateCommunityPosts(Request $request, ?User $author = null)
     {
+        $listingHub = $author
+            ? CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            )
+            : CommunityContentTaxonomy::resolveCommunityListingHub(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            );
+
         $query = CommunityPost::query()
             ->with('user')
             ->withCount(['reactions', 'comments', 'starRatings'])
@@ -7993,9 +8004,9 @@ class CommunityPostController extends Controller
                 ->visibleOnAuthorProfile())
             ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
             ->when(
-                $request->filled('hub') && ! $request->filled('type'),
-                function ($query) use ($request): void {
-                    $typeKeys = CommunityContentTaxonomy::hubSectionTypeKeys($request->string('hub')->toString());
+                $listingHub && ! $request->filled('type'),
+                function ($query) use ($listingHub): void {
+                    $typeKeys = CommunityContentTaxonomy::hubSectionTypeKeys($listingHub);
                     if ($typeKeys !== []) {
                         $query->whereIn('content_type', $typeKeys);
                     }
@@ -8070,20 +8081,24 @@ class CommunityPostController extends Controller
     private function communityPostsAjaxResponse($posts, ?Request $request = null): JsonResponse
     {
         $request ??= request();
-        $isPortalLayout = CommunityContentTaxonomy::shouldUsePortalListing(
-            $request->string('type')->toString(),
-            CommunityContentTaxonomy::resolveActiveHubSection(
-                $request->string('hub')->toString() ?: null,
-                $request->string('type')->toString() ?: null
-            ),
-            $request->routeIs('community.authors.show')
-        );
-        $portalScope = CommunityContentTaxonomy::resolvePortalScope(
-            $request->string('type')->toString(),
-            CommunityContentTaxonomy::resolveActiveHubSection(
+        $isAuthorPage = $request->routeIs('community.authors.show');
+        $listingHub = $isAuthorPage
+            ? CommunityContentTaxonomy::resolveActiveHubSection(
                 $request->string('hub')->toString() ?: null,
                 $request->string('type')->toString() ?: null
             )
+            : CommunityContentTaxonomy::resolveCommunityListingHub(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            );
+        $isPortalLayout = CommunityContentTaxonomy::shouldUsePortalListing(
+            $request->string('type')->toString(),
+            $listingHub,
+            $isAuthorPage
+        );
+        $portalScope = CommunityContentTaxonomy::resolvePortalScope(
+            $request->string('type')->toString(),
+            $listingHub
         );
 
         $partial = $isPortalLayout ? 'community.partials.news-list-items' : 'community.partials.post-cards';
@@ -8095,6 +8110,8 @@ class CommunityPostController extends Controller
                 'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
                 'layout' => $isPortalLayout ? $listLayout : 'grid',
                 'portalType' => $portalScope['portal_key'],
+                'activeHub' => $listingHub,
+                'resolvedType' => $request->string('type')->toString(),
             ])->render(),
             'next_page_url' => $posts->nextPageUrl(),
             'loaded_to' => $posts->lastItem() ?? 0,

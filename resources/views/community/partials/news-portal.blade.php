@@ -78,22 +78,44 @@
                 </div>
             </header>
 
-            <div class="community-news-tabs" role="tablist" aria-label="{{ $portalLabel }} categories">
-                @if($isHubPortalView && $resolvedType === '')
-                    <a href="{{ route('community.index', ['hub' => $activeHub]) }}" class="community-news-tabs__item {{ $activeType === '' ? 'is-active' : '' }}">
-                        <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
-                        <span>{{ $allCategoryLabel }}</span>
-                    </a>
-                    @foreach ($hubTypeTabs as $typeTab)
-                        <a
-                            href="{{ route('community.index', ['hub' => $activeHub, 'type' => $typeTab['key']]) }}"
-                            class="community-news-tabs__item {{ $activeType === $typeTab['key'] ? 'is-active' : '' }}"
-                        >
-                            <span class="community-news-tabs__icon"><i class="fa-solid {{ $typeTab['icon'] }}"></i></span>
-                            <span>{{ $typeTab['label'] }}</span>
+            @if ($isHubPortalView)
+                <div class="community-news-type-grid" role="tablist" aria-label="{{ $portalLabel }} post types">
+                    <div class="community-news-type-card {{ $activeType === '' ? 'is-active' : '' }}">
+                        <a href="{{ route('community.index', ['hub' => $activeHub]) }}" class="community-news-type-card__browse">
+                            <span class="community-news-type-card__icon"><i class="fa-solid fa-layer-group"></i></span>
+                            <span class="community-news-type-card__label">{{ $allCategoryLabel }}</span>
                         </a>
+                        @auth
+                            <a href="{{ route('community.posts.create', ['type' => $createType]) }}" class="community-news-type-card__create">
+                                {{ $createLabel }}
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="community-news-type-card__create">{{ $createLabel }}</a>
+                        @endauth
+                    </div>
+                    @foreach ($hubTypeTabs as $typeTab)
+                        <div class="community-news-type-card {{ $activeType === $typeTab['key'] ? 'is-active' : '' }}">
+                            <a
+                                href="{{ route('community.index', ['hub' => $activeHub, 'type' => $typeTab['key']]) }}"
+                                class="community-news-type-card__browse"
+                            >
+                                <span class="community-news-type-card__icon"><i class="fa-solid {{ $typeTab['icon'] }}"></i></span>
+                                <span class="community-news-type-card__label">{{ $typeTab['label'] }}</span>
+                            </a>
+                            @auth
+                                <a href="{{ route('community.posts.create', ['type' => $typeTab['key']]) }}" class="community-news-type-card__create">
+                                    Create {{ $typeTab['label'] }}
+                                </a>
+                            @else
+                                <a href="{{ route('login') }}" class="community-news-type-card__create">Create {{ $typeTab['label'] }}</a>
+                            @endauth
+                        </div>
                     @endforeach
-                @else
+                </div>
+            @endif
+
+            @if (! $isHubPortalView || $resolvedType !== '')
+                <div class="community-news-tabs" role="tablist" aria-label="{{ $portalLabel }} categories">
                     <a href="{{ route('community.index', $portalQuery(['category' => null])) }}" class="community-news-tabs__item {{ $activeCategory === '' ? 'is-active' : '' }}">
                         <span class="community-news-tabs__icon"><i class="fa-solid fa-layer-group"></i></span>
                         <span>{{ $allCategoryLabel }}</span>
@@ -108,8 +130,8 @@
                             <span>{{ $portalKey === 'news' ? str_replace(' News', '', $categoryName) : $categoryName }}</span>
                         </a>
                     @endforeach
-                @endif
-            </div>
+                </div>
+            @endif
 
             <form method="GET" action="{{ route('community.index') }}" class="community-news-filters">
                 <input type="hidden" name="hub" value="{{ $activeHub }}">
@@ -192,6 +214,8 @@
                         'engagement' => $engagement,
                         'emptyMessage' => $emptyMessage,
                         'portalType' => $portalKey,
+                        'activeHub' => $activeHub,
+                        'resolvedType' => $resolvedType,
                     ])
                 </div>
                 @if ($posts->hasMorePages())

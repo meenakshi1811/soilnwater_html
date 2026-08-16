@@ -354,6 +354,24 @@ class CommunityContentTaxonomy
         return null;
     }
 
+    public static function resolveCommunityListingHub(?string $hubParam, ?string $typeParam, bool $isAuthorPage = false): ?string
+    {
+        $resolved = self::resolveActiveHubSection($hubParam, $typeParam);
+        if ($resolved !== null) {
+            return $resolved;
+        }
+
+        if ($isAuthorPage) {
+            return null;
+        }
+
+        if (($hubParam === null || $hubParam === '') && ($typeParam === null || $typeParam === '')) {
+            return self::knowledgeNewsHubKey();
+        }
+
+        return null;
+    }
+
     /**
      * @return list<string>
      */

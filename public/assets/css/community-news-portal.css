@@ -111,6 +111,88 @@
     white-space: nowrap;
 }
 
+.community-news-type-grid {
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    margin-bottom: 0.85rem;
+}
+
+.community-news-type-card {
+    background: #fff;
+    border: 1px solid #dbe6f2;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.community-news-type-card.is-active,
+.community-news-type-card:hover {
+    border-color: #9ed4a5;
+    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.12);
+    transform: translateY(-1px);
+}
+
+.community-news-type-card__browse {
+    align-items: center;
+    color: #3f5873;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    font-size: 0.74rem;
+    font-weight: 700;
+    gap: 0.25rem;
+    padding: 0.55rem 0.45rem 0.4rem;
+    text-align: center;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.community-news-type-card.is-active .community-news-type-card__browse,
+.community-news-type-card:hover .community-news-type-card__browse {
+    color: #1b5e20;
+}
+
+.community-news-type-card__icon {
+    align-items: center;
+    background: #f3f8fd;
+    border-radius: 10px;
+    color: #2e7d32;
+    display: inline-flex;
+    font-size: 0.95rem;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.community-news-type-card.is-active .community-news-type-card__icon {
+    background: #e8f5e9;
+}
+
+.community-news-type-card__label {
+    line-height: 1.25;
+}
+
+.community-news-type-card__create {
+    border-top: 1px solid #e8eef5;
+    color: #2e7d32;
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.42rem 0.35rem;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.community-news-type-card__create:hover {
+    background: #f3faf4;
+    color: #1b5e20;
+}
+
 .community-news-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -650,6 +732,14 @@
     color: #1f66b4;
     font-size: 1.6rem;
     margin-bottom: 0.5rem;
+}
+
+.community-news-empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 0.85rem;
 }
 
 .community-hub--news .community-hero {
