@@ -4,7 +4,7 @@
     $productImage = !empty($productImages) ? asset($productImages[0]) : null;
     $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
     $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-    $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+    $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&q=85&auto=format&fit=crop';
     $primaryBranch = $vendor->branches->first();
     $storeUrl = route('store.show', $vendor->slug);
     $hasLocation = $hasLocation ?? false;
@@ -18,7 +18,7 @@
 
 <article class="card h-100 shadow-sm border-0 offer-coupon-card vendor-offer-card{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
     <a href="{{ $storeUrl }}" class="offer-coupon-image-wrap vendor-offer-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
-        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}" class="offer-coupon-image" loading="lazy">
+        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}" class="offer-coupon-image" loading="lazy" decoding="async">
     </a>
     <div class="card-body d-flex flex-column gap-2">
         @if($vendor->is_premium)

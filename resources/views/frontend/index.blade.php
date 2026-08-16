@@ -9,7 +9,7 @@
   $topVendorsHeaderAdsList = collect($topVendorsHeaderAds ?? []);
   $topVendorsList = collect($topVendors ?? []);
   $topVendorsSideAdsList = collect($topVendorsSideAds ?? [])->values();
-  $topVendorSlideSize = $topVendorsSideAdsList->isNotEmpty() ? 5 : 6;
+  $topVendorSlideSize = $topVendorsSideAdsList->isNotEmpty() ? 4 : 5;
   $topVendorSlides = $topVendorsList->chunk($topVendorSlideSize);
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
@@ -1017,7 +1017,7 @@
               <?php if ($topVendorSlides->isNotEmpty()): ?>
                 <?php foreach ($topVendorSlides as $slideIndex => $vendorChunk): ?>
                   <div class="ad-slide">
-                    <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                    <div class="recent-ads-grid top-vendors-grid">
                       <?php foreach ($vendorChunk as $vendor): ?>
                         @include('frontend.partials.vendor-card', ['vendor' => $vendor])
                       <?php endforeach; ?>
@@ -1041,9 +1041,9 @@
                   </div>
                 <?php endforeach; ?>
               <?php elseif ($topVendorsSideAdsList->isNotEmpty()): ?>
-                <?php foreach ($topVendorsSideAdsList->chunk(6) as $adsChunk): ?>
+                <?php foreach ($topVendorsSideAdsList->chunk(5) as $adsChunk): ?>
                   <div class="ad-slide">
-                    <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                    <div class="recent-ads-grid top-vendors-grid">
                       <?php foreach ($adsChunk as $sideAd): ?>
                         <article class="prod-card recent-ad-card top-vendors-ad-card"
                           data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}"
@@ -1064,7 +1064,7 @@
                 <?php endforeach; ?>
               <?php else: ?>
                 <div class="ad-slide">
-                  <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                  <div class="recent-ads-grid top-vendors-grid">
                     <article class="prod-card recent-ad-card">
                       <div class="prod-card-body">
                         <h6 class="mb-1 offer-coupon-title">No vendors available</h6>

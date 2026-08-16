@@ -5,7 +5,7 @@
         $productImage = ! empty($productImages) ? asset($productImages[0]) : null;
         $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
         $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-        $coverImage = $bannerImage ?? $productImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=700&q=70';
+        $coverImage = $bannerImage ?? $productImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&q=85&auto=format&fit=crop';
         $avatarImage = $logoImage ?? $productImage ?? asset('assets/images/profile-placeholder.svg');
         $primaryBranch = $vendor->branches->first();
         $storeUrl = route('store.show', $vendor->slug);
@@ -24,7 +24,7 @@
             aria-label="View {{ $vendor->publicDisplayName() }} store"
         >
             <div class="vendor-store-card__hero">
-                <img src="{{ $coverImage }}" alt="" class="vendor-store-card__cover" loading="lazy">
+                <img src="{{ $coverImage }}" alt="{{ $vendor->publicDisplayName() }}" class="vendor-store-card__cover" loading="lazy" decoding="async">
                 <div class="vendor-store-card__shade" aria-hidden="true"></div>
 
                 @if ($vendor->is_premium)

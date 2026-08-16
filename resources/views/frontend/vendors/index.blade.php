@@ -37,16 +37,19 @@
 
     .vendor-store-card__hero {
       position: relative;
-      height: 148px;
+      aspect-ratio: 3 / 4;
+      height: auto;
       overflow: hidden;
-      background: linear-gradient(135deg, #e8f0ff 0%, #edf7ef 100%);
+      background: #eef3f6;
     }
 
     .vendor-store-card__cover {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
       display: block;
+      image-rendering: auto;
       transition: transform .4s ease;
     }
 
@@ -56,23 +59,24 @@
 
     .vendor-store-card__shade {
       position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(8, 28, 52, 0.08) 0%, rgba(8, 28, 52, 0.58) 100%);
+      inset: auto 0 0 0;
+      height: 42%;
+      background: linear-gradient(180deg, rgba(8, 28, 52, 0) 0%, rgba(8, 28, 52, 0.22) 100%);
       pointer-events: none;
     }
 
     .vendor-store-card__premium-tag {
       position: absolute;
-      top: .7rem;
-      left: .7rem;
+      top: .5rem;
+      left: .5rem;
       z-index: 2;
       display: inline-flex;
       align-items: center;
-      padding: .28rem .62rem;
+      padding: .22rem .5rem;
       border-radius: 999px;
       background: linear-gradient(135deg, #f6e6a8, #c9a227);
       color: #4a3600;
-      font-size: .68rem;
+      font-size: .62rem;
       font-weight: 800;
       letter-spacing: .03em;
       text-transform: uppercase;
@@ -81,29 +85,29 @@
 
     .vendor-store-card__product-tag {
       position: absolute;
-      top: .7rem;
-      right: .7rem;
+      top: .5rem;
+      right: .5rem;
       z-index: 2;
       display: inline-flex;
       align-items: center;
-      padding: .28rem .62rem;
+      padding: .22rem .5rem;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.92);
       color: #0f3358;
-      font-size: .68rem;
+      font-size: .62rem;
       font-weight: 700;
       backdrop-filter: blur(6px);
     }
 
     .vendor-store-card__avatar {
       position: absolute;
-      left: 1rem;
-      bottom: -1.55rem;
+      left: .75rem;
+      bottom: -1.2rem;
       z-index: 3;
-      width: 4.4rem;
-      height: 4.4rem;
-      border-radius: 16px;
-      padding: .18rem;
+      width: 3.35rem;
+      height: 3.35rem;
+      border-radius: 14px;
+      padding: .14rem;
       background: #fff;
       box-shadow: 0 10px 24px rgba(15, 51, 88, 0.16);
     }
@@ -121,8 +125,8 @@
       display: flex;
       flex: 1;
       flex-direction: column;
-      gap: .7rem;
-      padding: 2.15rem 1rem 1rem;
+      gap: .55rem;
+      padding: 1.7rem .75rem .8rem;
       min-height: 0;
     }
 
@@ -136,10 +140,14 @@
     .vendor-store-card__name {
       margin: 0;
       font-family: 'Manrope', sans-serif;
-      font-size: 1rem;
+      font-size: .92rem;
       font-weight: 800;
-      line-height: 1.35;
+      line-height: 1.3;
       color: #0f3358;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
     }
 
     .vendor-store-card__meta {
@@ -281,13 +289,13 @@
 
     @media (max-width: 575.98px) {
       .vendor-store-card__hero {
-        height: 132px;
+        aspect-ratio: 3 / 4;
       }
 
       .vendor-store-card__avatar {
-        width: 3.9rem;
-        height: 3.9rem;
-        bottom: -1.35rem;
+        width: 3.1rem;
+        height: 3.1rem;
+        bottom: -1.1rem;
       }
     }
   </style>
@@ -332,7 +340,7 @@
 
       <div
         id="vendorsGrid"
-        class="vendors-store-grid row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3"
+        class="vendors-store-grid row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 g-3"
         data-next-page-url="{{ $vendors->nextPageUrl() }}"
       >
         @include('frontend.vendors.partials.cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
