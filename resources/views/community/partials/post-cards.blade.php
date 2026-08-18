@@ -16,7 +16,7 @@
         if ($categoryLabel === $sectionLabel) {
             $categoryLabel = null;
         }
-        $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 160);
+        $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 140);
         $locationLabel = $post->location ?? data_get($post->meta, 'location');
         $promotionLabels = $post->adminPromotionLabels();
         $scoreBadges = $post->articleScoreBadges();
@@ -48,9 +48,15 @@
             fn (array $badge): bool => ! in_array($badge['label'], $spotlightLabels, true)
         ));
         $isSpotlight = $spotlightBadges !== [];
+        $metaChips = array_slice(array_merge(
+            array_map(fn (string $label): array => ['label' => $label, 'class' => 'community-post-card__meta-chip--promotion'], $promotionLabels),
+            array_map(fn (array $badge): array => ['label' => $badge['label'], 'class' => ''], $scoreBadges),
+            $reportTrustScore !== null ? [['label' => 'Trust '.$reportTrustScore.'%', 'class' => '']] : [],
+            $reportStatus ? [['label' => $reportStatus, 'class' => '']] : [],
+        ), 0, 2);
     @endphp
     <div class="col">
-        <article class="community-post-card h-100 {{ ($post->is_highlighted || $isSpotlight) ? 'community-post-card--highlighted' : '' }}{{ $isSpotlight ? ' community-post-card--spotlight' : '' }}" style="--type-color: {{ $typeColor }};">
+        <article class="community-post-card h-100{{ $isSpotlight ? ' community-post-card--spotlight' : '' }}{{ $post->is_highlighted ? ' community-post-card--featured' : '' }}" style="--type-color: {{ $typeColor }};">
             <a href="{{ route('community.show', $post) }}" class="community-post-card__media-link" aria-label="Read {{ $post->title }}">
                 @if ($post->featuredImageUrl())
                     <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="community-post-card__image" loading="lazy">
@@ -60,29 +66,11 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                @if ($sectionLabel || $categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [] || $spotlightBadges !== [])
-                    <div class="community-post-card__badges">
-                        @if ($sectionLabel)
-                            <span class="community-post-card__badge community-post-card__badge--section">{{ $sectionLabel }}</span>
-                        @endif
-                        @foreach($spotlightBadges as $spotlightBadge)
-                            <span class="community-post-card__badge community-post-card__badge--score {{ $spotlightBadge['class'] }}">{{ $spotlightBadge['label'] }}</span>
+                @if ($spotlightBadges !== [])
+                    <div class="community-post-card__spotlight-badges">
+                        @foreach(array_slice($spotlightBadges, 0, 2) as $spotlightBadge)
+                            <span class="community-post-card__spotlight-badge {{ $spotlightBadge['class'] }}">{{ $spotlightBadge['label'] }}</span>
                         @endforeach
-                        @foreach($scoreBadges as $badge)
-                            <span class="community-post-card__badge community-post-card__badge--score {{ $badge['class'] }}">{{ $badge['label'] }}</span>
-                        @endforeach
-                        @foreach($promotionLabels as $promotionLabel)
-                            <span class="community-post-card__badge community-post-card__badge--promotion">{{ $promotionLabel }}</span>
-                        @endforeach
-                        @if ($reportTrustScore !== null)
-                            <span class="community-post-card__badge community-post-card__badge--trust-score">Trust {{ $reportTrustScore }}%</span>
-                        @endif
-                        @if ($reportStatus)
-                            <span class="community-post-card__badge community-post-card__badge--report-status">{{ $reportStatus }}</span>
-                        @endif
-                        @if ($categoryLabel)
-                            <span class="community-post-card__badge">{{ $categoryLabel }}</span>
-                        @endif
                     </div>
                 @endif
                 @if ($post->hasVideo())
@@ -98,8 +86,22 @@
             </a>
 
             <div class="community-post-card__body">
+                @if ($sectionLabel || $categoryLabel || $metaChips !== [])
+                    <div class="community-post-card__meta-row">
+                        @if ($sectionLabel)
+                            <span class="community-post-card__type">{{ $sectionLabel }}</span>
+                        @endif
+                        @if ($categoryLabel)
+                            <span class="community-post-card__category">{{ $categoryLabel }}</span>
+                        @endif
+                        @foreach($metaChips as $chip)
+                            <span class="community-post-card__meta-chip {{ $chip['class'] }}">{{ $chip['label'] }}</span>
+                        @endforeach
+                    </div>
+                @endif
+
                 @if($isPoetry && ($poetryType || $poetryThemes !== [] || $poetryRating))
-                    <div class="d-flex flex-wrap gap-1 mb-2">
+                    <div class="community-post-card__meta-row">
                         @if($poetryType)
                             <span class="community-post-card__tag">{{ $poetryType }}</span>
                         @endif
@@ -115,7 +117,7 @@
                     </div>
                 @endif
                 @if($isBusiness && ($businessContentType || $businessStage || $businessThemes !== []))
-                    <div class="d-flex flex-wrap gap-1 mb-2">
+                    <div class="community-post-card__meta-row">
                         @if($businessContentType)
                             <span class="community-post-card__tag community-post-card__tag--emphasis">{{ $businessContentType }}</span>
                         @endif
@@ -128,7 +130,7 @@
                     </div>
                 @endif
                 @if($isMyArea && ($myAreaActivity || $myAreaStatus || $myAreaImpact))
-                    <div class="d-flex flex-wrap gap-1 mb-2">
+                    <div class="community-post-card__meta-row">
                         @if($myAreaActivity)
                             <span class="community-post-card__tag community-post-card__tag--solid">{{ $myAreaActivity }}</span>
                         @endif
@@ -140,6 +142,7 @@
                         @endif
                     </div>
                 @endif
+
                 <h2 class="community-post-card__title">
                     <a href="{{ route('community.show', $post) }}">{{ $post->title }}</a>
                 </h2>
@@ -151,19 +154,21 @@
                 @if (filled($locationLabel) || filled($myAreaLocation))
                     <p class="community-post-card__location">
                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        {{ \Illuminate\Support\Str::limit(filled($myAreaLocation) ? $myAreaLocation : $locationLabel, 60) }}
+                        <span>{{ \Illuminate\Support\Str::limit(filled($myAreaLocation) ? $myAreaLocation : $locationLabel, 72) }}</span>
                     </p>
                 @endif
 
                 <div class="community-post-card__footer">
                     <p class="community-post-card__byline">
+                        <span>By
                         @if ($post->showsAuthorProfileLink())
-                            By <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
+                            <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
                         @else
-                            By <span class="community-post-card__author-name">{{ $authorDisplayName }}</span>
+                            <span class="community-post-card__author-name">{{ $authorDisplayName }}</span>
                         @endif
-                        <span aria-hidden="true">•</span>
-                        <time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->format('M d, Y') ?? 'Draft' }}</time>
+                        </span>
+                        <span class="community-post-card__byline-sep" aria-hidden="true">·</span>
+                        <time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->format('M j, Y') ?? 'Draft' }}</time>
                     </p>
 
                     <div class="community-post-card__stats">
@@ -173,7 +178,8 @@
                                 data-url="{{ route('community.save.toggle', $post) }}"
                                 data-title-saved="Saved"
                                 data-title-unsaved="Save post"
-                                title="{{ $isSaved ? 'Saved' : 'Save post' }}">
+                                title="{{ $isSaved ? 'Saved' : 'Save post' }}"
+                                aria-label="{{ $isSaved ? 'Saved' : 'Save post' }}">
                                 <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
                             </button>
                         @endauth

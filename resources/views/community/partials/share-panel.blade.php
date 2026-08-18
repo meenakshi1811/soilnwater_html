@@ -6,8 +6,7 @@
 @once
     @push('styles')
     <style>
-        .community-banner-action,
-        .community-post-card__share-btn {
+        .community-banner-action {
             align-items: center;
             background: rgba(255, 255, 255, 0.14);
             border: 1px solid rgba(255, 255, 255, 0.28);
@@ -24,18 +23,8 @@
             transition: background 0.2s ease, transform 0.2s ease;
         }
 
-        .community-post-card__share-btn {
-            background: #eef5ff;
-            border-color: #cfe0f5;
-            color: #1f4f7a;
-            font-size: 0.78rem;
-            padding: 0.35rem 0.7rem;
-        }
-
         .community-banner-action:hover,
-        .community-banner-action:focus,
-        .community-post-card__share-btn:hover,
-        .community-post-card__share-btn:focus {
+        .community-banner-action:focus {
             background: rgba(255, 255, 255, 0.22);
             color: #fff;
             text-decoration: none;
@@ -117,12 +106,6 @@
             .community-engagement-stats {
                 grid-template-columns: 1fr;
             }
-        }
-
-        .community-post-card__share-btn:hover,
-        .community-post-card__share-btn:focus {
-            background: #dcecff;
-            color: #173d67;
         }
 
         .community-share-modal {
