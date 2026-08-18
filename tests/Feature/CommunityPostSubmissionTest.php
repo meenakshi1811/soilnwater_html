@@ -4,13 +4,21 @@ namespace Tests\Feature;
 
 use App\Models\CommunityPost;
 use App\Models\CommunityPostAuditLog;
+use App\Models\FoulWord;
 use App\Models\User;
+use App\Services\FoulWordFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CommunityPostSubmissionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        FoulWordFilter::forgetCache();
+    }
 
     public function test_post_submission_requires_policy_checkboxes(): void
     {
@@ -98,6 +106,54 @@ class CommunityPostSubmissionTest extends TestCase
         $this->get(route('frontend.index'))
             ->assertOk()
             ->assertDontSee('Content Responsibility Disclaimer');
+    }
+
+    public function test_create_rejects_foul_word_in_title(): void
+    {
+        FoulWord::query()->create(['word' => 'fuck', 'is_active' => true]);
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->postJson(route('community.posts.store'), array_merge($this->validPayload(), [
+                'title' => 'This fuck title should fail',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['You have used the foul word.']);
+
+        $this->assertDatabaseMissing('community_posts', [
+            'title' => 'This fuck title should fail',
+        ]);
+    }
+
+    public function test_create_rejects_foul_word_in_html_body(): void
+    {
+        FoulWord::query()->create(['word' => 'shit', 'is_active' => true]);
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->postJson(route('community.posts.store'), array_merge($this->validPayload(), [
+                'body' => '<p>This is a <strong>shit</strong> article for readers.</p>',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['You have used the foul word.']);
+    }
+
+    public function test_update_rejects_foul_word_in_excerpt(): void
+    {
+        FoulWord::query()->create(['word' => 'bitch', 'is_active' => true]);
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)->postJson(route('community.posts.store'), $this->validPayload())->assertOk();
+        $post = CommunityPost::query()->where('title', 'Policy Tracking Test Post')->firstOrFail();
+
+        $this->actingAs($user)
+            ->putJson(route('community.posts.update', $post), array_merge($this->validPayload(), [
+                'excerpt' => 'Do not use this bitch word here',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['You have used the foul word.']);
+
+        $this->assertNull($post->fresh()->excerpt);
     }
 
     /**

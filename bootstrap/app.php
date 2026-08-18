@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureConsultantIsApproved;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureServiceProviderIsApproved;
+use App\Http\Middleware\EnsureChatNotBlocked;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'chat.not_blocked' => EnsureChatNotBlocked::class,
             'user' => EnsureUserIsGeneralUser::class,
             'vendor' => EnsureUserIsVendor::class,
             'consultant' => EnsureUserIsConsultant::class,

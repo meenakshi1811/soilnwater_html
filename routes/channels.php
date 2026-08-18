@@ -8,11 +8,11 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('discussion', function ($user) {
-    return $user !== null;
+    return $user !== null && ! $user->isChatBlocked();
 });
 
 Broadcast::channel('discussion.topic.{topicId}', function ($user, $topicId) {
-    if ($user === null) {
+    if ($user === null || $user->isChatBlocked()) {
         return false;
     }
 

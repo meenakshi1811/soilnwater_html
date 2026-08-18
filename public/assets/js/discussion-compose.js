@@ -32,8 +32,8 @@
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            const message = data.message
-                || (data.errors ? Object.values(data.errors).flat().join(' ') : null)
+            const message = (data.errors ? Object.values(data.errors).flat().filter(Boolean).join(' ') : '')
+                || data.message
                 || 'Something went wrong.';
             throw new Error(message);
         }
@@ -423,8 +423,8 @@
 
                 if (!response.ok) {
                     throw new Error(
-                        data.message
-                        || (data.errors ? Object.values(data.errors).flat().join(' ') : null)
+                        (data.errors ? Object.values(data.errors).flat().filter(Boolean).join(' ') : '')
+                        || data.message
                         || 'Something went wrong.'
                     );
                 }

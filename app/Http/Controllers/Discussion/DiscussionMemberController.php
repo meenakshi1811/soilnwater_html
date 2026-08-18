@@ -25,6 +25,7 @@ class DiscussionMemberController extends Controller
         $users = User::query()
             ->where('id', '!=', $request->user()->id)
             ->where('is_blocked', false)
+            ->where('is_chat_blocked', false)
             ->when($query !== '', function ($builder) use ($query): void {
                 $builder->where(function ($inner) use ($query): void {
                     $inner->where('name', 'like', "%{$query}%")
@@ -70,7 +71,7 @@ class DiscussionMemberController extends Controller
             'member_ids' => ['required', 'array', 'min:1'],
             'member_ids.*' => [
                 'integer',
-                Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_blocked', false)),
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_blocked', false)->where('is_chat_blocked', false)),
             ],
         ]);
 

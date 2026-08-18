@@ -6,12 +6,14 @@ use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CommunityChatController;
 use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\ConsultantController;
 use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -185,7 +187,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::prefix('discussions')->name('discussions.')->group(function () {
+    Route::prefix('discussions')->name('discussions.')->middleware('chat.not_blocked')->group(function () {
         Route::get('/users/search', [DiscussionMemberController::class, 'searchUsers'])->name('users.search');
         Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
         Route::get('/messenger/{topic?}', [DiscussionTopicController::class, 'messenger'])->name('messenger');
@@ -651,6 +653,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{termsAndCondition}', [TermsAndConditionController::class, 'show'])->name('show');
             Route::put('/{termsAndCondition}', [TermsAndConditionController::class, 'update'])->name('update');
             Route::delete('/{termsAndCondition}', [TermsAndConditionController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('community-chats')->name('community-chats.')->group(function () {
+            Route::get('/', [CommunityChatController::class, 'index'])->name('index');
+            Route::get('/data', [CommunityChatController::class, 'data'])->name('data');
+            Route::get('/users', [CommunityChatController::class, 'users'])->name('users');
+            Route::get('/users/data', [CommunityChatController::class, 'usersData'])->name('users.data');
+            Route::patch('/users/{user}/toggle-block', [CommunityChatController::class, 'toggleUserBlock'])->name('users.toggle-block');
+            Route::get('/{topic}', [CommunityChatController::class, 'show'])->name('show');
+        });
+
+        Route::prefix('foul-words')->name('foul-words.')->group(function () {
+            Route::get('/', [FoulWordController::class, 'index'])->name('index');
+            Route::get('/data', [FoulWordController::class, 'data'])->name('data');
+            Route::post('/', [FoulWordController::class, 'store'])->name('store');
+            Route::get('/{foulWord}', [FoulWordController::class, 'show'])->name('show');
+            Route::put('/{foulWord}', [FoulWordController::class, 'update'])->name('update');
+            Route::patch('/{foulWord}/toggle-status', [FoulWordController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{foulWord}', [FoulWordController::class, 'destroy'])->name('destroy');
         });
     });
 });

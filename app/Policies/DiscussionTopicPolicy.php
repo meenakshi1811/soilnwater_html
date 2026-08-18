@@ -7,6 +7,15 @@ use App\Models\User;
 
 class DiscussionTopicPolicy
 {
+    public function before(User $user, string $ability): ?bool
+    {
+        if ($user->isChatBlocked()) {
+            return false;
+        }
+
+        return null;
+    }
+
     public function view(User $user, DiscussionTopic $topic): bool
     {
         return $topic->canAccess($user);

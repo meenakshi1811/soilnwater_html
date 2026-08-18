@@ -17,6 +17,7 @@
     $communitySubscriptionsActive = request()->routeIs('community.subscriptions.*');
     $communityAuthorQuestionsActive = request()->routeIs('community.author-questions.*');
     $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*') || request()->routeIs('community.saved.*') || request()->routeIs('community.subscriptions.*');
+    $communityChatMenuActive = request()->routeIs('admin.community-chats.*') || request()->routeIs('admin.foul-words.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -129,6 +130,37 @@
                     <i class="fa-solid fa-file-contract"></i>
                     <span>Terms &amp; Conditions</span>
                 </a>
+            </li>
+            <li class="admin-sidebar-group">
+                <details {{ $communityChatMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $communityChatMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>Community Chat</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-chats.index') || request()->routeIs('admin.community-chats.show') ? 'active' : '' }}" href="{{ route('admin.community-chats.index') }}">
+                                <i class="fa-solid fa-message"></i>
+                                <span>All Chats</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-chats.users') || request()->routeIs('admin.community-chats.users.*') ? 'active' : '' }}" href="{{ route('admin.community-chats.users') }}">
+                                <i class="fa-solid fa-user-slash"></i>
+                                <span>Chat Users</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.foul-words.*') ? 'active' : '' }}" href="{{ route('admin.foul-words.index') }}">
+                                <i class="fa-solid fa-ban"></i>
+                                <span>Foul Words</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
             <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">

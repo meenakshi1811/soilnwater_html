@@ -41,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_image',
         'is_active',
         'is_blocked',
+        'is_chat_blocked',
         'created_by',
         'password',
     ];
@@ -68,6 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
             'is_blocked' => 'boolean',
+            'is_chat_blocked' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -75,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isBlocked(): bool
     {
         return (bool) $this->is_blocked;
+    }
+
+    public function isChatBlocked(): bool
+    {
+        return (bool) $this->is_chat_blocked;
     }
 
 

@@ -28,6 +28,7 @@ use App\Services\CommunitySeniorCitizensForumEngagementNotificationService;
 use App\Services\CommunityStudentCornerEngagementNotificationService;
 use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
+use App\Services\FoulWordFilter;
 use App\Services\CommunityArticleScoreService;
 use App\Services\CommunityReportTrustScoreService;
 use App\Services\PortalNotificationService;
@@ -4850,6 +4851,8 @@ class CommunityPostController extends Controller
             $validated['book_pages'] = $bookPages;
         }
 
+        app(FoulWordFilter::class)->assertCleanPayload($validated);
+
         unset($validated['book_pages']);
 
         if ($isChildrensCorner) {
@@ -4883,6 +4886,8 @@ class CommunityPostController extends Controller
         if (! ($validated['allow_poll'] ?? false)) {
             $validated['poll_subject'] = null;
         }
+
+        app(FoulWordFilter::class)->assertCleanPayload($validated);
 
         return $validated;
     }

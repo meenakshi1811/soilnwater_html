@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiscussionTopic;
 use App\Services\DiscussionReadService;
 use App\Services\DiscussionOnlineService;
+use App\Services\FoulWordFilter;
 use App\Support\DiscussionAttachments;
 use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,7 @@ class DiscussionTopicController extends Controller
     public function __construct(
         private DiscussionReadService $readService,
         private DiscussionOnlineService $onlineService,
+        private FoulWordFilter $foulWordFilter,
     ) {}
 
     public function index(Request $request): View|JsonResponse
@@ -188,6 +190,11 @@ class DiscussionTopicController extends Controller
             'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
         ]);
 
+        $this->foulWordFilter->assertCleanFields([
+            'title' => $data['title'] ?? '',
+            'body' => $data['body'] ?? '',
+        ]);
+
         $parentTopic = null;
 
         if (! empty($data['parent_topic_id'])) {
@@ -315,6 +322,11 @@ class DiscussionTopicController extends Controller
             'title' => ['sometimes', 'required', 'string', 'max:200'],
             'body' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        $this->foulWordFilter->assertCleanFields(array_filter([
+            'title' => $data['title'] ?? null,
+            'body' => array_key_exists('body', $data) ? $data['body'] : null,
+        ], fn ($value) => $value !== null));
 
         $topic->update($data);
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiscussionReply;
 use App\Models\DiscussionTopic;
 use App\Services\DiscussionReadService;
+use App\Services\FoulWordFilter;
 use App\Support\DiscussionAttachments;
 use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,10 @@ use Illuminate\Validation\ValidationException;
 
 class DiscussionReplyController extends Controller
 {
-    public function __construct(private DiscussionReadService $readService) {}
+    public function __construct(
+        private DiscussionReadService $readService,
+        private FoulWordFilter $foulWordFilter,
+    ) {}
 
     public function store(Request $request, DiscussionTopic $topic): JsonResponse|RedirectResponse
     {
@@ -31,6 +35,9 @@ class DiscussionReplyController extends Controller
         ]);
 
         $body = trim((string) ($data['body'] ?? ''));
+        $this->foulWordFilter->assertCleanFields([
+            'body' => $body,
+        ]);
         $attachments = $this->storeAttachments($request->file('attachments', []));
 
         if ($body === '' && $attachments === []) {
