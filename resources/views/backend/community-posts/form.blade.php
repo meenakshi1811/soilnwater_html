@@ -8,7 +8,13 @@
         <div>
             <p class="ems-kicker mb-1">Community publishing</p>
             <h2 class="admin-title mb-1">{{ $mode === 'edit' ? 'Edit Community Post' : 'Create Community Post' }}</h2>
-            <p class="mb-0 text-secondary">Pick a post type first, then add the category and content details.</p>
+            <p class="mb-0 text-secondary">
+                @if(! empty($lockedContentType) && isset($types[$lockedContentType]))
+                    Add your {{ strtolower($types[$lockedContentType]['label']) }} details below.
+                @else
+                    Pick a post type first, then add the category and content details.
+                @endif
+            </p>
         </div>
     </div>
 
@@ -34,6 +40,7 @@
 
         <div class="row g-3">
             @php
+                $lockedContentType = $lockedContentType ?? null;
                 $selectedContentType = old('content_type', $post->content_type);
                 $postTypeIcons = [
                     'articles' => 'fa-file-lines',
@@ -70,6 +77,9 @@
                 $postTypePillColors = \App\Support\CommunityContentTaxonomy::pillColors();
                 $postTypePillFallback = \App\Support\CommunityContentTaxonomy::pillColorFallback();
             @endphp
+            @if($lockedContentType)
+                <input type="hidden" name="content_type" id="contentType" value="{{ $lockedContentType }}">
+            @else
             <div class="col-12">
                 <div class="community-post-type-picker">
                     <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
@@ -115,6 +125,7 @@
                     </p>
                 </div>
             </div>
+            @endif
 
             <div class="col-12" id="communityPostDetails" @if(! filled($selectedContentType)) hidden @endif>
             <div class="row g-3">

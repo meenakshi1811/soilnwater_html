@@ -44,21 +44,4 @@
         </ol>
     </section>
 
-    <section class="community-share-cta">
-        <span class="community-share-cta__icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
-        <h3>Share Your Knowledge</h3>
-        <p>Have an insight, story, or local update? Publish it for the community.</p>
-        @auth
-            <a href="{{ route('community.posts.create') }}" class="community-btn-create">
-                <i class="fa-solid fa-plus"></i> Create a Post
-            </a>
-        @else
-            <a href="{{ route('login') }}" class="community-btn-create">
-                <i class="fa-solid fa-plus"></i> Create a Post
-            </a>
-        @endauth
-        <div class="community-share-cta__art" aria-hidden="true">
-            <i class="fa-solid fa-laptop"></i>
-        </div>
-    </section>
 </aside>

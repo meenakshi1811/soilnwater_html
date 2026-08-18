@@ -40,9 +40,17 @@
             data_get($post->meta, 'location_district'),
         ]))) : null;
         $typeColor = \App\Support\CommunityContentTaxonomy::pillColorFor($post->content_type);
+        $listingHighlights = $listingHighlights ?? [];
+        $spotlightBadges = $listingHighlights[$post->id] ?? [];
+        $spotlightLabels = collect($spotlightBadges)->pluck('label')->all();
+        $scoreBadges = array_values(array_filter(
+            $scoreBadges,
+            fn (array $badge): bool => ! in_array($badge['label'], $spotlightLabels, true)
+        ));
+        $isSpotlight = $spotlightBadges !== [];
     @endphp
     <div class="col">
-        <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}" style="--type-color: {{ $typeColor }};">
+        <article class="community-post-card h-100 {{ ($post->is_highlighted || $isSpotlight) ? 'community-post-card--highlighted' : '' }}{{ $isSpotlight ? ' community-post-card--spotlight' : '' }}" style="--type-color: {{ $typeColor }};">
             <a href="{{ route('community.show', $post) }}" class="community-post-card__media-link" aria-label="Read {{ $post->title }}">
                 @if ($post->featuredImageUrl())
                     <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="community-post-card__image" loading="lazy">
@@ -52,11 +60,14 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                @if ($sectionLabel || $categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [])
+                @if ($sectionLabel || $categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [] || $spotlightBadges !== [])
                     <div class="community-post-card__badges">
                         @if ($sectionLabel)
                             <span class="community-post-card__badge community-post-card__badge--section">{{ $sectionLabel }}</span>
                         @endif
+                        @foreach($spotlightBadges as $spotlightBadge)
+                            <span class="community-post-card__badge community-post-card__badge--score {{ $spotlightBadge['class'] }}">{{ $spotlightBadge['label'] }}</span>
+                        @endforeach
                         @foreach($scoreBadges as $badge)
                             <span class="community-post-card__badge community-post-card__badge--score {{ $badge['class'] }}">{{ $badge['label'] }}</span>
                         @endforeach

@@ -70,11 +70,6 @@
                     <h1>{{ $portalLabel }}</h1>
                     <p>{{ $portalTypeConfig['description'] }}</p>
                 </div>
-                @auth
-                    <a href="{{ route('community.posts.create', ['type' => $createType]) }}" class="btn btn-success community-news-main__create">
-                        <i class="fa-solid fa-pen-to-square me-1"></i>{{ $createLabel }}
-                    </a>
-                @endauth
                 </div>
             </header>
 
@@ -206,7 +201,7 @@
             <section class="community-news-latest" aria-labelledby="communityNewsLatestTitle">
                 <div class="community-news-latest__head">
                     <h2 id="communityNewsLatestTitle">{{ $latestHeading }}</h2>
-                    <a href="{{ route('community.index', $portalQuery()) }}">View All {{ $portalLabelShort }} <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="{{ route('community.all', $portalQuery(['filter' => null])) }}">View All {{ $portalLabelShort }} <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
                 <div id="communityNewsList" class="community-news-list" data-next-page-url="{{ $posts->nextPageUrl() }}">
                     @include('community.partials.news-list-items', [

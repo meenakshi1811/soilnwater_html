@@ -3,7 +3,7 @@
     $activeHub = $activeHub ?? null;
     $sectionRoute = $sectionRoute ?? 'community.index';
     $sectionRouteParams = $sectionRouteParams ?? [];
-    $featuredHubKey = ($activeHub && isset($hubSections[$activeHub])) ? $activeHub : array_key_first($hubSections);
+    $featuredHubKey = ($activeHub && isset($hubSections[$activeHub])) ? $activeHub : null;
 @endphp
 
 <div class="community-hub-sections-bar">

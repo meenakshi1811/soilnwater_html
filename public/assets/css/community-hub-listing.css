@@ -101,6 +101,10 @@
     box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.55), 0 14px 28px rgba(15, 47, 85, 0.12);
 }
 
+.community-post-card--spotlight {
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.45), 0 16px 32px rgba(15, 47, 85, 0.14);
+}
+
 .community-post-card__video-badge {
     align-items: center;
     background: color-mix(in srgb, var(--type-color) 82%, rgba(15, 47, 85, 0.9));
@@ -346,6 +350,20 @@
     color: color-mix(in srgb, var(--type-color) 35%, #0e7490) !important;
 }
 
+.community-score-badge--most-liked,
+.community-post-card__badge--score.community-score-badge--most-liked {
+    background: color-mix(in srgb, var(--type-color) 18%, #fff1f2) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #fecdd3) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #be123c) !important;
+}
+
+.community-score-badge--most-subscribed,
+.community-post-card__badge--score.community-score-badge--most-subscribed {
+    background: color-mix(in srgb, var(--type-color) 18%, #f5f3ff) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #ddd6fe) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #6d28d9) !important;
+}
+
 .community-score-badge--featured,
 .community-post-card__badge--score.community-score-badge--featured {
     background: color-mix(in srgb, var(--type-color) 18%, #ecfdf3) !important;
@@ -447,4 +465,11 @@
         flex-direction: column;
         text-align: center;
     }
+}
+
+.community-grid-load-more {
+    border-radius: 12px;
+    font-weight: 700;
+    margin-top: 1rem;
+    width: 100%;
 }

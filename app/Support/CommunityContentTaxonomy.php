@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CommunityContentTaxonomy
@@ -361,14 +362,6 @@ class CommunityContentTaxonomy
             return $resolved;
         }
 
-        if ($isAuthorPage) {
-            return null;
-        }
-
-        if (($hubParam === null || $hubParam === '') && ($typeParam === null || $typeParam === '')) {
-            return self::knowledgeNewsHubKey();
-        }
-
         return null;
     }
 
@@ -592,9 +585,25 @@ class CommunityContentTaxonomy
         return in_array((string) $type, self::contentPortalTypes(), true);
     }
 
-    public static function shouldUsePortalListing(?string $type, ?string $hub, bool $isAuthorPage = false): bool
+    public static function isAllPostsListing(?Request $request = null): bool
     {
-        if ($isAuthorPage) {
+        $request ??= request();
+
+        return $request->routeIs('community.all');
+    }
+
+    public static function isCommunityHomeFeed(?Request $request = null): bool
+    {
+        $request ??= request();
+
+        return $request->routeIs('community.index')
+            && ! $request->filled('hub')
+            && ! $request->filled('type');
+    }
+
+    public static function shouldUsePortalListing(?string $type, ?string $hub, bool $isAuthorPage = false, bool $isAllPostsView = false): bool
+    {
+        if ($isAuthorPage || $isAllPostsView) {
             return false;
         }
 

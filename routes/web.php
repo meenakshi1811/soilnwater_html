@@ -120,6 +120,7 @@ Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-p
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+Route::get('/community/all', [CommunityPostController::class, 'index'])->name('community.all');
 Route::redirect('/community/my-area', '/community?type=local-voices')->name('community.my-area.index');
 Route::get('/community/community-issues', [CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
 Route::get('/community/community-issues/heat-map', [CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');

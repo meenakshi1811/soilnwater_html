@@ -2,11 +2,12 @@
 
 @php
     $authorSeoName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null;
+    $isAllPostsView = $isAllPostsView ?? \App\Support\CommunityContentTaxonomy::isAllPostsListing();
     $hubSeoTitle = $authorSeoName
         ? $authorSeoName."'s Posts | SoilnWater Community"
         : (($activeType && isset($types[$activeType]))
-            ? $types[$activeType]['label'].' | SoilnWater Community'
-            : 'Community Hub | SoilnWater');
+            ? ($isAllPostsView ? 'All ' : '').$types[$activeType]['label'].' | SoilnWater Community'
+            : ($isAllPostsView ? 'All Community Posts | SoilnWater' : 'Community Hub | SoilnWater'));
     $hubSeoDescription = $authorSeoName
         ? 'Browse published stories, reports, news, and community updates from '.$authorSeoName.' on SoilnWater.'
         : (($activeType && isset($types[$activeType]))
@@ -16,7 +17,9 @@
         ? ($activeType
             ? route('community.authors.show', ['uniqueName' => $activeAuthor->authorUniqueName(), 'type' => $activeType])
             : route('community.authors.show', $activeAuthor->authorUniqueName()))
-        : ($activeType ? route('community.index', ['type' => $activeType]) : route('community.index'));
+        : ($isAllPostsView
+            ? route('community.all', array_filter(['hub' => $activeHub ?? null, 'type' => $activeType ?: null, 'category' => ($activeCategory ?? '') ?: null]))
+            : ($activeType ? route('community.index', ['type' => $activeType]) : route('community.index')));
     $hubSeoKeywords = $authorSeoName
         ? 'SoilnWater community, '.$authorSeoName.', community posts, local stories'
         : (($activeType && isset($types[$activeType]))
@@ -35,8 +38,14 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
-@if(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)))
+@php
+    $isAllPostsView = $isAllPostsView ?? \App\Support\CommunityContentTaxonomy::isAllPostsListing();
+    $usePortalListing = \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor), $isAllPostsView);
+@endphp
+@if($usePortalListing)
 <link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
+@else
+<link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">
 @endif
 <style>
     @include('community.partials.community-portal-nav-styles')
@@ -557,6 +566,10 @@
         box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.55), 0 14px 28px rgba(15, 47, 85, 0.12);
     }
 
+    .community-post-card--spotlight {
+        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.45), 0 16px 32px rgba(15, 47, 85, 0.14);
+    }
+
     .community-post-card__video-badge {
         align-items: center;
         background: color-mix(in srgb, var(--type-color) 82%, rgba(15, 47, 85, 0.9));
@@ -793,6 +806,20 @@
         color: color-mix(in srgb, var(--type-color) 35%, #0e7490) !important;
     }
 
+    .community-score-badge--most-liked,
+    .community-post-card__badge--score.community-score-badge--most-liked {
+        background: color-mix(in srgb, var(--type-color) 18%, #fff1f2) !important;
+        border-color: color-mix(in srgb, var(--type-color) 35%, #fecdd3) !important;
+        color: color-mix(in srgb, var(--type-color) 35%, #be123c) !important;
+    }
+
+    .community-score-badge--most-subscribed,
+    .community-post-card__badge--score.community-score-badge--most-subscribed {
+        background: color-mix(in srgb, var(--type-color) 18%, #f5f3ff) !important;
+        border-color: color-mix(in srgb, var(--type-color) 35%, #ddd6fe) !important;
+        color: color-mix(in srgb, var(--type-color) 35%, #6d28d9) !important;
+    }
+
     .community-score-badge--featured,
     .community-post-card__badge--score.community-score-badge--featured {
         background: color-mix(in srgb, var(--type-color) 18%, #ecfdf3) !important;
@@ -867,6 +894,13 @@
         width: 100%;
     }
 
+    .community-grid-load-more {
+        border-radius: 12px;
+        font-weight: 700;
+        margin-top: 1rem;
+        width: 100%;
+    }
+
     @media (min-width: 1200px) {
         .community-post-card__title {
             font-size: 0.92rem;
@@ -910,12 +944,15 @@
 @section('content')
 @php
     $authorName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null;
-    $sectionRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index';
+    $isAllPostsView = $isAllPostsView ?? \App\Support\CommunityContentTaxonomy::isAllPostsListing();
+    $portalRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index';
+    $listingRoute = isset($activeAuthor) ? 'community.authors.show' : ($isAllPostsView ? 'community.all' : 'community.index');
+    $sectionRoute = $portalRoute;
     $sectionRouteParams = isset($activeAuthor) ? ['uniqueName' => $activeAuthor->authorUniqueName()] : [];
     $emptyMessage = isset($activeAuthor)
         ? 'No posts found for this author yet. Try another section or check back later.'
         : 'No posts found for this section yet. Try another category or create the first post.';
-    $usePortalListing = \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor));
+    $usePortalListing = \App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor), $isAllPostsView);
 @endphp
 
 <div class="community-hub {{ $usePortalListing ? 'community-hub--news' : '' }}">
@@ -955,6 +992,7 @@
         ])
     @else
     <div class="community-shell">
+        @if (filled($activeHub) || isset($activeAuthor))
         @include('community.partials.hub-navigation', [
             'hubSections' => $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
             'types' => $types,
@@ -962,34 +1000,44 @@
             'activeType' => $activeType,
             'activeCategory' => $activeCategory ?? '',
             'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
-            'sectionRoute' => $sectionRoute,
+            'sectionRoute' => $listingRoute,
             'sectionRouteParams' => $sectionRouteParams,
             'hideSectionCards' => true,
         ])
+        @endif
 
         @php
             $resolvedHubSections = $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
             $feedHubKey = ($activeHub && isset($resolvedHubSections[$activeHub]))
                 ? $activeHub
-                : array_key_first($resolvedHubSections);
+                : (isset($activeAuthor) ? array_key_first($resolvedHubSections) : null);
             $feedHub = $feedHubKey ? ($resolvedHubSections[$feedHubKey] ?? null) : null;
+            $isHomeFeed = \App\Support\CommunityContentTaxonomy::isCommunityHomeFeed();
         @endphp
         <div class="community-hub-layout">
             <div class="community-hub-feed">
                 <div class="community-hub-posts-heading">
                     <h2>
                         @if ($activeCategory && $activeType && isset($types[$activeType]))
-                            Latest {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
+                            {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
                         @elseif ($activeType && isset($types[$activeType]))
-                            Latest {{ $types[$activeType]['label'] }} Posts
+                            {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $types[$activeType]['label'] }} Posts
                         @elseif ($feedHub)
-                            Latest {{ $feedHub['label'] }} Posts
+                            {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $feedHub['label'] }} Posts
                         @else
                             Latest community posts
                         @endif
                     </h2>
-                    @if ($feedHubKey)
-                        <a href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['hub' => $feedHubKey])) }}" class="community-hub-posts-heading__view-all">
+                    @if ($isAllPostsView && $feedHubKey)
+                        <a href="{{ route($portalRoute, array_merge($sectionRouteParams, array_filter(['hub' => $feedHubKey, 'type' => $activeType ?: null]))) }}" class="community-hub-posts-heading__view-all">
+                            <i class="fa-solid fa-arrow-left"></i> Back to {{ $feedHub['label'] ?? 'Community' }}
+                        </a>
+                    @elseif (! $isAllPostsView && ! $isHomeFeed && $feedHubKey && isset($activeAuthor))
+                        <a href="{{ route('community.authors.show', array_merge($sectionRouteParams, ['hub' => $feedHubKey])) }}" class="community-hub-posts-heading__view-all">
+                            View all posts <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    @elseif (! $isAllPostsView && ! $isHomeFeed && $feedHubKey)
+                        <a href="{{ route('community.all', array_filter(['hub' => $feedHubKey, 'type' => $activeType ?: null, 'category' => ($activeCategory ?? '') ?: null])) }}" class="community-hub-posts-heading__view-all">
                             View all posts <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     @endif
@@ -1011,6 +1059,7 @@
                         'posts' => $posts,
                         'emptyMessage' => $emptyMessage,
                         'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
+                        'listingHighlights' => $listingHighlights ?? [],
                     ])
                 </div>
 
@@ -1019,6 +1068,11 @@
                         <p class="community-pagination-summary" id="communitySummaryText">
                             Showing 1 to {{ $posts->lastItem() }} of {{ $posts->total() }} results
                         </p>
+                    @endif
+                    @if ($posts->hasMorePages())
+                        <button type="button" class="btn btn-outline-success community-grid-load-more" id="communityGridLoadMore">
+                            Load more posts <i class="fa-solid fa-chevron-down ms-1"></i>
+                        </button>
                     @endif
                     <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more posts…</p>
                 </div>
@@ -1044,12 +1098,12 @@
 @push('scripts')
 <script>
     (function () {
-        const isNewsLayout = @json(\App\Support\CommunityContentTaxonomy::shouldUsePortalListing($activeType ?? '', $activeHub ?? null, isset($activeAuthor)));
+        const isNewsLayout = @json($usePortalListing);
         const postsGrid = document.getElementById(isNewsLayout ? 'communityNewsList' : 'communityPostsGrid');
         const loadingText = document.getElementById('communityLoadingText');
         const summaryText = document.getElementById('communitySummaryText');
         const scrollSentinel = document.getElementById('communityScrollSentinel');
-        const loadMoreBtn = document.getElementById('communityNewsLoadMore');
+        const loadMoreBtn = document.getElementById(isNewsLayout ? 'communityNewsLoadMore' : 'communityGridLoadMore');
         let nextPageUrl = postsGrid ? (postsGrid.dataset.nextPageUrl || '') : '';
         let isLoading = false;
 

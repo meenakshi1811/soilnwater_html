@@ -14,6 +14,8 @@
     $currentType = ($activeType && isset($types[$activeType])) ? $types[$activeType] : null;
     $currentTypeColor = $pillColors[$activeType] ?? $pillFallback;
     $hubAllPostsUrl = route($sectionRoute, array_merge($sectionRouteParams, ['hub' => $featuredHubKey]));
+    $isAllPostsView = \App\Support\CommunityContentTaxonomy::isAllPostsListing();
+    $hubAllPostsParams = array_filter(array_merge($sectionRouteParams, ['hub' => $featuredHubKey]));
 @endphp
 
 <nav class="community-hub-nav" aria-label="Community sections">
@@ -52,9 +54,11 @@
                         <h2 class="community-hub-panel__title">{{ $currentHub['label'] }}</h2>
                         <p class="community-hub-panel__description">{{ $currentHub['description'] }}</p>
                     </div>
-                    <a href="{{ $hubAllPostsUrl }}" class="community-hub-panel__view-all">
+                    @if (! $isAllPostsView)
+                    <a href="{{ $sectionRoute === 'community.authors.show' ? $hubAllPostsUrl : route('community.all', $hubAllPostsParams) }}" class="community-hub-panel__view-all">
                         View all posts <i class="fa-solid fa-arrow-right"></i>
                     </a>
+                    @endif
                 </div>
             </div>
 

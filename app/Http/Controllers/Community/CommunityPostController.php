@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Community;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Models\CommunityAuthorQuestion;
+use App\Models\CommunityCategorySubscription;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostParticipation;
 use App\Models\CommunityPostComment;
@@ -139,12 +140,14 @@ class CommunityPostController extends Controller
 
     public function index(Request $request): View|JsonResponse
     {
-        $posts = $this->paginateCommunityPosts($request);
+        $listingHighlights = $this->communityListingHighlights($request);
+        $posts = $this->paginateCommunityPosts($request, null, array_keys($listingHighlights));
 
         if ($request->ajax()) {
-            return $this->communityPostsAjaxResponse($posts, $request);
+            return $this->communityPostsAjaxResponse($posts, $request, $listingHighlights);
         }
 
+        $isAllPostsView = CommunityContentTaxonomy::isAllPostsListing($request);
         $viewData = [
             'posts' => $posts,
             'types' => CommunityContentTaxonomy::formTypes(),
@@ -156,13 +159,16 @@ class CommunityPostController extends Controller
             ),
             'activeCategory' => $request->string('category')->toString(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            'isAllPostsView' => $isAllPostsView,
+            'listingHighlights' => $listingHighlights,
             ...$this->hubLandingExtras(),
         ];
 
         if (CommunityContentTaxonomy::shouldUsePortalListing(
             $viewData['activeType'],
             $viewData['activeHub'],
-            isset($activeAuthor)
+            isset($activeAuthor),
+            $isAllPostsView
         )) {
             $portalScope = CommunityContentTaxonomy::resolvePortalScope($viewData['activeType'], $viewData['activeHub']);
             $viewData['contentPortal'] = $this->buildContentPortalData($request, $posts, $portalScope['content_types']);
@@ -175,10 +181,11 @@ class CommunityPostController extends Controller
     public function author(Request $request, string $uniqueName): View|JsonResponse
     {
         $author = $this->resolveAuthor($uniqueName);
-        $posts = $this->paginateCommunityPosts($request, $author);
+        $listingHighlights = $this->communityListingHighlights($request, $author);
+        $posts = $this->paginateCommunityPosts($request, $author, array_keys($listingHighlights));
 
         if ($request->ajax()) {
-            return $this->communityPostsAjaxResponse($posts, $request);
+            return $this->communityPostsAjaxResponse($posts, $request, $listingHighlights);
         }
 
         $viewData = [
@@ -195,6 +202,8 @@ class CommunityPostController extends Controller
             'activeAuthor' => $author,
             'answeredAuthorQuestions' => $this->answeredQuestionsForAuthor($author),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            'isAllPostsView' => false,
+            'listingHighlights' => $listingHighlights,
             ...$this->hubLandingExtras(),
         ];
 
@@ -936,15 +945,18 @@ class CommunityPostController extends Controller
             'allow_poll' => false,
         ]);
 
+        $lockedContentType = null;
         $requestedType = $request->string('type')->toString();
         if ($requestedType !== '' && array_key_exists($requestedType, CommunityContentTaxonomy::formTypes())) {
             $post->content_type = $requestedType;
+            $lockedContentType = $requestedType;
         }
 
         return view('backend.community-posts.form', [
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'create',
+            'lockedContentType' => $lockedContentType,
         ]);
     }
 
@@ -7986,7 +7998,7 @@ class CommunityPostController extends Controller
         return (string) $value;
     }
 
-    private function paginateCommunityPosts(Request $request, ?User $author = null)
+    private function paginateCommunityPosts(Request $request, ?User $author = null, array $highlightIds = [])
     {
         $listingHub = $author
             ? CommunityContentTaxonomy::resolveActiveHubSection(
@@ -7998,10 +8010,39 @@ class CommunityPostController extends Controller
                 $request->string('type')->toString() ?: null
             );
 
-        $query = CommunityPost::query()
+        $query = $this->communityListingBaseQuery($request, $author, $listingHub)
             ->with('user')
             ->withCount(['reactions', 'comments', 'starRatings'])
-            ->withAvg('starRatings', 'rating')
+            ->withAvg('starRatings', 'rating');
+
+        if ($highlightIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($highlightIds), '?'));
+            $query->orderByRaw("CASE WHEN id IN ({$placeholders}) THEN 0 ELSE 1 END", $highlightIds);
+        }
+
+        $query
+            ->orderByDesc('is_featured')
+            ->orderByDesc('is_highlighted')
+            ->orderByDesc('is_sponsored');
+
+        CommunityEngagementController::applySubscriptionPriority($query, auth()->id());
+
+        if ($request->string('sort')->toString() === 'views') {
+            $query->orderByDesc('views_count');
+        }
+
+        return $query
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<CommunityPost>
+     */
+    private function communityListingBaseQuery(Request $request, ?User $author, ?string $listingHub)
+    {
+        return CommunityPost::query()
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
             ->when($author, fn ($query) => $query
@@ -8023,21 +8064,92 @@ class CommunityPostController extends Controller
                 fn ($query) => $query->where(function ($builder): void {
                     $builder->where('is_highlighted', true)->orWhere('is_featured', true);
                 })
+            );
+    }
+
+    /**
+     * @return array<int, list<array{label: string, class: string}>>
+     */
+    private function communityListingHighlights(Request $request, ?User $author = null): array
+    {
+        $listingHub = $author
+            ? CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
             )
-            ->orderByDesc('is_featured')
-            ->orderByDesc('is_highlighted')
-            ->orderByDesc('is_sponsored');
+            : CommunityContentTaxonomy::resolveCommunityListingHub(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            );
 
-        CommunityEngagementController::applySubscriptionPriority($query, auth()->id());
+        $base = $this->communityListingBaseQuery($request, $author, $listingHub);
+        $highlights = [];
 
-        if ($request->string('sort')->toString() === 'views') {
-            $query->orderByDesc('views_count');
+        $append = function (?CommunityPost $post, string $label, string $class) use (&$highlights): void {
+            if ($post === null) {
+                return;
+            }
+
+            $highlights[$post->id] ??= [];
+            $highlights[$post->id][] = ['label' => $label, 'class' => $class];
+        };
+
+        $mostLiked = (clone $base)
+            ->withCount(['reactions as likes_count' => fn ($query) => $query->where('reaction', '!=', 'Dislike')])
+            ->orderByDesc('likes_count')
+            ->orderByDesc('published_at')
+            ->first();
+        if ($mostLiked && (int) $mostLiked->likes_count > 0) {
+            $append($mostLiked, 'Most Liked', 'community-score-badge--most-liked');
         }
 
-        return $query
-            ->latest('published_at')
-            ->paginate(12)
-            ->withQueryString();
+        $mostSubscribed = $this->mostSubscribedListingPost(clone $base, $request);
+        $append($mostSubscribed, 'Most Subscribed', 'community-score-badge--most-subscribed');
+
+        $mostRead = (clone $base)
+            ->orderByDesc('views_count')
+            ->orderByDesc('published_at')
+            ->first();
+        if ($mostRead && (int) $mostRead->views_count > 0) {
+            $append($mostRead, 'Most Read', 'community-score-badge--most-read');
+        }
+
+        return $highlights;
+    }
+
+    private function mostSubscribedListingPost($baseQuery, Request $request): ?CommunityPost
+    {
+        $subscriptionQuery = CommunityCategorySubscription::query()
+            ->select('content_type', 'category')
+            ->selectRaw('count(*) as subscribers_count')
+            ->groupBy('content_type', 'category')
+            ->orderByDesc('subscribers_count');
+
+        if ($request->filled('type')) {
+            $subscriptionQuery->where('content_type', $request->string('type')->toString());
+        }
+
+        $topCategory = $subscriptionQuery->first();
+        if ($topCategory && (int) $topCategory->subscribers_count > 0) {
+            $fromCategory = (clone $baseQuery)
+                ->where('content_type', $topCategory->content_type)
+                ->where('category', $topCategory->category)
+                ->orderByDesc('views_count')
+                ->orderByDesc('published_at')
+                ->first();
+
+            if ($fromCategory) {
+                return $fromCategory;
+            }
+        }
+
+        $mostSaved = (clone $baseQuery)
+            ->withCount('saves')
+            ->orderByDesc('saves_count')
+            ->orderByDesc('published_at')
+            ->first();
+
+        return $mostSaved && (int) $mostSaved->saves_count > 0 ? $mostSaved : null;
     }
 
     /**
@@ -8083,7 +8195,7 @@ class CommunityPostController extends Controller
         return $this->buildContentPortalData($request, $posts, 'news');
     }
 
-    private function communityPostsAjaxResponse($posts, ?Request $request = null): JsonResponse
+    private function communityPostsAjaxResponse($posts, ?Request $request = null, array $listingHighlights = []): JsonResponse
     {
         $request ??= request();
         $isAuthorPage = $request->routeIs('community.authors.show');
@@ -8099,7 +8211,8 @@ class CommunityPostController extends Controller
         $isPortalLayout = CommunityContentTaxonomy::shouldUsePortalListing(
             $request->string('type')->toString(),
             $listingHub,
-            $isAuthorPage
+            $isAuthorPage,
+            CommunityContentTaxonomy::isAllPostsListing($request)
         );
         $portalScope = CommunityContentTaxonomy::resolvePortalScope(
             $request->string('type')->toString(),
@@ -8117,6 +8230,7 @@ class CommunityPostController extends Controller
                 'portalType' => $portalScope['portal_key'],
                 'activeHub' => $listingHub,
                 'resolvedType' => $request->string('type')->toString(),
+                'listingHighlights' => $listingHighlights,
             ])->render(),
             'next_page_url' => $posts->nextPageUrl(),
             'loaded_to' => $posts->lastItem() ?? 0,

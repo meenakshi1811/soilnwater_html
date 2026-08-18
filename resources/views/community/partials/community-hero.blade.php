@@ -42,7 +42,7 @@
                             Browse published stories, reports, and updates from {{ $authorName }}.
                         </p>
                     @else
-                        <p class="community-hero__subtitle">Community Hub, Knowledge Centre, and Local Voices Network</p>
+                        <p class="community-hero__subtitle">Community Hub and Knowledge Centre</p>
                     @endif
                 @endif
             </div>
@@ -60,26 +60,11 @@
         </div>
         <div class="community-hero__actions">
             @auth
-                <a href="{{ route('community.posts.create') }}" class="community-btn-create">
-                    <i class="fa-solid fa-plus"></i> Create a Post
-                </a>
-                @if (!isset($activeAuthor))
-                    <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
-                        <i class="fa-solid fa-microphone-lines"></i> Local Voices
-                    </a>
-                @endif
                 <a href="{{ route('community.saved.index') }}" class="community-hero__ghost">
                     <i class="fa-solid fa-bookmark"></i> Saved Posts
                 </a>
                 <a href="{{ route('community.subscriptions.index') }}" class="community-hero__ghost">
                     <i class="fa-solid fa-bell"></i> My Subscriptions
-                </a>
-            @else
-                <a href="{{ route('login') }}" class="community-btn-create">
-                    <i class="fa-solid fa-plus"></i> Create a Post
-                </a>
-                <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
-                    <i class="fa-solid fa-microphone-lines"></i> Local Voices
                 </a>
             @endauth
             @if (($posts->total() ?? 0) > 0)
