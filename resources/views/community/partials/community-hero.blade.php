@@ -2,6 +2,8 @@
     $authorName = $authorName ?? null;
     $activeType = $activeType ?? '';
     $activeHub = $activeHub ?? null;
+    $hubStats = $hubStats ?? [];
+    $publishedPostCount = isset($posts) ? (int) $posts->total() : 0;
 @endphp
 
 <section class="community-hero">
@@ -46,7 +48,7 @@
                     @endif
                 @endif
             </div>
-            @if (!isset($activeAuthor) && !empty($hubStats))
+            @if (!isset($activeAuthor) && $hubStats !== [])
                 <div class="community-hero__stats">
                     @foreach ($hubStats as $stat)
                         <div class="community-hero__stat-block">
@@ -67,9 +69,9 @@
                     <i class="fa-solid fa-bell"></i> My Subscriptions
                 </a>
             @endauth
-            @if (($posts->total() ?? 0) > 0)
+            @if ($publishedPostCount > 0)
                 <span class="community-hero__stat">
-                    <i class="fa-solid fa-file-lines"></i>{{ number_format($posts->total()) }} published {{ \Illuminate\Support\Str::plural('post', $posts->total()) }}
+                    <i class="fa-solid fa-file-lines"></i>{{ number_format($publishedPostCount) }} published {{ \Illuminate\Support\Str::plural('post', $publishedPostCount) }}
                 </span>
             @endif
         </div>
