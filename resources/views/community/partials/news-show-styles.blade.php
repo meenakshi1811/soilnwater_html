@@ -683,6 +683,22 @@
 
     .about-page--news-detail .report-community-panel {
         margin-top: 1rem;
+        padding: 1.15rem 1.2rem 1.2rem;
+    }
+
+    .about-page--news-detail .report-community-panel__grid {
+        align-items: stretch;
+    }
+
+    .about-page--news-detail .report-community-action-card__title,
+    .about-page--news-detail .report-community-action-card__text,
+    .about-page--news-detail .report-community-panel__intro {
+        font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    }
+
+    .about-page--news-detail .report-community-action-card p,
+    .about-page--news-detail .report-community-panel p {
+        margin-bottom: 0;
     }
 
     /* Match article reading typography exactly; tame CKEditor inline sizes */

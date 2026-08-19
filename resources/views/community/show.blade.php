@@ -401,13 +401,16 @@
     }
 
     .report-community-action-card {
+        align-items: flex-start;
         background: #fff;
         border: 1px solid #e2ebf5;
         border-radius: 16px;
         display: flex;
-        gap: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+        height: 100%;
         min-height: 100%;
-        padding: 1.1rem;
+        padding: 1rem;
     }
 
     .report-community-action-card--wide {
@@ -421,9 +424,9 @@
         display: inline-flex;
         flex-shrink: 0;
         font-size: 1.1rem;
-        height: 48px;
+        height: 44px;
         justify-content: center;
-        width: 48px;
+        width: 44px;
     }
 
     .report-community-action-card__icon--support { background: linear-gradient(135deg, #0f766e, #14b8a6); }
@@ -434,6 +437,54 @@
     .report-community-action-card__body {
         flex: 1;
         min-width: 0;
+        width: 100%;
+    }
+
+    .report-community-action-card__title {
+        color: #0f2744;
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 0 0 0.4rem;
+        min-height: 2.5rem;
+    }
+
+    .report-community-action-card__text {
+        color: #64748b;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin: 0;
+    }
+
+    .report-community-action-card__footer {
+        margin-top: auto;
+        padding-top: 0.15rem;
+        width: 100%;
+    }
+
+    .report-community-panel__intro {
+        color: #64748b;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .report-community-panel__author-note {
+        align-items: flex-start;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.85rem;
+        color: #1e3a8a;
+        display: flex;
+        font-size: 0.84rem;
+        gap: 0.55rem;
+        line-height: 1.45;
+        margin-bottom: 1rem;
+        padding: 0.75rem 0.9rem;
+    }
+
+    .report-community-panel__author-note i {
+        flex-shrink: 0;
+        margin-top: 0.1rem;
     }
 
     @@media (max-width: 991.98px) {
