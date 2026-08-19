@@ -558,6 +558,16 @@
                             'isSaved' => $isSaved,
                             'followedTopics' => $followedTopics,
                         ])
+                        @if($moveDetailExtrasToSidebar && $post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
+                            @include('community.partials.report-meta-details', [
+                                'post' => $post,
+                                'narrativeOnly' => true,
+                            ])
+                            @include('community.partials.report-community-actions', [
+                                'post' => $post,
+                                'reportEngagement' => $reportEngagement,
+                            ])
+                        @endif
                         @if($post->content_type === 'poetry')
                             @include('community.partials.poetry-show-sections', ['post' => $post, 'portalLayout' => true])
                         @endif
@@ -947,7 +957,7 @@
                 $resolvedLocation = $post->location ?? data_get($post->meta, 'location');
                 $formFieldLabels = \App\Support\CommunityPostFormFields::labels();
                 $visibleMeta = collect($post->meta ?? [])->except(['location', 'location_lat', 'location_lng', 'book_pages', 'editor_language']);
-                $reportMetaLabels = [
+                $legacyReportMetaLabels = [
                     'report_subtitle' => 'Subtitle',
                     'reporting_period' => 'Reporting period',
                     'report_date' => 'Report date',
@@ -967,10 +977,11 @@
                 ];
                 $newsMetaOrder = array_keys(\App\Support\CommunityPostFormFields::newsDetailMetaOrder());
                 $storyMetaOrder = array_keys(\App\Support\CommunityPostFormFields::storyDetailMetaOrder());
-                $reportMetaOrder = array_keys($reportMetaLabels);
+                $reportMetaOrder = array_keys(\App\Support\CommunityPostFormFields::reportDetailMetaOrder());
+                $legacyReportMetaOrder = array_keys($legacyReportMetaLabels);
                 $myAreaMetaOrder = array_keys($myAreaMetaLabels);
                 $myVoiceMetaOrder = array_keys($myVoiceMetaLabels);
-                $orderedReportMeta = collect($reportMetaOrder)
+                $orderedReportMeta = collect($legacyReportMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
                 $orderedMyAreaMeta = collect($myAreaMetaOrder)
@@ -979,7 +990,7 @@
                 $orderedMyVoiceMeta = collect($myVoiceMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
-                $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'report_format', 'author_bio']);
+                $additionalReportMeta = $visibleMeta->except(array_merge($reportMetaOrder, ['report_format', 'author_bio', 'issue_attachments']));
                 $additionalNewsMeta = $visibleMeta->except([
                     ...$newsMetaOrder,
                     ...\App\Models\CommunityPost::structuredLocationMetaKeys(),
@@ -1119,7 +1130,7 @@
                         @foreach($orderedReportMeta as $key => $value)
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100 bg-light">
-                                    <strong class="d-block mb-1">{{ $reportMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    <strong class="d-block mb-1">{{ $legacyReportMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                                     <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
                                 </div>
                             </div>
