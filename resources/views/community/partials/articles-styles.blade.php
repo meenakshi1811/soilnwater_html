@@ -545,13 +545,16 @@
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-stats, .about-page--articles .community-engagement-panel--article .community-engagement-stats{
-        gap: 0.35rem;
-        margin-bottom: 0.55rem;
+        gap: 0.45rem;
+        grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+        margin-bottom: 0.65rem;
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-stat, .about-page--articles .community-engagement-panel--article .community-engagement-stat{
-        border-radius: 999px;
-        padding: 0.35rem 0.6rem;
+        border-radius: 0.65rem;
+        flex-direction: row;
+        min-height: 0;
+        padding: 0.5rem 0.6rem;
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-actions, .about-page--articles .community-engagement-panel--article .community-engagement-actions{

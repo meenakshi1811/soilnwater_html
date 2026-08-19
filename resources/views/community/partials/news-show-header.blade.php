@@ -27,9 +27,6 @@
         'currentLabel' => $post->title,
     ])
     <div class="community-news-detail__actions">
-            @if($post->allowsSharing())
-                @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
-            @endif
             @auth
                 @if($post->isPubliclyVisible())
                     <button type="button"

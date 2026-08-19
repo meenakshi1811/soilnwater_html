@@ -53,9 +53,9 @@
 
         .community-engagement-stats {
             display: grid;
-            gap: 0.75rem;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            margin-bottom: 1.15rem;
+            gap: 0.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+            margin-bottom: 0.75rem;
             width: 100%;
         }
 
@@ -63,39 +63,44 @@
             align-items: center;
             background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
             border: 1px solid rgba(15, 47, 85, 0.1);
-            border-radius: 1rem;
+            border-radius: 0.75rem;
             color: #0f2744;
             display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
+            flex-direction: row;
+            gap: 0.45rem;
             justify-content: center;
-            min-height: 5.25rem;
-            padding: 0.9rem 0.75rem;
-            text-align: center;
+            min-height: 0;
+            padding: 0.55rem 0.65rem;
+            text-align: left;
         }
 
         .community-engagement-stat i {
             color: #1b6ca8;
-            font-size: 1.25rem;
+            flex-shrink: 0;
+            font-size: 0.95rem;
         }
 
         .community-engagement-stat__value {
-            font-size: 1.2rem;
+            font-size: 0.95rem;
             font-weight: 800;
             letter-spacing: -0.02em;
             line-height: 1.1;
         }
 
         .community-engagement-actions {
+            margin-bottom: 0 !important;
             width: 100%;
         }
 
         .community-engagement-icon-btn {
             align-items: center;
+            border-radius: 0.55rem;
             display: inline-flex;
-            gap: 0.35rem;
+            font-size: 0.72rem;
+            gap: 0.25rem;
             justify-content: center;
-            min-width: 2.75rem;
+            min-width: 2.15rem;
+            padding: 0.28rem 0.45rem;
         }
 
         .community-engagement-icon-btn .reaction-label {

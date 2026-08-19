@@ -13,8 +13,6 @@
         ->take(5);
     $quoteText = data_get($post->meta, 'news_why_important');
     $quoteAttribution = data_get($post->meta, 'quote_attribution') ?: data_get($post->meta, 'news_related_authority');
-    $tags = collect($post->tags ?? [])->filter()->values();
-    $shareUrl = $post->shareUrl();
     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
     $usesBookReader = $post->usesBookLayout() && $post->bookPages() !== [];
@@ -112,57 +110,6 @@
                 @if(filled($quoteAttribution))
                     <cite>— {{ $quoteAttribution }}</cite>
                 @endif
-            </div>
-        @endif
-
-        @if($tags->isNotEmpty())
-            <div class="news-detail-tags" aria-label="Post tags">
-                <ul class="news-detail-tags__list">
-                    @foreach($tags as $tag)
-                        @php
-                            $normalizedTag = \App\Models\CommunityTopicFollow::normalizeTopic((string) $tag);
-                            $isFollowingTopic = auth()->check() && in_array($normalizedTag, $followedTopics ?? [], true);
-                        @endphp
-                        <li class="news-detail-tags__item">
-                            <span class="news-detail-tags__chip" title="{{ $tag }}">
-                                <i class="fa-solid fa-hashtag" aria-hidden="true"></i>
-                                <span class="news-detail-tags__label">{{ \Illuminate\Support\Str::limit($tag, 42) }}</span>
-                            </span>
-                            @auth
-                                @if($post->isPubliclyVisible())
-                                    <button type="button"
-                                        class="btn btn-sm news-detail-tags__follow {{ $isFollowingTopic ? 'btn-success' : 'btn-outline-success' }} js-community-follow-topic {{ $isFollowingTopic ? 'is-following' : '' }}"
-                                        data-url="{{ route('community.subscriptions.topic.toggle') }}"
-                                        data-topic="{{ $tag }}">
-                                        {{ $isFollowingTopic ? 'Following' : 'Follow' }}
-                                    </button>
-                                @endif
-                            @endauth
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        @if($post->allowsSharing())
-            <div class="news-detail-share">
-                <span class="news-detail-share__label">Share:</span>
-                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}" target="_blank" rel="noopener" class="news-detail-share__btn"><i class="fa-brands fa-facebook-f"></i> Facebook</a>
-                <a href="https://twitter.com/intent/tweet?url={{ urlencode($shareUrl) }}&text={{ urlencode($post->title) }}" target="_blank" rel="noopener" class="news-detail-share__btn"><i class="fa-brands fa-x-twitter"></i> X</a>
-                <a href="https://wa.me/?text={{ urlencode($post->title.' '.$shareUrl) }}" target="_blank" rel="noopener" class="news-detail-share__btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode($shareUrl) }}" target="_blank" rel="noopener" class="news-detail-share__btn"><i class="fa-brands fa-linkedin-in"></i> LinkedIn</a>
-                <button type="button" class="news-detail-share__btn border-0" data-bs-toggle="modal" data-bs-target="#communityShareModal"><i class="fa-solid fa-link"></i> Copy link</button>
-                @auth
-                    @if($post->isPubliclyVisible())
-                        <button type="button"
-                            class="news-detail-share__btn border-0 js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
-                            data-url="{{ route('community.save.toggle', $post) }}"
-                            data-label-saved="Saved"
-                            data-label-unsaved="Save">
-                            <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark"></i> {{ $isSaved ? 'Saved' : 'Save' }}
-                        </button>
-                    @endif
-                @endauth
             </div>
         @endif
     </div>

@@ -9,16 +9,34 @@
 @endphp
 
 @if($orderedReportMeta->isNotEmpty() || !empty($issueAttachments))
-    <div class="about-box mt-4">
-        <h4>{{ $heading ?? 'Report details' }}</h4>
+    @php
+        $sidebarLayout = $sidebarLayout ?? false;
+    @endphp
+    <div @class([
+        'about-box mt-4' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--report-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? 'Report details' }}</p>
+        @else
+            <h4>{{ $heading ?? 'Report details' }}</h4>
+        @endif
         @if($orderedReportMeta->isNotEmpty())
-            <div class="row g-3 {{ !empty($issueAttachments) ? 'mb-3' : '' }}">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => ! $sidebarLayout && ! empty($issueAttachments),
+            ])>
                 @foreach($orderedReportMeta as $key => $value)
                     @php
                         $displayValue = \App\Support\CommunityPostFormFields::formatReportMetaValue($key, $value);
                         $isNarrativeField = in_array($key, $narrativeKeys, true);
                     @endphp
-                    <div class="{{ $isNarrativeField ? 'col-12' : 'col-md-6' }}">
+                    <div @class([
+                        $isNarrativeField ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && $isNarrativeField,
+                    ])>
                         <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">{{ $reportMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             <span>{!! nl2br(e($displayValue)) !!}</span>

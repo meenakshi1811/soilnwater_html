@@ -91,4 +91,25 @@
             @endif
         </nav>
     </div>
+
+    @if(isset($post) && ($moveDetailExtrasToSidebar ?? false) && $post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
+        @include('community.partials.report-meta-details', [
+            'post' => $post,
+            'includeLocation' => true,
+            'hideAttachments' => true,
+            'sidebarLayout' => true,
+        ])
+    @endif
+
+    @if(isset($post))
+        @include('community.partials.community-engagement-panel', [
+            'post' => $post,
+            'isFollowingAuthor' => $isFollowingAuthor ?? false,
+            'sidebarLayout' => true,
+        ])
+        @include('community.partials.news-sidebar-tags', [
+            'post' => $post,
+            'followedTopics' => $followedTopics ?? [],
+        ])
+    @endif
 </aside>

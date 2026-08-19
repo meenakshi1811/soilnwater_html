@@ -267,6 +267,7 @@ class CommunityPostController extends Controller
         ];
 
         if (CommunityContentTaxonomy::usesContentPortal($post->content_type)) {
+            $viewData = array_merge($viewData, $this->hubLandingExtras());
             $viewData['relatedPortalPosts'] = $this->relatedPortalPosts($post);
             $viewData['trendingPortalPosts'] = $this->trendingPortalPosts($post);
             $viewData['featuredPortalPosts'] = $this->featuredPortalPosts($post);

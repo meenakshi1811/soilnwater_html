@@ -6,7 +6,7 @@
 
 <section class="community-hero">
     <div class="community-hero__inner">
-        @if (!isset($activeAuthor))
+        @if(($showNav ?? true) && !isset($activeAuthor))
             @include('community.partials.community-portal-nav', [
                 'navContext' => 'listing',
                 'portalKey' => $activeType ?: $activeHub,

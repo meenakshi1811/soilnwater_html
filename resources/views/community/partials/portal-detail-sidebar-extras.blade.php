@@ -79,14 +79,7 @@
                         <p class="community-detail-location-note mb-0">Applies across India.</p>
                     @elseif($post->usesGpsLocation())
                         @if($post->hasMapCoordinates())
-                            <div class="community-detail-map ratio ratio-16x9">
-                                <iframe
-                                    title="Post location map"
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
-                                ></iframe>
-                            </div>
+                            @include('community.partials.location-map-embed', ['post' => $post])
                         @else
                             <p class="community-detail-location-note mb-0">No map location provided.</p>
                         @endif
@@ -95,14 +88,7 @@
                     @endif
                 @endif
                 @if($showStructuredLocation && $post->hasMapCoordinates())
-                    <div class="community-detail-map ratio ratio-16x9">
-                        <iframe
-                            title="Post location map"
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade"
-                            src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
-                        ></iframe>
-                    </div>
+                    @include('community.partials.location-map-embed', ['post' => $post])
                 @endif
             </div>
         @endif

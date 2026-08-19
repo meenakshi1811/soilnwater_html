@@ -99,14 +99,21 @@
         @endauth
     </div>
 
-    <div class="community-news-rail__card">
-        <h3 class="community-news-rail__title">Follow Us</h3>
-        <div class="community-news-social">
-            <span class="community-news-social__icon community-news-social__icon--facebook"><i class="fa-brands fa-facebook-f"></i></span>
-            <span class="community-news-social__icon community-news-social__icon--x"><i class="fa-brands fa-x-twitter"></i></span>
-            <span class="community-news-social__icon community-news-social__icon--instagram"><i class="fa-brands fa-instagram"></i></span>
-            <span class="community-news-social__icon community-news-social__icon--youtube"><i class="fa-brands fa-youtube"></i></span>
-            <span class="community-news-social__icon community-news-social__icon--linkedin"><i class="fa-brands fa-linkedin-in"></i></span>
+    @if(isset($post) && $post->allowsSharing())
+        <div class="community-news-rail__card">
+            <h3 class="community-news-rail__title">Share</h3>
+            @include('community.partials.news-rail-share', ['post' => $post])
         </div>
-    </div>
+    @else
+        <div class="community-news-rail__card">
+            <h3 class="community-news-rail__title">Follow Us</h3>
+            <div class="community-news-social">
+                <span class="community-news-social__icon community-news-social__icon--facebook"><i class="fa-brands fa-facebook-f"></i></span>
+                <span class="community-news-social__icon community-news-social__icon--x"><i class="fa-brands fa-x-twitter"></i></span>
+                <span class="community-news-social__icon community-news-social__icon--instagram"><i class="fa-brands fa-instagram"></i></span>
+                <span class="community-news-social__icon community-news-social__icon--youtube"><i class="fa-brands fa-youtube"></i></span>
+                <span class="community-news-social__icon community-news-social__icon--linkedin"><i class="fa-brands fa-linkedin-in"></i></span>
+            </div>
+        </div>
+    @endif
 </aside>

@@ -509,12 +509,22 @@
             $portalType = $post->content_type;
         @endphp
         <div class="community-hub community-hub--news">
+            @include('community.partials.community-hero', [
+                'hubStats' => $hubStats ?? [],
+                'activeType' => $portalType,
+                'activeHub' => $activeHub,
+                'showNav' => false,
+            ])
             <div class="community-news-portal">
                 <div class="community-news-portal__layout">
                     @include('community.partials.news-portal-sidebar', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
                         'portalType' => $portalType,
+                        'post' => $post,
+                        'followedTopics' => $followedTopics,
+                        'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
+                        'isFollowingAuthor' => $isFollowingAuthor,
                     ])
                     <main class="community-news-main community-news-main--detail">
                         @include('community.partials.news-show-header', [
@@ -1093,7 +1103,7 @@
                     'author_bio',
                 ]);
             @endphp
-            @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
+            @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))) && ! $moveDetailExtrasToSidebar)
                 @include('community.partials.report-meta-details', [
                     'post' => $post,
                     'includeLocation' => true,
@@ -1102,7 +1112,7 @@
                 @php
                     $visibleMeta = $additionalReportMeta;
                 @endphp
-            @elseif($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
+            @elseif($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty() && ! $moveDetailExtrasToSidebar)
                 <div class="about-box mt-4">
                     <h4>Report details</h4>
                     <div class="row g-3">
@@ -1116,6 +1126,10 @@
                         @endforeach
                     </div>
                 </div>
+                @php
+                    $visibleMeta = $additionalReportMeta;
+                @endphp
+            @elseif($post->content_type === 'reports' && ($moveDetailExtrasToSidebar ?? false))
                 @php
                     $visibleMeta = $additionalReportMeta;
                 @endphp
@@ -1234,14 +1248,7 @@
                         @endforeach
                     </div>
                     @if($post->hasMapCoordinates())
-                        <div class="community-detail-map ratio ratio-16x9">
-                            <iframe
-                                title="Post location map"
-                                loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
-                                src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
-                            ></iframe>
-                        </div>
+                        @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
             @elseif(! $moveDetailExtrasToSidebar && $post->content_type !== 'poetry' && filled($post->location_type))
@@ -1264,14 +1271,10 @@
                     @elseif($post->usesGpsLocation())
                         <p class="community-detail-location-note mb-0">This report uses an optional GPS location.</p>
                         @if($post->hasMapCoordinates())
-                            <div class="community-detail-map ratio ratio-16x9">
-                                <iframe
-                                    title="Report location map"
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
-                                ></iframe>
-                            </div>
+                            @include('community.partials.location-map-embed', [
+                                'post' => $post,
+                                'title' => 'Report location map',
+                            ])
                         @else
                             <p class="community-detail-location-note mb-0 mt-2">No map location was provided for this report.</p>
                         @endif
@@ -1314,59 +1317,12 @@
                 @include('community.partials.poll', ['post' => $post])
             @endif
 
-        <div class="about-box mt-3 community-engagement-panel community-engagement-panel--article">
-                <div class="community-engagement-stats" role="list">
-                    <div class="community-engagement-stat" role="listitem" title="Views">
-                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                        <span class="community-engagement-stat__value">{{ number_format($post->views_count) }}</span>
-                        <span class="visually-hidden">Views</span>
-                    </div>
-                    <div class="community-engagement-stat" role="listitem" title="Shares">
-                        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
-                        <span class="community-engagement-stat__value">{{ number_format($post->shares_count) }}</span>
-                        <span class="visually-hidden">Shares</span>
-                    </div>
-                    @if($post->article_score > 0)
-                        <div class="community-engagement-stat" role="listitem" title="Article score">
-                            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
-                            <span class="community-engagement-stat__value">{{ number_format((float) $post->article_score, 1) }}</span>
-                            <span class="visually-hidden">Article score out of 100</span>
-                        </div>
-                    @endif
-                </div>
-                @php
-                    $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
-                    $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
-                    $reactionOptions = $post->reactionOptionsForDisplay();
-                @endphp
-                @auth
-                    <div class="community-engagement-actions d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
-                        @foreach($reactionOptions as $reaction => $icon)
-                            <form method="POST" action="{{ route('community.react', $post) }}" class="js-community-reaction-form">
-                                @csrf
-                                <input type="hidden" name="reaction" value="{{ $reaction }}">
-                                <button type="submit" class="btn {{ in_array($reaction, $userReactions, true) ? 'btn-success' : 'btn-outline-success' }} btn-sm community-engagement-icon-btn" data-reaction-button="{{ $reaction }}" title="{{ $reaction }}" aria-label="{{ $reaction }} ({{ $reactionCounts[$reaction] ?? 0 }})">
-                                    <i class="{{ $icon }}" aria-hidden="true"></i>
-                                    <span class="reaction-count">{{ $reactionCounts[$reaction] ?? 0 }}</span>
-                                </button>
-                            </form>
-                        @endforeach
-                        @if($post->showsAuthorProfileLink() && auth()->id() !== $post->user_id)
-                            <button type="button"
-                                class="btn btn-sm community-engagement-icon-btn js-community-follow-author {{ $isFollowingAuthor ? 'btn-success is-following' : 'btn-outline-success' }}"
-                                data-url="{{ route('community.authors.follow', $post->user) }}"
-                                data-label-following="Unfollow"
-                                data-label-unfollowed="Follow Author"
-                                title="{{ $isFollowingAuthor ? 'Unfollow author' : 'Follow author' }}"
-                                aria-label="{{ $isFollowingAuthor ? 'Unfollow author' : 'Follow author' }}">
-                                <i class="fa-solid {{ $isFollowingAuthor ? 'fa-user-check' : 'fa-user-plus' }}" aria-hidden="true"></i>
-                            </button>
-                        @endif
-                    </div>
-                @else
-                    <p class="small text-muted mb-3"><a href="{{ route('login') }}">Login</a> to react or follow this author.</p>
-                @endauth
-            </div>
+            @unless($isPortalPost)
+                @include('community.partials.community-engagement-panel', [
+                    'post' => $post,
+                    'isFollowingAuthor' => $isFollowingAuthor,
+                ])
+            @endunless
 
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
                 <section class="about-box mt-4" id="comments-discussion">
@@ -1469,6 +1425,12 @@
 @include('community.partials.articles-styles')
 @if(\App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type))
 <link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
+<style>
+    .community-hub {
+        background: #f4f7fb;
+    }
+    @include('community.partials.community-hero-styles')
+</style>
 @include('community.partials.news-show-styles')
 @endif
 @if($post->content_type === 'poetry')
