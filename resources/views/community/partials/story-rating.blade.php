@@ -61,8 +61,13 @@
         @auth
             <form method="POST" action="{{ route('community.story.rate', $post) }}" class="js-story-rating-form">
                 @csrf
-                <div class="story-rating-input d-flex flex-wrap align-items-center gap-2">
-                    <span class="small fw-semibold me-1">Your rating:</span>
+                <div @class([
+                    'story-rating-input d-flex align-items-center gap-2',
+                    'story-rating-input--rail flex-column align-items-stretch' => $railLayout,
+                    'flex-wrap' => ! $railLayout,
+                ])>
+                    <span class="small fw-semibold {{ $railLayout ? 'story-rating-input__label' : 'me-1' }}">Your rating:</span>
+                    <div class="story-rating-input__stars d-flex flex-nowrap align-items-center gap-1">
                     @for($star = 1; $star <= 5; $star++)
                         <button
                             type="submit"
@@ -75,6 +80,7 @@
                             <i class="fa-solid fa-star" aria-hidden="true"></i>
                         </button>
                     @endfor
+                    </div>
                 </div>
             </form>
         @else

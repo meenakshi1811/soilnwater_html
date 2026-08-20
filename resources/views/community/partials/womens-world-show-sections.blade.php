@@ -85,6 +85,7 @@
     @endif
 
     @if($structuredLocation->isNotEmpty())
+        @unless($portalSidebarLayout ?? false)
         <div class="business-section-panel about-box mb-4">
             <div class="business-section-panel__header">
                 <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
@@ -104,6 +105,7 @@
                 @endforeach
             </div>
         </div>
+        @endunless
     @endif
 
     @include('community.partials.womens-world-media-sections', ['post' => $post])

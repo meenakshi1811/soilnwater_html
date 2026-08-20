@@ -31,7 +31,7 @@
             'resolvedLocation' => $resolvedLocation ?? null,
             'attachments' => $sidebarAttachments ?? null,
             'railLocationOnly' => $railLocationOnly ?? false,
-            'railLiteratureExtras' => $moveStoriesLiteratureExtrasToSidebar ?? false,
+            'railHubExtras' => $moveHubExtrasToSidebar ?? false,
         ])
     @endif
 

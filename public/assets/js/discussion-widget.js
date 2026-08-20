@@ -940,6 +940,8 @@
         return (config.routes?.invitationRejectTemplate || '/discussions/invitations/__INVITATION__/reject')
             .replace('__INVITATION__', String(invitationId));
     }
+
+    function membersUrl(topicId) {
         return (config.routes?.topicMembersTemplate || '/discussions/__TOPIC__/members')
             .replace('__TOPIC__', String(topicId));
     }

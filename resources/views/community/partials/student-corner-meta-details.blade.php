@@ -30,11 +30,19 @@
     $urlKeys = ['student_corner_official_website'];
     $documents = $post->studentCornerDocuments();
     $achievements = $post->studentCornerAchievements();
+    $sidebarLayout = $sidebarLayout ?? false;
 @endphp
 
-@if($post->isStudentCornerPost() && ($orderedMeta->isNotEmpty() || $documents !== [] || $achievements !== [] || $includeAdmin))
-    <div class="about-box mt-4 business-meta-grid">
-        <h4>{{ $heading ?? ($includeAdmin ? 'Saved Student Corner metadata' : 'Student Corner details') }}</h4>
+@if($post->isStudentCornerPost() && ($orderedMeta->isNotEmpty() || (! $sidebarLayout && ($documents !== [] || $achievements !== [])) || $includeAdmin))
+    <div @class([
+        'about-box mt-4 business-meta-grid' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--student-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? ($includeAdmin ? 'Saved Student Corner metadata' : 'Student Corner details') }}</p>
+        @else
+            <h4>{{ $heading ?? ($includeAdmin ? 'Saved Student Corner metadata' : 'Student Corner details') }}</h4>
+        @endif
 
         @if($includeAdmin)
             <div class="row g-3 mb-3">
@@ -60,12 +68,19 @@
         @endif
 
         @if($orderedMeta->isNotEmpty())
-            <div class="row g-3">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+            ])>
                 @foreach($orderedMeta as $key => $value)
                     @continue(! $includeAdmin && $key === 'student_corner_ask_community')
                     @continue($includeAdmin && $key === 'student_corner_visibility')
-                    <div class="{{ in_array($key, $textareaKeys, true) ? 'col-12' : 'col-md-6' }}">
-                        <div class="business-meta-item">
+                    <div @class([
+                        in_array($key, $textareaKeys, true) ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && in_array($key, $textareaKeys, true),
+                    ])>
+                        <div @class(['business-meta-item' => ! $sidebarLayout, 'border rounded p-3 h-100 bg-light' => $sidebarLayout])>
                             <span class="business-meta-item__label">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
                             @if(in_array($key, $pillKeys, true))
                                 <div class="d-flex flex-wrap gap-2 mt-1">
@@ -86,7 +101,7 @@
             </div>
         @endif
 
-        @if($documents !== [])
+        @if(! $sidebarLayout && $documents !== [])
             <div class="mt-4">
                 <span class="business-meta-item__label d-block mb-2">Project documents</span>
                 <div class="d-flex flex-wrap gap-2">
@@ -99,7 +114,7 @@
             </div>
         @endif
 
-        @if($achievements !== [])
+        @if(! $sidebarLayout && $achievements !== [])
             <div class="mt-4">
                 <span class="business-meta-item__label d-block mb-2">Certificates &amp; achievements</span>
                 <div class="row g-3">

@@ -926,7 +926,13 @@
 
 .community-news-sidebar__card--story-details,
 .community-news-sidebar__card--poetry-details,
-.community-news-sidebar__card--autobiography-details {
+.community-news-sidebar__card--autobiography-details,
+.community-news-sidebar__card--childrens-details,
+.community-news-sidebar__card--student-details,
+.community-news-sidebar__card--youth-details,
+.community-news-sidebar__card--senior-details,
+.community-news-sidebar__card--womens-details,
+.community-news-sidebar__card--wellness-details {
     padding-bottom: 1rem;
 }
 
@@ -938,8 +944,16 @@
     margin-top: 0.35rem;
 }
 
+.community-detail-card--rating .story-rating-input__stars {
+    width: 100%;
+    justify-content: space-between;
+}
+
 .community-detail-card--rating .story-rating-star {
-    padding-inline: 0.55rem;
+    min-width: 0;
+    padding-inline: 0.45rem;
+    flex: 1 1 0;
+    max-width: 2.4rem;
 }
 
 .community-news-empty {

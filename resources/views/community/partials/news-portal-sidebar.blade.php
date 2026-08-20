@@ -131,6 +131,10 @@
         ])
     @endif
 
+    @if(isset($post) && ($moveLifeLearningExtrasToSidebar ?? false))
+        @include('community.partials.life-learning-portal-sidebar-meta', ['post' => $post])
+    @endif
+
     @if(isset($post))
         @include('community.partials.community-engagement-panel', [
             'post' => $post,

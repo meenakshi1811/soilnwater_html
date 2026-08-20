@@ -13,18 +13,40 @@
         'science-technology' => data_get($post->meta, 'science_technology_documents', []),
         default => [],
     };
-    $showStructuredLocation = \App\Models\CommunityPost::usesStructuredLocation($post->content_type)
-        && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true)
-        && $post->structuredLocationForDisplay()->isNotEmpty();
     $poetryRegionalLocation = $post->content_type === 'poetry'
         ? collect(\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder())
             ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
             ->filter(fn (mixed $value): bool => filled($value))
         : collect();
+    $childrensCornerLocation = $post->isChildrensCornerPost()
+        ? collect([
+            'childrens_corner_city' => 'City',
+            'childrens_corner_district' => 'District',
+            'childrens_corner_state' => 'State',
+        ])->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
+            ->filter(fn (mixed $value): bool => filled($value))
+        : collect();
+    if ($post->isChildrensCornerPost() && $post->showsLimitedChildInformationTo(auth()->user())) {
+        $childrensCornerLocation = collect();
+    }
+    $optionalStructuredLocation = $post->structuredLocationForDisplay()->isNotEmpty()
+        && in_array($post->content_type, ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'], true);
+    $showStructuredLocation = (
+        (\App\Models\CommunityPost::usesStructuredLocation($post->content_type)
+            && ! in_array($post->content_type, ['awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true))
+        || $optionalStructuredLocation
+    ) && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
-    $hasLocation = $showStructuredLocation || $showLocationType || $post->hasMapCoordinates() || $poetryRegionalLocation->isNotEmpty();
-    $railLiteratureExtras = $railLiteratureExtras ?? false;
-    $suppressRailMeta = $railLiteratureExtras && in_array($post->content_type, ['stories', 'poetry', 'autobiography'], true);
+    $hasLocation = $showStructuredLocation
+        || $showLocationType
+        || $post->hasMapCoordinates()
+        || $poetryRegionalLocation->isNotEmpty()
+        || $childrensCornerLocation->isNotEmpty();
+    $railHubExtras = $railHubExtras ?? ($railLiteratureExtras ?? false);
+    $suppressRailMeta = $railHubExtras && in_array($post->content_type, [
+        'stories', 'poetry', 'autobiography',
+        'childrens-corner', 'student-corner', 'youth-corner', 'senior-citizens-forum', 'womens-world', 'health-wellness',
+    ], true);
     $hasAttachments = ! ($railLocationOnly ?? false) && ! $suppressRailMeta && is_array($attachments) && $attachments !== [];
     $hasAdditionalDetails = ! ($railLocationOnly ?? false) && ! $suppressRailMeta && $visibleMeta
         ->except(array_merge(
@@ -92,11 +114,18 @@
                     @elseif(filled($resolvedLocation))
                         <p class="community-detail-location-note mb-0">{{ $resolvedLocation }}</p>
                     @endif
-                @elseif($poetryRegionalLocation->isNotEmpty())
+                @elseif($poetryRegionalLocation->isNotEmpty() || $childrensCornerLocation->isNotEmpty())
                     <div class="community-detail-grid community-detail-grid--rail">
-                        @foreach($poetryRegionalLocation as $key => $value)
+                        @foreach(($poetryRegionalLocation->isNotEmpty() ? $poetryRegionalLocation : $childrensCornerLocation) as $key => $value)
                             <div class="community-detail-item">
-                                <span class="community-detail-item__label">{{ \App\Support\CommunityPostFormFields::poetryRegionalLocationOrder()[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
+                                <span class="community-detail-item__label">{{ $poetryRegionalLocation->isNotEmpty()
+                                    ? (\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder()[$key] ?? \Illuminate\Support\Str::headline($key))
+                                    : (match ($key) {
+                                        'childrens_corner_city' => 'City',
+                                        'childrens_corner_district' => 'District',
+                                        'childrens_corner_state' => 'State',
+                                        default => \Illuminate\Support\Str::headline($key),
+                                    }) }}</span>
                                 <span class="community-detail-item__value">{{ $value }}</span>
                             </div>
                         @endforeach

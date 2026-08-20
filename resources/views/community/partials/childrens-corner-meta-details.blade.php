@@ -35,17 +35,32 @@
         $locationParts = [];
     }
     $hasLocationInMeta = $orderedMeta->hasAny(['childrens_corner_city', 'childrens_corner_district', 'childrens_corner_state']);
+    $sidebarLayout = $sidebarLayout ?? false;
 @endphp
 
-@if($post->isChildrensCornerPost() && ($orderedMeta->isNotEmpty() || $locationParts !== []))
-    <div class="about-box mt-4 cc-meta-grid">
-        <h4>{{ $heading ?? "Children's Corner details" }}</h4>
+@if($post->isChildrensCornerPost() && ($orderedMeta->isNotEmpty() || ($locationParts !== [] && ! $sidebarLayout)))
+    <div @class([
+        'about-box mt-4 cc-meta-grid' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--childrens-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? "Children's Corner details" }}</p>
+        @else
+            <h4>{{ $heading ?? "Children's Corner details" }}</h4>
+        @endif
 
         @if($orderedMeta->isNotEmpty())
-            <div class="row g-3 mb-0">
+            <div @class([
+                'row g-3 mb-0' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+            ])>
                 @foreach($orderedMeta as $key => $value)
-                    @continue(in_array($key, ['childrens_corner_city', 'childrens_corner_district', 'childrens_corner_state'], true) && $locationParts !== [])
-                    <div class="{{ in_array($key, ['childrens_corner_achievement', 'childrens_corner_themes', 'childrens_corner_talent_categories'], true) ? 'col-12' : 'col-md-6' }}">
+                    @continue(in_array($key, ['childrens_corner_city', 'childrens_corner_district', 'childrens_corner_state'], true) && ($locationParts !== [] || $sidebarLayout))
+                    <div @class([
+                        in_array($key, ['childrens_corner_achievement', 'childrens_corner_themes', 'childrens_corner_talent_categories'], true) ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && in_array($key, ['childrens_corner_achievement', 'childrens_corner_themes', 'childrens_corner_talent_categories'], true),
+                    ])>
                         <div class="cc-meta-item">
                             <span class="cc-meta-item__label">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
                             @if(in_array($key, ['childrens_corner_themes', 'childrens_corner_talent_categories'], true))
@@ -65,7 +80,7 @@
             </div>
         @endif
 
-        @if($locationParts !== [])
+        @if($locationParts !== [] && ! $sidebarLayout)
             <div class="cc-meta-item mt-3">
                 <span class="cc-meta-item__label">Broad location</span>
                 <span>{{ implode(', ', $locationParts) }}</span>

@@ -523,10 +523,13 @@
     $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
     $moveDetailExtrasToSidebar = $isPortalPost && in_array($post->content_type, ['articles', 'reports', 'news'], true);
     $storiesLiteratureTypes = \App\Support\CommunityContentTaxonomy::storiesLiteratureTypes();
+    $lifeLearningTypes = \App\Support\CommunityContentTaxonomy::lifeLearningTypes();
     $moveStoriesLiteratureExtrasToSidebar = $isPortalPost && in_array($post->content_type, $storiesLiteratureTypes, true);
+    $moveLifeLearningExtrasToSidebar = $isPortalPost && in_array($post->content_type, $lifeLearningTypes, true);
+    $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
-        || $moveStoriesLiteratureExtrasToSidebar;
+        || $moveHubExtrasToSidebar;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -583,6 +586,7 @@
                         'followedTopics' => $followedTopics,
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
                         'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
+                        'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'isFollowingAuthor' => $isFollowingAuthor,
                     ])
                     <main class="community-news-main community-news-main--detail">
@@ -600,7 +604,11 @@
                         @if($post->content_type === 'autobiography')
                             @include('community.partials.autobiography-show-sections', ['post' => $post, 'portalLayout' => true])
                         @endif
-                        @include('community.partials.life-learning-portal-sections', ['post' => $post, 'placement' => 'before'])
+                        @include('community.partials.life-learning-portal-sections', [
+                            'post' => $post,
+                            'placement' => 'before',
+                            'portalSidebarLayout' => $moveLifeLearningExtrasToSidebar,
+                        ])
                         @include('community.partials.community-hub-portal-sections', [
                             'post' => $post,
                             'placement' => 'before',
@@ -669,7 +677,11 @@
                         @if($post->content_type === 'autobiography')
                             @include('community.partials.autobiography-after-content', ['post' => $post])
                         @endif
-                        @include('community.partials.life-learning-portal-sections', ['post' => $post, 'placement' => 'after'])
+                        @include('community.partials.life-learning-portal-sections', [
+                            'post' => $post,
+                            'placement' => 'after',
+                            'portalSidebarLayout' => $moveLifeLearningExtrasToSidebar,
+                        ])
                         @include('community.partials.community-hub-portal-sections', [
                             'post' => $post,
                             'placement' => 'after',
@@ -1337,7 +1349,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveStoriesLiteratureExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1369,7 +1381,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveStoriesLiteratureExtrasToSidebar && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
@@ -1473,6 +1485,8 @@
                         'post' => $post,
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
                         'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
+                        'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
+                        'moveHubExtrasToSidebar' => $moveHubExtrasToSidebar,
                         'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
                         'railLocationOnly' => $railLocationOnly,
                         'showPortalRatingRail' => $showPortalRatingRail,
