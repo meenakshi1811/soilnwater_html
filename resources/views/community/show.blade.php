@@ -527,9 +527,11 @@
     $moveStoriesLiteratureExtrasToSidebar = $isPortalPost && in_array($post->content_type, $storiesLiteratureTypes, true);
     $moveLifeLearningExtrasToSidebar = $isPortalPost && in_array($post->content_type, $lifeLearningTypes, true);
     $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
+    $moveCareerExtrasToRail = $isPortalPost && $post->content_type === 'career';
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
-        || $moveHubExtrasToSidebar;
+        || $moveHubExtrasToSidebar
+        || $moveCareerExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -1176,6 +1178,10 @@
                     'location_locality',
                     'author_bio',
                 ]);
+                $careerMetaOrder = ['career_stage', 'industry', 'key_insight'];
+                $additionalCareerMeta = collect($careerMetaOrder)
+                    ->mapWithKeys(fn (string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
                 $additionalLocalVoicesMeta = $visibleMeta->except([
                     ...\App\Support\CommunityPostFormFields::localVoiceStructuredMetaKeys(),
                     'location_country',
@@ -1297,6 +1303,11 @@
                     $visibleMeta = $additionalYouthCornerMeta;
                 @endphp
             @endif
+            @if($post->content_type === 'career' && $moveCareerExtrasToRail)
+                @php
+                    $visibleMeta = $additionalCareerMeta;
+                @endphp
+            @endif
             @if($post->isLocalVoicesPost())
                 @php
                     $visibleMeta = $additionalLocalVoicesMeta;
@@ -1350,7 +1361,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1382,7 +1393,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerExtrasToRail && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
