@@ -15,13 +15,16 @@ class PortalNotificationService
         );
     }
 
-    public static function notifyUser(?User $user, string $title, string $message, ?string $url = null, string $category = 'reviewed'): void
+    /**
+     * @param  array<string, mixed>  $meta
+     */
+    public static function notifyUser(?User $user, string $title, string $message, ?string $url = null, string $category = 'reviewed', array $meta = []): void
     {
         if (! $user) {
             return;
         }
 
-        $user->notify(new PortalNotification($title, $message, $url, $category));
+        $user->notify(new PortalNotification($title, $message, $url, $category, $meta));
     }
 
     public static function notifyAdminsOfApprovalRequest(string $itemType, string $itemName, ?string $url = null): void

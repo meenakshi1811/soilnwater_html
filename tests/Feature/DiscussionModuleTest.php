@@ -280,8 +280,10 @@ class DiscussionModuleTest extends TestCase
         $topic = DiscussionTopic::query()->firstOrFail();
         $this->assertTrue($topic->is_group);
         $this->assertTrue($topic->canAccess($creator));
-        $this->assertTrue($topic->canAccess($member));
+        $this->assertFalse($topic->canAccess($member));
         $this->assertFalse($topic->canAccess($outsider));
+
+        $topic->addGroupMembers([$member->id]);
 
         $this->actingAs($creator)
             ->getJson(route('discussions.index'))
@@ -315,7 +317,7 @@ class DiscussionModuleTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_group_creator_can_add_members(): void
+    public function test_group_creator_can_invite_members(): void
     {
         $creator = User::factory()->create(['email_verified_at' => now()]);
         $existingMember = User::factory()->create(['email_verified_at' => now()]);
@@ -328,15 +330,16 @@ class DiscussionModuleTest extends TestCase
         ])->assertOk();
 
         $topic = DiscussionTopic::query()->firstOrFail();
+        $this->assertFalse($topic->canAccess($existingMember));
 
         $this->actingAs($creator)
             ->postJson(route('discussions.members.store', $topic), [
                 'member_ids' => [$newMember->id],
             ])
             ->assertOk()
-            ->assertJsonFragment(['message' => 'Members added.']);
+            ->assertJsonFragment(['message' => 'Invitation sent. They will join after they approve.']);
 
-        $this->assertTrue($topic->fresh()->canAccess($newMember));
+        $this->assertFalse($topic->fresh()->canAccess($newMember));
 
         $this->actingAs($existingMember)
             ->postJson(route('discussions.members.store', $topic), [
@@ -357,6 +360,7 @@ class DiscussionModuleTest extends TestCase
         ])->assertOk();
 
         $topic = DiscussionTopic::query()->firstOrFail();
+        $topic->addGroupMembers([$member->id]);
 
         $this->actingAs($creator)
             ->postJson(route('discussions.group-image.update', $topic), [
@@ -399,6 +403,7 @@ class DiscussionModuleTest extends TestCase
         ])->assertOk();
 
         $group = DiscussionTopic::query()->firstOrFail();
+        $group->addGroupMembers([$member->id]);
 
         $this->actingAs($member)
             ->postJson(route('discussions.store'), [
@@ -438,6 +443,7 @@ class DiscussionModuleTest extends TestCase
         ])->assertOk();
 
         $group = DiscussionTopic::query()->firstOrFail();
+        $group->addGroupMembers([$member->id]);
 
         $this->actingAs($member)->postJson(route('discussions.store'), [
             'title' => 'Child topic',
@@ -478,6 +484,7 @@ class DiscussionModuleTest extends TestCase
         ])->assertOk();
 
         $group = DiscussionTopic::query()->firstOrFail();
+        $group->addGroupMembers([$member->id]);
 
         $this->actingAs($member)->postJson(route('discussions.store'), [
             'title' => 'Online topic',

@@ -9,14 +9,15 @@
     $resolvedLocation = $resolvedLocation ?? ($post->location ?? data_get($post->meta, 'location'));
     $attachments = $attachments ?? match ($post->content_type) {
         'reports' => data_get($post->meta, 'issue_attachments', []),
-        'articles' => data_get($post->meta, 'news_documents', []),
+        'articles', 'news' => data_get($post->meta, 'news_documents', []),
+        'science-technology' => data_get($post->meta, 'science_technology_documents', []),
         default => [],
     };
     $showStructuredLocation = \App\Models\CommunityPost::usesStructuredLocation($post->content_type)
-        && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true)
+        && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology'], true)
         && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
-    $hasLocation = $showStructuredLocation || $showLocationType;
+    $hasLocation = $showStructuredLocation || $showLocationType || $post->hasMapCoordinates();
     $hasAttachments = is_array($attachments) && $attachments !== [];
     $hasAdditionalDetails = $visibleMeta
         ->except(array_merge(
@@ -68,7 +69,7 @@
                             </div>
                         @endforeach
                     </div>
-                @else
+                @elseif($showLocationType)
                     <span class="community-detail-location-type">
                         <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
                         {{ $post->locationTypeLabel() }}
@@ -77,17 +78,13 @@
                         <p class="community-detail-location-note mb-0">Global relevance.</p>
                     @elseif($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_INDIA)
                         <p class="community-detail-location-note mb-0">Applies across India.</p>
-                    @elseif($post->usesGpsLocation())
-                        @if($post->hasMapCoordinates())
-                            @include('community.partials.location-map-embed', ['post' => $post])
-                        @else
-                            <p class="community-detail-location-note mb-0">No map location provided.</p>
-                        @endif
+                    @elseif($post->usesGpsLocation() && ! $post->hasMapCoordinates())
+                        <p class="community-detail-location-note mb-0">No map location provided.</p>
                     @elseif($post->requiresSpecificLocation() && filled($resolvedLocation))
                         <p class="community-detail-location-note mb-0">{{ $resolvedLocation }}</p>
                     @endif
                 @endif
-                @if($showStructuredLocation && $post->hasMapCoordinates())
+                @if($post->hasMapCoordinates())
                     @include('community.partials.location-map-embed', ['post' => $post])
                 @endif
             </div>

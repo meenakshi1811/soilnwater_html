@@ -42,6 +42,9 @@
                 $title = $notification->data['title'] ?? 'Notification';
                 $message = $notification->data['message'] ?? '';
                 $isUnread = is_null($notification->read_at);
+                $acceptUrl = $notification->data['accept_url'] ?? null;
+                $rejectUrl = $notification->data['reject_url'] ?? null;
+                $isGroupInvite = ($notification->data['category'] ?? '') === 'group_invite';
             @endphp
             <div class="notifications-row {{ $isUnread ? 'is-unread' : '' }}" data-notification-id="{{ $notification->id }}" data-unread="{{ $isUnread ? '1' : '0' }}">
                 <form method="POST" action="{{ route('notifications.read', $notification) }}" class="notifications-row-main m-0">
@@ -66,6 +69,16 @@
                 </form>
 
                 <div class="notifications-row-actions">
+                    @if($isGroupInvite && $acceptUrl && $rejectUrl)
+                        <form method="POST" action="{{ $rejectUrl }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Reject</button>
+                        </form>
+                        <form method="POST" action="{{ $acceptUrl }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                    @endif
                     <form method="POST" action="{{ route('notifications.read', $notification) }}" class="m-0">
                         @csrf
                         <button type="submit" class="notifications-action-btn notifications-open-btn" title="Open notification" aria-label="Open notification">

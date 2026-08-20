@@ -19,17 +19,20 @@
             <input type="search"
                    id="{{ $searchId }}"
                    class="discussion-group-pick__search"
-                   placeholder="Search name or email"
+                   placeholder="Enter mobile number"
+                   inputmode="numeric"
                    autocomplete="off"
-                   aria-label="Search contacts">
+                   aria-label="Search by mobile number">
         </div>
     </div>
     <div class="discussion-group-pick__scroll">
-        <div class="discussion-group-pick__loading" id="{{ $loadingId }}">
+        <div class="discussion-group-pick__loading" id="{{ $loadingId }}" hidden>
             <span class="discussion-widget__spinner" aria-hidden="true"></span>
-            <span>Loading contacts…</span>
+            <span>Searching…</span>
         </div>
-        <div class="discussion-group-pick__list" id="{{ $listId }}" role="listbox" aria-label="Select group members"></div>
+        <div class="discussion-group-pick__list" id="{{ $listId }}" role="listbox" aria-label="Select group members">
+            <div class="discussion-group-pick__empty">Enter a mobile number to find a member.</div>
+        </div>
     </div>
     <div class="discussion-group-pick__footer" id="{{ $footerId }}" hidden>
         <span class="discussion-group-pick__footer-count" id="{{ $countId }}"></span>

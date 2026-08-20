@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Discussion;
 use App\Events\Discussion\TopicCreated;
 use App\Events\Discussion\TopicPinned;
 use App\Http\Controllers\Controller;
+use App\Models\DiscussionGroupInvitation;
 use App\Models\DiscussionTopic;
+use App\Models\User;
+use App\Services\DiscussionGroupInvitationService;
 use App\Services\DiscussionReadService;
 use App\Services\DiscussionOnlineService;
 use App\Services\FoulWordFilter;
@@ -23,6 +26,7 @@ class DiscussionTopicController extends Controller
         private DiscussionReadService $readService,
         private DiscussionOnlineService $onlineService,
         private FoulWordFilter $foulWordFilter,
+        private DiscussionGroupInvitationService $invitationService,
     ) {}
 
     public function index(Request $request): View|JsonResponse
@@ -41,6 +45,7 @@ class DiscussionTopicController extends Controller
                 ->get();
 
             $unreadCounts = $this->readService->unreadCountsForRootTopics($request->user(), $topics);
+            $pendingInvitations = $this->pendingInvitationsForUser($request->user());
 
             return response()->json([
                 'topics' => $topics->map(function (DiscussionTopic $topic) use ($unreadCounts) {
@@ -48,6 +53,7 @@ class DiscussionTopicController extends Controller
                         'unread_count' => $unreadCounts[$topic->id] ?? 0,
                     ]);
                 })->values(),
+                'pending_invitations' => $pendingInvitations,
                 'can_pin' => $canPin,
                 'global_unread' => array_sum($unreadCounts),
                 'meta' => [
@@ -75,6 +81,7 @@ class DiscussionTopicController extends Controller
             'topics' => $topics,
             'canPin' => $canPin,
             'unreadCounts' => $unreadCounts,
+            'pendingInvitations' => $this->pendingInvitationModelsForUser($request->user()),
         ]);
     }
 
@@ -227,7 +234,8 @@ class DiscussionTopicController extends Controller
                 ->values()
                 ->all();
 
-            $topic->syncGroupMembers($request->user(), $memberIds);
+            $topic->syncGroupMembers($request->user(), []);
+            $invited = $this->invitationService->inviteMembers($topic, $request->user(), $memberIds);
         }
 
         $topic->load(['user', 'members', 'parent']);
@@ -237,9 +245,20 @@ class DiscussionTopicController extends Controller
         TopicCreated::dispatch($topic);
 
         if ($request->expectsJson()) {
+            $message = $parentTopic
+                ? 'Group topic created.'
+                : ($isGroup
+                    ? (count($invited ?? []) > 0
+                        ? 'Group created. Invitations sent — members join after they approve.'
+                        : 'Group created.')
+                    : 'Topic created.');
+
             return response()->json([
-                'message' => $parentTopic ? 'Group topic created.' : 'Topic created.',
+                'message' => $message,
                 'topic' => $topic->toBroadcastArray(),
+                'pending_invitations' => isset($invited)
+                    ? collect($invited)->map->toBroadcastArray()->values()
+                    : [],
             ]);
         }
 
@@ -395,5 +414,29 @@ class DiscussionTopicController extends Controller
             'topic' => $topicReactions,
             'replies' => $replyReactions,
         ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function pendingInvitationsForUser(User $user): array
+    {
+        return $this->pendingInvitationModelsForUser($user)
+            ->map(fn (DiscussionGroupInvitation $invitation) => $invitation->toBroadcastArray())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, DiscussionGroupInvitation>
+     */
+    private function pendingInvitationModelsForUser(User $user)
+    {
+        return DiscussionGroupInvitation::query()
+            ->with(['topic', 'inviter', 'invitee'])
+            ->pending()
+            ->where('invitee_id', $user->id)
+            ->latest()
+            ->get();
     }
 }

@@ -6,7 +6,7 @@
     $portalLabel = $types[$portalType]['label'] ?? 'News';
     $newsPriority = data_get($post->meta, 'news_priority');
     $newsSource = data_get($post->meta, 'news_source') ?: data_get($post->meta, 'reporter_name');
-    $locationParts = $post->structuredLocationForDisplay()->only(['city', 'state', 'district', 'country'])->filter()->values();
+    $locationParts = $post->structuredLocationForDisplay()->only(['location_city', 'location_state', 'location_district', 'location_country'])->filter()->values();
     $locationLabel = $locationParts->isNotEmpty() ? $locationParts->implode(', ') : data_get($post->meta, 'news_dateline');
     $deck = $post->excerpt ?: data_get($post->meta, 'news_subtitle');
     $isTopNews = $post->is_featured || $post->is_highlighted;

@@ -37,6 +37,30 @@
             </div>
         </div>
 
+        @if(($pendingInvitations ?? collect())->isNotEmpty())
+            <div class="discussion-invite-list mb-4">
+                <h3 class="h5 mb-3">Pending group invitations</h3>
+                @foreach($pendingInvitations as $invitation)
+                    <div class="discussion-invite-card">
+                        <div>
+                            <h2>{{ $invitation->topic?->title ?: 'Community group' }}</h2>
+                            <p>Invited by {{ $invitation->inviter?->authorDisplayName() ?: 'a community member' }} · {{ $invitation->created_at?->diffForHumans() }}</p>
+                        </div>
+                        <div class="discussion-invite-card__actions">
+                            <form method="POST" action="{{ route('discussions.invitations.reject', $invitation) }}">
+                                @csrf
+                                <button type="submit" class="discussion-btn discussion-btn--outline">Reject</button>
+                            </form>
+                            <form method="POST" action="{{ route('discussions.invitations.accept', $invitation) }}">
+                                @csrf
+                                <button type="submit" class="discussion-btn">Approve</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <div class="discussion-topic-list" id="discussionTopicList" data-can-pin="{{ $canPin ? '1' : '0' }}">
             @forelse($topics as $topic)
                 @include('discussions.partials.topic-card', ['topic' => $topic, 'canPin' => $canPin, 'unreadCounts' => $unreadCounts])

@@ -521,7 +521,7 @@
     $isArticlePost = $post->content_type === 'articles';
     $isNewsPost = $post->content_type === 'news';
     $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
-    $moveDetailExtrasToSidebar = $isPortalPost && ($isArticlePost || $post->content_type === 'reports');
+    $moveDetailExtrasToSidebar = $isPortalPost && in_array($post->content_type, ['articles', 'reports', 'news'], true);
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
@@ -1201,6 +1201,10 @@
                 @php
                     $visibleMeta = $additionalNewsMeta;
                 @endphp
+            @elseif($post->content_type === 'news' && ($moveDetailExtrasToSidebar ?? false))
+                @php
+                    $visibleMeta = $additionalNewsMeta;
+                @endphp
             @endif
             @if($post->content_type === 'stories')
                 @include('community.partials.story-meta-details', ['post' => $post])
@@ -1292,7 +1296,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(! $moveDetailExtrasToSidebar && \App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(! $moveDetailExtrasToSidebar && \App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1434,7 +1438,8 @@
                     @php
                         $sidebarAttachments = match ($post->content_type) {
                             'reports' => data_get($post->meta, 'issue_attachments', []),
-                            'articles' => data_get($post->meta, 'news_documents', []),
+                            'articles', 'news' => data_get($post->meta, 'news_documents', []),
+                            'science-technology' => data_get($post->meta, 'science_technology_documents', []),
                             default => [],
                         };
                     @endphp

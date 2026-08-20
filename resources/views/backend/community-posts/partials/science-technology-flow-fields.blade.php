@@ -85,6 +85,17 @@
         </div>
     </div>
 </div>
+
+<div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white mb-3">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+        <div>
+            <h5 class="mb-1">Location fields</h5>
+            <p class="text-muted mb-0 small">Country, state, district, city, and map pin for this science &amp; technology post.</p>
+        </div>
+        <span class="badge bg-success-subtle text-success border">Critical for SoilnWater</span>
+    </div>
+    <div id="communityScienceTechnologyLocationSlot"></div>
+</div>
 @endif
 
 @if($showStRest)

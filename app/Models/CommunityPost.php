@@ -709,7 +709,7 @@ class CommunityPost extends Model
 
     public static function usesStructuredLocation(?string $contentType): bool
     {
-        return in_array($contentType, ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true);
+        return in_array($contentType, ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology'], true);
     }
 
     public static function usesWomensWorldOptionalStructuredLocation(?string $contentType): bool

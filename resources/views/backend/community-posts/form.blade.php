@@ -5555,7 +5555,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
-    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'];
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology'];
     const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
@@ -5621,6 +5621,7 @@ The mountains keep.</pre>
         const communityIssuesSlot = document.getElementById('communityCommunityIssuesLocationSlot');
         const agricultureSlot = document.getElementById('communityAgricultureLocationSlot');
         const environmentSlot = document.getElementById('communityEnvironmentLocationSlot');
+        const scienceTechnologySlot = document.getElementById('communityScienceTechnologyLocationSlot');
         const seniorCitizensForumSlot = document.getElementById('communitySeniorCitizensForumLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
@@ -5640,6 +5641,7 @@ The mountains keep.</pre>
         const isCommunityIssues = contentType === 'community-issues';
         const isAgriculture = contentType === 'agriculture';
         const isEnvironment = contentType === 'environment';
+        const isScienceTechnology = contentType === 'science-technology';
         const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         const requiresStructured = requiresStructuredCommunityLocation(contentType);
@@ -5670,6 +5672,8 @@ The mountains keep.</pre>
             targetSlot = agricultureSlot;
         } else if (isEnvironment) {
             targetSlot = environmentSlot;
+        } else if (isScienceTechnology) {
+            targetSlot = scienceTechnologySlot;
         } else if (isSeniorCitizensForum) {
             targetSlot = seniorCitizensForumSlot;
         }

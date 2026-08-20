@@ -96,13 +96,15 @@
             : '';
     }
 
-    function renderGroupPickList(listEl, users, selectionMap) {
+    function renderGroupPickList(listEl, users, selectionMap, query = '') {
         if (!listEl) {
             return;
         }
 
         if (!users.length) {
-            listEl.innerHTML = `<div class="discussion-group-pick__empty">No contacts found.</div>`;
+            listEl.innerHTML = `<div class="discussion-group-pick__empty">${query
+                ? 'No member found for that number.'
+                : 'Enter a mobile number to find a member.'}</div>`;
 
             return;
         }
@@ -119,7 +121,7 @@
                 <span class="discussion-avatar">${initials}</span>
                 <span class="discussion-group-pick__contact-body">
                     <strong>${escapeHtml(user.name)}</strong>
-                    <span>${escapeHtml(user.email || '')}</span>
+                    <span>${escapeHtml(user.phone || user.email || '')}</span>
                 </span>
                 <span class="discussion-group-pick__check" aria-hidden="true">
                     <i class="fa-solid ${selected ? 'fa-circle-check' : 'fa-circle'}"></i>
@@ -161,9 +163,9 @@
         let usersCache = [];
         let searchTimer = null;
 
-        function refreshUi() {
+        function refreshUi(query = '') {
             renderSelectedStrip(selectedEl, selectionMap);
-            renderGroupPickList(listEl, usersCache, selectionMap);
+            renderGroupPickList(listEl, usersCache, selectionMap, query);
             updateNextButton(nextBtn, selectionMap, footerEl, countEl);
 
             if (typeof options.onSelectionChange === 'function') {
@@ -172,13 +174,27 @@
         }
 
         async function loadUsers(query = '') {
+            const digits = String(query).replace(/\D+/g, '');
+
+            if (digits.length < 8) {
+                usersCache = [];
+                if (loadingEl) {
+                    loadingEl.hidden = true;
+                }
+                refreshUi(digits.length ? 'incomplete' : '');
+                if (listEl && digits.length) {
+                    listEl.innerHTML = '<div class="discussion-group-pick__empty">Enter a complete mobile number to search.</div>';
+                }
+                return;
+            }
+
             if (loadingEl) {
                 loadingEl.hidden = false;
             }
 
             try {
                 usersCache = await fetchUsers(query);
-                refreshUi();
+                refreshUi(query);
             } catch (error) {
                 if (listEl) {
                     listEl.innerHTML = `<div class="discussion-group-pick__empty">${escapeHtml(error.message)}</div>`;
@@ -248,11 +264,11 @@
             },
             reset() {
                 selectionMap.clear();
+                usersCache = [];
                 if (searchInput) {
                     searchInput.value = '';
                 }
                 refreshUi();
-                loadUsers('');
             },
         };
     }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Discussion;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiscussionGroupInvitation;
 use App\Models\DiscussionTopic;
 use App\Models\User;
+use App\Services\DiscussionGroupInvitationService;
 use App\Services\DiscussionOnlineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +14,10 @@ use Illuminate\Validation\Rule;
 
 class DiscussionMemberController extends Controller
 {
-    public function __construct(private DiscussionOnlineService $onlineService) {}
+    public function __construct(
+        private DiscussionOnlineService $onlineService,
+        private DiscussionGroupInvitationService $invitationService,
+    ) {}
 
     public function searchUsers(Request $request): JsonResponse
     {
@@ -20,28 +25,39 @@ class DiscussionMemberController extends Controller
             'q' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $query = trim((string) ($data['q'] ?? ''));
+        $digits = preg_replace('/\D+/', '', (string) ($data['q'] ?? '')) ?? '';
+
+        if (strlen($digits) < 8) {
+            return response()->json([
+                'users' => [],
+                'message' => $digits === ''
+                    ? 'Enter a mobile number to find a member.'
+                    : 'Enter a complete mobile number to search.',
+            ]);
+        }
+
+        $lastTen = strlen($digits) > 10 ? substr($digits, -10) : $digits;
 
         $users = User::query()
             ->where('id', '!=', $request->user()->id)
             ->where('is_blocked', false)
             ->where('is_chat_blocked', false)
-            ->when($query !== '', function ($builder) use ($query): void {
-                $builder->where(function ($inner) use ($query): void {
-                    $inner->where('name', 'like', "%{$query}%")
-                        ->orWhere('full_name', 'like', "%{$query}%")
-                        ->orWhere('email', 'like', "%{$query}%");
-                });
+            ->where(function ($builder) use ($digits, $lastTen): void {
+                $builder->where('phone_number', $digits)
+                    ->orWhere('phone_number', 'like', '%'.$lastTen)
+                    ->orWhere('whatsapp_number', $digits)
+                    ->orWhere('whatsapp_number', 'like', '%'.$lastTen);
             })
             ->orderBy('name')
-            ->limit($query === '' ? 50 : 15)
-            ->get(['id', 'name', 'full_name', 'email']);
+            ->limit(5)
+            ->get(['id', 'name', 'full_name', 'email', 'phone_number']);
 
         return response()->json([
             'users' => $users->map(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->authorDisplayName(),
                 'email' => $user->email,
+                'phone' => $user->phone_number,
                 'initials' => $user->authorInitials(),
             ])->values(),
         ]);
@@ -53,10 +69,13 @@ class DiscussionMemberController extends Controller
 
         abort_unless($topic->isGroupContainer(), 404);
 
+        $canManage = $request->user()->can('manageMembers', $topic);
+
         return response()->json([
             'members' => $this->onlineService->membersWithOnlineStatus($topic),
             'online_users' => $this->onlineService->onlineUsersForTopic($topic),
-            'can_manage_members' => $request->user()->can('manageMembers', $topic),
+            'pending_invitations' => $canManage ? $this->pendingInvitationsForTopic($topic) : [],
+            'can_manage_members' => $canManage,
             'can_delete_group' => $request->user()->can('deleteGroup', $topic),
             'can_leave_group' => $request->user()->can('leaveGroup', $topic),
             'group_image_url' => $topic->groupImageUrl(),
@@ -81,11 +100,17 @@ class DiscussionMemberController extends Controller
             ->values()
             ->all();
 
-        $added = $topic->addGroupMembers($memberIds);
+        $invited = $this->invitationService->inviteMembers($topic, $request->user(), $memberIds);
+        $invitedCount = count($invited);
 
         return response()->json([
-            'message' => count($added) > 0 ? 'Members added.' : 'Selected members are already in this group.',
-            'added_ids' => $added,
+            'message' => $invitedCount > 0
+                ? ($invitedCount === 1
+                    ? 'Invitation sent. They will join after they approve.'
+                    : 'Invitations sent. They will join after they approve.')
+                : 'Selected members are already in this group or already invited.',
+            'invited_ids' => collect($invited)->pluck('invitee_id')->values()->all(),
+            'pending_invitations' => $this->pendingInvitationsForTopic($topic),
             'members' => $this->onlineService->membersWithOnlineStatus($topic->fresh(['members', 'user'])),
         ]);
     }
@@ -124,5 +149,20 @@ class DiscussionMemberController extends Controller
             'message' => 'You left the group.',
             'left_group_id' => $topic->id,
         ]);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function pendingInvitationsForTopic(DiscussionTopic $topic): array
+    {
+        return $topic->invitations()
+            ->pending()
+            ->with(['inviter', 'invitee', 'topic'])
+            ->latest()
+            ->get()
+            ->map(fn (DiscussionGroupInvitation $invitation) => $invitation->toBroadcastArray())
+            ->values()
+            ->all();
     }
 }

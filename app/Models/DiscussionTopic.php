@@ -69,6 +69,11 @@ class DiscussionTopic extends Model
         return $this->hasMany(DiscussionTopicMember::class);
     }
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(DiscussionGroupInvitation::class);
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_topic_id');
@@ -208,6 +213,7 @@ class DiscussionTopic extends Model
         $this->purgeDiscussionContent();
         $this->members()->detach();
         $this->memberRecords()->delete();
+        $this->invitations()->delete();
         $this->delete();
     }
 

@@ -57,6 +57,8 @@
         membersPhotoActionLabel: document.getElementById('discussionWidgetMembersPhotoActionLabel'),
         membersAddSection: document.getElementById('discussionWidgetMembersAddSection'),
         membersAddBtn: document.getElementById('discussionWidgetMembersAddBtn'),
+        membersPendingSection: document.getElementById('discussionWidgetMembersPendingSection'),
+        membersPendingList: document.getElementById('discussionWidgetMembersPendingList'),
         membersCloseBtn: document.getElementById('discussionWidgetMembersCloseBtn'),
         newTopicBtn: document.getElementById('discussionWidgetNewTopicBtn'),
         newGroupBtn: document.getElementById('discussionWidgetNewGroupBtn'),
@@ -280,6 +282,7 @@
     let openRequestId = 0;
     const modalMemberSelection = new Map();
     const modalGroupMemberIds = new Set();
+    const modalPendingInviteeIds = new Set();
     let canManageMembersModal = false;
     let canLeaveGroupModal = false;
     let canDeleteGroupModal = false;
@@ -807,7 +810,7 @@
 
         if (!users.length) {
             resultsEl.hidden = false;
-            resultsEl.innerHTML = `<div class="discussion-widget__member-results-empty">${query ? 'No contacts found.' : 'No contacts available.'}</div>`;
+            resultsEl.innerHTML = `<div class="discussion-widget__member-results-empty">${query ? 'No member found for that number.' : 'Enter a mobile number to find a member.'}</div>`;
 
             return;
         }
@@ -818,7 +821,7 @@
 
             return `<button type="button" class="discussion-widget__member-result ${selected ? 'is-selected' : ''}" data-user-id="${user.id}" data-user-name="${escapeHtml(user.name)}" ${selected ? 'disabled' : ''} role="option">
                 <strong>${escapeHtml(user.name)}</strong>
-                <span>${escapeHtml(user.email || '')}</span>
+                <span>${escapeHtml(user.phone || user.email || '')}</span>
             </button>`;
         }).join('');
 
@@ -854,7 +857,22 @@
 
     async function loadMemberSearchResults(input, resultsEl, selectionMap, chipsContainerId, options = {}) {
         const query = input.value.trim();
+        const digits = query.replace(/\D+/g, '');
         const excludeIds = options.getExcludeIds?.() || new Set();
+
+        if (digits.length < 8) {
+            if (!digits.length) {
+                hideMemberSearchResults(resultsEl, input);
+                return;
+            }
+
+            renderMemberSearchResults(resultsEl, [], selectionMap, chipsContainerId, input, 'incomplete');
+            if (resultsEl) {
+                resultsEl.hidden = false;
+                resultsEl.innerHTML = '<div class="discussion-widget__member-results-empty">Enter a complete mobile number to search.</div>';
+            }
+            return;
+        }
 
         try {
             let users = await searchUsers(query);
@@ -879,8 +897,16 @@
             }, options.debounceMs ?? 150);
         };
 
-        input.addEventListener('focus', openResults);
-        input.addEventListener('click', openResults);
+        input.addEventListener('focus', () => {
+            if (input.value.replace(/\D+/g, '').length >= 8) {
+                openResults();
+            }
+        });
+        input.addEventListener('click', () => {
+            if (input.value.replace(/\D+/g, '').length >= 8) {
+                openResults();
+            }
+        });
 
         input.addEventListener('input', () => {
             clearTimeout(memberSearchTimer);
@@ -905,7 +931,15 @@
         });
     }
 
-    function membersUrl(topicId) {
+    function invitationAcceptUrl(invitationId) {
+        return (config.routes?.invitationAcceptTemplate || '/discussions/invitations/__INVITATION__/accept')
+            .replace('__INVITATION__', String(invitationId));
+    }
+
+    function invitationRejectUrl(invitationId) {
+        return (config.routes?.invitationRejectTemplate || '/discussions/invitations/__INVITATION__/reject')
+            .replace('__INVITATION__', String(invitationId));
+    }
         return (config.routes?.topicMembersTemplate || '/discussions/__TOPIC__/members')
             .replace('__TOPIC__', String(topicId));
     }
@@ -1112,6 +1146,39 @@
         }).join('');
     }
 
+    function renderPendingInvitations(invitations = [], canManage = canManageMembersModal) {
+        modalPendingInviteeIds.clear();
+        invitations.forEach((invitation) => {
+            if (invitation?.invitee?.id) {
+                modalPendingInviteeIds.add(Number(invitation.invitee.id));
+            }
+        });
+
+        if (!els.membersPendingSection || !els.membersPendingList) {
+            return;
+        }
+
+        if (!canManage || !invitations.length) {
+            els.membersPendingSection.hidden = true;
+            els.membersPendingList.innerHTML = '';
+            return;
+        }
+
+        els.membersPendingSection.hidden = false;
+        els.membersPendingList.innerHTML = invitations.map((invitation) => {
+            const name = invitation.invitee?.name || 'Member';
+            const phone = invitation.invitee?.phone || '';
+
+            return `<div class="discussion-widget__member-item">
+                <span class="discussion-widget__member-item-icon"><i class="fa-regular fa-clock"></i></span>
+                <div class="discussion-widget__member-item-body">
+                    <strong>${escapeHtml(name)}</strong>
+                    <span>Invitation pending${phone ? ` · ${escapeHtml(phone)}` : ''}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
     async function openMembersModal() {
         const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
         if (!group?.id || !els.membersModal) {
@@ -1148,6 +1215,7 @@
                 els.membersPhotoSection.hidden = !canManageMembersModal;
             }
             renderMembersList(data.members || [], canManageMembersModal);
+            renderPendingInvitations(data.pending_invitations || [], canManageMembersModal);
             if (els.membersAddSection) {
                 els.membersAddSection.hidden = !canManageMembersModal;
             }
@@ -1166,7 +1234,11 @@
     function closeMembersModal() {
         modalMemberSelection.clear();
         modalGroupMemberIds.clear();
+        modalPendingInviteeIds.clear();
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+        if (els.membersPendingSection) {
+            els.membersPendingSection.hidden = true;
+        }
         hideMemberSearchResults(
             document.getElementById('discussionWidgetMembersAddResults'),
             document.getElementById('discussionWidgetMembersAddSearch')
@@ -1808,12 +1880,32 @@
         </article>`;
     }
 
-    function renderTopics(topics) {
+    function buildInvitationCard(invitation) {
+        const groupTitle = invitation.group_title || 'Community group';
+        const inviterName = invitation.inviter?.name || 'A community member';
+
+        return `<div class="discussion-widget-topic discussion-widget-invite" data-invitation-id="${invitation.id}">
+            <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
+            <div class="discussion-widget-topic__content">
+                <div class="discussion-widget-topic__row">
+                    <h3 class="discussion-widget-topic__title">${escapeHtml(groupTitle)}</h3>
+                    <span class="discussion-widget-topic__unread">Invite</span>
+                </div>
+                <p class="discussion-widget-topic__excerpt">${escapeHtml(inviterName)} invited you to join this group.</p>
+                <div class="discussion-widget-invite__actions">
+                    <button type="button" class="discussion-widget-invite__btn discussion-widget-invite__btn--reject" data-invitation-action="reject">Reject</button>
+                    <button type="button" class="discussion-widget-invite__btn discussion-widget-invite__btn--accept" data-invitation-action="accept">Approve</button>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function renderTopics(topics, invitations = []) {
         if (!els.topicList) {
             return;
         }
 
-        if (!topics.length) {
+        if (!topics.length && !invitations.length) {
             els.topicList.innerHTML = `<div class="discussion-widget__empty" id="discussionWidgetEmptyState">
                 <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comments"></i></div>
                 <h4>No conversations yet</h4>
@@ -1822,7 +1914,8 @@
             return;
         }
 
-        els.topicList.innerHTML = topics.map(buildTopicCard).join('');
+        const invitationHtml = invitations.map(buildInvitationCard).join('');
+        els.topicList.innerHTML = invitationHtml + topics.map(buildTopicCard).join('');
 
         const search = document.getElementById('discussionWidgetSearch');
         if (search) {
@@ -1892,7 +1985,7 @@
             if (typeof data.global_unread === 'number') {
                 updateFabBadge(data.global_unread);
             }
-            renderTopics(data.topics || []);
+            renderTopics(data.topics || [], data.pending_invitations || []);
             topicsLoaded = true;
         } catch (error) {
             if (els.topicList) {
@@ -2157,11 +2250,11 @@
     function showGroupPick() {
         composeMode = 'group';
         showPanel('groupPick');
-        setHeaderTitle('Add participants', 'Select contacts for your group');
+        setHeaderTitle('Add participants', 'Find a member by mobile number');
         resetHeaderAvatar();
         updateMembersButton(null);
         setComposerVisible(false);
-        widgetGroupPicker?.loadUsers?.('');
+        widgetGroupPicker?.reset?.();
         document.getElementById('discussionWidgetGroupSearch')?.focus();
     }
 
@@ -2282,9 +2375,10 @@
             });
 
             renderMembersList(data.members || [], canManageMembersModal);
+            renderPendingInvitations(data.pending_invitations || [], canManageMembersModal);
             modalMemberSelection.clear();
             renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
-            notify('success', data.message || 'Members added.');
+            notify('success', data.message || 'Invitation sent.');
         } catch (error) {
             notify('error', error.message);
         } finally {
@@ -2458,7 +2552,7 @@
         modalMemberSelection,
         'discussionWidgetMembersAddChips',
         {
-            getExcludeIds: () => modalGroupMemberIds,
+            getExcludeIds: () => new Set([...modalGroupMemberIds, ...modalPendingInviteeIds]),
         }
     );
 
@@ -2542,7 +2636,37 @@
         });
     }
 
-    els.topicList?.addEventListener('click', (event) => {
+    els.topicList?.addEventListener('click', async (event) => {
+        const inviteAction = event.target.closest('[data-invitation-action]');
+        const inviteCard = event.target.closest('[data-invitation-id]');
+
+        if (inviteAction && inviteCard) {
+            event.preventDefault();
+            event.stopPropagation();
+            const invitationId = inviteCard.dataset.invitationId;
+            const action = inviteAction.dataset.invitationAction;
+            const url = action === 'accept'
+                ? invitationAcceptUrl(invitationId)
+                : invitationRejectUrl(invitationId);
+            inviteAction.disabled = true;
+
+            try {
+                const data = await requestJson(url, { method: 'POST', body: JSON.stringify({}) });
+                notify('success', data.message || (action === 'accept' ? 'You joined the group.' : 'Invitation declined.'));
+                inviteCard.remove();
+                topicsLoaded = false;
+                await loadTopics(true);
+
+                if (action === 'accept' && data.invitation?.group_id) {
+                    openTopic(data.invitation.group_id);
+                }
+            } catch (error) {
+                notify('error', error.message);
+                inviteAction.disabled = false;
+            }
+            return;
+        }
+
         const card = event.target.closest('[data-topic-id]');
         if (!card) {
             return;

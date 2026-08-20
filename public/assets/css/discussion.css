@@ -3298,3 +3298,68 @@ img.discussion-avatar--photo {
     flex: 1;
     min-height: 0;
 }
+
+.discussion-widget__members-pending {
+    padding: 0 16px 8px;
+    border-top: 1px solid #eef1f3;
+}
+
+.discussion-widget-invite {
+    cursor: default;
+    background: #f0faf4;
+}
+
+.discussion-widget-invite__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.discussion-widget-invite__btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.discussion-widget-invite__btn--accept {
+    background: #128c7e;
+    color: #fff;
+}
+
+.discussion-widget-invite__btn--reject {
+    background: #fff;
+    color: #54656f;
+    border: 1px solid #d1d7db;
+}
+
+.discussion-invite-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    background: #fff;
+    border: 1px solid #d8eadf;
+    border-radius: 14px;
+}
+
+.discussion-invite-card h2 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+}
+
+.discussion-invite-card p {
+    margin: 0;
+    color: #54656f;
+}
+
+.discussion-invite-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}

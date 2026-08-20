@@ -5,15 +5,32 @@
     $newsDocuments = data_get($post->meta, 'news_documents', []);
     $structuredLocation = $post->structuredLocationForDisplay();
     $showSubmissionDate = $post->submitted_at || $post->created_at;
+    $sidebarLayout = $sidebarLayout ?? false;
+    $includeMap = $includeMap ?? ! $sidebarLayout;
+    $includeLocation = $includeLocation ?? true;
+
+    if ($sidebarLayout) {
+        $orderedNewsMeta = $orderedNewsMeta->reject(
+            fn (mixed $value, string $key): bool => in_array($key, $narrativeKeys, true)
+        );
+    }
+
     $hasContent = $orderedNewsMeta->isNotEmpty()
-        || $structuredLocation->isNotEmpty()
+        || ($includeLocation && $structuredLocation->isNotEmpty())
         || $showSubmissionDate
-        || ! empty($newsDocuments);
+        || (! $sidebarLayout && ! empty($newsDocuments));
 @endphp
 
 @if($hasContent)
-    <div class="about-box mt-4">
-        <h4>{{ $heading ?? 'News details' }}</h4>
+    <div @class([
+        'about-box mt-4' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--news-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? 'News details' }}</p>
+        @else
+            <h4>{{ $heading ?? 'News details' }}</h4>
+        @endif
 
         @if(filled($post->location_type))
             <div class="mb-3">
@@ -30,10 +47,17 @@
             </div>
         @endif
 
-        @if($structuredLocation->isNotEmpty())
-            <div class="row g-3 {{ ($orderedNewsMeta->isNotEmpty() || $showSubmissionDate || ! empty($newsDocuments)) ? 'mb-3' : '' }}">
+        @if($includeLocation && $structuredLocation->isNotEmpty())
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => $orderedNewsMeta->isNotEmpty() || $showSubmissionDate || ($includeMap && $post->hasMapCoordinates()) || (! $sidebarLayout && ! empty($newsDocuments)),
+            ])>
                 @foreach($structuredLocation as $key => $value)
-                    <div class="col-md-6">
+                    <div @class([
+                        'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                    ])>
                         <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">{{ \App\Models\CommunityPost::structuredLocationLabels()[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             <span>{{ $value }}</span>
@@ -44,13 +68,21 @@
         @endif
 
         @if($orderedNewsMeta->isNotEmpty() || $showSubmissionDate)
-            <div class="row g-3 {{ ! empty($newsDocuments) ? 'mb-3' : '' }}">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => ($includeMap && $post->hasMapCoordinates()) || (! $sidebarLayout && ! empty($newsDocuments)),
+            ])>
                 @foreach($orderedNewsMeta as $key => $value)
                     @php
                         $displayValue = \App\Support\CommunityPostFormFields::formatNewsMetaValue($key, $value);
                         $isNarrativeField = in_array($key, $narrativeKeys, true);
                     @endphp
-                    <div class="{{ $isNarrativeField ? 'col-12' : 'col-md-6' }}">
+                    <div @class([
+                        $isNarrativeField ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && $isNarrativeField,
+                    ])>
                         <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">{{ $newsMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             @if($key === 'source_url')
@@ -62,7 +94,10 @@
                     </div>
                 @endforeach
                 @if($showSubmissionDate)
-                    <div class="col-md-6">
+                    <div @class([
+                        'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                    ])>
                         <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">News submission date</strong>
                             <span>{{ optional($post->submitted_at ?? $post->created_at)->timezone(config('app.timezone'))->format('j F Y, g:i A') }}</span>
@@ -72,21 +107,19 @@
             </div>
         @endif
 
-        @if($post->hasMapCoordinates())
-            <div class="{{ ! empty($newsDocuments) ? 'mb-3' : '' }}">
-                <p class="mb-2"><strong>Map location:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
-                <div class="ratio ratio-16x9 border rounded overflow-hidden">
-                    <iframe
-                        title="News GPS location map"
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
-                    ></iframe>
-                </div>
+        @if($includeMap && $post->hasMapCoordinates())
+            <div class="{{ ! empty($newsDocuments) && ! $sidebarLayout ? 'mb-3' : '' }}">
+                @unless($sidebarLayout)
+                    <p class="mb-2"><strong>Map location:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
+                @endunless
+                @include('community.partials.location-map-embed', [
+                    'post' => $post,
+                    'title' => 'News location map',
+                ])
             </div>
         @endif
 
-        @if(! empty($newsDocuments))
+        @if(! $sidebarLayout && ! empty($newsDocuments))
             <h5 class="h6">Documents</h5>
             <div class="d-flex flex-wrap gap-2">
                 @foreach($newsDocuments as $document)

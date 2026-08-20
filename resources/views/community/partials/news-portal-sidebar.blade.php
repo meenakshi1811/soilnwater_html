@@ -101,6 +101,15 @@
         ])
     @endif
 
+    @if(isset($post) && ($moveDetailExtrasToSidebar ?? false) && $post->content_type === 'news')
+        @include('community.partials.news-meta-details', [
+            'post' => $post,
+            'sidebarLayout' => true,
+            'includeMap' => false,
+            'includeLocation' => false,
+        ])
+    @endif
+
     @if(isset($post))
         @include('community.partials.community-engagement-panel', [
             'post' => $post,

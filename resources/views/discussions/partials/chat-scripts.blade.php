@@ -19,6 +19,8 @@
     $topicGroupDestroyTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group.destroy', ['topic' => 999999999]));
     $topicLeaveTemplate = str_replace('999999999', '__TOPIC__', route('discussions.leave', ['topic' => 999999999]));
     $topicOnlineTemplate = str_replace('999999999', '__TOPIC__', route('discussions.online', ['topic' => 999999999]));
+    $invitationAcceptTemplate = str_replace('999999999', '__INVITATION__', route('discussions.invitations.accept', ['invitation' => 999999999]));
+    $invitationRejectTemplate = str_replace('999999999', '__INVITATION__', route('discussions.invitations.reject', ['invitation' => 999999999]));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -50,6 +52,8 @@
             topicGroupDestroyTemplate: @json($topicGroupDestroyTemplate),
             topicLeaveTemplate: @json($topicLeaveTemplate),
             topicOnlineTemplate: @json($topicOnlineTemplate),
+            invitationAcceptTemplate: @json($invitationAcceptTemplate),
+            invitationRejectTemplate: @json($invitationRejectTemplate),
             usersSearch: @json(route('discussions.users.search')),
             unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),

@@ -9,11 +9,15 @@ class PortalNotification extends Notification
 {
     use Queueable;
 
+    /**
+     * @param  array<string, mixed>  $meta
+     */
     public function __construct(
         private readonly string $title,
         private readonly string $message,
         private readonly ?string $url = null,
         private readonly string $category = 'approval',
+        private readonly array $meta = [],
     ) {
     }
 
@@ -26,15 +30,15 @@ class PortalNotification extends Notification
     }
 
     /**
-     * @return array<string, string|null>
+     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        return [
+        return array_merge([
             'title' => $this->title,
             'message' => $this->message,
             'url' => $this->url,
             'category' => $this->category,
-        ];
+        ], $this->meta);
     }
 }

@@ -306,15 +306,20 @@
                 </div>
                 <h4 class="discussion-widget__members-section-title">Members</h4>
                 <div class="discussion-widget__members-list" id="discussionWidgetMembersList"></div>
+                <div class="discussion-widget__members-pending" id="discussionWidgetMembersPendingSection" hidden>
+                    <h4 class="discussion-widget__members-section-title">Pending invitations</h4>
+                    <div class="discussion-widget__members-pending-list" id="discussionWidgetMembersPendingList"></div>
+                </div>
                 <div class="discussion-widget__members-add" id="discussionWidgetMembersAddSection" hidden>
-                    <label class="discussion-widget__members-add-label" for="discussionWidgetMembersAddSearch">Add members</label>
+                    <label class="discussion-widget__members-add-label" for="discussionWidgetMembersAddSearch">Invite by mobile number</label>
                     <div class="discussion-widget__member-search-wrap">
                         <div class="discussion-widget__member-search-field">
                             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                             <input type="search"
                                    id="discussionWidgetMembersAddSearch"
                                    class="discussion-widget__member-search-input"
-                                   placeholder="Search by name or email"
+                                   placeholder="Enter mobile number"
+                                   inputmode="numeric"
                                    autocomplete="off"
                                    aria-expanded="false"
                                    aria-controls="discussionWidgetMembersAddResults"
@@ -325,8 +330,8 @@
                     </div>
                     <div class="discussion-widget__member-chips" id="discussionWidgetMembersAddChips"></div>
                     <button type="button" class="discussion-widget__primary-btn discussion-widget__members-add-btn" id="discussionWidgetMembersAddBtn">
-                        <i class="fa-solid fa-user-plus"></i>
-                        Add selected members
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Send invitation
                     </button>
                 </div>
                 <div class="discussion-widget__members-footer" id="discussionWidgetMembersFooter">

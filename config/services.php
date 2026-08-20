@@ -41,6 +41,7 @@ return [
         'sender' => env('MESSAGE_SENDER'),  
         'smstype' => env('MESSAGE_SMSTYPE'),
         'peid' => env('MESSAGE_PEID'),
+        'group_invite_templateid' => env('MESSAGE_GROUP_INVITE_TEMPLATEID'),
     ],
 
     'google' => [

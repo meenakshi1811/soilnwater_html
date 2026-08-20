@@ -668,7 +668,6 @@
             tab.addEventListener('click', () => {
                 if (tab.dataset.modalTab === 'group') {
                     showModalPanel('groupPick');
-                    modalGroupPicker.loadUsers('');
                     return;
                 }
 

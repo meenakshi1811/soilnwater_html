@@ -53,6 +53,7 @@ use App\Http\Controllers\Consultant\ConsultantPendingController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
+use App\Http\Controllers\Discussion\DiscussionGroupInvitationController;
 use App\Http\Controllers\Discussion\DiscussionMemberController;
 use App\Http\Controllers\Discussion\DiscussionPresenceController;
 use App\Http\Controllers\Discussion\DiscussionReactionController;
@@ -193,6 +194,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
         Route::get('/messenger/{topic?}', [DiscussionTopicController::class, 'messenger'])->name('messenger');
         Route::get('/unread-summary', [DiscussionReadController::class, 'summary'])->name('unread-summary');
+        Route::get('/invitations', [DiscussionGroupInvitationController::class, 'index'])->name('invitations.index');
+        Route::get('/invitations/{invitation}', [DiscussionGroupInvitationController::class, 'show'])->name('invitations.show');
+        Route::post('/invitations/{invitation}/accept', [DiscussionGroupInvitationController::class, 'accept'])->name('invitations.accept');
+        Route::post('/invitations/{invitation}/reject', [DiscussionGroupInvitationController::class, 'reject'])->name('invitations.reject');
         Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
         Route::get('/{topic}/online', [DiscussionPresenceController::class, 'show'])->name('online');

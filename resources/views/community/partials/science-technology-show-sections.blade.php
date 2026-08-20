@@ -10,6 +10,8 @@
         $expertReviewEnabled = (bool) data_get($post->meta, 'science_technology_enable_expert_review', false);
         $askCommunity = data_get($post->meta, 'science_technology_ask_community');
         $galleryCategories = \App\Support\CommunityContentTaxonomy::scienceTechnologyGalleryCategories();
+        $structuredLocation = $post->structuredLocationForDisplay();
+        $locationLabels = \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type);
     @endphp
 
     @unless($portalLayout)
@@ -55,6 +57,38 @@
             </div>
         @endif
     @endunless
+
+    @if($structuredLocation->isNotEmpty() || $post->hasMapCoordinates())
+        <div class="business-section-panel about-box mb-4 border-success">
+            <div class="business-section-panel__header">
+                <i class="fa-solid fa-location-dot text-success" aria-hidden="true"></i>
+                <div>
+                    <h4 class="mb-0">Location</h4>
+                    <p class="text-muted small mb-0">Where this science &amp; technology post is relevant</p>
+                </div>
+            </div>
+            @if($structuredLocation->isNotEmpty())
+                <div class="row g-3">
+                    @foreach($structuredLocation as $key => $value)
+                        <div class="col-md-6 col-lg-4">
+                            <div class="business-meta-item">
+                                <span class="business-meta-item__label">{{ $locationLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
+                                <span>{{ $value }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            @if($post->hasMapCoordinates())
+                <div class="mt-3">
+                    @include('community.partials.location-map-embed', [
+                        'post' => $post,
+                        'title' => 'Science & technology location map',
+                    ])
+                </div>
+            @endif
+        </div>
+    @endif
 
     @if($technologies !== [])
         <div class="mb-4">
