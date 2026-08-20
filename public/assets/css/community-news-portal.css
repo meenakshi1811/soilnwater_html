@@ -1218,6 +1218,114 @@
     margin-bottom: 0.85rem;
 }
 
+.community-news-rail__card--womens-resources {
+    background: linear-gradient(180deg, #fff 0%, #fff7fb 100%);
+    border-color: #f3d0e3;
+}
+
+.ww-rail-resources__head {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.ww-rail-resources__icon {
+    align-items: center;
+    background: linear-gradient(135deg, #ec407a, #c2185b);
+    border-radius: 12px;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+    height: 2.4rem;
+    justify-content: center;
+    width: 2.4rem;
+}
+
+.ww-rail-resources__lead {
+    color: #607487;
+    font-size: 0.76rem;
+}
+
+.ww-rail-resources__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ww-rail-resource {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid #f1dce8;
+    border-radius: 12px;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.75rem;
+}
+
+.ww-rail-resource__badge {
+    align-items: center;
+    background: #fcebf3;
+    border-radius: 10px;
+    color: #c2185b;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.85rem;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.ww-rail-resource__body {
+    min-width: 0;
+}
+
+.ww-rail-resource__title {
+    color: #0f2f55;
+    display: block;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+}
+
+.ww-rail-resource__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.ww-rail-resource__line {
+    color: #3f5873;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.ww-rail-resource__link {
+    align-items: flex-start;
+    color: #c2185b;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    line-height: 1.4;
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.ww-rail-resource__link:hover {
+    color: #880e4f;
+    text-decoration: underline;
+}
+
+.ww-rail-resource__link i {
+    flex: 0 0 auto;
+    margin-top: 0.15rem;
+}
+
 .community-news-rail__badges {
     display: flex;
     flex-wrap: wrap;

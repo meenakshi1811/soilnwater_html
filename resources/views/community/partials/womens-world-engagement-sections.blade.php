@@ -1,4 +1,5 @@
 @php
+    $railLayout = $railLayout ?? false;
     $businessName = data_get($post->meta, 'womens_world_business_name');
     $businessCategory = data_get($post->meta, 'womens_world_business_category');
     $websiteUrl = data_get($post->meta, 'womens_world_website_url');
@@ -121,56 +122,93 @@
     $trainingPrograms = trim((string) data_get($post->meta, 'womens_world_training_programs', ''));
     $scholarships = trim((string) data_get($post->meta, 'womens_world_scholarships', ''));
     $supportOrganizations = trim((string) data_get($post->meta, 'womens_world_support_organizations', ''));
-    $hasResources = filled($usefulWebsites) || filled($governmentSchemes) || filled($trainingPrograms) || filled($scholarships) || filled($supportOrganizations);
+    $resourceItems = array_values(array_filter([
+        [
+            'title' => 'Useful websites',
+            'icon' => 'fa-globe',
+            'content' => $usefulWebsites,
+        ],
+        [
+            'title' => 'Government schemes',
+            'icon' => 'fa-landmark',
+            'content' => $governmentSchemes,
+        ],
+        [
+            'title' => 'Training programs',
+            'icon' => 'fa-chalkboard-user',
+            'content' => $trainingPrograms,
+        ],
+        [
+            'title' => 'Scholarships',
+            'icon' => 'fa-graduation-cap',
+            'content' => $scholarships,
+        ],
+        [
+            'title' => 'Support organizations',
+            'icon' => 'fa-hands-holding-heart',
+            'content' => $supportOrganizations,
+        ],
+    ], fn (array $item): bool => filled($item['content'])));
+    $hasResources = $resourceItems !== [];
 @endphp
 
 @if($hasResources)
-    <div class="business-section-panel about-box mb-4">
-        <div class="business-section-panel__header">
-            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
-            <h4 class="mb-0">Resources</h4>
+    @if($railLayout)
+        <div class="community-news-rail__card community-news-rail__card--detail community-news-rail__card--womens-resources mb-3">
+            <div class="ww-rail-resources__head">
+                <span class="ww-rail-resources__icon" aria-hidden="true">
+                    <i class="fa-solid fa-book-open"></i>
+                </span>
+                <div>
+                    <h3 class="community-news-rail__title mb-0">Resources</h3>
+                    <p class="ww-rail-resources__lead mb-0">{{ count($resourceItems) }} {{ count($resourceItems) === 1 ? 'category' : 'categories' }}</p>
+                </div>
+            </div>
+            <ul class="ww-rail-resources__list">
+                @foreach($resourceItems as $resource)
+                    <li class="ww-rail-resource">
+                        <div class="ww-rail-resource__badge" aria-hidden="true">
+                            <i class="fa-solid {{ $resource['icon'] }}"></i>
+                        </div>
+                        <div class="ww-rail-resource__body">
+                            <strong class="ww-rail-resource__title">{{ $resource['title'] }}</strong>
+                            <div class="ww-rail-resource__text">
+                                @foreach(preg_split('/\r\n|\r|\n/', $resource['content']) as $line)
+                                    @php
+                                        $line = trim($line);
+                                    @endphp
+                                    @continue($line === '')
+                                    @if(filter_var($line, FILTER_VALIDATE_URL))
+                                        <a href="{{ $line }}" target="_blank" rel="noopener noreferrer" class="ww-rail-resource__link">
+                                            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                            <span>{{ $line }}</span>
+                                        </a>
+                                    @else
+                                        <p class="ww-rail-resource__line mb-0">{{ $line }}</p>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
         </div>
-        <div class="row g-3">
-            @if(filled($usefulWebsites))
-                <div class="col-md-6">
-                    <div class="business-resource-card">
-                        <h5 class="business-resource-card__title">Useful websites</h5>
-                        <div class="business-resource-text">{!! nl2br(e($usefulWebsites)) !!}</div>
+    @else
+        <div class="business-section-panel about-box mb-4">
+            <div class="business-section-panel__header">
+                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                <h4 class="mb-0">Resources</h4>
+            </div>
+            <div class="row g-3">
+                @foreach($resourceItems as $resource)
+                    <div @class(['col-md-6' => count($resourceItems) > 1, 'col-12' => count($resourceItems) === 1])>
+                        <div class="business-resource-card">
+                            <h5 class="business-resource-card__title">{{ $resource['title'] }}</h5>
+                            <div class="business-resource-text">{!! nl2br(e($resource['content'])) !!}</div>
+                        </div>
                     </div>
-                </div>
-            @endif
-            @if(filled($governmentSchemes))
-                <div class="col-md-6">
-                    <div class="business-resource-card">
-                        <h5 class="business-resource-card__title">Government schemes</h5>
-                        <div class="business-resource-text">{!! nl2br(e($governmentSchemes)) !!}</div>
-                    </div>
-                </div>
-            @endif
-            @if(filled($trainingPrograms))
-                <div class="col-md-6">
-                    <div class="business-resource-card">
-                        <h5 class="business-resource-card__title">Training programs</h5>
-                        <div class="business-resource-text">{!! nl2br(e($trainingPrograms)) !!}</div>
-                    </div>
-                </div>
-            @endif
-            @if(filled($scholarships))
-                <div class="col-md-6">
-                    <div class="business-resource-card">
-                        <h5 class="business-resource-card__title">Scholarships</h5>
-                        <div class="business-resource-text">{!! nl2br(e($scholarships)) !!}</div>
-                    </div>
-                </div>
-            @endif
-            @if(filled($supportOrganizations))
-                <div class="col-12">
-                    <div class="business-resource-card">
-                        <h5 class="business-resource-card__title">Support organizations</h5>
-                        <div class="business-resource-text">{!! nl2br(e($supportOrganizations)) !!}</div>
-                    </div>
-                </div>
-            @endif
+                @endforeach
+            </div>
         </div>
-    </div>
+    @endif
 @endif
