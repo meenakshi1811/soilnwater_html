@@ -31,10 +31,12 @@
     }
     $optionalStructuredLocation = $post->structuredLocationForDisplay()->isNotEmpty()
         && in_array($post->content_type, ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'], true);
+    $careerBusinessHubRail = in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
     $showStructuredLocation = (
         (\App\Models\CommunityPost::usesStructuredLocation($post->content_type)
             && ! in_array($post->content_type, ['awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true))
         || $optionalStructuredLocation
+        || ($careerBusinessHubRail && $post->content_type === 'business')
     ) && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
     $hasLocation = $showStructuredLocation
@@ -112,7 +114,7 @@
                         <h4 class="community-detail-card__title">Location</h4>
                     </div>
                 </div>
-                @if($lifeLearningHubRail)
+                @if($lifeLearningHubRail || ($careerBusinessHubRail && $post->content_type === 'business'))
                     @if($post->hasMapCoordinates())
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif

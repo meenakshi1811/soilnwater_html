@@ -23,6 +23,7 @@
         @include('community.partials.business-show-sections', [
             'post' => $post,
             'businessEngagement' => $businessEngagement ?? null,
+            'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail ?? false,
         ])
     @endif
 
@@ -91,7 +92,7 @@
         @include('community.partials.awareness-meta-details', ['post' => $post])
     @endif
 
-    @if($post->isBusinessPost())
+    @if($post->isBusinessPost() && ! ($moveCareerBusinessExtrasToRail ?? false))
         @include('community.partials.business-meta-details', ['post' => $post])
     @endif
 @endif

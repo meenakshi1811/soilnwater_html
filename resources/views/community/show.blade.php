@@ -527,11 +527,11 @@
     $moveStoriesLiteratureExtrasToSidebar = $isPortalPost && in_array($post->content_type, $storiesLiteratureTypes, true);
     $moveLifeLearningExtrasToSidebar = $isPortalPost && in_array($post->content_type, $lifeLearningTypes, true);
     $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
-    $moveCareerExtrasToRail = $isPortalPost && $post->content_type === 'career';
+    $moveCareerBusinessExtrasToRail = $isPortalPost && in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
         || $moveHubExtrasToSidebar
-        || $moveCareerExtrasToRail;
+        || $moveCareerBusinessExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -615,6 +615,7 @@
                         @include('community.partials.community-hub-portal-sections', [
                             'post' => $post,
                             'placement' => 'before',
+                            'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -688,6 +689,7 @@
                         @include('community.partials.community-hub-portal-sections', [
                             'post' => $post,
                             'placement' => 'after',
+                            'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -1182,6 +1184,20 @@
                 $additionalCareerMeta = collect($careerMetaOrder)
                     ->mapWithKeys(fn (string $key): array => [$key => data_get($post->meta, $key)])
                     ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+                $jobsEmploymentMetaOrder = ['job_type', 'experience_required', 'employer_name', 'salary_range', 'application_link', 'job_summary'];
+                $additionalJobsEmploymentMeta = collect($jobsEmploymentMetaOrder)
+                    ->mapWithKeys(fn (string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+                $businessRailMetaSkipKeys = [
+                    'business_category', 'business_content_type', 'business_stage', 'business_industry',
+                    'business_name', 'business_author_designation', 'business_profile_type',
+                    'business_target_audience', 'business_challenges', 'business_opportunity_type',
+                    'business_market_segments', 'business_themes', 'business_ask_community',
+                    'business_useful_links', 'business_government_schemes', 'business_training_programs',
+                    'business_industry_resources', 'business_contact_options', 'business_video_type',
+                ];
+                $additionalBusinessRailMeta = \App\Support\CommunityPostFormFields::orderedBusinessMetaForDisplay($post)
+                    ->except($businessRailMetaSkipKeys);
                 $additionalLocalVoicesMeta = $visibleMeta->except([
                     ...\App\Support\CommunityPostFormFields::localVoiceStructuredMetaKeys(),
                     'location_country',
@@ -1303,9 +1319,19 @@
                     $visibleMeta = $additionalYouthCornerMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'career' && $moveCareerExtrasToRail)
+            @if($post->content_type === 'career' && $moveCareerBusinessExtrasToRail)
                 @php
                     $visibleMeta = $additionalCareerMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'jobs-employment' && $moveCareerBusinessExtrasToRail)
+                @php
+                    $visibleMeta = $additionalJobsEmploymentMeta;
+                @endphp
+            @endif
+            @if($post->isBusinessPost() && $moveCareerBusinessExtrasToRail)
+                @php
+                    $visibleMeta = $additionalBusinessRailMeta;
                 @endphp
             @endif
             @if($post->isLocalVoicesPost())
@@ -1361,7 +1387,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1393,7 +1419,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerExtrasToRail && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
