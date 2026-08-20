@@ -922,6 +922,24 @@
     opacity: 0.75;
 }
 
+.community-news-sidebar__card--trending {
+    background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+    border-color: #dbe7f4;
+}
+
+.community-news-sidebar__card--trending .community-news-trending-panel__head {
+    margin-bottom: 0.75rem;
+}
+
+.community-news-sidebar__card--trending .community-news-trending-card {
+    grid-template-columns: auto 2.75rem minmax(0, 1fr);
+}
+
+.community-news-sidebar__card--trending .community-news-trending-card__thumb {
+    height: 2.75rem;
+    width: 2.75rem;
+}
+
 .community-news-rail__card--newsletter p {
     color: #5a7189;
     font-size: 0.84rem;
@@ -1161,6 +1179,7 @@
 .community-news-sidebar__card--student-details,
 .community-news-sidebar__card--youth-details,
 .community-news-sidebar__card--youth-achievements,
+.community-news-sidebar__card--trending,
 .community-news-sidebar__card--senior-details,
 .community-news-sidebar__card--womens-details,
 .community-news-sidebar__card--wellness-details {

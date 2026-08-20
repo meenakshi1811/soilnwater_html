@@ -588,6 +588,7 @@
                         'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'isFollowingAuthor' => $isFollowingAuthor,
+                        'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
                     ])
                     <main class="community-news-main community-news-main--detail">
                         @include('community.partials.news-show-header', [

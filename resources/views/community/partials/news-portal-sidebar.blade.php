@@ -92,6 +92,16 @@
         </nav>
     </div>
 
+    @if(isset($post))
+        @include('community.partials.news-portal-trending-posts', [
+            'layout' => 'sidebar',
+            'portalKey' => $portalKey,
+            'portalCopy' => $portalCopy,
+            'portalQuery' => $portalQuery,
+            'trendingPosts' => $trendingPosts ?? $trendingPortalPosts ?? $trendingNews ?? collect(),
+        ])
+    @endif
+
     @if(isset($post) && ($moveDetailExtrasToSidebar ?? false) && $post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
         @include('community.partials.report-meta-details', [
             'post' => $post,
