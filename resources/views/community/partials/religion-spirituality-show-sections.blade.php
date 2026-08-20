@@ -148,7 +148,7 @@
         data_get($post->meta, 'religion_spirituality_location_state'),
         data_get($post->meta, 'religion_spirituality_location_city'),
         data_get($post->meta, 'religion_spirituality_location_gps'),
-    ])->contains(fn ($value) => filled($value)))
+    ])->contains(fn ($value) => filled($value)) && ! ($moveCultureSpiritualityExtrasToRail ?? false))
         <div class="rs-section-panel">
             <div class="rs-section-panel__label">Location</div>
             <p class="mb-1">

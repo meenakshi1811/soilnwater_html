@@ -528,10 +528,12 @@
     $moveLifeLearningExtrasToSidebar = $isPortalPost && in_array($post->content_type, $lifeLearningTypes, true);
     $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
     $moveCareerBusinessExtrasToRail = $isPortalPost && in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
+    $moveCultureSpiritualityExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::cultureSpiritualityTypes(), true);
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
         || $moveHubExtrasToSidebar
-        || $moveCareerBusinessExtrasToRail;
+        || $moveCareerBusinessExtrasToRail
+        || $moveCultureSpiritualityExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -616,6 +618,7 @@
                             'post' => $post,
                             'placement' => 'before',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
+                            'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -690,6 +693,7 @@
                             'post' => $post,
                             'placement' => 'after',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
+                            'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -1198,6 +1202,39 @@
                 ];
                 $additionalBusinessRailMeta = \App\Support\CommunityPostFormFields::orderedBusinessMetaForDisplay($post)
                     ->except($businessRailMetaSkipKeys);
+                $cultureHeritageMetaOrder = ['heritage_type', 'historical_period', 'cultural_significance'];
+                $additionalCultureHeritageMeta = collect($cultureHeritageMetaOrder)
+                    ->mapWithKeys(fn (string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+                $travelDiariesMetaOrder = ['destination', 'travel_dates', 'trip_type', 'travel_tips'];
+                $additionalTravelDiariesMeta = collect($travelDiariesMetaOrder)
+                    ->mapWithKeys(fn (string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+                $religionSpiritualityRailMetaSkipKeys = [
+                    'religion_spirituality_post_type',
+                    'religion_spirituality_category',
+                    'religion_spirituality_tradition',
+                    'religion_spirituality_ask_community',
+                    'religion_spirituality_location_country',
+                    'religion_spirituality_location_state',
+                    'religion_spirituality_location_district',
+                    'religion_spirituality_location_city',
+                    'religion_spirituality_location_gps',
+                ];
+                $additionalReligionSpiritualityRailMeta = collect(\App\Support\CommunityPostFormFields::religionSpiritualityDetailMetaOrder())
+                    ->reject(fn (string $label, string $key): bool => in_array($key, $religionSpiritualityRailMetaSkipKeys, true))
+                    ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value) || (is_array($value) && $value !== []));
+                $astroConsultancyRailMetaSkipKeys = [
+                    'astro_consultancy_post_type',
+                    'astro_consultancy_category',
+                    'astro_consultancy_consultation_topics',
+                    'astro_consultancy_ask_community',
+                ];
+                $additionalAstroConsultancyRailMeta = collect(\App\Support\CommunityPostFormFields::astroConsultancyDetailMetaOrder())
+                    ->reject(fn (string $label, string $key): bool => in_array($key, $astroConsultancyRailMetaSkipKeys, true))
+                    ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
+                    ->filter(fn (mixed $value): bool => filled($value) || is_bool($value) || (is_array($value) && $value !== []));
                 $additionalLocalVoicesMeta = $visibleMeta->except([
                     ...\App\Support\CommunityPostFormFields::localVoiceStructuredMetaKeys(),
                     'location_country',
@@ -1334,6 +1371,26 @@
                     $visibleMeta = $additionalBusinessRailMeta;
                 @endphp
             @endif
+            @if($post->content_type === 'culture-heritage' && $moveCultureSpiritualityExtrasToRail)
+                @php
+                    $visibleMeta = $additionalCultureHeritageMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'travel-diaries' && $moveCultureSpiritualityExtrasToRail)
+                @php
+                    $visibleMeta = $additionalTravelDiariesMeta;
+                @endphp
+            @endif
+            @if($post->isReligionSpiritualityPost() && $moveCultureSpiritualityExtrasToRail)
+                @php
+                    $visibleMeta = $additionalReligionSpiritualityRailMeta;
+                @endphp
+            @endif
+            @if($post->isAstroConsultancyPost() && $moveCultureSpiritualityExtrasToRail)
+                @php
+                    $visibleMeta = $additionalAstroConsultancyRailMeta;
+                @endphp
+            @endif
             @if($post->isLocalVoicesPost())
                 @php
                     $visibleMeta = $additionalLocalVoicesMeta;
@@ -1387,7 +1444,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1419,7 +1476,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>

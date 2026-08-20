@@ -28,11 +28,17 @@
     @endif
 
     @if($post->isReligionSpiritualityPost())
-        @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
+        @include('community.partials.religion-spirituality-show-sections', [
+            'post' => $post,
+            'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail ?? false,
+        ])
     @endif
 
     @if($post->isAstroConsultancyPost())
-        @include('community.partials.astro-consultancy-show-sections', ['post' => $post])
+        @include('community.partials.astro-consultancy-show-sections', [
+            'post' => $post,
+            'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail ?? false,
+        ])
     @endif
 
     @if($post->isLocalVoicesPost())

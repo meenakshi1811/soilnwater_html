@@ -312,7 +312,9 @@
         </div>
     @endif
 
-    @include('community.partials.astro-consultancy-meta-details', ['post' => $post])
+    @unless($moveCultureSpiritualityExtrasToRail ?? false)
+        @include('community.partials.astro-consultancy-meta-details', ['post' => $post])
+    @endunless
 
     <div class="astro-disclaimer-panel p-3 p-lg-4 mt-4 mb-0 small" role="note">
         <div class="fw-semibold mb-1 text-warning-emphasis"><i class="fa-solid fa-triangle-exclamation me-1"></i>Disclaimer</div>
