@@ -11,7 +11,66 @@
         $visibilityLabel = $post->womensWorldVisibilityLabel();
         $publishAsLabel = \App\Support\CommunityContentTaxonomy::womensWorldPublishAsOptions()[$post->resolvedPublishAs()]
             ?? $post->publishAsLabel();
+        $sidebarLayout = $sidebarLayout ?? false;
+        $railLayout = $railLayout ?? false;
     @endphp
+
+    @if($sidebarLayout)
+        @if(filled($mainCategory) || filled($contentType) || filled($lifeStage) || $audiences !== [] || $featuredTopics !== [] || $themes !== [])
+            <div class="community-news-sidebar__card community-news-sidebar__card--womens-intro">
+                <p class="community-news-sidebar__label">Overview</p>
+                <dl class="community-detail-list community-detail-list--rail mb-0">
+                    @if(filled($mainCategory))
+                        <div class="community-detail-list__row"><dt>Main category</dt><dd>{{ $mainCategory }}</dd></div>
+                    @endif
+                    @if(filled($contentType))
+                        <div class="community-detail-list__row"><dt>Content type</dt><dd>{{ $contentType }}</dd></div>
+                    @endif
+                    @if(filled($lifeStage))
+                        <div class="community-detail-list__row"><dt>Life stage</dt><dd>{{ $lifeStage }}</dd></div>
+                    @endif
+                </dl>
+                @if($audiences !== [] || $featuredTopics !== [] || $themes !== [])
+                    <div class="community-news-sidebar__pill-groups mt-3">
+                        @if($audiences !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Target audience</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($audiences as $audience)
+                                        <span class="badge bg-light text-dark border">{{ $audience }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                        @if($featuredTopics !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Featured topics</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($featuredTopics as $topic)
+                                        <span class="badge bg-warning-subtle text-dark border">{{ $topic }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                        @if($themes !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Themes</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($themes as $theme)
+                                        <span class="badge bg-light text-dark border">{{ $theme }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+    @elseif($railLayout)
+        @include('community.partials.womens-world-media-sections', ['post' => $post, 'railLayout' => true])
+        @include('community.partials.womens-world-engagement-sections', ['post' => $post, 'railLayout' => true])
+        @include('community.partials.life-learning-portal-rail-engagement', ['post' => $post])
+    @elseif(! ($portalSidebarLayout ?? false))
 
     @if(filled($mainCategory) || filled($contentType) || filled($lifeStage))
         <div class="business-hero-strip mb-4">
@@ -170,4 +229,5 @@
             @endforeach
         </div>
     </div>
+    @endif
 @endif

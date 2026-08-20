@@ -5,12 +5,19 @@
         $askCommunity = trim((string) data_get($post->meta, 'senior_citizens_forum_ask_community', ''));
         $heritageFields = \App\Support\CommunityContentTaxonomy::seniorCitizensForumFamilyHeritageFields();
         $hasHeritage = collect($heritageFields)->keys()->contains(fn (string $key): bool => filled(data_get($post->meta, $key)));
+        $railLayout = $railLayout ?? false;
+        $panelClass = $railLayout ? 'community-news-rail__card community-news-rail__card--detail mb-3' : 'about-box mt-4 mb-0';
     @endphp
 
     @if(filled($adviceToYouth))
-        <div class="scf-advice-panel about-box mt-4 mb-0">
-            <div class="scf-advice-panel__kicker">Advice to youth</div>
-            <blockquote class="scf-advice-panel__quote">{!! nl2br(e($adviceToYouth)) !!}</blockquote>
+        <div class="{{ $railLayout ? 'community-news-rail__card community-news-rail__card--detail mb-3' : 'scf-advice-panel about-box mt-4 mb-0' }}">
+            @if($railLayout)
+                <h3 class="community-news-rail__title">Advice to youth</h3>
+                <blockquote class="community-news-rail__quote mb-0">{!! nl2br(e($adviceToYouth)) !!}</blockquote>
+            @else
+                <div class="scf-advice-panel__kicker">Advice to youth</div>
+                <blockquote class="scf-advice-panel__quote">{!! nl2br(e($adviceToYouth)) !!}</blockquote>
+            @endif
         </div>
     @endif
 

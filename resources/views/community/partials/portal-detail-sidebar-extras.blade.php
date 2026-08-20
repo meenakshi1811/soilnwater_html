@@ -57,9 +57,11 @@
         ->reject(fn ($value) => is_array($value) || is_object($value))
         ->isNotEmpty();
     $showReportTrustScore = $post->isReportContent() && $post->reportTrustBreakdown() !== [];
+    $showLifeLearningRailSections = ($railHubExtras ?? false)
+        && in_array($post->content_type, ['childrens-corner', 'student-corner', 'youth-corner', 'senior-citizens-forum', 'womens-world'], true);
 @endphp
 
-@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails)
+@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections)
     <div class="community-news-rail__detail-extras" aria-label="Post details sidebar">
         @if($showReportTrustScore)
             <div class="community-news-rail__card community-news-rail__card--detail">
@@ -163,6 +165,10 @@
                     @endforeach
                 </dl>
             </div>
+        @endif
+
+        @if($showLifeLearningRailSections)
+            @include('community.partials.life-learning-portal-rail-sections', ['post' => $post])
         @endif
     </div>
 @endif

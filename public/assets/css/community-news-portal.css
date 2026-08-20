@@ -936,6 +936,64 @@
     padding-bottom: 1rem;
 }
 
+.community-news-sidebar__card--childrens-intro,
+.community-news-sidebar__card--student-intro,
+.community-news-sidebar__card--youth-intro,
+.community-news-sidebar__card--senior-intro,
+.community-news-sidebar__card--womens-intro {
+    padding-bottom: 1rem;
+}
+
+.community-news-sidebar__pill-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.community-news-sidebar__pill-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.community-news-sidebar__pill-label {
+    color: #607487;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.community-news-rail__life-learning-extras .community-news-rail__card {
+    margin-bottom: 0.85rem;
+}
+
+.community-news-rail__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.community-news-rail__quote {
+    border-left: 3px solid #198754;
+    color: #3f5873;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0;
+    padding-left: 0.85rem;
+}
+
+.community-news-rail__life-learning-extras .cc-gallery-grid--rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.community-news-rail__life-learning-extras .cc-art-frame img,
+.community-news-rail__life-learning-extras .business-gallery-grid img {
+    max-height: 160px;
+    object-fit: cover;
+    width: 100%;
+}
+
 .community-detail-card--rating .story-rating-summary__score {
     font-size: 1.35rem;
 }

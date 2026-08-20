@@ -15,7 +15,41 @@
         $showQuizAnswers = $showQuizAnswers ?? false;
         $placement = $placement ?? 'full';
         $limitedChildInfo = $limitedChildInfo ?? $post->showsLimitedChildInformationTo(auth()->user());
+        $sidebarLayout = $sidebarLayout ?? false;
+        $railLayout = $railLayout ?? false;
+        $portalSidebarLayout = $portalSidebarLayout ?? false;
     @endphp
+
+    @if($sidebarLayout && in_array($placement, ['full', 'intro'], true))
+        <div class="community-news-sidebar__card community-news-sidebar__card--childrens-intro">
+            <p class="community-news-sidebar__label">Submission overview</p>
+            @if(filled($shareType))
+                <p class="small mb-2"><strong>Share type:</strong> {{ $shareType }}</p>
+            @endif
+            @if(filled(data_get($post->meta, 'child_age_group')))
+                <p class="small mb-2"><strong>Age group:</strong> {{ data_get($post->meta, 'child_age_group') }}</p>
+            @endif
+            @if($themes !== [] || $talents !== [])
+                <div class="community-news-sidebar__pill-groups">
+                    @if($themes !== [])
+                        <div class="community-news-sidebar__pill-group">
+                            <span class="community-news-sidebar__pill-label">Themes</span>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach($themes as $theme)
+                                    <span class="badge bg-light text-dark border">{{ $theme }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+    @elseif($railLayout && in_array($placement, ['full', 'media'], true))
+        @include('community.partials.childrens-corner-media-sections', [
+            'post' => $post,
+            'railLayout' => true,
+        ])
+    @elseif(! $portalSidebarLayout)
 
     @if(in_array($placement, ['full', 'intro'], true))
         @if(!$limitedChildInfo && (filled($shareType) || filled(data_get($post->meta, 'child_age_group')) || filled(data_get($post->meta, 'child_grade_level')) || filled(data_get($post->meta, 'child_school_name'))))
@@ -104,167 +138,10 @@
                 <p class="mb-0">{!! nl2br(e($achievement)) !!}</p>
             </div>
         @endif
-
-        @if($contentMode === 'image' && $art)
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-palette" aria-hidden="true"></i>
-                    <h4 class="mb-0">{{ $shareType ?: 'Creative work' }}</h4>
-                </div>
-                <div class="cc-art-frame">
-                    <img src="{{ $art['url'] }}" alt="{{ $post->title }} — {{ $shareType ?: 'artwork' }}" loading="lazy">
-                </div>
-                @if(filled($art['name'] ?? null))
-                    <small class="text-muted d-block mt-2">{{ $art['name'] }}</small>
-                @endif
-            </div>
-        @endif
-
-        @if($contentMode === 'project' && filled($projectDescription))
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-flask" aria-hidden="true"></i>
-                    <h4 class="mb-0">Project description</h4>
-                </div>
-                <div class="community-post-body">{!! $projectDescription !!}</div>
-            </div>
-        @endif
     @endif
 
     @if(in_array($placement, ['full', 'media'], true))
-        @if($projectFiles->isNotEmpty())
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
-                    <h4 class="mb-0">Project files</h4>
-                </div>
-                <ul class="list-unstyled mb-0">
-                    @foreach($projectFiles as $file)
-                        <li class="mb-2">
-                            <a href="{{ data_get($file, 'url') }}" class="text-success fw-semibold" target="_blank" rel="noopener">
-                                <i class="fa-solid fa-paperclip me-1" aria-hidden="true"></i>{{ data_get($file, 'name', 'Download file') }}
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        @if($quizQuestions->isNotEmpty())
-            <div class="cc-section-panel about-box mb-4" id="childrens-corner-quiz">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
-                    <h4 class="mb-0">{{ $shareType === 'Puzzle' ? 'Puzzle' : 'Quiz' }}</h4>
-                </div>
-                @foreach($quizQuestions as $qIndex => $question)
-                    <div class="cc-quiz-card mb-3" data-cc-quiz-card>
-                        <p class="fw-semibold mb-2">{{ $qIndex + 1 }}. {{ data_get($question, 'question') }}</p>
-                        @foreach((array) data_get($question, 'options', []) as $option)
-                            @php
-                                $optionId = 'cc-quiz-'.$post->id.'-'.$qIndex.'-'.md5((string) $option);
-                                $isCorrect = $showQuizAnswers && (string) data_get($question, 'correct_answer') === (string) $option;
-                            @endphp
-                            @if($showQuizAnswers)
-                                <div class="cc-quiz-option {{ $isCorrect ? 'is-correct' : '' }}">
-                                    <i class="fa-solid {{ $isCorrect ? 'fa-check-circle text-success' : 'fa-circle text-muted' }}" aria-hidden="true"></i>
-                                    <span>{{ $option }}</span>
-                                </div>
-                            @else
-                                <label class="cc-quiz-option mb-0" for="{{ $optionId }}">
-                                    <input type="radio" name="cc_quiz_{{ $post->id }}_{{ $qIndex }}" id="{{ $optionId }}" value="{{ $option }}" data-correct="{{ (string) data_get($question, 'correct_answer') === (string) $option ? '1' : '0' }}">
-                                    <span>{{ $option }}</span>
-                                </label>
-                            @endif
-                        @endforeach
-                    </div>
-                @endforeach
-                @unless($showQuizAnswers)
-                    <button type="button" class="btn btn-success btn-sm" id="ccQuizCheckBtn">Check my answers</button>
-                    <p class="small text-muted mt-2 mb-0" id="ccQuizResult" hidden></p>
-                @endunless
-            </div>
-        @endif
-
-        @if($gallery->isNotEmpty())
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-images" aria-hidden="true"></i>
-                    <h4 class="mb-0">Gallery</h4>
-                </div>
-                <div class="cc-gallery-grid">
-                    @foreach($gallery as $index => $image)
-                        <a href="{{ data_get($image, 'url') }}" target="_blank" rel="noopener" class="cc-gallery-grid__item">
-                            <img src="{{ data_get($image, 'url') }}" alt="{{ $post->title }} — gallery {{ $index + 1 }}" loading="lazy">
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        @if($post->childrensCornerYoutubeEmbedUrl() || $post->childrensCornerVideoFileUrl())
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-video" aria-hidden="true"></i>
-                    <h4 class="mb-0">Video submission</h4>
-                </div>
-                @if($post->childrensCornerYoutubeEmbedUrl())
-                    <div class="ratio ratio-16x9 rounded overflow-hidden">
-                        <iframe
-                            src="{{ $post->childrensCornerYoutubeEmbedUrl() }}"
-                            title="Video for {{ $post->title }}"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen
-                        ></iframe>
-                    </div>
-                @elseif($post->childrensCornerVideoFileUrl())
-                    <video controls class="w-100 rounded" preload="metadata">
-                        <source src="{{ $post->childrensCornerVideoFileUrl() }}">
-                    </video>
-                    @if(filled(data_get($post->childrensCornerVideoData(), 'name')))
-                        <small class="text-muted d-block mt-2">{{ data_get($post->childrensCornerVideoData(), 'name') }}</small>
-                    @endif
-                @endif
-            </div>
-        @endif
-
-        @if($post->childrensCornerAudioUrl())
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
-                    <h4 class="mb-0">Audio submission</h4>
-                </div>
-                <p class="text-muted small mb-2">
-                    {{ data_get($post->childrensCornerAudioData(), 'type') === 'recording' ? 'Voice recording' : 'Uploaded audio' }}
-                    @if(filled(data_get($post->childrensCornerAudioData(), 'name')))
-                        — {{ data_get($post->childrensCornerAudioData(), 'name') }}
-                    @endif
-                </p>
-                <audio controls class="w-100" preload="metadata" src="{{ $post->childrensCornerAudioUrl() }}">
-                    Your browser does not support embedded audio playback.
-                </audio>
-            </div>
-        @endif
-
-        @if($certificate)
-            <div class="cc-section-panel about-box mb-4">
-                <div class="cc-section-panel__header">
-                    <i class="fa-solid fa-certificate" aria-hidden="true"></i>
-                    <h4 class="mb-0">Certificate</h4>
-                </div>
-                <div class="cc-certificate-card">
-                    <div>
-                        <strong>{{ $certificate['name'] ?? 'Award / participation certificate' }}</strong>
-                        <p class="text-muted small mb-0 mt-1">Uploaded certificate for this submission.</p>
-                    </div>
-                    @if(filled($certificate['url'] ?? null))
-                        @if(str_starts_with((string) ($certificate['type'] ?? ''), 'image/'))
-                            <img src="{{ $certificate['url'] }}" alt="Certificate" class="rounded border" style="max-height:180px;">
-                        @else
-                            <a href="{{ $certificate['url'] }}" class="btn btn-outline-success btn-sm" target="_blank" rel="noopener">View certificate</a>
-                        @endif
-                    @endif
-                </div>
-            </div>
-        @endif
+        @include('community.partials.childrens-corner-media-sections', ['post' => $post])
+    @endif
     @endif
 @endif

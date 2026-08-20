@@ -31,7 +31,60 @@
             ?? $post->publishAsLabel();
         $isStartupStory = $contentType === 'Startup Story';
         $isProjectShowcase = $contentType === \App\Support\CommunityContentTaxonomy::youthCornerProjectContentType();
+        $sidebarLayout = $sidebarLayout ?? false;
+        $railLayout = $railLayout ?? false;
     @endphp
+
+    @if($sidebarLayout)
+        @if(filled($mainCategory) || filled($contentType) || filled($ageGroup) || filled($occupation) || filled($educationLevel) || filled($careerArea) || $audiences !== [] || $skills !== [] || $themes !== [])
+            <div class="community-news-sidebar__card community-news-sidebar__card--youth-intro">
+                <p class="community-news-sidebar__label">Overview</p>
+                <dl class="community-detail-list community-detail-list--rail mb-0">
+                    @if(filled($mainCategory))
+                        <div class="community-detail-list__row"><dt>Main category</dt><dd>{{ $mainCategory }}</dd></div>
+                    @endif
+                    @if(filled($contentType))
+                        <div class="community-detail-list__row"><dt>Content type</dt><dd>{{ $contentType }}</dd></div>
+                    @endif
+                    @if(filled($ageGroup))
+                        <div class="community-detail-list__row"><dt>Age group</dt><dd>{{ $ageGroup }}</dd></div>
+                    @endif
+                    @if(filled($occupation))
+                        <div class="community-detail-list__row"><dt>Occupation</dt><dd>{{ $occupation }}</dd></div>
+                    @endif
+                    @if(filled($educationLevel))
+                        <div class="community-detail-list__row"><dt>Education</dt><dd>{{ $educationLevel }}</dd></div>
+                    @endif
+                    @if(filled($careerArea))
+                        <div class="community-detail-list__row"><dt>Career area</dt><dd>{{ $careerArea }}</dd></div>
+                    @endif
+                    @if(filled($startupName))
+                        <div class="community-detail-list__row"><dt>Startup</dt><dd>{{ $startupName }}</dd></div>
+                    @endif
+                    @if(filled($projectTitle))
+                        <div class="community-detail-list__row"><dt>Project</dt><dd>{{ $projectTitle }}</dd></div>
+                    @endif
+                </dl>
+                @if($audiences !== [] || $skills !== [] || $themes !== [])
+                    <div class="community-news-sidebar__pill-groups mt-3">
+                        @if($skills !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Skills</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($skills as $skill)
+                                        <span class="badge bg-light text-dark border">{{ $skill }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+    @elseif($railLayout)
+        @include('community.partials.youth-corner-media-sections', ['post' => $post, 'railLayout' => true])
+        @include('community.partials.life-learning-portal-rail-engagement', ['post' => $post])
+    @elseif(! ($portalSidebarLayout ?? false))
 
     @if(filled($mainCategory) || filled($contentType) || filled($ageGroup) || filled($occupation))
         <div class="business-hero-strip mb-4">
@@ -399,4 +452,5 @@
             @endforeach
         </div>
     </div>
+    @endif
 @endif

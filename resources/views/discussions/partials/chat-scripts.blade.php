@@ -21,6 +21,7 @@
     $topicOnlineTemplate = str_replace('999999999', '__TOPIC__', route('discussions.online', ['topic' => 999999999]));
     $invitationAcceptTemplate = str_replace('999999999', '__INVITATION__', route('discussions.invitations.accept', ['invitation' => 999999999]));
     $invitationRejectTemplate = str_replace('999999999', '__INVITATION__', route('discussions.invitations.reject', ['invitation' => 999999999]));
+    $discussionAssetVersion = fn (string $relativePath): int => (int) @filemtime(public_path($relativePath));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -79,13 +80,13 @@
     };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ now()->timestamp }}" defer></script>
-<script src="{{ asset('assets/js/discussion-emoji.js') }}?v={{ now()->timestamp }}" defer></script>
-<script src="{{ asset('assets/js/discussion-compose.js') }}?v={{ now()->timestamp }}" defer></script>
-<script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
-<script src="{{ asset('assets/js/discussion-widget.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ $discussionAssetVersion('assets/js/discussion-attachments.js') }}" defer></script>
+<script src="{{ asset('assets/js/discussion-emoji.js') }}?v={{ $discussionAssetVersion('assets/js/discussion-emoji.js') }}" defer></script>
+<script src="{{ asset('assets/js/discussion-compose.js') }}?v={{ $discussionAssetVersion('assets/js/discussion-compose.js') }}" defer></script>
+<script src="{{ asset('assets/js/discussion.js') }}?v={{ $discussionAssetVersion('assets/js/discussion.js') }}" defer></script>
+<script src="{{ asset('assets/js/discussion-widget.js') }}?v={{ $discussionAssetVersion('assets/js/discussion-widget.js') }}" defer></script>
 @if($broadcastEnabled)
 <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.19.0/dist/echo.iife.js" defer></script>
-<script src="{{ asset('assets/js/discussion-echo.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/discussion-echo.js') }}?v={{ $discussionAssetVersion('assets/js/discussion-echo.js') }}" defer></script>
 @endif

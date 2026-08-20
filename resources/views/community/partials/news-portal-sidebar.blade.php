@@ -133,6 +133,7 @@
 
     @if(isset($post) && ($moveLifeLearningExtrasToSidebar ?? false))
         @include('community.partials.life-learning-portal-sidebar-meta', ['post' => $post])
+        @include('community.partials.life-learning-portal-sidebar-intro', ['post' => $post])
     @endif
 
     @if(isset($post))

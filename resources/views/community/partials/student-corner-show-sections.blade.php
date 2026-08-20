@@ -20,7 +20,67 @@
         $visibilityLabel = $post->studentCornerVisibilityLabel();
         $publishAsLabel = \App\Support\CommunityContentTaxonomy::studentCornerPublishAsOptions()[$post->resolvedPublishAs()]
             ?? $post->publishAsLabel();
+        $sidebarLayout = $sidebarLayout ?? false;
+        $railLayout = $railLayout ?? false;
     @endphp
+
+    @if($sidebarLayout)
+        @if(filled($mainCategory) || filled($contentType) || filled($classCourse) || filled($stream) || filled($profileName) || filled($institution) || $audiences !== [] || $studyMaterials !== [] || $careerTopics !== [] || $skills !== [])
+            <div class="community-news-sidebar__card community-news-sidebar__card--student-intro">
+                <p class="community-news-sidebar__label">Overview</p>
+                <dl class="community-detail-list community-detail-list--rail mb-0">
+                    @if(filled($mainCategory))
+                        <div class="community-detail-list__row"><dt>Main category</dt><dd>{{ $mainCategory }}</dd></div>
+                    @endif
+                    @if(filled($contentType))
+                        <div class="community-detail-list__row"><dt>Content type</dt><dd>{{ $contentType }}</dd></div>
+                    @endif
+                    @if(filled($classCourse))
+                        <div class="community-detail-list__row"><dt>Class / course</dt><dd>{{ $classCourse }}</dd></div>
+                    @endif
+                    @if(filled($stream))
+                        <div class="community-detail-list__row"><dt>Stream</dt><dd>{{ $stream }}</dd></div>
+                    @endif
+                    @if(filled($profileName))
+                        <div class="community-detail-list__row"><dt>Student</dt><dd>{{ $profileName }}</dd></div>
+                    @endif
+                    @if(filled($institution))
+                        <div class="community-detail-list__row"><dt>Institution</dt><dd>{{ $institution }}</dd></div>
+                    @endif
+                </dl>
+                @if($submitToCompetition)
+                    <p class="small text-success mb-0 mt-2"><i class="fa-solid fa-trophy me-1" aria-hidden="true"></i>Competition entry</p>
+                @endif
+                @if($audiences !== [] || $studyMaterials !== [] || $careerTopics !== [] || $skills !== [])
+                    <div class="community-news-sidebar__pill-groups mt-3">
+                        @if($audiences !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Target audience</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($audiences as $audience)
+                                        <span class="badge bg-light text-dark border">{{ $audience }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                        @if($skills !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Skills</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($skills as $skill)
+                                        <span class="badge bg-light text-dark border">{{ $skill }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+    @elseif($railLayout)
+        @include('community.partials.student-corner-media-sections', ['post' => $post, 'railLayout' => true])
+        @include('community.partials.life-learning-portal-rail-engagement', ['post' => $post])
+    @elseif(! ($portalSidebarLayout ?? false))
 
     @if(filled($mainCategory) || filled($contentType) || filled($classCourse) || filled($stream))
         <div class="business-hero-strip mb-4">
@@ -291,4 +351,5 @@
             @endforeach
         </div>
     </div>
+    @endif
 @endif

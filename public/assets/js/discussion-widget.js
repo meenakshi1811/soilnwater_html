@@ -1,4 +1,5 @@
 (function () {
+    // discussion-widget.js — membersUrl helper restored (2026-08-21)
     const config = window.soilnwaterDiscussion || {};
     const ui = () => window.soilnwaterDiscussionUi || {};
 

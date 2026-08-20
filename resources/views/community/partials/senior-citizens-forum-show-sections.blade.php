@@ -12,7 +12,47 @@
         $visibilityLabel = $post->seniorCitizensForumVisibilityLabel();
         $structuredLocation = $post->structuredLocationForDisplay();
         $locationLabels = \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type);
+        $sidebarLayout = $sidebarLayout ?? false;
+        $railLayout = $railLayout ?? false;
     @endphp
+
+    @if($sidebarLayout)
+        @if($preserveLegacy || filled($mainCategory) || filled($contentType) || filled($ageGroup) || $lifeJourney !== [] || $themes !== [] || $keyLessons !== [])
+            <div class="community-news-sidebar__card community-news-sidebar__card--senior-intro">
+                <p class="community-news-sidebar__label">Overview</p>
+                @if($preserveLegacy)
+                    <p class="small text-muted mb-2"><i class="fa-solid fa-landmark me-1" aria-hidden="true"></i>Preserved as digital legacy</p>
+                @endif
+                <dl class="community-detail-list community-detail-list--rail mb-0">
+                    @if(filled($mainCategory))
+                        <div class="community-detail-list__row"><dt>Main category</dt><dd>{{ $mainCategory }}</dd></div>
+                    @endif
+                    @if(filled($contentType))
+                        <div class="community-detail-list__row"><dt>Content type</dt><dd>{{ $contentType }}</dd></div>
+                    @endif
+                    @if(filled($ageGroup))
+                        <div class="community-detail-list__row"><dt>Age group</dt><dd>{{ $ageGroup }}</dd></div>
+                    @endif
+                </dl>
+                @if($intergenerational !== [] || $contributions !== [])
+                    <div class="community-news-sidebar__pill-groups mt-3">
+                        @if($intergenerational !== [])
+                            <div class="community-news-sidebar__pill-group">
+                                <span class="community-news-sidebar__pill-label">Intergenerational</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($intergenerational as $connection)
+                                        <span class="badge bg-light text-dark border">{{ $connection }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+    @elseif($railLayout)
+        @include('community.partials.life-learning-portal-rail-engagement', ['post' => $post])
+    @elseif(! ($portalSidebarLayout ?? false))
 
     @if($preserveLegacy)
         <div class="scf-digital-legacy-banner mb-4">
@@ -160,5 +200,6 @@
             </div>
         </div>
         @endunless
+    @endif
     @endif
 @endif
