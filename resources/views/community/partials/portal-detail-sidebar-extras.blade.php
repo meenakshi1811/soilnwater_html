@@ -16,10 +16,17 @@
     $showStructuredLocation = \App\Models\CommunityPost::usesStructuredLocation($post->content_type)
         && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true)
         && $post->structuredLocationForDisplay()->isNotEmpty();
+    $poetryRegionalLocation = $post->content_type === 'poetry'
+        ? collect(\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder())
+            ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
+            ->filter(fn (mixed $value): bool => filled($value))
+        : collect();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
-    $hasLocation = $showStructuredLocation || $showLocationType || $post->hasMapCoordinates();
-    $hasAttachments = ! ($railLocationOnly ?? false) && is_array($attachments) && $attachments !== [];
-    $hasAdditionalDetails = ! ($railLocationOnly ?? false) && $visibleMeta
+    $hasLocation = $showStructuredLocation || $showLocationType || $post->hasMapCoordinates() || $poetryRegionalLocation->isNotEmpty();
+    $railLiteratureExtras = $railLiteratureExtras ?? false;
+    $suppressRailMeta = $railLiteratureExtras && in_array($post->content_type, ['stories', 'poetry', 'autobiography'], true);
+    $hasAttachments = ! ($railLocationOnly ?? false) && ! $suppressRailMeta && is_array($attachments) && $attachments !== [];
+    $hasAdditionalDetails = ! ($railLocationOnly ?? false) && ! $suppressRailMeta && $visibleMeta
         ->except(array_merge(
             \App\Models\CommunityPost::structuredLocationMetaKeys(),
             ['location', 'location_lat', 'location_lng', 'issue_attachments', 'news_documents']
@@ -82,7 +89,18 @@
                         <p class="community-detail-location-note mb-0">No map location provided.</p>
                     @elseif($post->requiresSpecificLocation() && filled($resolvedLocation))
                         <p class="community-detail-location-note mb-0">{{ $resolvedLocation }}</p>
+                    @elseif(filled($resolvedLocation))
+                        <p class="community-detail-location-note mb-0">{{ $resolvedLocation }}</p>
                     @endif
+                @elseif($poetryRegionalLocation->isNotEmpty())
+                    <div class="community-detail-grid community-detail-grid--rail">
+                        @foreach($poetryRegionalLocation as $key => $value)
+                            <div class="community-detail-item">
+                                <span class="community-detail-item__label">{{ \App\Support\CommunityPostFormFields::poetryRegionalLocationOrder()[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
+                                <span class="community-detail-item__value">{{ $value }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
                 @if($post->hasMapCoordinates())
                     @include('community.partials.location-map-embed', ['post' => $post])

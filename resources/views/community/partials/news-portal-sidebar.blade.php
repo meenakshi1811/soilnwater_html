@@ -110,6 +110,27 @@
         ])
     @endif
 
+    @if(isset($post) && ($moveStoriesLiteratureExtrasToSidebar ?? false) && $post->content_type === 'stories')
+        @include('community.partials.story-meta-details', [
+            'post' => $post,
+            'sidebarLayout' => true,
+        ])
+    @endif
+
+    @if(isset($post) && ($moveStoriesLiteratureExtrasToSidebar ?? false) && $post->content_type === 'poetry')
+        @include('community.partials.poetry-meta-details', [
+            'post' => $post,
+            'sidebarLayout' => true,
+        ])
+    @endif
+
+    @if(isset($post) && ($moveStoriesLiteratureExtrasToSidebar ?? false) && $post->content_type === 'autobiography')
+        @include('community.partials.autobiography-meta-details', [
+            'post' => $post,
+            'sidebarLayout' => true,
+        ])
+    @endif
+
     @if(isset($post))
         @include('community.partials.community-engagement-panel', [
             'post' => $post,

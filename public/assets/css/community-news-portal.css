@@ -924,6 +924,24 @@
     padding-bottom: 1rem;
 }
 
+.community-news-sidebar__card--story-details,
+.community-news-sidebar__card--poetry-details,
+.community-news-sidebar__card--autobiography-details {
+    padding-bottom: 1rem;
+}
+
+.community-detail-card--rating .story-rating-summary__score {
+    font-size: 1.35rem;
+}
+
+.community-detail-card--rating .story-rating-input {
+    margin-top: 0.35rem;
+}
+
+.community-detail-card--rating .story-rating-star {
+    padding-inline: 0.55rem;
+}
+
 .community-news-empty {
     background: #fff;
     border: 1px dashed #d7e3ef;

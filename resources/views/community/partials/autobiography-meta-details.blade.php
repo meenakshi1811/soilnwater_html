@@ -17,25 +17,37 @@
     $relatedPeopleCount = count(array_filter((array) data_get($post->meta, 'related_people', []), fn ($person) => filled(data_get($person, 'name'))));
     $hasStats = $lifeTimelineCount > 0 || $chapterCount > 0 || $achievementCount > 0 || $documentCount > 0 || $lessonCount > 0 || $relatedPeopleCount > 0 || $post->autobiographyAudioUrl();
     $hasContent = $orderedAutobiographyMeta->isNotEmpty() || $hasStats || filled($post->category);
+    $sidebarLayout = $sidebarLayout ?? false;
 @endphp
 
 @if($hasContent)
-    <div class="about-box mt-4 autobiography-meta-panel">
-        <h4>{{ $heading ?? 'Autobiography details' }}</h4>
+    <div @class([
+        'about-box mt-4 autobiography-meta-panel' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--autobiography-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? 'Autobiography details' }}</p>
+        @else
+            <h4>{{ $heading ?? 'Autobiography details' }}</h4>
+        @endif
 
         @if(filled($post->category) || filled(data_get($post->meta, 'autobiography_type')))
-            <div class="row g-3 {{ $hasStats || $orderedAutobiographyMeta->isNotEmpty() ? 'mb-3' : '' }}">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => $hasStats || $orderedAutobiographyMeta->isNotEmpty(),
+            ])>
                 @if(filled($post->category))
-                    <div class="col-md-6">
-                        <div class="border rounded p-3 h-100">
+                    <div @class(['col-md-6' => ! $sidebarLayout, 'news-sidebar-meta-grid__item' => $sidebarLayout])>
+                        <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">Journey category</strong>
                             <span>{{ $post->category }}</span>
                         </div>
                     </div>
                 @endif
                 @if(filled(data_get($post->meta, 'autobiography_type')))
-                    <div class="col-md-6">
-                        <div class="border rounded p-3 h-100">
+                    <div @class(['col-md-6' => ! $sidebarLayout, 'news-sidebar-meta-grid__item' => $sidebarLayout])>
+                        <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">Autobiography type</strong>
                             <span>{{ data_get($post->meta, 'autobiography_type') }}</span>
                         </div>
@@ -45,7 +57,10 @@
         @endif
 
         @if($hasStats)
-            <div class="autobiography-stats-grid mb-3">
+            <div @class([
+                'autobiography-stats-grid mb-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid mb-3' => $sidebarLayout,
+            ])>
                 @if($chapterCount > 0)
                     <div class="autobiography-stat-card">
                         <span class="autobiography-stat-card__value">{{ $chapterCount }}</span>
@@ -90,10 +105,13 @@
         @endif
 
         @if($orderedAutobiographyMeta->isNotEmpty())
-            <div class="row g-3">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+            ])>
                 @foreach($orderedAutobiographyMeta as $key => $value)
-                    <div class="col-md-6">
-                        <div class="border rounded p-3 h-100">
+                    <div @class(['col-md-6' => ! $sidebarLayout, 'news-sidebar-meta-grid__item' => $sidebarLayout])>
+                        <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">{{ $autobiographyMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             <span>{!! nl2br(e($value)) !!}</span>
                         </div>

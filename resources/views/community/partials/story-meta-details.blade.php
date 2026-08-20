@@ -4,17 +4,33 @@
     $storyGallery = collect(data_get($post->meta, 'story_gallery', []))
         ->filter(fn ($image) => filled(data_get($image, 'url')))
         ->values();
-    $hasContent = $orderedStoryMeta->isNotEmpty() || $storyGallery->isNotEmpty();
+    $sidebarLayout = $sidebarLayout ?? false;
+    $hasContent = $orderedStoryMeta->isNotEmpty() || (! $sidebarLayout && $storyGallery->isNotEmpty());
 @endphp
 
 @if($hasContent)
-    <div class="about-box mt-4">
-        <h4>{{ $heading ?? 'Story details' }}</h4>
+    <div @class([
+        'about-box mt-4' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--story-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? 'Story details' }}</p>
+        @else
+            <h4>{{ $heading ?? 'Story details' }}</h4>
+        @endif
 
         @if($orderedStoryMeta->isNotEmpty())
-            <div class="row g-3 {{ $storyGallery->isNotEmpty() ? 'mb-3' : '' }}">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => ! $sidebarLayout && $storyGallery->isNotEmpty(),
+            ])>
                 @foreach($orderedStoryMeta as $key => $value)
-                    <div class="{{ in_array($key, ['story_main_characters', 'story_target_audience', 'story_themes'], true) ? 'col-12' : 'col-md-6' }}">
+                    <div @class([
+                        in_array($key, ['story_main_characters', 'story_target_audience', 'story_themes'], true) ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && in_array($key, ['story_main_characters', 'story_target_audience', 'story_themes'], true),
+                    ])>
                         <div class="border rounded p-3 h-100 bg-light">
                             <strong class="d-block mb-1">{{ $storyMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             @if(in_array($key, ['story_target_audience', 'story_themes'], true))
@@ -32,7 +48,7 @@
             </div>
         @endif
 
-        @if($storyGallery->isNotEmpty())
+        @if(! $sidebarLayout && $storyGallery->isNotEmpty())
             <h5 class="h6 mb-3">Story gallery</h5>
             <div class="story-gallery-grid">
                 @foreach($storyGallery as $index => $image)

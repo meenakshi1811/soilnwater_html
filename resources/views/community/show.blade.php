@@ -522,8 +522,13 @@
     $isNewsPost = $post->content_type === 'news';
     $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
     $moveDetailExtrasToSidebar = $isPortalPost && in_array($post->content_type, ['articles', 'reports', 'news'], true);
-    $showPortalDetailRailExtras = $moveDetailExtrasToSidebar || ($isPortalPost && $post->content_type === 'science-technology');
+    $storiesLiteratureTypes = \App\Support\CommunityContentTaxonomy::storiesLiteratureTypes();
+    $moveStoriesLiteratureExtrasToSidebar = $isPortalPost && in_array($post->content_type, $storiesLiteratureTypes, true);
+    $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
+        || ($isPortalPost && $post->content_type === 'science-technology')
+        || $moveStoriesLiteratureExtrasToSidebar;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
+    $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
@@ -577,6 +582,7 @@
                         'post' => $post,
                         'followedTopics' => $followedTopics,
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
+                        'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
                         'isFollowingAuthor' => $isFollowingAuthor,
                     ])
                     <main class="community-news-main community-news-main--detail">
@@ -1208,22 +1214,34 @@
                     $visibleMeta = $additionalNewsMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'stories')
+            @if($post->content_type === 'stories' && ! $moveStoriesLiteratureExtrasToSidebar)
                 @include('community.partials.story-meta-details', ['post' => $post])
                 @include('community.partials.story-rating', ['post' => $post])
                 @php
                     $visibleMeta = $additionalStoryMeta;
                 @endphp
+            @elseif($post->content_type === 'stories' && $moveStoriesLiteratureExtrasToSidebar)
+                @php
+                    $visibleMeta = $additionalStoryMeta;
+                @endphp
             @endif
-            @if($post->content_type === 'poetry')
+            @if($post->content_type === 'poetry' && ! $moveStoriesLiteratureExtrasToSidebar)
                 @include('community.partials.poetry-meta-details', ['post' => $post])
                 @include('community.partials.story-rating', ['post' => $post])
                 @php
                     $visibleMeta = $additionalPoetryMeta;
                 @endphp
+            @elseif($post->content_type === 'poetry' && $moveStoriesLiteratureExtrasToSidebar)
+                @php
+                    $visibleMeta = $additionalPoetryMeta;
+                @endphp
             @endif
-            @if($post->content_type === 'autobiography')
+            @if($post->content_type === 'autobiography' && ! $moveStoriesLiteratureExtrasToSidebar)
                 @include('community.partials.story-rating', ['post' => $post])
+                @php
+                    $visibleMeta = $visibleMeta->except(\App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys());
+                @endphp
+            @elseif($post->content_type === 'autobiography' && $moveStoriesLiteratureExtrasToSidebar)
                 @php
                     $visibleMeta = $visibleMeta->except(\App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys());
                 @endphp
@@ -1319,7 +1337,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveStoriesLiteratureExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1351,7 +1369,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveStoriesLiteratureExtrasToSidebar && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
@@ -1454,8 +1472,10 @@
                         'relatedNews' => $relatedPortalPosts ?? $relatedNews ?? collect(),
                         'post' => $post,
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
+                        'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
                         'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
                         'railLocationOnly' => $railLocationOnly,
+                        'showPortalRatingRail' => $showPortalRatingRail,
                         'visibleMeta' => $visibleMeta ?? collect(),
                         'formFieldLabels' => $formFieldLabels ?? [],
                         'resolvedLocation' => $resolvedLocation ?? null,

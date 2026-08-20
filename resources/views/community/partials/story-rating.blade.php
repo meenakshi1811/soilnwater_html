@@ -3,6 +3,7 @@
         $averageRating = $post->averageStarRating();
         $ratingsCount = $post->star_ratings_count ?? $post->starRatings->count();
         $userRating = auth()->check() ? $post->userStarRating(auth()->id()) : null;
+        $railLayout = $railLayout ?? false;
         $ratingTitle = match ($post->content_type) {
             'poetry' => 'Poetry rating',
             'autobiography' => 'Autobiography rating',
@@ -24,14 +25,28 @@
             default => 'story-rating-panel',
         };
     @endphp
-    <div class="{{ $panelClass }} about-box mt-4">
-        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
-            <div>
-                <h4 class="mb-1">{{ $ratingTitle }}</h4>
+    <div @class([
+        $panelClass => ! $railLayout,
+        'about-box mt-4' => ! $railLayout,
+        'community-news-rail__card community-news-rail__card--detail community-detail-card community-detail-card--rating community-detail-card--rail' => $railLayout,
+    ])>
+        <div @class([
+            'd-flex flex-wrap align-items-start justify-content-between gap-3 mb-3' => ! $railLayout,
+            'community-detail-card__head mb-2' => $railLayout,
+        ])>
+            @if($railLayout)
+                <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-star"></i></span>
+            @endif
+            <div class="{{ $railLayout ? 'flex-grow-1' : '' }}">
+                @if($railLayout)
+                    <h4 class="community-detail-card__title mb-1">{{ $ratingTitle }}</h4>
+                @else
+                    <h4 class="mb-1">{{ $ratingTitle }}</h4>
+                @endif
                 <p class="text-muted small mb-0">{{ $ratingHint }}</p>
             </div>
             @if($averageRating)
-                <div class="text-end">
+                <div class="{{ $railLayout ? 'w-100 mt-2' : 'text-end' }}">
                     <div class="story-rating-summary__score">{{ number_format($averageRating, 1) }}</div>
                     <div class="story-rating-summary__stars" aria-label="Average rating {{ $averageRating }} out of 5">
                         @for($star = 1; $star <= 5; $star++)

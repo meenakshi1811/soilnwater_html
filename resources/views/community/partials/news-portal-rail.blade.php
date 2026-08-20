@@ -31,6 +31,14 @@
             'resolvedLocation' => $resolvedLocation ?? null,
             'attachments' => $sidebarAttachments ?? null,
             'railLocationOnly' => $railLocationOnly ?? false,
+            'railLiteratureExtras' => $moveStoriesLiteratureExtrasToSidebar ?? false,
+        ])
+    @endif
+
+    @if(isset($post) && ($showPortalRatingRail ?? false))
+        @include('community.partials.story-rating', [
+            'post' => $post,
+            'railLayout' => true,
         ])
     @endif
 

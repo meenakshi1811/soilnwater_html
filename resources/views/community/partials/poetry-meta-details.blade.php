@@ -13,17 +13,33 @@
     $regionalLocation = collect(\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder())
         ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
         ->filter(fn (mixed $value): bool => filled($value));
-    $hasContent = $orderedPoetryMeta->isNotEmpty() || $regionalLocation->isNotEmpty();
+    $sidebarLayout = $sidebarLayout ?? false;
+    $hasContent = $orderedPoetryMeta->isNotEmpty() || (! $sidebarLayout && $regionalLocation->isNotEmpty());
 @endphp
 
 @if($hasContent)
-    <div class="about-box mt-4 poetry-meta-panel">
-        <h4>{{ $heading ?? 'Poetry details' }}</h4>
+    <div @class([
+        'about-box mt-4 poetry-meta-panel' => ! $sidebarLayout,
+        'community-news-sidebar__card community-news-sidebar__card--poetry-details' => $sidebarLayout,
+    ])>
+        @if($sidebarLayout)
+            <p class="community-news-sidebar__label">{{ $heading ?? 'Poetry details' }}</p>
+        @else
+            <h4>{{ $heading ?? 'Poetry details' }}</h4>
+        @endif
 
         @if($orderedPoetryMeta->isNotEmpty())
-            <div class="row g-3 {{ $regionalLocation->isNotEmpty() ? 'mb-3' : '' }}">
+            <div @class([
+                'row g-3' => ! $sidebarLayout,
+                'news-sidebar-meta-grid' => $sidebarLayout,
+                'mb-3' => ! $sidebarLayout && $regionalLocation->isNotEmpty(),
+            ])>
                 @foreach($orderedPoetryMeta as $key => $value)
-                    <div class="{{ in_array($key, ['poetry_themes', 'poetry_target_audience', 'dedication'], true) ? 'col-12' : 'col-md-6' }}">
+                    <div @class([
+                        in_array($key, ['poetry_themes', 'poetry_target_audience', 'dedication'], true) ? 'col-12' : 'col-md-6' => ! $sidebarLayout,
+                        'news-sidebar-meta-grid__item' => $sidebarLayout,
+                        'news-sidebar-meta-grid__item--wide' => $sidebarLayout && in_array($key, ['poetry_themes', 'poetry_target_audience', 'dedication'], true),
+                    ])>
                         <div class="border rounded p-3 h-100">
                             <strong class="d-block mb-1">{{ $poetryMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                             @if(in_array($key, ['poetry_themes', 'poetry_target_audience'], true))
@@ -41,7 +57,7 @@
             </div>
         @endif
 
-        @if($regionalLocation->isNotEmpty())
+        @if(! $sidebarLayout && $regionalLocation->isNotEmpty())
             <h5 class="h6 mb-3">Regional location</h5>
             <div class="row g-3">
                 @foreach($regionalLocation as $key => $value)
