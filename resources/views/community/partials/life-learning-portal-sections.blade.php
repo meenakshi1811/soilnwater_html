@@ -48,6 +48,10 @@
         @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
     @endif
 
+    @if($post->isSeniorCitizensForumPost() && $portalSidebarLayout)
+        @include('community.partials.senior-citizens-forum-achievements-section', ['post' => $post])
+    @endif
+
     @unless($portalSidebarLayout)
         @if($post->isStudentCornerPost())
             @include('community.partials.student-corner-meta-details', ['post' => $post])
