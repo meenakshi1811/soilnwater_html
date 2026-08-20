@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('discussion_group_invitations');
+
         Schema::create('discussion_group_invitations', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('discussion_topic_id')->constrained()->cascadeOnDelete();
@@ -17,8 +19,8 @@ return new class extends Migration
             $table->timestamp('responded_at')->nullable();
             $table->timestamps();
 
-            $table->index(['invitee_id', 'status']);
-            $table->index(['discussion_topic_id', 'invitee_id', 'status']);
+            $table->index(['invitee_id', 'status'], 'dgi_invitee_status_idx');
+            $table->index(['discussion_topic_id', 'invitee_id', 'status'], 'dgi_topic_invitee_status_idx');
         });
     }
 
