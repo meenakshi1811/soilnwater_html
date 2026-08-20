@@ -23,13 +23,14 @@
 @endphp
 
 <aside class="community-news-rail" aria-label="{{ $portalCopy['label_short'] }} highlights">
-    @if(isset($post) && ($moveDetailExtrasToSidebar ?? false))
+    @if(isset($post) && ($showPortalDetailRailExtras ?? $moveDetailExtrasToSidebar ?? false))
         @include('community.partials.portal-detail-sidebar-extras', [
             'post' => $post,
             'visibleMeta' => $visibleMeta ?? collect(),
             'formFieldLabels' => $formFieldLabels ?? [],
             'resolvedLocation' => $resolvedLocation ?? null,
             'attachments' => $sidebarAttachments ?? null,
+            'railLocationOnly' => $railLocationOnly ?? false,
         ])
     @endif
 

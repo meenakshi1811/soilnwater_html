@@ -14,12 +14,12 @@
         default => [],
     };
     $showStructuredLocation = \App\Models\CommunityPost::usesStructuredLocation($post->content_type)
-        && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology'], true)
+        && ! in_array($post->content_type, ['awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true)
         && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
     $hasLocation = $showStructuredLocation || $showLocationType || $post->hasMapCoordinates();
-    $hasAttachments = is_array($attachments) && $attachments !== [];
-    $hasAdditionalDetails = $visibleMeta
+    $hasAttachments = ! ($railLocationOnly ?? false) && is_array($attachments) && $attachments !== [];
+    $hasAdditionalDetails = ! ($railLocationOnly ?? false) && $visibleMeta
         ->except(array_merge(
             \App\Models\CommunityPost::structuredLocationMetaKeys(),
             ['location', 'location_lat', 'location_lng', 'issue_attachments', 'news_documents']

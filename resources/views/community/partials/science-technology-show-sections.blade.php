@@ -58,6 +58,7 @@
         @endif
     @endunless
 
+    @unless($portalLayout)
     @if($structuredLocation->isNotEmpty() || $post->hasMapCoordinates())
         <div class="business-section-panel about-box mb-4 border-success">
             <div class="business-section-panel__header">
@@ -89,6 +90,7 @@
             @endif
         </div>
     @endif
+    @endunless
 
     @if($technologies !== [])
         <div class="mb-4">

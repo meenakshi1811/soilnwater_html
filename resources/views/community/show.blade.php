@@ -522,6 +522,8 @@
     $isNewsPost = $post->content_type === 'news';
     $isPortalPost = \App\Support\CommunityContentTaxonomy::usesContentPortal($post->content_type);
     $moveDetailExtrasToSidebar = $isPortalPost && in_array($post->content_type, ['articles', 'reports', 'news'], true);
+    $showPortalDetailRailExtras = $moveDetailExtrasToSidebar || ($isPortalPost && $post->content_type === 'science-technology');
+    $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
@@ -1317,7 +1319,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1452,6 +1454,8 @@
                         'relatedNews' => $relatedPortalPosts ?? $relatedNews ?? collect(),
                         'post' => $post,
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
+                        'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
+                        'railLocationOnly' => $railLocationOnly,
                         'visibleMeta' => $visibleMeta ?? collect(),
                         'formFieldLabels' => $formFieldLabels ?? [],
                         'resolvedLocation' => $resolvedLocation ?? null,

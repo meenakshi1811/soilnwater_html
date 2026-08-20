@@ -115,11 +115,6 @@ class CommunityPostSeeder extends Seeder
 <p><strong>{$typeLabel} preview:</strong> {$topic}. This seeded post demonstrates the full community publishing flow for the {$typeKey} content type.</p>
 <p>It includes a rich body, excerpt, tags, featured images, optional video, Google Places location coordinates, type-specific metadata, and an enabled discussion thread.</p>
 <p>Use this sample to review listing cards, detail pages, filters, and edit forms across the platform without creating content manually.</p>
-<ul>
-    <li>Content type: {$typeLabel}</li>
-    <li>Location: Jaipur, Rajasthan</li>
-    <li>Discussion thread: enabled</li>
-</ul>
 HTML;
     }
 
@@ -147,6 +142,13 @@ HTML;
         $meta = [
             'author_bio' => 'Community demo author covering '.$typeLabel.' topics across Rajasthan.',
         ];
+
+        if (\App\Models\CommunityPost::usesStructuredLocation($typeKey)) {
+            $meta['location_country'] = 'India';
+            $meta['location_state'] = 'Rajasthan';
+            $meta['location_district'] = 'Jaipur';
+            $meta['location_city'] = 'Jaipur';
+        }
 
         foreach (CommunityPostFormFields::fieldsFor($typeKey) as $field) {
             $meta[$field['name']] = $this->dummyValueForField($field, $typeLabel, $topic);
