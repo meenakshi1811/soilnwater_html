@@ -89,7 +89,11 @@
             </div>
         @endif
     @elseif($railLayout)
-        @include('community.partials.youth-corner-media-sections', ['post' => $post, 'railLayout' => true])
+        @include('community.partials.youth-corner-media-sections', [
+            'post' => $post,
+            'railLayout' => true,
+            'achievementsOnSidebar' => true,
+        ])
         @include('community.partials.life-learning-portal-rail-engagement', ['post' => $post])
     @elseif(! ($portalSidebarLayout ?? false))
 

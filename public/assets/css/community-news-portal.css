@@ -692,6 +692,236 @@
     color: #8aa0b5;
 }
 
+.community-news-rail__card--trending {
+    background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+    border-color: #dbe7f4;
+}
+
+.community-news-trending-panel__head {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+}
+
+.community-news-trending-panel__icon {
+    align-items: center;
+    background: linear-gradient(135deg, #ff8a3d, #ff5c5c);
+    border-radius: 12px;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+    height: 2.35rem;
+    justify-content: center;
+    width: 2.35rem;
+}
+
+.community-news-trending--cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.community-news-trending--cards li + li {
+    border-top: 0;
+}
+
+.community-news-trending-card {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e4edf6;
+    border-radius: 12px;
+    color: inherit;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: auto 3.1rem minmax(0, 1fr);
+    padding: 0.55rem;
+    text-decoration: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.community-news-trending-card:hover {
+    border-color: #b9d4f0;
+    box-shadow: 0 8px 20px rgba(15, 47, 85, 0.08);
+    transform: translateY(-1px);
+}
+
+.community-news-trending-card__rank {
+    align-items: center;
+    background: #eef5fc;
+    border-radius: 999px;
+    color: #1f66b4;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 800;
+    height: 1.65rem;
+    justify-content: center;
+    width: 1.65rem;
+}
+
+.community-news-trending-card__thumb {
+    border-radius: 10px;
+    display: block;
+    height: 3.1rem;
+    overflow: hidden;
+    width: 3.1rem;
+}
+
+.community-news-trending-card__thumb img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
+.community-news-trending-card__thumb--placeholder {
+    align-items: center;
+    background: linear-gradient(135deg, #edf4fb, #dce9f7);
+    color: #5a7189;
+    display: inline-flex;
+    font-size: 0.95rem;
+    justify-content: center;
+}
+
+.community-news-trending-card__copy {
+    min-width: 0;
+}
+
+.community-news-trending-card__copy strong {
+    color: #0f2f55;
+    display: -webkit-box;
+    font-size: 0.82rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.35;
+    margin-bottom: 0.2rem;
+    overflow: hidden;
+}
+
+.community-news-trending-card__meta {
+    align-items: center;
+    color: #8aa0b5;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    gap: 0.55rem;
+}
+
+.community-news-trending-card__meta i {
+    margin-right: 0.25rem;
+}
+
+.community-news-trending-panel__cta {
+    margin-top: 0.15rem;
+}
+
+.community-news-sidebar__card--youth-achievements {
+    background: linear-gradient(180deg, #fff 0%, #f7fcf8 100%);
+    border-color: #d7eadb;
+}
+
+.yc-sidebar-achievements__head {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.yc-sidebar-achievements__icon {
+    align-items: center;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    border-radius: 12px;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 1rem;
+    height: 2.5rem;
+    justify-content: center;
+    width: 2.5rem;
+}
+
+.yc-sidebar-achievements__lead {
+    color: #607487;
+    font-size: 0.76rem;
+}
+
+.yc-sidebar-achievements__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.yc-sidebar-achievement {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid #e3efe5;
+    border-radius: 12px;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.75rem;
+}
+
+.yc-sidebar-achievement__badge {
+    align-items: center;
+    background: #edf7ef;
+    border-radius: 10px;
+    color: #2e7d32;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.9rem;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.yc-sidebar-achievement__body {
+    min-width: 0;
+}
+
+.yc-sidebar-achievement__title {
+    color: #0f2f55;
+    display: block;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    margin-bottom: 0.2rem;
+}
+
+.yc-sidebar-achievement__year {
+    background: #f3faf4;
+    border: 1px solid #d7eadb;
+    border-radius: 999px;
+    color: #2e7d32;
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+    padding: 0.12rem 0.45rem;
+}
+
+.yc-sidebar-achievement__certificate {
+    align-items: center;
+    color: #1f66b4;
+    display: inline-flex;
+    font-size: 0.74rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    text-decoration: none;
+}
+
+.yc-sidebar-achievement__certificate:hover {
+    color: #134a86;
+    text-decoration: underline;
+}
+
+.yc-sidebar-achievement__certificate-arrow {
+    font-size: 0.65rem;
+    opacity: 0.75;
+}
+
 .community-news-rail__card--newsletter p {
     color: #5a7189;
     font-size: 0.84rem;
@@ -930,6 +1160,7 @@
 .community-news-sidebar__card--childrens-details,
 .community-news-sidebar__card--student-details,
 .community-news-sidebar__card--youth-details,
+.community-news-sidebar__card--youth-achievements,
 .community-news-sidebar__card--senior-details,
 .community-news-sidebar__card--womens-details,
 .community-news-sidebar__card--wellness-details {

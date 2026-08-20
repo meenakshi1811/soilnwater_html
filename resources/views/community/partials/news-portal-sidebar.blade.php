@@ -135,6 +135,10 @@
         @include('community.partials.life-learning-portal-sidebar-meta', ['post' => $post])
     @endif
 
+    @if(isset($post) && ($moveLifeLearningExtrasToSidebar ?? false) && $post->isYouthCornerPost())
+        @include('community.partials.youth-corner-sidebar-achievements', ['post' => $post])
+    @endif
+
     @if(isset($post))
         @include('community.partials.news-sidebar-tags', [
             'post' => $post,

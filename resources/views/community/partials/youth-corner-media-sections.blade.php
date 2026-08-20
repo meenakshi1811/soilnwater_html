@@ -2,6 +2,8 @@
     $gallery = $post->youthCornerGallery();
     $videoType = data_get($post->meta, 'youth_corner_video_type');
     $hasVideo = $post->hasVideo();
+    $railLayout = $railLayout ?? false;
+    $achievementsOnSidebar = $achievementsOnSidebar ?? false;
 @endphp
 
 @if($gallery !== [])
@@ -80,7 +82,7 @@
     </div>
 @endif
 
-@if($achievements !== [])
+@if($achievements !== [] && ! $railLayout && ! $achievementsOnSidebar)
     <div class="business-section-panel about-box mb-4">
         <div class="business-section-panel__header">
             <i class="fa-solid fa-award" aria-hidden="true"></i>
