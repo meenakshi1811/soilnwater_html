@@ -1415,12 +1415,10 @@
                 @include('community.partials.poll', ['post' => $post])
             @endif
 
-            @unless($isPortalPost)
-                @include('community.partials.community-engagement-panel', [
-                    'post' => $post,
-                    'isFollowingAuthor' => $isFollowingAuthor,
-                ])
-            @endunless
+            @include('community.partials.community-engagement-panel', [
+                'post' => $post,
+                'isFollowingAuthor' => $isFollowingAuthor,
+            ])
 
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
                 <section class="about-box mt-4" id="comments-discussion">

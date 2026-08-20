@@ -20,9 +20,16 @@
         $portalSidebarLayout = $portalSidebarLayout ?? false;
     @endphp
 
-    @if($sidebarLayout && in_array($placement, ['full', 'intro'], true))
-        <div class="community-news-sidebar__card community-news-sidebar__card--childrens-intro">
-            <p class="community-news-sidebar__label">Submission overview</p>
+    @if(($sidebarLayout || ($overviewRailLayout ?? false)) && in_array($placement, ['full', 'intro'], true))
+        <div @class([
+            'community-news-sidebar__card community-news-sidebar__card--childrens-intro' => $sidebarLayout,
+            'community-news-rail__card community-news-rail__card--detail' => $overviewRailLayout ?? false,
+        ])>
+            @if($overviewRailLayout ?? false)
+                <h3 class="community-news-rail__title">Overview</h3>
+            @else
+                <p class="community-news-sidebar__label">Submission overview</p>
+            @endif
             @if(filled($shareType))
                 <p class="small mb-2"><strong>Share type:</strong> {{ $shareType }}</p>
             @endif

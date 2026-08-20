@@ -994,6 +994,18 @@
     width: 100%;
 }
 
+.community-detail-location-inline {
+    color: #3f5873;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin-top: 0.75rem;
+}
+
+.community-detail-card--rail .community-detail-map + .community-detail-location-inline {
+    margin-top: 0.65rem;
+}
+
 .community-detail-card--rating .story-rating-summary__score {
     font-size: 1.35rem;
 }

@@ -133,15 +133,9 @@
 
     @if(isset($post) && ($moveLifeLearningExtrasToSidebar ?? false))
         @include('community.partials.life-learning-portal-sidebar-meta', ['post' => $post])
-        @include('community.partials.life-learning-portal-sidebar-intro', ['post' => $post])
     @endif
 
     @if(isset($post))
-        @include('community.partials.community-engagement-panel', [
-            'post' => $post,
-            'isFollowingAuthor' => $isFollowingAuthor ?? false,
-            'sidebarLayout' => true,
-        ])
         @include('community.partials.news-sidebar-tags', [
             'post' => $post,
             'followedTopics' => $followedTopics ?? [],

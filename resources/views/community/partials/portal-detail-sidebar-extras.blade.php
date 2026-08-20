@@ -59,9 +59,23 @@
     $showReportTrustScore = $post->isReportContent() && $post->reportTrustBreakdown() !== [];
     $showLifeLearningRailSections = ($railHubExtras ?? false)
         && in_array($post->content_type, ['childrens-corner', 'student-corner', 'youth-corner', 'senior-citizens-forum', 'womens-world'], true);
+    $lifeLearningHubRail = ($railHubExtras ?? false)
+        && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::lifeLearningTypes(), true);
+    $showLifeLearningOverviewOnRail = $showLifeLearningRailSections;
+    $locationInlineText = collect();
+    if ($showStructuredLocation) {
+        $locationInlineText = $post->structuredLocationForDisplay()->values();
+    } elseif ($poetryRegionalLocation->isNotEmpty()) {
+        $locationInlineText = $poetryRegionalLocation->values();
+    } elseif ($childrensCornerLocation->isNotEmpty()) {
+        $locationInlineText = $childrensCornerLocation->values();
+    } elseif (filled($resolvedLocation)) {
+        $locationInlineText = collect([$resolvedLocation]);
+    }
+    $locationInlineText = $locationInlineText->filter(fn (mixed $value): bool => filled($value))->implode(', ');
 @endphp
 
-@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections)
+@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections || $showLifeLearningOverviewOnRail)
     <div class="community-news-rail__detail-extras" aria-label="Post details sidebar">
         @if($showReportTrustScore)
             <div class="community-news-rail__card community-news-rail__card--detail">
@@ -83,6 +97,13 @@
             </div>
         @endif
 
+        @if($showLifeLearningOverviewOnRail)
+            @include('community.partials.life-learning-portal-sidebar-intro', [
+                'post' => $post,
+                'overviewRailLayout' => true,
+            ])
+        @endif
+
         @if($hasLocation)
             <div class="community-news-rail__card community-news-rail__card--detail community-detail-card community-detail-card--location community-detail-card--rail">
                 <div class="community-detail-card__head">
@@ -91,6 +112,24 @@
                         <h4 class="community-detail-card__title">Location</h4>
                     </div>
                 </div>
+                @if($lifeLearningHubRail)
+                    @if($post->hasMapCoordinates())
+                        @include('community.partials.location-map-embed', ['post' => $post])
+                    @endif
+                    @if(filled($locationInlineText))
+                        <p class="community-detail-location-inline mb-0">{{ $locationInlineText }}</p>
+                    @elseif($showLocationType)
+                        <span class="community-detail-location-type">
+                            <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
+                            {{ $post->locationTypeLabel() }}
+                        </span>
+                        @if($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL)
+                            <p class="community-detail-location-note mb-0">Global relevance.</p>
+                        @elseif($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_INDIA)
+                            <p class="community-detail-location-note mb-0">Applies across India.</p>
+                        @endif
+                    @endif
+                @else
                 @if($showStructuredLocation)
                     <div class="community-detail-grid community-detail-grid--rail">
                         @foreach($post->structuredLocationForDisplay() as $key => $value)
@@ -135,6 +174,7 @@
                 @endif
                 @if($post->hasMapCoordinates())
                     @include('community.partials.location-map-embed', ['post' => $post])
+                @endif
                 @endif
             </div>
         @endif

@@ -24,10 +24,17 @@
         $railLayout = $railLayout ?? false;
     @endphp
 
-    @if($sidebarLayout)
+    @if($sidebarLayout || ($overviewRailLayout ?? false))
         @if(filled($mainCategory) || filled($contentType) || filled($classCourse) || filled($stream) || filled($profileName) || filled($institution) || $audiences !== [] || $studyMaterials !== [] || $careerTopics !== [] || $skills !== [])
-            <div class="community-news-sidebar__card community-news-sidebar__card--student-intro">
-                <p class="community-news-sidebar__label">Overview</p>
+            <div @class([
+                'community-news-sidebar__card community-news-sidebar__card--student-intro' => $sidebarLayout,
+                'community-news-rail__card community-news-rail__card--detail' => $overviewRailLayout ?? false,
+            ])>
+                @if($overviewRailLayout ?? false)
+                    <h3 class="community-news-rail__title">Overview</h3>
+                @else
+                    <p class="community-news-sidebar__label">Overview</p>
+                @endif
                 <dl class="community-detail-list community-detail-list--rail mb-0">
                     @if(filled($mainCategory))
                         <div class="community-detail-list__row"><dt>Main category</dt><dd>{{ $mainCategory }}</dd></div>

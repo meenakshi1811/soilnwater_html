@@ -17,13 +17,6 @@
         'womens-world' => 'womens_world_poll_question',
         default => null,
     };
-    $reactionOptions = match ($post->content_type) {
-        'student-corner' => \App\Support\CommunityContentTaxonomy::studentCornerReactionOptions(),
-        'youth-corner' => \App\Support\CommunityContentTaxonomy::youthCornerReactionOptions(),
-        'womens-world' => \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions(),
-        'senior-citizens-forum' => \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionOptions(),
-        default => [],
-    };
     $hasReaderEngagement = $post->allowsPoll()
         || $post->allow_comments
         || $post->allow_questions
@@ -65,19 +58,5 @@
         @if($post->allowsPoll() && $pollQuestionKey && filled(data_get($post->meta, $pollQuestionKey)))
             <p class="small text-muted mb-0 mt-2"><strong>Poll:</strong> {{ data_get($post->meta, $pollQuestionKey) }}</p>
         @endif
-    </div>
-@endif
-
-@if($reactionOptions !== [])
-    <div class="community-news-rail__card community-news-rail__card--detail">
-        <h3 class="community-news-rail__title">Community reactions</h3>
-        <p class="small text-muted mb-2">Positive reactions only.</p>
-        <div class="community-news-rail__badges">
-            @foreach($reactionOptions as $reaction => $icon)
-                <span class="badge bg-light text-dark border">
-                    <i class="{{ $icon }} me-1" aria-hidden="true"></i>{{ $reaction }}
-                </span>
-            @endforeach
-        </div>
     </div>
 @endif

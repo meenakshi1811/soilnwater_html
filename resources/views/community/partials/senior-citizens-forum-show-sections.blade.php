@@ -16,10 +16,17 @@
         $railLayout = $railLayout ?? false;
     @endphp
 
-    @if($sidebarLayout)
+    @if($sidebarLayout || ($overviewRailLayout ?? false))
         @if($preserveLegacy || filled($mainCategory) || filled($contentType) || filled($ageGroup) || $lifeJourney !== [] || $themes !== [] || $keyLessons !== [])
-            <div class="community-news-sidebar__card community-news-sidebar__card--senior-intro">
-                <p class="community-news-sidebar__label">Overview</p>
+            <div @class([
+                'community-news-sidebar__card community-news-sidebar__card--senior-intro' => $sidebarLayout,
+                'community-news-rail__card community-news-rail__card--detail' => $overviewRailLayout ?? false,
+            ])>
+                @if($overviewRailLayout ?? false)
+                    <h3 class="community-news-rail__title">Overview</h3>
+                @else
+                    <p class="community-news-sidebar__label">Overview</p>
+                @endif
                 @if($preserveLegacy)
                     <p class="small text-muted mb-2"><i class="fa-solid fa-landmark me-1" aria-hidden="true"></i>Preserved as digital legacy</p>
                 @endif
