@@ -1,5 +1,6 @@
 @php
     $metaLabels = \App\Support\CommunityPostFormFields::competitionsDetailMetaOrder();
+    $railLayout = $railLayout ?? false;
     $arrayKeys = [
         'competitions_eligibility',
         'competitions_themes',
@@ -45,27 +46,64 @@
         'competitions_enable_digital_certificates',
         'competitions_enable_verifiable_certificate_ids',
     ];
-    $orderedMeta = collect($metaLabels)->mapWithKeys(function (string $label, string $key) use ($post, $arrayKeys, $booleanKeys) {
-        $value = data_get($post->meta, $key);
-        if (in_array($key, $booleanKeys, true)) {
-            $value = $value ? 'Yes' : null;
-        }
-        if (in_array($key, $arrayKeys, true) && is_array($value)) {
-            $value = $value === [] ? null : implode(', ', $value);
-        }
+    $sidebarSkipKeys = [
+        'competitions_date_announcement',
+        'competitions_date_registration_opens',
+        'competitions_date_registration_closes',
+        'competitions_date_submission_deadline',
+        'competitions_date_evaluation_period',
+        'competitions_date_result',
+        'competitions_date_award_ceremony',
+        'competitions_organizer_name',
+        'competitions_organizer_organization',
+        'competitions_organizer_contact_person',
+        'competitions_organizer_email',
+        'competitions_organizer_phone',
+        'competitions_organizer_website',
+    ];
+    $orderedMeta = collect($metaLabels)
+        ->when($railLayout, fn ($collection) => $collection->except($sidebarSkipKeys))
+        ->mapWithKeys(function (string $label, string $key) use ($post, $arrayKeys, $booleanKeys) {
+            $value = data_get($post->meta, $key);
+            if (in_array($key, $booleanKeys, true)) {
+                $value = $value ? 'Yes' : null;
+            }
+            if (in_array($key, $arrayKeys, true) && is_array($value)) {
+                $value = $value === [] ? null : implode(', ', $value);
+            }
 
-        return [$key => $value];
-    })->filter(fn ($value) => filled($value));
+            return [$key => $value];
+        })
+        ->filter(fn ($value) => filled($value));
 @endphp
 
 @if($post->isCompetitionsPost() && ($orderedMeta->isNotEmpty() || ($includeAdmin ?? false)))
-    <div class="community-meta-details mt-4">
-        <h4>{{ $heading ?? (($includeAdmin ?? false) ? 'Saved Competitions metadata' : 'Competition details') }}</h4>
-        <dl class="row mb-0 small">
-            @foreach($orderedMeta as $key => $value)
-                <dt class="col-sm-4 text-muted">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</dt>
-                <dd class="col-sm-8">{{ $value }}</dd>
-            @endforeach
-        </dl>
-    </div>
+    @if($railLayout)
+        <div class="community-news-rail__card community-news-rail__card--detail community-detail-card community-detail-card--rail">
+            <div class="community-detail-card__head">
+                <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+                <div>
+                    <h4 class="community-detail-card__title">{{ $heading ?? 'Competition details' }}</h4>
+                </div>
+            </div>
+            <div class="community-detail-grid community-detail-grid--rail">
+                @foreach($orderedMeta as $key => $value)
+                    <div class="community-detail-item">
+                        <span class="community-detail-item__label">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
+                        <span class="community-detail-item__value">{{ $value }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @else
+        <div class="community-meta-details mt-4">
+            <h4>{{ $heading ?? (($includeAdmin ?? false) ? 'Saved Competitions metadata' : 'Competition details') }}</h4>
+            <dl class="row mb-0 small">
+                @foreach($orderedMeta as $key => $value)
+                    <dt class="col-sm-4 text-muted">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</dt>
+                    <dd class="col-sm-8">{{ $value }}</dd>
+                @endforeach
+            </dl>
+        </div>
+    @endif
 @endif

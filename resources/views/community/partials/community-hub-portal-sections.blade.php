@@ -58,11 +58,17 @@
     @endif
 
     @if($post->isCreativeCornerPost())
-        @include('community.partials.creative-corner-show-sections', ['post' => $post])
+        @include('community.partials.creative-corner-show-sections', [
+            'post' => $post,
+            'portalSidebarLayout' => $moveCreativeCommunityExtrasToRail ?? false,
+        ])
     @endif
 
     @if($post->isCompetitionsPost())
-        @include('community.partials.competitions-show-sections', ['post' => $post])
+        @include('community.partials.competitions-show-sections', [
+            'post' => $post,
+            'portalSidebarLayout' => $moveCreativeCommunityExtrasToRail ?? false,
+        ])
     @endif
 @endif
 

@@ -167,6 +167,14 @@
         ])
     @endif
 
+    @if(isset($post) && ($moveCreativeCommunityExtrasToRail ?? false) && $post->isCreativeCornerPost())
+        @include('community.partials.creative-corner-portal-sidebar-sections', ['post' => $post])
+    @endif
+
+    @if(isset($post) && ($moveCreativeCommunityExtrasToRail ?? false) && $post->isCompetitionsPost())
+        @include('community.partials.competitions-portal-sidebar-sections', ['post' => $post])
+    @endif
+
     @if(isset($post))
         @include('community.partials.news-sidebar-tags', [
             'post' => $post,

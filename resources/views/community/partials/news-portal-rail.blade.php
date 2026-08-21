@@ -27,6 +27,7 @@
             'railLocationOnly' => $railLocationOnly ?? false,
             'railHubExtras' => $moveHubExtrasToSidebar ?? false,
             'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail ?? false,
+            'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail ?? false,
             'reportEngagement' => $reportEngagement ?? null,
         ])
     @endif

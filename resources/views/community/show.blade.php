@@ -530,12 +530,14 @@
     $moveCareerBusinessExtrasToRail = $isPortalPost && in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
     $moveCultureSpiritualityExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::cultureSpiritualityTypes(), true);
     $moveLocalCivicExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
+    $moveCreativeCommunityExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::creativeCommunityTypes(), true);
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
         || $moveHubExtrasToSidebar
         || $moveCareerBusinessExtrasToRail
         || $moveCultureSpiritualityExtrasToRail
-        || $moveLocalCivicExtrasToRail;
+        || $moveLocalCivicExtrasToRail
+        || $moveCreativeCommunityExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -594,6 +596,7 @@
                         'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
+                        'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail,
                         'isFollowingAuthor' => $isFollowingAuthor,
                         'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
                     ])
@@ -623,6 +626,7 @@
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
                             'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
+                            'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -699,6 +703,7 @@
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
                             'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
+                            'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -1262,6 +1267,33 @@
                     'community_issue_documents',
                     'community_issue_private_link_token',
                 ]);
+                $additionalCreativeCornerMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::creativeCornerStructuredMetaKeys(),
+                    'author_bio',
+                    'creative_corner_gallery',
+                    'creative_corner_documents',
+                    'creative_corner_audio',
+                ]);
+                $additionalCompetitionsMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::competitionsStructuredMetaKeys(),
+                    'author_bio',
+                    'competitions_jury',
+                    'competitions_sponsors',
+                    'competitions_organizer_logo',
+                ]);
+                $additionalDiscussionsMeta = $visibleMeta->except([
+                    'discussion_topic',
+                    'discussion_prompt',
+                    'author_bio',
+                    'location',
+                    'location_lat',
+                    'location_lng',
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))) && ! $moveDetailExtrasToSidebar)
                 @include('community.partials.report-meta-details', [
@@ -1419,6 +1451,21 @@
                     $visibleMeta = ($moveLocalCivicExtrasToRail ?? false) ? collect() : $additionalCommunityIssuesMeta;
                 @endphp
             @endif
+            @if($post->isCreativeCornerPost())
+                @php
+                    $visibleMeta = ($moveCreativeCommunityExtrasToRail ?? false) ? collect() : $additionalCreativeCornerMeta;
+                @endphp
+            @endif
+            @if($post->isCompetitionsPost())
+                @php
+                    $visibleMeta = ($moveCreativeCommunityExtrasToRail ?? false) ? collect() : $additionalCompetitionsMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'discussions')
+                @php
+                    $visibleMeta = ($moveCreativeCommunityExtrasToRail ?? false) ? collect() : $additionalDiscussionsMeta;
+                @endphp
+            @endif
             @if($post->isMyAreaPost())
                 @php
                     $visibleMeta = $additionalMyAreaMeta;
@@ -1467,7 +1514,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveCreativeCommunityExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1499,7 +1546,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveCreativeCommunityExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
@@ -1605,6 +1652,7 @@
                         'moveHubExtrasToSidebar' => $moveHubExtrasToSidebar,
                         'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
                         'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
+                        'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail,
                         'railLocationOnly' => $railLocationOnly,
                         'showPortalRatingRail' => $showPortalRatingRail,
                         'visibleMeta' => $visibleMeta ?? collect(),

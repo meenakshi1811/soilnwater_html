@@ -1,5 +1,6 @@
 @if($post->isCompetitionsPost())
     @php
+        $portalSidebarLayout = $portalSidebarLayout ?? false;
         $competitionType = data_get($post->meta, 'competitions_competition_type');
         $category = data_get($post->meta, 'competitions_category', $post->category);
         $themes = (array) data_get($post->meta, 'competitions_themes', []);
@@ -55,6 +56,7 @@
         </div>
     </div>
 
+    @unless($portalSidebarLayout)
     @if(data_get($post->meta, 'competitions_date_submission_deadline'))
         <div class="comp-deadline-banner">
             <strong><i class="fa-solid fa-clock me-1" aria-hidden="true"></i>Submission deadline:</strong>
@@ -64,6 +66,7 @@
             @endif
         </div>
     @endif
+    @endunless
 
     @if(collect($capabilities)->contains(fn ($item) => $item['enabled']))
         <div class="comp-capability-grid">
@@ -87,6 +90,7 @@
                 </div>
             @endif
 
+            @unless($portalSidebarLayout)
             @if(data_get($post->meta, 'competitions_organizer_name') || data_get($post->meta, 'competitions_organizer_organization'))
                 <div class="d-flex align-items-center gap-3 mb-3">
                     @if(is_array($organizerLogo) && data_get($organizerLogo, 'url'))
@@ -101,6 +105,7 @@
                     </div>
                 </div>
             @endif
+            @endunless
 
             @if($eligibility !== [])
                 <div class="mb-3">
@@ -135,6 +140,7 @@
                 </div>
             @endif
 
+            @unless($portalSidebarLayout)
             @if($importantDates !== [])
                 <div class="mb-3">
                     <strong>Important dates</strong>
@@ -145,6 +151,7 @@
                     </ul>
                 </div>
             @endif
+            @endunless
 
             @if($prizes !== [])
                 <div class="mb-3">

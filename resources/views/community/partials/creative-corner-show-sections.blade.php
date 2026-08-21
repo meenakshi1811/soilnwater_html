@@ -1,5 +1,6 @@
 @if($post->isCreativeCornerPost())
     @php
+        $portalSidebarLayout = $portalSidebarLayout ?? false;
         $postType = $post->creativeCornerPostTypeLabel();
         $category = $post->creativeCornerCategoryLabel();
         $audiences = $post->creativeCornerTargetAudiences();
@@ -38,6 +39,7 @@
     <div class="cc-show-overview">
         <div class="cc-show-overview__kicker">Creative Corner · SoilnWater community</div>
         <p class="cc-show-overview__tagline mb-0">Original creative work shared with the SoilnWater community — art, design, craft, music, and innovation.</p>
+        @unless($portalSidebarLayout)
         <div class="cc-show-overview__chips mt-3">
             @if(filled($postType))
                 <span class="cc-show-chip cc-show-chip--highlight">{{ $postType }}</span>
@@ -52,6 +54,7 @@
                 <span class="cc-show-chip">{{ data_get($post->meta, 'creative_corner_difficulty_level') }}</span>
             @endif
         </div>
+        @endunless
     </div>
 
     @if($availableForSale)
@@ -137,6 +140,7 @@
         </div>
     @endif
 
+    @unless($portalSidebarLayout)
     @if(collect([
         data_get($post->meta, 'creative_corner_location_city'),
         data_get($post->meta, 'creative_corner_location_state'),
@@ -155,6 +159,7 @@
             </p>
         </div>
     @endif
+    @endunless
 
     @if(collect([
         data_get($post->meta, 'creative_corner_material_cost'),

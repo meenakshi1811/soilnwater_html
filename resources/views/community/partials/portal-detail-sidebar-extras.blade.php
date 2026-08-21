@@ -55,6 +55,8 @@
         : null;
     $showLocalCivicRailSections = ($moveLocalCivicExtrasToRail ?? false)
         && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
+    $showCreativeCommunityRailSections = ($moveCreativeCommunityExtrasToRail ?? false)
+        && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::creativeCommunityTypes(), true);
     $hasReligionSpiritualityLocation = $post->isReligionSpiritualityPost()
         && (filled($religionSpiritualityLocationText) || filled($religionSpiritualityGps));
     $showStructuredLocation = (
@@ -64,7 +66,7 @@
         || ($careerBusinessHubRail && $post->content_type === 'business')
     ) && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
-    $hasLocation = ! $showLocalCivicRailSections && (
+    $hasLocation = ! $showLocalCivicRailSections && ! $showCreativeCommunityRailSections && (
         $showStructuredLocation
         || $showLocationType
         || $post->hasMapCoordinates()
@@ -115,7 +117,7 @@
     $locationInlineText = $locationInlineText->filter(fn (mixed $value): bool => filled($value))->implode(', ');
 @endphp
 
-@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections || $showLifeLearningOverviewOnRail || $showLocalCivicRailSections)
+@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections || $showLifeLearningOverviewOnRail || $showLocalCivicRailSections || $showCreativeCommunityRailSections)
     <div class="community-news-rail__detail-extras" aria-label="Post details sidebar">
         @if($showReportTrustScore)
             <div class="community-news-rail__card community-news-rail__card--detail">
@@ -279,6 +281,10 @@
                 'post' => $post,
                 'reportEngagement' => $reportEngagement ?? null,
             ])
+        @endif
+
+        @if($showCreativeCommunityRailSections)
+            @include('community.partials.creative-community-portal-rail-sections', ['post' => $post])
         @endif
     </div>
 @endif
