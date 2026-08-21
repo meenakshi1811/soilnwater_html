@@ -133,12 +133,39 @@
     }
 
     .community-issues-community-panel--rail {
-        margin-top: 0;
-        padding-bottom: 1rem;
+        background: linear-gradient(180deg, #fff7f7 0%, #ffffff 100%);
+        border: 1px solid rgba(185, 28, 28, 0.12);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(15, 47, 85, 0.05);
+        margin: 0 0 0.85rem;
+        padding: 1rem 1rem 1.1rem;
     }
 
     .community-issues-community-panel__rail-head {
-        margin-bottom: 0.85rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .community-issues-community-panel--rail .report-community-panel__kicker {
+        display: block;
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        line-height: 1.35;
+        margin: 0 0 0.45rem;
+    }
+
+    .community-issues-community-panel--rail .community-detail-card__title {
+        color: #0f2f55;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 0.35rem;
+    }
+
+    .community-issues-community-panel--rail .community-issues-community-panel__rail-head p {
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-bottom: 0;
     }
 
     .community-issues-community-panel__rail-stats {
@@ -152,22 +179,53 @@
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 999px;
+        color: #475569;
         font-size: 0.74rem;
-        padding: 0.25rem 0.65rem;
+        padding: 0.3rem 0.65rem;
     }
 
-    .report-community-panel__grid--rail {
+    .community-issues-community-panel--rail .report-community-panel__grid,
+    .community-issues-community-panel--rail .report-community-panel__grid--rail {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        grid-template-columns: none;
     }
 
-    .report-community-panel__grid--rail .report-community-action-card {
+    .community-issues-community-panel--rail .report-community-action-card {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 0.75rem;
+        height: auto;
+        min-height: 0;
         padding: 0.85rem;
     }
 
-    .report-community-panel__grid--rail .report-community-action-card h5 {
-        font-size: 0.92rem;
+    .community-issues-community-panel--rail .report-community-action-card__icon {
+        flex-shrink: 0;
+        height: 40px;
+        width: 40px;
+    }
+
+    .community-issues-community-panel--rail .report-community-action-card__body {
+        min-width: 0;
+    }
+
+    .community-issues-community-panel--rail .report-community-action-card h5 {
+        font-size: 0.88rem;
+        line-height: 1.3;
+        margin-bottom: 0.25rem;
+    }
+
+    .community-issues-community-panel--rail .report-community-action-card p {
+        font-size: 0.78rem;
+        line-height: 1.4;
+        margin-bottom: 0.65rem;
+    }
+
+    .community-issues-community-panel--rail .report-community-action-card .btn {
+        font-size: 0.78rem;
+        white-space: normal;
     }
 
     .ci-show-overview__chips--sidebar {

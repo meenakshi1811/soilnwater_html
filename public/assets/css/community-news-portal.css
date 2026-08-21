@@ -1088,6 +1088,26 @@
     margin-bottom: 0.85rem;
 }
 
+.community-news-rail__community-issues-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+.about-page--news-detail .community-issues-community-panel--rail .report-community-panel__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    grid-template-columns: none;
+}
+
+.about-page--news-detail .community-issues-community-panel--rail .report-community-action-card {
+    flex-direction: row;
+    height: auto;
+    min-height: 0;
+}
+
 .community-news-rail__card--detail {
     margin-bottom: 0;
 }

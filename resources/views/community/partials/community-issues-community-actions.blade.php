@@ -23,7 +23,7 @@
 @if($showPanel)
     <section @class([
         'report-community-panel about-box mt-4 community-issues-community-panel' => ! $railLayout,
-        'community-news-rail__card community-news-rail__card--detail community-issues-community-panel community-issues-community-panel--rail' => $railLayout,
+        'community-issues-community-panel community-issues-community-panel--rail' => $railLayout,
     ]) id="communityIssuesCommunityActions">
         <div @class([
             'report-community-panel__header' => ! $railLayout,
@@ -32,16 +32,17 @@
             <div>
                 <span class="report-community-panel__kicker">Community Issues · Civic engagement</span>
                 @if($railLayout)
-                    <h4 class="community-detail-card__title h6 mb-1">Stand with your community</h4>
+                    <h4 class="community-detail-card__title mb-1">Stand with your community</h4>
                 @else
                     <h4 class="mb-1">Stand with your community</h4>
                 @endif
                 <p class="text-muted small mb-0">Support this issue, confirm what you see, and follow resolution updates.</p>
             </div>
-            <div @class([
-                'report-community-panel__stats' => ! $railLayout,
-                'community-issues-community-panel__rail-stats' => $railLayout,
-            ])>
+            @if($allowsSupport || $allowsVerification || $allowsFollow)
+                <div @class([
+                    'report-community-panel__stats' => ! $railLayout,
+                    'community-issues-community-panel__rail-stats' => $railLayout,
+                ])>
                 @if($allowsSupport)
                     <span class="report-community-panel__stat">
                         <strong data-report-stat="supports">{{ number_format($reportEngagement['supports_count']) }}</strong>
@@ -55,6 +56,7 @@
                     <span class="report-community-panel__stat"><strong data-report-stat="follows">{{ number_format($reportEngagement['follows_count']) }}</strong> following</span>
                 @endif
             </div>
+            @endif
         </div>
 
         @if($allowsCampaign && $allowsSupport && ($reportEngagement['supports_count'] ?? 0) > 0)
@@ -76,8 +78,8 @@
                         <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
                     </div>
                     <div class="report-community-action-card__body">
-                        <h5 class="mb-1">I support this issue</h5>
-                        <p class="text-muted small mb-3">Show authorities and neighbours that this issue deserves attention.</p>
+                        <h5 class="mb-1">{{ $railLayout ? 'Support' : 'I support this issue' }}</h5>
+                        <p class="text-muted small {{ $railLayout ? 'mb-2' : 'mb-3' }}">{{ $railLayout ? 'Show this issue deserves attention.' : 'Show authorities and neighbours that this issue deserves attention.' }}</p>
                         @auth
                             @if($canEngage)
                                 <button
@@ -107,7 +109,7 @@
                     </div>
                     <div class="report-community-action-card__body">
                         <h5 class="mb-1">Confirm issue</h5>
-                        <p class="text-muted small mb-3">Verify that you have observed this issue in your community.</p>
+                        <p class="text-muted small {{ $railLayout ? 'mb-2' : 'mb-3' }}">{{ $railLayout ? 'Verify you observed this in your area.' : 'Verify that you have observed this issue in your community.' }}</p>
                         @auth
                             @if($canEngage)
                                 <button
@@ -137,7 +139,7 @@
                     </div>
                     <div class="report-community-action-card__body">
                         <h5 class="mb-1">Follow issue</h5>
-                        <p class="text-muted small mb-3">Subscribe to updates when status or resolution details change.</p>
+                        <p class="text-muted small {{ $railLayout ? 'mb-2' : 'mb-3' }}">{{ $railLayout ? 'Get updates when status changes.' : 'Subscribe to updates when status or resolution details change.' }}</p>
                         @auth
                             @if($canEngage)
                                 <button
