@@ -27,6 +27,17 @@
         'landmark' => data_get($post->meta, 'location_landmark'),
     ])
 
+    @include('community.partials.community-issues-evidence', [
+        'post' => $post,
+        'railLayout' => true,
+    ])
+
+    @include('community.partials.community-issues-community-actions', [
+        'post' => $post,
+        'reportEngagement' => $reportEngagement,
+        'railLayout' => true,
+    ])
+
     @include('community.partials.community-issues-suggested-solution', [
         'post' => $post,
         'railLayout' => true,

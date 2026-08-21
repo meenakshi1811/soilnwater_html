@@ -1,4 +1,5 @@
 @php
+    $railLayout = $railLayout ?? false;
     $reportEngagement = $reportEngagement ?? [
         'supports_count' => 0,
         'agreements_count' => 0,
@@ -20,14 +21,27 @@
 @endphp
 
 @if($showPanel)
-    <section class="report-community-panel about-box mt-4 community-issues-community-panel" id="communityIssuesCommunityActions">
-        <div class="report-community-panel__header">
+    <section @class([
+        'report-community-panel about-box mt-4 community-issues-community-panel' => ! $railLayout,
+        'community-news-rail__card community-news-rail__card--detail community-issues-community-panel community-issues-community-panel--rail' => $railLayout,
+    ]) id="communityIssuesCommunityActions">
+        <div @class([
+            'report-community-panel__header' => ! $railLayout,
+            'community-issues-community-panel__rail-head' => $railLayout,
+        ])>
             <div>
                 <span class="report-community-panel__kicker">Community Issues · Civic engagement</span>
-                <h4 class="mb-1">Stand with your community</h4>
-                <p class="text-muted mb-0">Support this issue, confirm what you see, and follow resolution updates.</p>
+                @if($railLayout)
+                    <h4 class="community-detail-card__title h6 mb-1">Stand with your community</h4>
+                @else
+                    <h4 class="mb-1">Stand with your community</h4>
+                @endif
+                <p class="text-muted small mb-0">Support this issue, confirm what you see, and follow resolution updates.</p>
             </div>
-            <div class="report-community-panel__stats">
+            <div @class([
+                'report-community-panel__stats' => ! $railLayout,
+                'community-issues-community-panel__rail-stats' => $railLayout,
+            ])>
                 @if($allowsSupport)
                     <span class="report-community-panel__stat">
                         <strong data-report-stat="supports">{{ number_format($reportEngagement['supports_count']) }}</strong>
@@ -52,7 +66,10 @@
             </p>
         @endif
 
-        <div class="report-community-panel__grid report-community-panel__grid--three">
+        <div @class([
+            'report-community-panel__grid report-community-panel__grid--three' => ! $railLayout,
+            'report-community-panel__grid report-community-panel__grid--rail' => $railLayout,
+        ])>
             @if($allowsSupport)
                 <div class="report-community-action-card">
                     <div class="report-community-action-card__icon report-community-action-card__icon--support">

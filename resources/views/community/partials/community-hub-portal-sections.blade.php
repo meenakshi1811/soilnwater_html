@@ -92,7 +92,7 @@
         ])
     @endif
 
-    @if($post->isCommunityIssuesPost())
+    @if($post->isCommunityIssuesPost() && ! ($moveLocalCivicExtrasToRail ?? false))
         @include('community.partials.community-issues-community-actions', [
             'post' => $post,
             'reportEngagement' => $reportEngagement ?? null,
