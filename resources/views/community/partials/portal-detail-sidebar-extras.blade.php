@@ -53,6 +53,8 @@
             ? $religionSpiritualityGps
             : 'https://www.google.com/maps/search/?api=1&query='.urlencode($religionSpiritualityGps))
         : null;
+    $showLocalCivicRailSections = ($moveLocalCivicExtrasToRail ?? false)
+        && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
     $hasReligionSpiritualityLocation = $post->isReligionSpiritualityPost()
         && (filled($religionSpiritualityLocationText) || filled($religionSpiritualityGps));
     $showStructuredLocation = (
@@ -62,12 +64,14 @@
         || ($careerBusinessHubRail && $post->content_type === 'business')
     ) && $post->structuredLocationForDisplay()->isNotEmpty();
     $showLocationType = $post->content_type !== 'poetry' && filled($post->location_type);
-    $hasLocation = $showStructuredLocation
+    $hasLocation = ! $showLocalCivicRailSections && (
+        $showStructuredLocation
         || $showLocationType
         || $post->hasMapCoordinates()
         || $poetryRegionalLocation->isNotEmpty()
         || $childrensCornerLocation->isNotEmpty()
-        || $hasReligionSpiritualityLocation;
+        || $hasReligionSpiritualityLocation
+    );
     $railHubExtras = $railHubExtras ?? ($railLiteratureExtras ?? false);
     $suppressRailMeta = $railHubExtras && in_array($post->content_type, [
         'stories', 'poetry', 'autobiography',
@@ -98,8 +102,6 @@
     $lifeLearningHubRail = ($railHubExtras ?? false)
         && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::lifeLearningTypes(), true);
     $showLifeLearningOverviewOnRail = $showLifeLearningRailSections;
-    $showLocalCivicRailSections = ($moveLocalCivicExtrasToRail ?? false)
-        && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
     $locationInlineText = collect();
     if ($showStructuredLocation) {
         $locationInlineText = $post->structuredLocationForDisplay()->values();

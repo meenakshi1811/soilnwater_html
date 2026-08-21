@@ -1448,7 +1448,7 @@
                         @include('community.partials.location-map-embed', ['post' => $post])
                     @endif
                 </div>
-            @elseif(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
+            @elseif(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && ! ($isPortalPost && $post->content_type === 'science-technology') && $post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="community-detail-card community-detail-card--location mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
@@ -1480,7 +1480,7 @@
                     @endif
                 </div>
             @endif
-            @if(! $moveDetailExtrasToSidebar && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && $visibleMeta->isNotEmpty())
+            @if(! $moveDetailExtrasToSidebar && ! $moveLocalCivicExtrasToRail && ! $moveHubExtrasToSidebar && ! $moveCareerBusinessExtrasToRail && ! $moveCultureSpiritualityExtrasToRail && $visibleMeta->isNotEmpty())
                 <div class="community-detail-card community-detail-card--meta mt-4">
                     <div class="community-detail-card__head">
                         <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
