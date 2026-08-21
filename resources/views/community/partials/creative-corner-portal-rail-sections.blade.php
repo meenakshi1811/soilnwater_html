@@ -17,4 +17,9 @@
         'post' => $post,
         'railLayout' => true,
     ])
+
+    @include('community.partials.creative-corner-media-sections', [
+        'post' => $post,
+        'railLayout' => true,
+    ])
 </div>
