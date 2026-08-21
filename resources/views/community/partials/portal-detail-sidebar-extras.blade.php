@@ -98,7 +98,8 @@
     $lifeLearningHubRail = ($railHubExtras ?? false)
         && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::lifeLearningTypes(), true);
     $showLifeLearningOverviewOnRail = $showLifeLearningRailSections;
-    $showAwarenessRailSections = ($moveAwarenessExtrasToRail ?? false) && $post->isAwarenessPost();
+    $showLocalCivicRailSections = ($moveLocalCivicExtrasToRail ?? false)
+        && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
     $locationInlineText = collect();
     if ($showStructuredLocation) {
         $locationInlineText = $post->structuredLocationForDisplay()->values();
@@ -112,7 +113,7 @@
     $locationInlineText = $locationInlineText->filter(fn (mixed $value): bool => filled($value))->implode(', ');
 @endphp
 
-@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections || $showLifeLearningOverviewOnRail || $showAwarenessRailSections)
+@if($showReportTrustScore || $hasAttachments || $hasLocation || $hasAdditionalDetails || $showLifeLearningRailSections || $showLifeLearningOverviewOnRail || $showLocalCivicRailSections)
     <div class="community-news-rail__detail-extras" aria-label="Post details sidebar">
         @if($showReportTrustScore)
             <div class="community-news-rail__card community-news-rail__card--detail">
@@ -271,8 +272,8 @@
             @include('community.partials.life-learning-portal-rail-sections', ['post' => $post])
         @endif
 
-        @if($showAwarenessRailSections)
-            @include('community.partials.awareness-portal-rail-sections', ['post' => $post])
+        @if($showLocalCivicRailSections)
+            @include('community.partials.local-civic-portal-rail-sections', ['post' => $post])
         @endif
     </div>
 @endif

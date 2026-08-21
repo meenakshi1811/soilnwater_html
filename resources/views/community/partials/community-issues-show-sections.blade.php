@@ -1,5 +1,6 @@
 @if($post->isCommunityIssuesPost())
     @php
+        $portalSidebarLayout = $portalSidebarLayout ?? false;
         $issueCategory = data_get($post->meta, 'community_issue_category') ?: $post->category;
         $issueType = data_get($post->meta, 'community_issue_type');
         $severity = data_get($post->meta, 'community_issue_severity');
@@ -190,6 +191,7 @@
         @endif
     </div>
 
+    @unless($portalSidebarLayout)
     @if($structuredLocation->isNotEmpty() || filled($landmark))
         <div class="business-section-panel about-box mb-4 border-danger">
             <div class="business-section-panel__header">
@@ -230,6 +232,7 @@
             @endif
         </div>
     @endif
+    @endunless
 
     @if($post->featured_image_path || $post->communityIssuePhotoEvidence() !== [] || $post->hasVideo() || $post->communityIssueDocuments() !== [])
         <div class="business-section-panel about-box mb-4">

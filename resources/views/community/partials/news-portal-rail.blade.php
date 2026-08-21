@@ -26,7 +26,7 @@
             'attachments' => $sidebarAttachments ?? null,
             'railLocationOnly' => $railLocationOnly ?? false,
             'railHubExtras' => $moveHubExtrasToSidebar ?? false,
-            'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail ?? false,
+            'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail ?? false,
         ])
     @endif
 

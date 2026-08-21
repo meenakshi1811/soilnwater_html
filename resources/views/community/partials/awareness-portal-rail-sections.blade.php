@@ -44,30 +44,11 @@
     @endif
 
     @if($hasLocation)
-        <div class="community-news-rail__card community-news-rail__card--detail community-detail-card community-detail-card--location community-detail-card--rail">
-            <div class="community-detail-card__head">
-                <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
-                <div>
-                    <h4 class="community-detail-card__title">Location</h4>
-                </div>
-            </div>
-            @if($post->hasMapCoordinates())
-                @include('community.partials.location-map-embed', [
-                    'post' => $post,
-                    'title' => 'Awareness location map',
-                ])
-            @endif
-            @if($structuredLocation->isNotEmpty())
-                <div class="community-detail-grid community-detail-grid--rail {{ $post->hasMapCoordinates() ? 'mt-3' : '' }}">
-                    @foreach($structuredLocation as $key => $value)
-                        <div class="community-detail-item">
-                            <span class="community-detail-item__label">{{ $locationLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
-                            <span class="community-detail-item__value">{{ $value }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
+        @include('community.partials.portal-rail-location-card', [
+            'post' => $post,
+            'title' => 'Location',
+            'mapTitle' => 'Awareness location map',
+        ])
     @endif
 
     @include('community.partials.awareness-additional-details', [

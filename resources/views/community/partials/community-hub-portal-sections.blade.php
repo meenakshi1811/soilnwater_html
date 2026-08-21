@@ -14,7 +14,7 @@
     @if($post->isAwarenessPost())
         @include('community.partials.awareness-show-sections', [
             'post' => $post,
-            'portalSidebarLayout' => $moveAwarenessExtrasToRail ?? false,
+            'portalSidebarLayout' => $moveLocalCivicExtrasToRail ?? false,
             'awarenessEngagement' => $awarenessEngagement ?? null,
             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
         ])
@@ -43,13 +43,17 @@
     @endif
 
     @if($post->isLocalVoicesPost())
-        @include('community.partials.local-voices-show-sections', ['post' => $post])
+        @include('community.partials.local-voices-show-sections', [
+            'post' => $post,
+            'portalSidebarLayout' => $moveLocalCivicExtrasToRail ?? false,
+        ])
     @endif
 
     @if($post->isCommunityIssuesPost())
         @include('community.partials.community-issues-show-sections', [
             'post' => $post,
             'reportEngagement' => $reportEngagement ?? null,
+            'portalSidebarLayout' => $moveLocalCivicExtrasToRail ?? false,
         ])
     @endif
 

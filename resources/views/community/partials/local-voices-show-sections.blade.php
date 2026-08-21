@@ -1,5 +1,6 @@
 @if($post->isLocalVoicesPost())
     @php
+        $portalSidebarLayout = $portalSidebarLayout ?? false;
         $mainCategory = data_get($post->meta, 'local_voice_category') ?: $post->category;
         $voiceType = data_get($post->meta, 'local_voice_type');
         $issueType = data_get($post->meta, 'local_voice_issue_type');
@@ -30,6 +31,7 @@
             ?? $post->publishAsLabel();
     @endphp
 
+    @unless($portalSidebarLayout)
     @if(filled($voiceType) || filled($mainCategory) || filled($issueType) || filled($impactLevel))
         <div class="business-hero-strip mb-4">
             @if(filled($voiceType))
@@ -128,6 +130,7 @@
             @endif
         </div>
     @endif
+    @endunless
 
     @if(filled($suggestedSolution) || filled($estimatedBenefit))
         <div class="business-section-panel about-box mb-4 border-primary">

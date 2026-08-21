@@ -529,13 +529,13 @@
     $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
     $moveCareerBusinessExtrasToRail = $isPortalPost && in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
     $moveCultureSpiritualityExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::cultureSpiritualityTypes(), true);
-    $moveAwarenessExtrasToRail = $isPortalPost && $post->isAwarenessPost();
+    $moveLocalCivicExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::localCivicTypes(), true);
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
         || $moveHubExtrasToSidebar
         || $moveCareerBusinessExtrasToRail
         || $moveCultureSpiritualityExtrasToRail
-        || $moveAwarenessExtrasToRail;
+        || $moveLocalCivicExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -621,7 +621,7 @@
                             'placement' => 'before',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
-                            'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
+                            'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -697,7 +697,7 @@
                             'placement' => 'after',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
-                            'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
+                            'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -1397,7 +1397,7 @@
             @endif
             @if($post->isLocalVoicesPost())
                 @php
-                    $visibleMeta = $additionalLocalVoicesMeta;
+                    $visibleMeta = ($moveLocalCivicExtrasToRail ?? false) ? collect() : $additionalLocalVoicesMeta;
                 @endphp
             @endif
             @if($post->isMyAreaPost())
@@ -1585,7 +1585,7 @@
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'moveHubExtrasToSidebar' => $moveHubExtrasToSidebar,
                         'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
-                        'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
+                        'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
                         'railLocationOnly' => $railLocationOnly,
                         'showPortalRatingRail' => $showPortalRatingRail,
                         'visibleMeta' => $visibleMeta ?? collect(),
