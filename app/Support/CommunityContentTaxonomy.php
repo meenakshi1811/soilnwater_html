@@ -254,10 +254,10 @@ class CommunityContentTaxonomy
             'environment-agriculture' => [
                 'label' => 'Environment & Agriculture',
                 'tagline' => 'Planet and soil matters',
-                'description' => 'Farming, environment, conservation, and community awareness campaigns.',
+                'description' => 'Farming, environment, and conservation content.',
                 'icon' => 'fa-seedling',
                 'accent' => '#2e7d32',
-                'types' => ['agriculture', 'environment', 'awareness'],
+                'types' => ['agriculture', 'environment'],
             ],
             'career-business' => [
                 'label' => 'Career & Business',
@@ -278,10 +278,10 @@ class CommunityContentTaxonomy
             'local-civic' => [
                 'label' => 'Local Voices & Civic',
                 'tagline' => 'Speak up for your community',
-                'description' => 'Local issues, civic reports, community concerns, and public opinions.',
+                'description' => 'Local voices, public awareness campaigns, civic reports, community concerns, and public opinions.',
                 'icon' => 'fa-bullhorn',
                 'accent' => '#c62828',
-                'types' => ['local-voices', 'community-issues', 'opinions-views'],
+                'types' => ['local-voices', 'awareness', 'community-issues', 'opinions-views'],
             ],
             'creative-community' => [
                 'label' => 'Creative & Community',

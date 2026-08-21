@@ -1,14 +1,21 @@
 @php
     $orderedAwarenessMeta = \App\Support\CommunityPostFormFields::orderedAwarenessMetaForDisplay($post);
     $awarenessMetaLabels = \App\Support\CommunityPostFormFields::awarenessDetailMetaOrder();
+    $displayMeta = $orderedAwarenessMeta->except([
+        'awareness_posted_by',
+        'awareness_organization_name',
+    ]);
 @endphp
 
-@if($post->isAwarenessPost() && $orderedAwarenessMeta->isNotEmpty())
-    <div class="about-box mt-4 awareness-meta-grid">
-        <h4>{{ $heading ?? 'Awareness details' }}</h4>
+@if($post->isAwarenessPost() && $displayMeta->isNotEmpty())
+    <div class="awareness-section-panel about-box mb-4">
+        <div class="awareness-section-panel__header">
+            <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+            <h4 class="mb-0">{{ $heading ?? 'Awareness details' }}</h4>
+        </div>
         <div class="row g-3">
-            @foreach($orderedAwarenessMeta as $key => $value)
-                <div class="{{ $key === 'awareness_target_audience' ? 'col-12' : 'col-md-6' }}">
+            @foreach($displayMeta as $key => $value)
+                <div class="{{ $key === 'awareness_target_audience' ? 'col-12' : 'col-md-6 col-lg-4' }}">
                     <div class="awareness-meta-item">
                         <span class="awareness-meta-item__label">{{ $awarenessMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
                         @if($key === 'awareness_target_audience')

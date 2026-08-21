@@ -95,7 +95,7 @@
     @endif
 
     @if($post->isAwarenessPost())
-        @include('community.partials.awareness-meta-details', ['post' => $post])
+        @include('community.partials.awareness-additional-details', ['post' => $post])
     @endif
 
     @if($post->isBusinessPost() && ! ($moveCareerBusinessExtrasToRail ?? false))

@@ -269,6 +269,23 @@
     .awareness-engagement-feedback {
         font-size: 0.9rem;
     }
+    .awareness-location-layout {
+        margin-top: 0;
+    }
+    .awareness-location-map {
+        min-height: 280px;
+    }
+    .awareness-location-map iframe {
+        border: 0;
+        height: 100%;
+        width: 100%;
+    }
+    @media (max-width: 991.98px) {
+        .awareness-location-map {
+            margin-top: 0.5rem;
+            min-height: 240px;
+        }
+    }
     @media (max-width: 767.98px) {
         .awareness-engagement-panel__header {
             flex-direction: column;

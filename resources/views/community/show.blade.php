@@ -1325,9 +1325,9 @@
                 @endphp
             @endif
             @if($post->isAwarenessPost() && ! $isPortalPost)
-                @include('community.partials.awareness-meta-details', ['post' => $post])
+                @include('community.partials.awareness-additional-details', ['post' => $post])
                 @php
-                    $visibleMeta = $additionalAwarenessMeta;
+                    $visibleMeta = collect();
                 @endphp
             @endif
             @if($post->isBusinessPost() && ! $isPortalPost)
