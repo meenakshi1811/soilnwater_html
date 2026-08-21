@@ -118,13 +118,21 @@
     ])
 
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
-        @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
+        @include('frontend.service_provider.partials.recent-ads-slider', [
+            'ads' => $service_providerRecentAds,
+            'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId,
+            'defaultCategoryLabel' => 'Services',
+        ])
         @php($recentAdsShown = true)
     @endif
 @endforeach
 
 @if(! $recentAdsShown)
-    @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
+    @include('frontend.service_provider.partials.recent-ads-slider', [
+        'ads' => $service_providerRecentAds,
+        'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId,
+        'defaultCategoryLabel' => 'Services',
+    ])
 @endif
 
 <div class="modal fade consultant-login-required-modal" id="service_providerLoginRequiredModal" tabindex="-1" aria-hidden="true">
