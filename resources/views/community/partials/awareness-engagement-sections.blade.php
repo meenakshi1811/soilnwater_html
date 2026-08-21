@@ -1,4 +1,5 @@
 @php
+    $portalSidebarLayout = $portalSidebarLayout ?? false;
     $awarenessEngagement = $awarenessEngagement ?? [
         'supports_count' => 0,
         'pledges_count' => 0,
@@ -69,55 +70,8 @@
     </div>
 @endif
 
-@if($post->awarenessHasEventDetails())
-    <div class="awareness-section-panel about-box mb-4">
-        <div class="awareness-section-panel__header">
-            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-            <h4 class="mb-0">Event details</h4>
-        </div>
-        <div class="row g-3">
-            @if(filled(data_get($post->meta, 'awareness_event_type')))
-                <div class="col-md-6">
-                    <div class="awareness-meta-item">
-                        <span class="awareness-meta-item__label">Event type</span>
-                        <span>{{ data_get($post->meta, 'awareness_event_type') }}</span>
-                    </div>
-                </div>
-            @endif
-            @if(filled(data_get($post->meta, 'awareness_event_date')))
-                <div class="col-md-6">
-                    <div class="awareness-meta-item">
-                        <span class="awareness-meta-item__label">Date</span>
-                        <span>{{ \Illuminate\Support\Carbon::parse(data_get($post->meta, 'awareness_event_date'))->format('j F Y') }}</span>
-                    </div>
-                </div>
-            @endif
-            @if(filled(data_get($post->meta, 'awareness_event_venue')))
-                <div class="col-md-6">
-                    <div class="awareness-meta-item">
-                        <span class="awareness-meta-item__label">Venue</span>
-                        <span>{{ data_get($post->meta, 'awareness_event_venue') }}</span>
-                    </div>
-                </div>
-            @endif
-            @if(filled(data_get($post->meta, 'awareness_event_time')))
-                <div class="col-md-6">
-                    <div class="awareness-meta-item">
-                        <span class="awareness-meta-item__label">Time</span>
-                        <span>{{ data_get($post->meta, 'awareness_event_time') }}</span>
-                    </div>
-                </div>
-            @endif
-            @if(filled(data_get($post->meta, 'awareness_event_organizer')))
-                <div class="col-md-6">
-                    <div class="awareness-meta-item">
-                        <span class="awareness-meta-item__label">Organizer</span>
-                        <span>{{ data_get($post->meta, 'awareness_event_organizer') }}</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
+@if($post->awarenessHasEventDetails() && ! ($portalSidebarLayout ?? false))
+    @include('community.partials.awareness-event-details', ['post' => $post])
 @endif
 
 @if($hasEngagementActions)

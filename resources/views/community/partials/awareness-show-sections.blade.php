@@ -78,6 +78,7 @@
     @include('community.partials.awareness-media-sections', ['post' => $post])
     @include('community.partials.awareness-engagement-sections', [
         'post' => $post,
+        'portalSidebarLayout' => $portalSidebarLayout,
         'awarenessEngagement' => $awarenessEngagement ?? null,
         'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
     ])

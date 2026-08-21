@@ -1183,7 +1183,8 @@
 .community-news-sidebar__card--senior-details,
 .community-news-sidebar__card--womens-details,
 .community-news-sidebar__card--wellness-details,
-.community-news-sidebar__card--local-voices-event {
+.community-news-sidebar__card--local-voices-event,
+.community-news-sidebar__card--awareness-event {
     padding-bottom: 1rem;
 }
 
