@@ -583,7 +583,7 @@
                 'showNav' => false,
             ])
             <div class="community-news-portal">
-                <div class="community-news-portal__layout">
+                <div class="community-news-portal__layout{{ $post->isCommunityIssuesPost() ? ' community-news-portal__layout--balanced' : '' }}">
                     @include('community.partials.news-portal-sidebar', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
@@ -1249,6 +1249,19 @@
                     'location_locality',
                     'author_bio',
                 ]);
+                $additionalCommunityIssuesMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::communityIssueStructuredMetaKeys(),
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                    'location_landmark',
+                    'author_bio',
+                    'community_issue_photo_evidence',
+                    'community_issue_documents',
+                    'community_issue_private_link_token',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))) && ! $moveDetailExtrasToSidebar)
                 @include('community.partials.report-meta-details', [
@@ -1399,6 +1412,11 @@
             @if($post->isLocalVoicesPost())
                 @php
                     $visibleMeta = ($moveLocalCivicExtrasToRail ?? false) ? collect() : $additionalLocalVoicesMeta;
+                @endphp
+            @endif
+            @if($post->isCommunityIssuesPost())
+                @php
+                    $visibleMeta = ($moveLocalCivicExtrasToRail ?? false) ? collect() : $additionalCommunityIssuesMeta;
                 @endphp
             @endif
             @if($post->isMyAreaPost())

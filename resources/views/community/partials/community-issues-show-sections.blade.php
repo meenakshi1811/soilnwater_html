@@ -90,6 +90,7 @@
         </div>
     @endif
 
+    @unless($portalSidebarLayout)
     @if(filled($statusTracker) || $resolutionTimeline !== [])
         <div class="business-section-panel about-box mb-4 border-success">
             <div class="business-section-panel__header">
@@ -190,6 +191,7 @@
             </div>
         @endif
     </div>
+    @endunless
 
     @unless($portalSidebarLayout)
     @if($structuredLocation->isNotEmpty() || filled($landmark))
@@ -281,6 +283,7 @@
         </div>
     @endif
 
+    @unless($portalSidebarLayout)
     <div class="row g-3 mb-4">
         @if(filled($authority))
             <div class="col-md-6">
@@ -323,6 +326,7 @@
             </div>
         @endif
     </div>
+    @endunless
 
     @if($supportRequests !== [])
         <div class="business-section-panel about-box mb-4">
@@ -348,6 +352,7 @@
         </div>
     @endif
 
+    @unless($portalSidebarLayout)
     @if(!empty($post->tags))
         <div class="business-section-panel about-box mb-4">
             <div class="business-section-panel__header">
@@ -361,6 +366,7 @@
             </div>
         </div>
     @endif
+    @endunless
 
     @if($post->allowsCommunityIssueVerification() && $verificationCount > 0)
         <div class="alert alert-success py-2 px-3 mb-4">
@@ -369,6 +375,7 @@
         </div>
     @endif
 
+    @unless($portalSidebarLayout)
     <div class="business-section-panel about-box mb-4">
         <div class="business-section-panel__header">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i>
@@ -382,6 +389,7 @@
             @endforeach
         </div>
     </div>
+    @endunless
 
     <div class="ci-hub-link-card d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>

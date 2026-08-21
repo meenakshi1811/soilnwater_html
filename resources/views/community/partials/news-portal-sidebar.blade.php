@@ -149,6 +149,10 @@
         @include('community.partials.youth-corner-sidebar-achievements', ['post' => $post])
     @endif
 
+    @if(isset($post) && ($moveLocalCivicExtrasToRail ?? false) && $post->isCommunityIssuesPost())
+        @include('community.partials.community-issues-portal-sidebar-sections', ['post' => $post])
+    @endif
+
     @if(isset($post) && ($moveLocalCivicExtrasToRail ?? false) && $post->isAwarenessPost())
         @include('community.partials.awareness-event-details', [
             'post' => $post,

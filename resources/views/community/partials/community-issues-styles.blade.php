@@ -112,3 +112,46 @@
         color: #b91c1c;
     }
 
+    .ci-status-stepper--sidebar {
+        flex-direction: column;
+        overflow-x: visible;
+        margin-bottom: 0.85rem;
+    }
+
+    .ci-status-stepper--sidebar .ci-status-step {
+        min-width: 0;
+        text-align: left;
+    }
+
+    .community-issues-sidebar-timeline__label {
+        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.45rem;
+        text-transform: uppercase;
+    }
+
+    .community-issues-sidebar-timeline__item {
+        align-items: flex-start;
+        color: #334155;
+        display: flex;
+        font-size: 0.84rem;
+        gap: 0.45rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .community-issues-sidebar-timeline__item i {
+        color: #16a34a;
+        margin-top: 0.2rem;
+    }
+
+    .ci-capability-grid--sidebar {
+        gap: 0.4rem;
+    }
+
+    .ci-capability-grid--sidebar .ci-capability-pill {
+        font-size: 0.74rem;
+        padding: 0.35rem 0.55rem;
+    }
+

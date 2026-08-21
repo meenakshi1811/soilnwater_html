@@ -5,12 +5,7 @@
     }
 @endphp
 
-<div class="community-news-rail__community-issues-extras" aria-label="Community issue post details">
-    @include('community.partials.community-issues-meta-details', [
-        'post' => $post,
-        'railLayout' => true,
-    ])
-
+<div class="community-news-rail__community-issues-extras" aria-label="Community issue location and extras">
     @include('community.partials.portal-rail-location-card', [
         'post' => $post,
         'title' => 'Location',

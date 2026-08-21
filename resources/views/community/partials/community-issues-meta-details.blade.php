@@ -1,6 +1,8 @@
 @php
     $metaLabels = \App\Support\CommunityPostFormFields::communityIssueDetailMetaOrder();
     $railLayout = $railLayout ?? false;
+    $sidebarLayout = $sidebarLayout ?? false;
+    $splitStatusSection = $splitStatusSection ?? false;
     $locationKeys = array_merge(
         \App\Models\CommunityPost::structuredLocationMetaKeys(),
         ['location_landmark']
@@ -16,6 +18,12 @@
         'community_issue_allow_verification',
         'community_issue_escalation_threshold',
     ]);
+    if ($splitStatusSection) {
+        $skipKeys = array_merge($skipKeys, [
+            'community_issue_status_tracker',
+            'community_issue_resolution_timeline',
+        ]);
+    }
     $displayMeta = collect($metaLabels)
         ->except($skipKeys)
         ->mapWithKeys(function (string $label, string $key) use ($post): array {
@@ -43,7 +51,24 @@
 @endphp
 
 @if($post->isCommunityIssuesPost() && $displayMeta->isNotEmpty())
-    @if($railLayout)
+    @if($sidebarLayout)
+        <div class="community-news-sidebar__card community-news-sidebar__card--community-issues-details">
+            <p class="community-news-sidebar__label">{{ $heading ?? 'Issue details' }}</p>
+            <div class="news-sidebar-meta-grid">
+                @foreach($displayMeta as $key => $value)
+                    <div @class([
+                        'news-sidebar-meta-grid__item',
+                        'news-sidebar-meta-grid__item--wide' => in_array($key, ['community_issue_affected_groups', 'community_issue_department_contacted'], true),
+                    ])>
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <strong class="d-block mb-1">{{ $metaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                            <span>{{ $value }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @elseif($railLayout)
         <div class="community-news-rail__card community-news-rail__card--detail community-detail-card community-detail-card--rail">
             <div class="community-detail-card__head">
                 <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
