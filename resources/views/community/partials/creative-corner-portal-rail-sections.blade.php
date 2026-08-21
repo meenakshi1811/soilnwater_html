@@ -6,6 +6,11 @@
 @endphp
 
 <div class="community-news-rail__creative-corner-extras" aria-label="Creative Corner post details">
+    @include('community.partials.creative-corner-intro-sections', [
+        'post' => $post,
+        'railLayout' => true,
+    ])
+
     @include('community.partials.creative-corner-meta-details', [
         'post' => $post,
         'railLayout' => true,

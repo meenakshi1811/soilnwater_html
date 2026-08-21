@@ -1,8 +1,6 @@
 @if($post->isCreativeCornerPost())
     @php
         $portalSidebarLayout = $portalSidebarLayout ?? false;
-        $postType = $post->creativeCornerPostTypeLabel();
-        $category = $post->creativeCornerCategoryLabel();
         $audiences = $post->creativeCornerTargetAudiences();
         $mediums = (array) data_get($post->meta, 'creative_corner_mediums', []);
         $softwareTools = (array) data_get($post->meta, 'creative_corner_software_tools', []);
@@ -25,37 +23,11 @@
             'Website' => data_get($post->meta, 'creative_corner_social_website'),
             'SoilnWater vendor' => data_get($post->meta, 'creative_corner_social_vendor_profile'),
         ]);
-        $capabilities = [
-            ['label' => 'For sale', 'enabled' => $availableForSale, 'icon' => 'fa-store'],
-            ['label' => 'Competition', 'enabled' => (bool) data_get($post->meta, 'creative_corner_submit_to_competition'), 'icon' => 'fa-trophy'],
-            ['label' => 'Commissions', 'enabled' => $commissionOptions !== [], 'icon' => 'fa-handshake'],
-            ['label' => 'Collaboration', 'enabled' => $collaborationRoles !== [], 'icon' => 'fa-people-group'],
-            ['label' => 'Comments', 'enabled' => (bool) $post->allow_comments, 'icon' => 'fa-comments'],
-            ['label' => 'Poll', 'enabled' => (bool) $post->allowsPoll(), 'icon' => 'fa-square-poll-vertical'],
-            ['label' => 'Share', 'enabled' => (bool) $post->allow_sharing, 'icon' => 'fa-share-nodes'],
-        ];
     @endphp
 
-    <div class="cc-show-overview">
-        <div class="cc-show-overview__kicker">Creative Corner · SoilnWater community</div>
-        <p class="cc-show-overview__tagline mb-0">Original creative work shared with the SoilnWater community — art, design, craft, music, and innovation.</p>
-        @unless($portalSidebarLayout)
-        <div class="cc-show-overview__chips mt-3">
-            @if(filled($postType))
-                <span class="cc-show-chip cc-show-chip--highlight">{{ $postType }}</span>
-            @endif
-            @if(filled($category))
-                <span class="cc-show-chip">{{ $category }}</span>
-            @endif
-            @if(filled(data_get($post->meta, 'creative_corner_creation_type')))
-                <span class="cc-show-chip">{{ data_get($post->meta, 'creative_corner_creation_type') }}</span>
-            @endif
-            @if(filled(data_get($post->meta, 'creative_corner_difficulty_level')))
-                <span class="cc-show-chip">{{ data_get($post->meta, 'creative_corner_difficulty_level') }}</span>
-            @endif
-        </div>
-        @endunless
-    </div>
+    @unless($portalSidebarLayout)
+        @include('community.partials.creative-corner-intro-sections', ['post' => $post])
+    @endunless
 
     @if($availableForSale)
         <div class="cc-commerce-strip">
@@ -268,18 +240,6 @@
             </div>
         </div>
     @endif
-
-    <div class="cc-section-panel">
-        <div class="cc-section-panel__label">Post capabilities</div>
-        <div class="cc-capability-grid">
-            @foreach($capabilities as $capability)
-                <span class="cc-capability-pill {{ $capability['enabled'] ? '' : 'is-disabled' }}">
-                    <i class="fa-solid {{ $capability['icon'] }}" aria-hidden="true"></i>
-                    {{ $capability['label'] }}
-                </span>
-            @endforeach
-        </div>
-    </div>
 
     @if(filled(data_get($post->meta, 'creative_corner_ai_used')) && data_get($post->meta, 'creative_corner_ai_used') !== 'No')
         <div class="cc-ai-disclosure">
