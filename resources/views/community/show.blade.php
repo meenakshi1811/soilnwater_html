@@ -583,7 +583,7 @@
                 'showNav' => false,
             ])
             <div class="community-news-portal">
-                <div class="community-news-portal__layout{{ $post->isCommunityIssuesPost() ? ' community-news-portal__layout--balanced' : '' }}">
+                <div class="community-news-portal__layout">
                     @include('community.partials.news-portal-sidebar', [
                         'activeHub' => $activeHub,
                         'activeCategory' => $activeCategory,
@@ -1611,6 +1611,7 @@
                         'formFieldLabels' => $formFieldLabels ?? [],
                         'resolvedLocation' => $resolvedLocation ?? null,
                         'sidebarAttachments' => $sidebarAttachments,
+                        'reportEngagement' => $reportEngagement ?? null,
                     ])
                 </div>
             </div>

@@ -45,27 +45,9 @@
         ];
     @endphp
 
-    <div class="ci-show-overview">
-        <div class="ci-show-overview__kicker">Community Issues · Civic reporting</div>
-        <div class="ci-show-overview__title">Structured civic issue with location, evidence, and resolution tracking</div>
-        <div class="ci-show-overview__chips">
-            @if(filled($issueCategory))
-                <span class="ci-show-chip">{{ $issueCategory }}</span>
-            @endif
-            @if(filled($issueType))
-                <span class="ci-show-chip">{{ $issueType }}</span>
-            @endif
-            @if(filled($severity))
-                <span class="ci-show-chip ci-show-chip--severity-{{ $severityTone }}">{{ $severity }} severity</span>
-            @endif
-            @if(filled($statusTracker))
-                <span class="ci-show-chip">{{ $statusTracker }}</span>
-            @endif
-            @if(filled($publishAsLabel) && $post->resolvedPublishAs() !== 'public_profile')
-                <span class="ci-show-chip">{{ $publishAsLabel }}</span>
-            @endif
-        </div>
-    </div>
+    @unless($portalSidebarLayout)
+    @include('community.partials.community-issues-overview', ['post' => $post])
+    @endunless
 
     @if($isEscalated)
         <div class="alert alert-danger d-flex align-items-start gap-3 mb-4" role="status">
@@ -328,29 +310,10 @@
     </div>
     @endunless
 
-    @if($supportRequests !== [])
-        <div class="business-section-panel about-box mb-4">
-            <div class="business-section-panel__header">
-                <i class="fa-solid fa-handshake text-primary" aria-hidden="true"></i>
-                <h4 class="mb-0">Community support request</h4>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach($supportRequests as $request)
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ $request }}</span>
-                @endforeach
-            </div>
-        </div>
-    @endif
-
-    @if(filled($solution))
-        <div class="business-section-panel about-box mb-4 border-primary">
-            <div class="business-section-panel__header">
-                <i class="fa-solid fa-lightbulb text-primary" aria-hidden="true"></i>
-                <h4 class="mb-0">Suggested solution</h4>
-            </div>
-            <p class="mb-0">{!! nl2br(e($solution)) !!}</p>
-        </div>
-    @endif
+    @unless($portalSidebarLayout)
+        @include('community.partials.community-issues-support-requests', ['post' => $post])
+        @include('community.partials.community-issues-suggested-solution', ['post' => $post])
+    @endunless
 
     @unless($portalSidebarLayout)
     @if(!empty($post->tags))
@@ -368,12 +331,14 @@
     @endif
     @endunless
 
+    @unless($portalSidebarLayout)
     @if($post->allowsCommunityIssueVerification() && $verificationCount > 0)
         <div class="alert alert-success py-2 px-3 mb-4">
             <i class="fa-solid fa-circle-check me-1" aria-hidden="true"></i>
             Verified by <strong>{{ number_format($verificationCount) }}</strong> {{ \Illuminate\Support\Str::plural('resident', $verificationCount) }}
         </div>
     @endif
+    @endunless
 
     @unless($portalSidebarLayout)
     <div class="business-section-panel about-box mb-4">
@@ -391,6 +356,7 @@
     </div>
     @endunless
 
+    @unless($portalSidebarLayout)
     <div class="ci-hub-link-card d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>
             <strong>Explore more civic issues nearby</strong>
@@ -400,4 +366,5 @@
             <i class="fa-solid fa-map-location-dot me-1"></i>Open Issues Hub
         </a>
     </div>
+    @endunless
 @endif

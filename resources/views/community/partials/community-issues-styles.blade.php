@@ -112,7 +112,29 @@
         color: #b91c1c;
     }
 
-    .ci-status-stepper--sidebar {
+    .ci-show-overview__chips--sidebar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .ci-show-overview__chips--sidebar .ci-show-chip {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        color: #0f172a;
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 0.3rem 0.65rem;
+    }
+
+    .ci-show-overview__chips--sidebar .ci-show-chip--severity-emergency,
+    .ci-show-overview__chips--sidebar .ci-show-chip--severity-critical {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
         flex-direction: column;
         overflow-x: visible;
         margin-bottom: 0.85rem;

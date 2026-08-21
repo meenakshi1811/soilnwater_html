@@ -13,10 +13,6 @@
     grid-template-columns: 250px minmax(0, 1fr) 290px;
 }
 
-.community-news-portal__layout--balanced {
-    grid-template-columns: minmax(240px, 1fr) minmax(0, 1.15fr) minmax(240px, 1fr);
-}
-
 .community-news-sidebar__card,
 .community-news-rail__card {
     background: #fff;
@@ -1190,8 +1186,8 @@
 .community-news-sidebar__card--local-voices-event,
 .community-news-sidebar__card--awareness-event,
 .community-news-sidebar__card--community-issues-details,
-.community-news-sidebar__card--community-issues-status,
-.community-news-sidebar__card--community-issues-actions {
+.community-news-sidebar__card--community-issues-overview,
+.community-news-sidebar__card--community-issues-status {
     padding-bottom: 1rem;
 }
 

@@ -275,7 +275,10 @@
         @endif
 
         @if($showLocalCivicRailSections)
-            @include('community.partials.local-civic-portal-rail-sections', ['post' => $post])
+            @include('community.partials.local-civic-portal-rail-sections', [
+                'post' => $post,
+                'reportEngagement' => $reportEngagement ?? null,
+            ])
         @endif
     </div>
 @endif
