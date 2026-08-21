@@ -149,6 +149,13 @@
         @include('community.partials.youth-corner-sidebar-achievements', ['post' => $post])
     @endif
 
+    @if(isset($post) && ($moveLocalCivicExtrasToRail ?? false) && $post->isLocalVoicesPost())
+        @include('community.partials.local-voices-event-details', [
+            'post' => $post,
+            'sidebarLayout' => true,
+        ])
+    @endif
+
     @if(isset($post))
         @include('community.partials.news-sidebar-tags', [
             'post' => $post,

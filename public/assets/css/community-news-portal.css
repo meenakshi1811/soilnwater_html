@@ -1182,7 +1182,8 @@
 .community-news-sidebar__card--trending,
 .community-news-sidebar__card--senior-details,
 .community-news-sidebar__card--womens-details,
-.community-news-sidebar__card--wellness-details {
+.community-news-sidebar__card--wellness-details,
+.community-news-sidebar__card--local-voices-event {
     padding-bottom: 1rem;
 }
 

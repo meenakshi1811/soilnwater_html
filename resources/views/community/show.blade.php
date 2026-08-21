@@ -593,6 +593,7 @@
                         'moveDetailExtrasToSidebar' => $moveDetailExtrasToSidebar,
                         'moveStoriesLiteratureExtrasToSidebar' => $moveStoriesLiteratureExtrasToSidebar,
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
+                        'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
                         'isFollowingAuthor' => $isFollowingAuthor,
                         'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
                     ])

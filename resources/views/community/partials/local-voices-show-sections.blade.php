@@ -17,10 +17,6 @@
         $heroLocation = data_get($post->meta, 'local_voice_hero_location');
         $heroContribution = data_get($post->meta, 'local_voice_hero_contribution');
         $heroAchievements = data_get($post->meta, 'local_voice_hero_achievements');
-        $eventDate = data_get($post->meta, 'local_voice_event_date');
-        $eventTime = data_get($post->meta, 'local_voice_event_time');
-        $eventVenue = data_get($post->meta, 'local_voice_event_venue');
-        $eventOrganizer = data_get($post->meta, 'local_voice_event_organizer');
         $structuredLocation = $post->structuredLocationForDisplay();
         $locationLabels = \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type);
         $photoEvidence = $post->localVoicePhotoEvidence();
@@ -254,48 +250,9 @@
         </div>
     @endif
 
-    @if(filled($eventDate) || filled($eventVenue) || filled($eventOrganizer))
-        <div class="business-section-panel about-box mb-4">
-            <div class="business-section-panel__header">
-                <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-                <h4 class="mb-0">Event details</h4>
-            </div>
-            <div class="row g-3">
-                @if(filled($eventDate))
-                    <div class="col-md-3">
-                        <div class="business-meta-item">
-                            <span class="business-meta-item__label">Date</span>
-                            <span>{{ \Illuminate\Support\Carbon::parse($eventDate)->format('M j, Y') }}</span>
-                        </div>
-                    </div>
-                @endif
-                @if(filled($eventTime))
-                    <div class="col-md-3">
-                        <div class="business-meta-item">
-                            <span class="business-meta-item__label">Time</span>
-                            <span>{{ $eventTime }}</span>
-                        </div>
-                    </div>
-                @endif
-                @if(filled($eventOrganizer))
-                    <div class="col-md-6">
-                        <div class="business-meta-item">
-                            <span class="business-meta-item__label">Organizer</span>
-                            <span>{{ $eventOrganizer }}</span>
-                        </div>
-                    </div>
-                @endif
-                @if(filled($eventVenue))
-                    <div class="col-12">
-                        <div class="business-meta-item">
-                            <span class="business-meta-item__label">Venue</span>
-                            <span>{{ $eventVenue }}</span>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    @endif
+    @unless($portalSidebarLayout)
+        @include('community.partials.local-voices-event-details', ['post' => $post])
+    @endunless
 
     @if($photoEvidence !== [])
         <div class="business-section-panel about-box mb-4">
