@@ -37,24 +37,9 @@
         ];
     @endphp
 
-    <div class="comp-show-overview">
-        <div class="comp-show-overview__kicker">Competitions · SoilnWater community</div>
-        <p class="comp-show-overview__tagline mb-0">Join this SoilnWater competition — review rules, dates, prizes, and how to participate.</p>
-        <div class="d-flex flex-wrap gap-2 mt-3">
-            @if(filled($competitionType))
-                <span class="comp-show-chip comp-show-chip--highlight">{{ $competitionType }}</span>
-            @endif
-            @if(filled($category))
-                <span class="comp-show-chip">{{ $category }}</span>
-            @endif
-            @if(filled(data_get($post->meta, 'competitions_level')))
-                <span class="comp-show-chip">{{ data_get($post->meta, 'competitions_level') }}</span>
-            @endif
-            @if(filled(data_get($post->meta, 'competitions_primary_origin_section')))
-                <span class="comp-show-chip">From {{ data_get($post->meta, 'competitions_primary_origin_section') }}</span>
-            @endif
-        </div>
-    </div>
+    @unless($portalSidebarLayout)
+        @include('community.partials.competitions-intro-sections', ['post' => $post])
+    @endunless
 
     @unless($portalSidebarLayout)
     @if(data_get($post->meta, 'competitions_date_submission_deadline'))

@@ -6,6 +6,11 @@
 @endphp
 
 <div class="community-news-rail__competitions-extras" aria-label="Competition post details">
+    @include('community.partials.competitions-intro-sections', [
+        'post' => $post,
+        'railLayout' => true,
+    ])
+
     @include('community.partials.competitions-meta-details', [
         'post' => $post,
         'railLayout' => true,

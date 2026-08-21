@@ -1401,6 +1401,28 @@
     width: 100%;
 }
 
+.community-news-rail__competitions-extras .community-detail-card--competition-intro {
+    overflow: hidden;
+    padding: 0;
+}
+
+.community-news-rail__competitions-extras .comp-show-overview--rail {
+    border: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 1rem 1.05rem;
+}
+
+.community-news-rail__competitions-extras .comp-show-overview--rail .comp-show-overview__tagline {
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.community-news-rail__competitions-extras .comp-show-overview__chips .comp-show-chip {
+    font-size: 0.76rem;
+    padding: 0.3rem 0.65rem;
+}
+
 .community-news-rail__life-learning-extras .cc-art-frame img,
 .community-news-rail__life-learning-extras .business-gallery-grid img,
 .community-news-rail__creative-corner-extras .creative-corner-rail-media__featured,
