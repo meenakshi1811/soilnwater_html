@@ -14,6 +14,7 @@
     @if($post->isAwarenessPost())
         @include('community.partials.awareness-show-sections', [
             'post' => $post,
+            'portalSidebarLayout' => $moveAwarenessExtrasToRail ?? false,
             'awarenessEngagement' => $awarenessEngagement ?? null,
             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
         ])
@@ -92,10 +93,6 @@
             'post' => $post,
             'reportEngagement' => $reportEngagement ?? null,
         ])
-    @endif
-
-    @if($post->isAwarenessPost())
-        @include('community.partials.awareness-additional-details', ['post' => $post])
     @endif
 
     @if($post->isBusinessPost() && ! ($moveCareerBusinessExtrasToRail ?? false))

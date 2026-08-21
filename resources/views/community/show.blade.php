@@ -529,11 +529,13 @@
     $moveHubExtrasToSidebar = $moveStoriesLiteratureExtrasToSidebar || $moveLifeLearningExtrasToSidebar;
     $moveCareerBusinessExtrasToRail = $isPortalPost && in_array($post->content_type, ['career', 'jobs-employment', 'business'], true);
     $moveCultureSpiritualityExtrasToRail = $isPortalPost && in_array($post->content_type, \App\Support\CommunityContentTaxonomy::cultureSpiritualityTypes(), true);
+    $moveAwarenessExtrasToRail = $isPortalPost && $post->isAwarenessPost();
     $showPortalDetailRailExtras = $moveDetailExtrasToSidebar
         || ($isPortalPost && $post->content_type === 'science-technology')
         || $moveHubExtrasToSidebar
         || $moveCareerBusinessExtrasToRail
-        || $moveCultureSpiritualityExtrasToRail;
+        || $moveCultureSpiritualityExtrasToRail
+        || $moveAwarenessExtrasToRail;
     $railLocationOnly = $isPortalPost && $post->content_type === 'science-technology' && ! $moveDetailExtrasToSidebar;
     $showPortalRatingRail = $moveStoriesLiteratureExtrasToSidebar && \App\Models\CommunityPost::supportsStarRating($post->content_type);
     $coverUrl = $post->featuredImageUrl();
@@ -619,6 +621,7 @@
                             'placement' => 'before',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
+                            'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -694,6 +697,7 @@
                             'placement' => 'after',
                             'moveCareerBusinessExtrasToRail' => $moveCareerBusinessExtrasToRail,
                             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
+                            'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
                             'awarenessEngagement' => $awarenessEngagement ?? null,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'businessEngagement' => $businessEngagement ?? null,
@@ -1581,6 +1585,7 @@
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'moveHubExtrasToSidebar' => $moveHubExtrasToSidebar,
                         'showPortalDetailRailExtras' => $showPortalDetailRailExtras,
+                        'moveAwarenessExtrasToRail' => $moveAwarenessExtrasToRail,
                         'railLocationOnly' => $railLocationOnly,
                         'showPortalRatingRail' => $showPortalRatingRail,
                         'visibleMeta' => $visibleMeta ?? collect(),
