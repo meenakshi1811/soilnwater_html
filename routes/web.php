@@ -187,6 +187,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/verification/phone/verify', [RegisterController::class, 'verifyPhoneOtp'])->name('register.phone.verify');
 });
 
+Route::get('/g/{token}', [DiscussionGroupInvitationController::class, 'join'])
+    ->name('discussions.invitations.short-join');
+
 Route::get('/discussions/invitations/join/{token}', [DiscussionGroupInvitationController::class, 'join'])
     ->name('discussions.invitations.join');
 

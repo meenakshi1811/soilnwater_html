@@ -141,7 +141,7 @@ class DiscussionGroupInvitationTest extends TestCase
         $invitation = DiscussionGroupInvitation::query()->firstOrFail();
         $this->assertNotNull($invitation->token);
         $this->assertSame(
-            route('discussions.invitations.join', $invitation->token),
+            url('/g/'.$invitation->token),
             $invitation->invitationUrl()
         );
     }

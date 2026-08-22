@@ -9,7 +9,6 @@ use App\Models\DiscussionTopic;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Throwable;
 
 class DiscussionGroupInvitationService
@@ -75,6 +74,7 @@ class DiscussionGroupInvitationService
             $invitation = $topic->invitations()->create([
                 'inviter_id' => $inviter->id,
                 'invitee_id' => $inviteeId,
+                'token' => DiscussionGroupInvitation::generateToken(),
                 'status' => DiscussionGroupInvitation::STATUS_PENDING,
             ]);
 
@@ -116,7 +116,7 @@ class DiscussionGroupInvitationService
                 'inviter_id' => $inviter->id,
                 'invitee_id' => null,
                 'invitee_phone' => $phone,
-                'token' => Str::random(48),
+                'token' => DiscussionGroupInvitation::generateToken(),
                 'status' => DiscussionGroupInvitation::STATUS_PENDING,
             ]);
 
@@ -241,9 +241,10 @@ class DiscussionGroupInvitationService
         }
 
         if ($invitee?->phone_number) {
+            $smsInviterName = $this->smsInviterName($invitation);
             $smsMessage = sprintf(
                 '%s has added you to a group. Please click the link below to approve or decline the group invitation: %s Do not share this link with anyone. – Annuvedant Team',
-                $inviterName,
+                $smsInviterName,
                 $url
             );
 
@@ -264,13 +265,20 @@ class DiscussionGroupInvitationService
 
     private function notifyUnregisteredPhoneInvitee(DiscussionGroupInvitation $invitation): void
     {
-        $inviterName = $invitation->inviter?->authorDisplayName() ?: 'A community member';
+        $inviterName = $this->smsInviterName($invitation);
         $invitationUrl = $invitation->invitationUrl();
         $smsMessage = sprintf(
             '%s has added you to a group. If you are not registered with SoilnWater, please register first and then click the link below to approve or decline the group invitation: %s – Annuvedant Team',
             $inviterName,
             $invitationUrl
         );
+
+        Log::info('Unregistered group invitation SMS prepared', [
+            'invitation_id' => $invitation->id,
+            'phone' => $invitation->invitee_phone,
+            'url_length' => strlen($invitationUrl),
+            'message_length' => strlen($smsMessage),
+        ]);
 
         $sent = $this->smsService->send(
             (string) $invitation->invitee_phone,
@@ -369,5 +377,12 @@ class DiscussionGroupInvitationService
                 $invitation->invitee_phone,
                 $phone
             ));
+    }
+
+    private function smsInviterName(DiscussionGroupInvitation $invitation): string
+    {
+        $name = $invitation->inviter?->authorDisplayName() ?: 'A community member';
+
+        return mb_substr(trim($name), 0, 30);
     }
 }

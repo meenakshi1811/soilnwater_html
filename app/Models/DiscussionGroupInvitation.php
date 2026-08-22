@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class DiscussionGroupInvitation extends Model
 {
@@ -91,11 +92,24 @@ class DiscussionGroupInvitation extends Model
 
     public function invitationUrl(): string
     {
-        if ($this->isPhoneInvite() && filled($this->token)) {
+        if (filled($this->token)) {
+            return url('/g/'.$this->token);
+        }
+
+        if ($this->isPhoneInvite()) {
             return route('discussions.invitations.join', $this->token);
         }
 
         return route('discussions.invitations.show', $this);
+    }
+
+    public static function generateToken(): string
+    {
+        do {
+            $token = Str::lower(Str::random(12));
+        } while (static::query()->where('token', $token)->exists());
+
+        return $token;
     }
 
     /**
