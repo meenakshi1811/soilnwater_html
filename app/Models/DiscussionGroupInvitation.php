@@ -15,6 +15,8 @@ class DiscussionGroupInvitation extends Model
 
     public const STATUS_REJECTED = 'rejected';
 
+    public const SMS_VARIABLE_MAX_LENGTH = 30;
+
     protected $fillable = [
         'discussion_topic_id',
         'inviter_id',
@@ -103,10 +105,29 @@ class DiscussionGroupInvitation extends Model
         return route('discussions.invitations.show', $this);
     }
 
+    /**
+     * DLT allows roughly 30 characters per {#var#}; SMS must omit https://.
+     */
+    public function smsInvitationUrl(): string
+    {
+        if (! filled($this->token)) {
+            return $this->invitationUrl();
+        }
+
+        return self::smsHost().'/g/'.$this->token;
+    }
+
+    public static function smsHost(): string
+    {
+        $host = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'soilnwater.in';
+
+        return str_starts_with($host, 'www.') ? substr($host, 4) : $host;
+    }
+
     public static function generateToken(): string
     {
         do {
-            $token = Str::lower(Str::random(12));
+            $token = Str::lower(Str::random(10));
         } while (static::query()->where('token', $token)->exists());
 
         return $token;

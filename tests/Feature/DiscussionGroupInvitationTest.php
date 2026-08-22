@@ -140,6 +140,11 @@ class DiscussionGroupInvitationTest extends TestCase
 
         $invitation = DiscussionGroupInvitation::query()->firstOrFail();
         $this->assertNotNull($invitation->token);
+        $this->assertLessThanOrEqual(30, strlen($invitation->smsInvitationUrl()));
+        $this->assertSame(
+            DiscussionGroupInvitation::smsHost().'/g/'.$invitation->token,
+            $invitation->smsInvitationUrl()
+        );
         $this->assertSame(
             url('/g/'.$invitation->token),
             $invitation->invitationUrl()

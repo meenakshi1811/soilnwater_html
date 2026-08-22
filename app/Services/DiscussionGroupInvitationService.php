@@ -242,54 +242,80 @@ class DiscussionGroupInvitationService
 
         if ($invitee?->phone_number) {
             $smsInviterName = $this->smsInviterName($invitation);
+            $smsUrl = $invitation->smsInvitationUrl();
             $smsMessage = sprintf(
                 '%s has added you to a group. Please click the link below to approve or decline the group invitation: %s Do not share this link with anyone. – Annuvedant Team',
                 $smsInviterName,
-                $url
+                $smsUrl
             );
 
-            $sent = $this->smsService->send(
+            $this->sendGroupInviteSms(
                 $invitee->phone_number,
                 $smsMessage,
-                self::REGISTERED_INVITE_TEMPLATE_ID
+                self::REGISTERED_INVITE_TEMPLATE_ID,
+                $invitation,
+                [
+                    'inviter_length' => strlen($smsInviterName),
+                    'url_length' => strlen($smsUrl),
+                ]
             );
-
-            if (! $sent) {
-                Log::warning('Group invitation SMS failed', [
-                    'invitation_id' => $invitation->id,
-                    'phone' => $invitee->phone_number,
-                ]);
-            }
         }
     }
 
     private function notifyUnregisteredPhoneInvitee(DiscussionGroupInvitation $invitation): void
     {
         $inviterName = $this->smsInviterName($invitation);
-        $invitationUrl = $invitation->invitationUrl();
+        $invitationUrl = $invitation->smsInvitationUrl();
         $smsMessage = sprintf(
             '%s has added you to a group. If you are not registered with SoilnWater, please register first and then click the link below to approve or decline the group invitation: %s – Annuvedant Team',
             $inviterName,
             $invitationUrl
         );
 
-        Log::info('Unregistered group invitation SMS prepared', [
-            'invitation_id' => $invitation->id,
-            'phone' => $invitation->invitee_phone,
-            'url_length' => strlen($invitationUrl),
-            'message_length' => strlen($smsMessage),
-        ]);
-
-        $sent = $this->smsService->send(
+        $this->sendGroupInviteSms(
             (string) $invitation->invitee_phone,
             $smsMessage,
-            self::UNREGISTERED_INVITE_TEMPLATE_ID
+            self::UNREGISTERED_INVITE_TEMPLATE_ID,
+            $invitation,
+            [
+                'inviter_length' => strlen($inviterName),
+                'url_length' => strlen($invitationUrl),
+            ]
         );
+    }
+
+    /**
+     * @param  array<string, int>  $context
+     */
+    private function sendGroupInviteSms(
+        string $phoneNumber,
+        string $message,
+        string $templateId,
+        DiscussionGroupInvitation $invitation,
+        array $context = [],
+    ): void {
+        Log::info('Group invitation SMS prepared', array_merge([
+            'invitation_id' => $invitation->id,
+            'phone' => $phoneNumber,
+            'template_id' => $templateId,
+            'message_length' => strlen($message),
+            'message' => $message,
+        ], $context));
+
+        if (($context['url_length'] ?? 0) > DiscussionGroupInvitation::SMS_VARIABLE_MAX_LENGTH) {
+            Log::warning('Group invitation SMS URL exceeds DLT variable limit', array_merge([
+                'invitation_id' => $invitation->id,
+                'limit' => DiscussionGroupInvitation::SMS_VARIABLE_MAX_LENGTH,
+            ], $context));
+        }
+
+        $sent = $this->smsService->send($phoneNumber, $message, $templateId);
 
         if (! $sent) {
-            Log::warning('Unregistered group invitation SMS failed', [
+            Log::warning('Group invitation SMS failed', [
                 'invitation_id' => $invitation->id,
-                'phone' => $invitation->invitee_phone,
+                'phone' => $phoneNumber,
+                'template_id' => $templateId,
             ]);
         }
     }
