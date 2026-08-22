@@ -187,6 +187,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/verification/phone/verify', [RegisterController::class, 'verifyPhoneOtp'])->name('register.phone.verify');
 });
 
+Route::get('/discussions/invitations/join/{token}', [DiscussionGroupInvitationController::class, 'join'])
+    ->name('discussions.invitations.join');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::prefix('discussions')->name('discussions.')->middleware('chat.not_blocked')->group(function () {

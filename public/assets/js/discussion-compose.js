@@ -16,6 +16,60 @@
             .replace(/'/g, '&#039;');
     }
 
+    function normalizePhoneDigits(value) {
+        const digits = String(value ?? '').replace(/\D+/g, '');
+
+        if (digits.length < 10) {
+            return null;
+        }
+
+        return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
+    function selectionMapKey(entry) {
+        if (entry?.id) {
+            return String(entry.id);
+        }
+
+        return `phone:${entry.phone}`;
+    }
+
+    function deleteSelectionEntry(selectionMap, key) {
+        if (String(key).startsWith('phone:')) {
+            selectionMap.delete(String(key));
+            return;
+        }
+
+        selectionMap.delete(Number(key));
+    }
+
+    function appendMemberSelectionsToFormData(formData, memberSelection) {
+        Array.from(memberSelection.values()).forEach((member) => {
+            if (member.id) {
+                formData.append('member_ids[]', String(member.id));
+            } else if (member.phone) {
+                formData.append('phone_numbers[]', member.phone);
+            }
+        });
+    }
+
+    function buildMemberInvitePayload(memberSelection) {
+        const payload = {
+            member_ids: [],
+            phone_numbers: [],
+        };
+
+        memberSelection.forEach((member) => {
+            if (member.id) {
+                payload.member_ids.push(member.id);
+            } else if (member.phone) {
+                payload.phone_numbers.push(member.phone);
+            }
+        });
+
+        return payload;
+    }
+
     async function requestJson(url, options = {}) {
         const response = await fetch(url, {
             credentials: 'same-origin',
@@ -71,7 +125,9 @@
 
         selectedEl.hidden = false;
         selectedEl.innerHTML = members.map((user) => {
-            return `<button type="button" class="discussion-group-pick__selected-item" data-user-id="${user.id}" title="Remove ${escapeHtml(user.name)}">
+            const key = selectionMapKey(user);
+
+            return `<button type="button" class="discussion-group-pick__selected-item" data-selection-key="${escapeHtml(key)}" title="Remove ${escapeHtml(user.name)}">
                 <span class="discussion-avatar discussion-avatar--sm">${escapeHtml(user.initials || user.name?.[0] || 'U')}</span>
                 <span class="discussion-group-pick__selected-name">${escapeHtml(user.name)}</span>
                 <span class="discussion-group-pick__selected-remove" aria-hidden="true">&times;</span>
@@ -102,6 +158,29 @@
         }
 
         if (!users.length) {
+            const phone = normalizePhoneDigits(query);
+
+            if (phone) {
+                const selected = selectionMap.has(`phone:${phone}`);
+
+                listEl.innerHTML = `<button type="button"
+                        class="discussion-group-pick__contact ${selected ? 'is-selected' : ''}"
+                        data-phone-invite="${escapeHtml(phone)}"
+                        role="option"
+                        aria-selected="${selected ? 'true' : 'false'}">
+                    <span class="discussion-avatar">☎</span>
+                    <span class="discussion-group-pick__contact-body">
+                        <strong>Invite ${escapeHtml(phone)}</strong>
+                        <span>Not registered — send SMS invitation</span>
+                    </span>
+                    <span class="discussion-group-pick__check" aria-hidden="true">
+                        <i class="fa-solid ${selected ? 'fa-circle-check' : 'fa-circle'}"></i>
+                    </span>
+                </button>`;
+
+                return;
+            }
+
             listEl.innerHTML = `<div class="discussion-group-pick__empty">${query
                 ? 'No member found for that number.'
                 : 'Enter a mobile number to find a member.'}</div>`;
@@ -212,11 +291,31 @@
                 return;
             }
 
-            selectionMap.delete(Number(item.dataset.userId));
+            deleteSelectionEntry(selectionMap, item.dataset.selectionKey);
             refreshUi();
         });
 
         listEl?.addEventListener('click', (event) => {
+            const phoneInvite = event.target.closest('[data-phone-invite]');
+            if (phoneInvite) {
+                const phone = phoneInvite.dataset.phoneInvite;
+                const key = `phone:${phone}`;
+
+                if (selectionMap.has(key)) {
+                    selectionMap.delete(key);
+                } else {
+                    selectionMap.set(key, {
+                        phone,
+                        name: phone,
+                        initials: '☎',
+                    });
+                }
+
+                refreshUi(searchInput?.value?.trim() || '');
+
+                return;
+            }
+
             const contact = event.target.closest('.discussion-group-pick__contact');
             if (!contact) {
                 return;
@@ -298,7 +397,11 @@
         }
 
         Array.from(memberSelection.values()).forEach((member) => {
-            formData.append('member_ids[]', String(member.id));
+            if (member.id) {
+                formData.append('member_ids[]', String(member.id));
+            } else if (member.phone) {
+                formData.append('phone_numbers[]', member.phone);
+            }
         });
 
         window.soilnwaterDiscussionAttachments?.appendPoolToFormData?.(formData, attachmentPool);
@@ -492,5 +595,9 @@
         initGroupMemberPicker,
         renderGroupSummary,
         fetchUsers,
+        normalizePhoneDigits,
+        buildMemberInvitePayload,
+        selectionMapKey,
+        deleteSelectionEntry,
     };
 })();

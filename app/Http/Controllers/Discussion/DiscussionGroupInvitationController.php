@@ -14,8 +14,33 @@ class DiscussionGroupInvitationController extends Controller
 {
     public function __construct(private DiscussionGroupInvitationService $invitationService) {}
 
+    public function join(Request $request, string $token): View|RedirectResponse
+    {
+        $invitation = DiscussionGroupInvitation::query()
+            ->where('token', $token)
+            ->pending()
+            ->with(['topic', 'inviter'])
+            ->firstOrFail();
+
+        if ($request->user()) {
+            $invitation = $this->invitationService->claimInvitationForUser($invitation, $request->user());
+
+            if ($invitation->isInvitee($request->user())) {
+                return redirect()->route('discussions.invitations.show', $invitation);
+            }
+
+            abort(403);
+        }
+
+        return view('discussions.invitations.join', [
+            'invitation' => $invitation,
+        ]);
+    }
+
     public function index(Request $request): View|JsonResponse
     {
+        $this->invitationService->claimPendingInvitationsForUser($request->user());
+
         $invitations = DiscussionGroupInvitation::query()
             ->with(['topic', 'inviter', 'invitee'])
             ->pending()
@@ -36,6 +61,8 @@ class DiscussionGroupInvitationController extends Controller
 
     public function show(Request $request, DiscussionGroupInvitation $invitation): View
     {
+        $invitation = $this->invitationService->claimInvitationForUser($invitation, $request->user());
+
         abort_unless($invitation->isInvitee($request->user()), 403);
 
         $invitation->load(['topic', 'inviter', 'invitee']);
@@ -47,26 +74,30 @@ class DiscussionGroupInvitationController extends Controller
 
     public function accept(Request $request, DiscussionGroupInvitation $invitation): JsonResponse|RedirectResponse
     {
+        $invitation = $this->invitationService->claimInvitationForUser($invitation, $request->user());
+
         abort_unless($invitation->isInvitee($request->user()), 403);
 
         if (! $invitation->isPending()) {
             return $this->alreadyResponded($request, $invitation);
         }
 
-        $invitation = $this->invitationService->accept($invitation);
+        $invitation = $this->invitationService->accept($invitation, $request->user());
 
         return $this->responded($request, $invitation, 'You joined the group.');
     }
 
     public function reject(Request $request, DiscussionGroupInvitation $invitation): JsonResponse|RedirectResponse
     {
+        $invitation = $this->invitationService->claimInvitationForUser($invitation, $request->user());
+
         abort_unless($invitation->isInvitee($request->user()), 403);
 
         if (! $invitation->isPending()) {
             return $this->alreadyResponded($request, $invitation);
         }
 
-        $invitation = $this->invitationService->reject($invitation);
+        $invitation = $this->invitationService->reject($invitation, $request->user());
 
         return $this->responded($request, $invitation, 'You declined the group invitation.');
     }

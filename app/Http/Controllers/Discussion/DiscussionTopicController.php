@@ -192,6 +192,8 @@ class DiscussionTopicController extends Controller
             'parent_topic_id' => ['nullable', 'integer', 'exists:discussion_topics,id'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['integer', 'exists:users,id'],
+            'phone_numbers' => ['nullable', 'array'],
+            'phone_numbers.*' => ['string', 'regex:/^[0-9]{10,15}$/'],
             'group_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
             'attachments' => ['nullable', 'array', 'max:4'],
             'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
@@ -234,8 +236,18 @@ class DiscussionTopicController extends Controller
                 ->values()
                 ->all();
 
+            $phoneNumbers = collect($data['phone_numbers'] ?? [])
+                ->map(fn ($phone) => DiscussionGroupInvitation::normalizePhone($phone))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
             $topic->syncGroupMembers($request->user(), []);
-            $invited = $this->invitationService->inviteMembers($topic, $request->user(), $memberIds);
+            $invited = array_merge(
+                $this->invitationService->inviteMembers($topic, $request->user(), $memberIds),
+                $this->invitationService->inviteByPhoneNumbers($topic, $request->user(), $phoneNumbers),
+            );
         }
 
         $topic->load(['user', 'members', 'parent']);

@@ -117,6 +117,60 @@ class DiscussionGroupInvitationTest extends TestCase
         Notification::assertSentTo($creator, PortalNotification::class);
     }
 
+    public function test_inviting_an_unregistered_phone_number_sends_a_phone_invitation(): void
+    {
+        Notification::fake();
+
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)
+            ->postJson(route('discussions.store'), [
+                'title' => 'Outreach group',
+                'is_group' => true,
+                'phone_numbers' => ['9123456789'],
+            ])
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'Group created. Invitations sent — members join after they approve.']);
+
+        $this->assertDatabaseHas('discussion_group_invitations', [
+            'invitee_id' => null,
+            'invitee_phone' => '9123456789',
+            'status' => DiscussionGroupInvitation::STATUS_PENDING,
+        ]);
+
+        $invitation = DiscussionGroupInvitation::query()->firstOrFail();
+        $this->assertNotNull($invitation->token);
+        $this->assertSame(
+            route('discussions.invitations.join', $invitation->token),
+            $invitation->invitationUrl()
+        );
+    }
+
+    public function test_unregistered_phone_invitation_is_claimed_after_phone_verification(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Claim group',
+            'is_group' => true,
+            'phone_numbers' => ['9111222333'],
+        ])->assertOk();
+
+        $invitee = User::factory()->create([
+            'email_verified_at' => now(),
+            'phone_number' => '9111222333',
+            'phone_verified_at' => null,
+        ]);
+
+        app(\App\Services\DiscussionGroupInvitationService::class)->claimPendingInvitationsForUser($invitee);
+
+        $this->assertDatabaseHas('discussion_group_invitations', [
+            'invitee_id' => $invitee->id,
+            'invitee_phone' => '9111222333',
+            'status' => DiscussionGroupInvitation::STATUS_PENDING,
+        ]);
+    }
+
     public function test_outsider_cannot_accept_someone_elses_invitation(): void
     {
         [, , $invitation] = $this->createPendingInvitation();

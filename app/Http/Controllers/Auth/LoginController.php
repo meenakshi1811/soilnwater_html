@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\DiscussionGroupInvitationService;
 use App\Services\PortalNotificationService;
 use App\Services\PremiumPromptService;
 use App\Support\GoogleGeocoder;
@@ -149,16 +150,15 @@ class LoginController extends Controller
                 ]);
         }
 
-        if ($request->expectsJson()) {
-            PremiumPromptService::flashForUser($user);
+        PremiumPromptService::flashForUser($user);
+        app(DiscussionGroupInvitationService::class)->claimPendingInvitationsForUser($user);
 
+        if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Login successful.',
                 'redirect' => $this->redirectPath(),
             ]);
         }
-
-        PremiumPromptService::flashForUser($user);
 
         return null;
     }

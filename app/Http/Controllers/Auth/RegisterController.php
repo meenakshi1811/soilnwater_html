@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\DiscussionGroupInvitationService;
 use App\Services\PortalNotificationService;
 use App\Mail\ConsultantStatusMail;
 use App\Mail\ServiceProviderStatusMail;
@@ -453,6 +454,8 @@ class RegisterController extends Controller
             'email_verified_at' => $user->email_verified_at ?? now(),
             'phone_verified_at' => now(),
         ])->save();
+
+        app(DiscussionGroupInvitationService::class)->claimPendingInvitationsForUser($user->fresh());
 
         Cache::forget($cacheKey);
         $request->session()->forget('phone_verification_user_id');

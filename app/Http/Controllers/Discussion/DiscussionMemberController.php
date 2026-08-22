@@ -87,20 +87,38 @@ class DiscussionMemberController extends Controller
         $this->authorize('manageMembers', $topic);
 
         $data = $request->validate([
-            'member_ids' => ['required', 'array', 'min:1'],
+            'member_ids' => ['nullable', 'array'],
             'member_ids.*' => [
                 'integer',
                 Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_blocked', false)->where('is_chat_blocked', false)),
             ],
+            'phone_numbers' => ['nullable', 'array'],
+            'phone_numbers.*' => ['string', 'regex:/^[0-9]{10,15}$/'],
         ]);
 
-        $memberIds = collect($data['member_ids'])
+        $memberIds = collect($data['member_ids'] ?? [])
             ->map(fn ($id) => (int) $id)
             ->reject(fn (int $id) => $id === (int) $request->user()->id)
             ->values()
             ->all();
 
-        $invited = $this->invitationService->inviteMembers($topic, $request->user(), $memberIds);
+        $phoneNumbers = collect($data['phone_numbers'] ?? [])
+            ->map(fn ($phone) => DiscussionGroupInvitation::normalizePhone($phone))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($memberIds === [] && $phoneNumbers === []) {
+            return response()->json([
+                'message' => 'Select at least one member or enter a mobile number to invite.',
+            ], 422);
+        }
+
+        $invited = array_merge(
+            $this->invitationService->inviteMembers($topic, $request->user(), $memberIds),
+            $this->invitationService->inviteByPhoneNumbers($topic, $request->user(), $phoneNumbers),
+        );
         $invitedCount = count($invited);
 
         return response()->json([

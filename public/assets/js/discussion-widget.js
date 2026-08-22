@@ -284,6 +284,7 @@
     const modalMemberSelection = new Map();
     const modalGroupMemberIds = new Set();
     const modalPendingInviteeIds = new Set();
+    const modalPendingInviteePhones = new Set();
     let canManageMembersModal = false;
     let canLeaveGroupModal = false;
     let canDeleteGroupModal = false;
@@ -755,16 +756,37 @@
         els.membersBtn.dataset.topicId = group?.id ? String(group.id) : '';
     }
 
+    function normalizePhoneDigits(value) {
+        return window.soilnwaterDiscussionCompose?.normalizePhoneDigits?.(value) ?? null;
+    }
+
+    function selectionMapKey(entry) {
+        return window.soilnwaterDiscussionCompose?.selectionMapKey?.(entry) ?? String(entry?.id || '');
+    }
+
+    function deleteSelectionEntry(selectionMap, key) {
+        window.soilnwaterDiscussionCompose?.deleteSelectionEntry?.(selectionMap, key);
+    }
+
+    function buildMemberInvitePayload(memberSelection) {
+        return window.soilnwaterDiscussionCompose?.buildMemberInvitePayload?.(memberSelection) || {
+            member_ids: Array.from(memberSelection.keys()).filter((key) => !String(key).startsWith('phone:')).map(Number),
+            phone_numbers: [],
+        };
+    }
+
     function renderMemberChips(containerId, selectionMap) {
         const container = document.getElementById(containerId);
         if (!container) {
             return;
         }
 
-        container.innerHTML = Array.from(selectionMap.values()).map((user) => {
-            return `<span class="discussion-widget__member-chip" data-user-id="${user.id}">
-                ${escapeHtml(user.name)}
-                <button type="button" aria-label="Remove ${escapeHtml(user.name)}">&times;</button>
+        container.innerHTML = Array.from(selectionMap.values()).map((entry) => {
+            const key = selectionMapKey(entry);
+
+            return `<span class="discussion-widget__member-chip" data-selection-key="${escapeHtml(key)}">
+                ${escapeHtml(entry.name)}
+                <button type="button" aria-label="Remove ${escapeHtml(entry.name)}">&times;</button>
             </span>`;
         }).join('');
     }
@@ -782,7 +804,7 @@
                 return;
             }
 
-            selectionMap.delete(Number(chip.dataset.userId));
+            deleteSelectionEntry(selectionMap, chip.dataset.selectionKey);
             renderMemberChips(containerId, selectionMap);
         });
     }
@@ -800,7 +822,7 @@
         return data.users || [];
     }
 
-    function renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, inputEl, query = '') {
+    function renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, inputEl, query = '', options = {}) {
         if (!resultsEl) {
             return;
         }
@@ -811,6 +833,43 @@
 
         if (!users.length) {
             resultsEl.hidden = false;
+            const phone = normalizePhoneDigits(query);
+
+            if (phone) {
+                const excludePhones = options.getExcludePhones?.() || new Set();
+
+                if (excludePhones.has(phone)) {
+                    resultsEl.innerHTML = `<div class="discussion-widget__member-results-empty">An invitation is already pending for ${escapeHtml(phone)}.</div>`;
+
+                    return;
+                }
+
+                const key = `phone:${phone}`;
+                const selected = selectionMap.has(key);
+
+                resultsEl.innerHTML = `<button type="button" class="discussion-widget__member-result ${selected ? 'is-selected' : ''}" data-phone-invite="${escapeHtml(phone)}" ${selected ? 'disabled' : ''} role="option">
+                    <strong>Invite ${escapeHtml(phone)}</strong>
+                    <span>Not registered — send SMS invitation</span>
+                </button>`;
+
+                resultsEl.querySelector('[data-phone-invite]:not([disabled])')?.addEventListener('click', (event) => {
+                    const invitePhone = event.currentTarget.dataset.phoneInvite;
+                    selectionMap.set(`phone:${invitePhone}`, {
+                        phone: invitePhone,
+                        name: invitePhone,
+                    });
+                    renderMemberChips(chipsContainerId, selectionMap);
+                    resultsEl.hidden = true;
+                    resultsEl.innerHTML = '';
+                    if (inputEl) {
+                        inputEl.value = '';
+                        inputEl.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                return;
+            }
+
             resultsEl.innerHTML = `<div class="discussion-widget__member-results-empty">${query ? 'No member found for that number.' : 'Enter a mobile number to find a member.'}</div>`;
 
             return;
@@ -867,7 +926,7 @@
                 return;
             }
 
-            renderMemberSearchResults(resultsEl, [], selectionMap, chipsContainerId, input, 'incomplete');
+            renderMemberSearchResults(resultsEl, [], selectionMap, chipsContainerId, input, 'incomplete', options);
             if (resultsEl) {
                 resultsEl.hidden = false;
                 resultsEl.innerHTML = '<div class="discussion-widget__member-results-empty">Enter a complete mobile number to search.</div>';
@@ -878,7 +937,7 @@
         try {
             let users = await searchUsers(query);
             users = users.filter((user) => !excludeIds.has(Number(user.id)));
-            renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, input, query);
+            renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, input, query, options);
         } catch (error) {
             notify('error', error.message);
         }
@@ -1151,9 +1210,14 @@
 
     function renderPendingInvitations(invitations = [], canManage = canManageMembersModal) {
         modalPendingInviteeIds.clear();
+        modalPendingInviteePhones.clear();
         invitations.forEach((invitation) => {
             if (invitation?.invitee?.id) {
                 modalPendingInviteeIds.add(Number(invitation.invitee.id));
+            }
+
+            if (invitation?.invitee?.phone) {
+                modalPendingInviteePhones.add(String(invitation.invitee.phone));
             }
         });
 
@@ -1238,6 +1302,7 @@
         modalMemberSelection.clear();
         modalGroupMemberIds.clear();
         modalPendingInviteeIds.clear();
+        modalPendingInviteePhones.clear();
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
         if (els.membersPendingSection) {
             els.membersPendingSection.hidden = true;
@@ -2372,9 +2437,7 @@
         try {
             const data = await requestJson(membersStoreUrl(group.id), {
                 method: 'POST',
-                body: JSON.stringify({
-                    member_ids: Array.from(modalMemberSelection.keys()),
-                }),
+                body: JSON.stringify(buildMemberInvitePayload(modalMemberSelection)),
             });
 
             renderMembersList(data.members || [], canManageMembersModal);
@@ -2556,6 +2619,7 @@
         'discussionWidgetMembersAddChips',
         {
             getExcludeIds: () => new Set([...modalGroupMemberIds, ...modalPendingInviteeIds]),
+            getExcludePhones: () => new Set(modalPendingInviteePhones),
         }
     );
 
