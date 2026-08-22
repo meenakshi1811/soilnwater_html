@@ -37,7 +37,9 @@
 
             if ($adWidth >= 900) {
                 $mobileSizeTier = 'full';
-            } elseif ($adMaxDim <= 320 || $adArea <= 70000) {
+            } else            if ($adMaxDim <= 320 || $adArea <= 70000) {
+                $mobileSizeTier = 'xs';
+            } elseif (abs($adWidth - $adHeight) <= 40 && $adMaxDim <= 520) {
                 $mobileSizeTier = 'xs';
             } elseif ($adMaxDim <= 520 || $adArea <= 260000) {
                 $mobileSizeTier = 'sm';
@@ -177,6 +179,9 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (maxDim <= 320 || area <= 70000) {
             return 'xs';
         }
+        if (Math.abs(adW - adH) <= 40 && maxDim <= 520) {
+            return 'xs';
+        }
         if (maxDim <= 520 || area <= 260000) {
             return 'sm';
         }
@@ -198,6 +203,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (isFullWidth || adW <= 0) {
             card.style.removeProperty('--ad-mobile-w');
             card.style.removeProperty('--ad-mobile-scale');
+            return;
+        }
+
+        const isSquare = card.classList.contains('ad-square');
+        if (isSquare && adW >= 380 && adW <= 520 && Math.abs(adW - adH) <= 40) {
+            const gap = 10;
+            const twoColWidth = Math.max(140, Math.floor((gridWidth - gap) / 2));
+            card.style.setProperty('--ad-mobile-w', twoColWidth + 'px');
+            card.style.setProperty('--ad-mobile-scale', String(twoColWidth / adW));
             return;
         }
 
@@ -526,6 +540,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (!isMobileInline) {
             card.style.width = width + 'px';
             card.style.height = height + 'px';
+        }
+
+        if (Math.abs(width - height) <= 40 && width >= 380 && width <= 520) {
+            card.classList.add('ad-square');
         }
 
         if (item.sizeKey) {

@@ -3704,6 +3704,16 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
         max-width: min(78vw, calc(100% - 16px)) !important;
     }
 
+    .masonry-grid.is-mobile-layout .ad-card.ad-square:not([data-gap-filler]):not(.ad-mobile-tier-full) {
+        width: calc(50% - 5px) !important;
+        max-width: calc(50% - 5px) !important;
+    }
+
+    .masonry-grid.is-mobile-layout .ad-card.ad-card--mobile-sponsored.ad-square:not(.ad-mobile-tier-full) {
+        width: calc(50% - 5px) !important;
+        max-width: calc(50% - 5px) !important;
+    }
+
     /* Sponsored gap fillers — desktop masonry only (mobile uses inline flow cards) */
     .masonry-grid .ad-card[data-gap-filler] {
         position: absolute !important;
