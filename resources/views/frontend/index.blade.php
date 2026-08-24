@@ -206,6 +206,14 @@
           <span>SERVICES</span>
         </div>
       </a>
+      <a href="{{ route('community.index') }}">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-people-group cat-icon-i cat-community"></i>
+          </div>
+          <span>COMMUNITY HUB</span>
+        </div>
+      </a>
       {{--
       <a href="">
         <div class="cat-item">
