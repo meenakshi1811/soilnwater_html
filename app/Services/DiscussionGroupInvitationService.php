@@ -13,9 +13,9 @@ use Throwable;
 
 class DiscussionGroupInvitationService
 {
-    private const REGISTERED_INVITE_TEMPLATE_ID = '1707177571854887444';
+    private const REGISTERED_INVITE_TEMPLATE_ID = '1777178739825593489';
 
-    private const UNREGISTERED_INVITE_TEMPLATE_ID = '1707177571854887445';
+    private const UNREGISTERED_INVITE_TEMPLATE_ID = '1777178739830204220';
 
     public function __construct(private MessageIndiaSmsService $smsService) {}
 
@@ -244,7 +244,7 @@ class DiscussionGroupInvitationService
             $smsInviterName = $this->smsInviterName($invitation);
             $smsUrl = $invitation->smsInvitationUrl();
             $smsMessage = sprintf(
-                '%s has added you to a group. Please click the link below to approve or decline the group invitation: %s Do not share this link with anyone. – Annuvedant Team',
+                "%s has added you to a group.\nPlease click the link below to approve or decline the group invitation: %s\nDo not share this link with anyone. – Annuvedant Team",
                 $smsInviterName,
                 $smsUrl
             );
@@ -267,7 +267,7 @@ class DiscussionGroupInvitationService
         $inviterName = $this->smsInviterName($invitation);
         $invitationUrl = $invitation->smsInvitationUrl();
         $smsMessage = sprintf(
-            '%s has added you to a group. If you are not registered with SoilnWater, please register first and then click the link below to approve or decline the group invitation: %s – Annuvedant Team',
+            '%s has added you to a group. If you are not registered with SoilnWater, please register first and then click the link below to approve or decline the group invitation: %s Annuvedant Team',
             $inviterName,
             $invitationUrl
         );
