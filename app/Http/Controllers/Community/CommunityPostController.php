@@ -8060,6 +8060,19 @@ class CommunityPostController extends Controller
                 }
             )
             ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->trim()->toString();
+                if ($search === '') {
+                    return;
+                }
+
+                $query->where(function ($builder) use ($search): void {
+                    $builder
+                        ->where('title', 'like', '%'.$search.'%')
+                        ->orWhere('excerpt', 'like', '%'.$search.'%')
+                        ->orWhere('category', 'like', '%'.$search.'%');
+                });
+            })
             ->when(
                 $request->string('filter')->toString() === 'editors',
                 fn ($query) => $query->where(function ($builder): void {

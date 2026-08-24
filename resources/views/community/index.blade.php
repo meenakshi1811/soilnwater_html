@@ -398,6 +398,8 @@
                             {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $types[$activeType]['label'] }} Posts
                         @elseif ($feedHub)
                             {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $feedHub['label'] }} Posts
+                        @elseif (request()->filled('search'))
+                            Search results for "{{ request()->string('search')->trim() }}"
                         @else
                             Latest community posts
                         @endif

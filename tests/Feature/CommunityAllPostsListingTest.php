@@ -182,4 +182,32 @@ class CommunityAllPostsListingTest extends TestCase
             ->assertJsonFragment(['total' => 13])
             ->assertSee('community-post-card', false);
     }
+
+    public function test_header_search_includes_community_option(): void
+    {
+        $this->get(route('community.index'))
+            ->assertOk()
+            ->assertSee('value="community"', false)
+            ->assertSee('Search community posts...')
+            ->assertSee('>Community</option>', false);
+    }
+
+    public function test_community_search_filters_posts_by_title(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $match = CommunityPost::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Rainwater Harvesting Guide',
+        ]);
+        $other = CommunityPost::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Village Festival Recap',
+        ]);
+
+        $this->get(route('community.index', ['search' => 'Rainwater']))
+            ->assertOk()
+            ->assertSee($match->title)
+            ->assertSee('Search results for "Rainwater"')
+            ->assertDontSee($other->title);
+    }
 }

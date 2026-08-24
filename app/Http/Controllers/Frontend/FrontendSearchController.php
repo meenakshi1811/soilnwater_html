@@ -14,6 +14,7 @@ class FrontendSearchController extends Controller
         'vendors' => 'frontend.vendors.index',
         'consultants' => 'frontend.consultants.index',
         'services' => 'frontend.service_providers.index',
+        'community' => 'community.index',
     ];
 
     public function index(Request $request): RedirectResponse

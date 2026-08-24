@@ -15,6 +15,7 @@ class FrontendSearchTest extends TestCase
             'vendors' => ['vendors', 'frontend.vendors.index'],
             'consultants' => ['consultants', 'frontend.consultants.index'],
             'services' => ['services', 'frontend.service_providers.index'],
+            'community' => ['community', 'community.index'],
         ];
     }
 

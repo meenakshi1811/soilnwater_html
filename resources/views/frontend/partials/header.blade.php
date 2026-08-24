@@ -51,6 +51,7 @@
         request()->routeIs('frontend.vendors.*') => 'vendors',
         request()->routeIs('frontend.consultants.*') => 'consultants',
         request()->routeIs('frontend.service_providers.*') => 'services',
+        request()->routeIs('community.*') => 'community',
         default => 'offers',
       };
       $searchPlaceholders = [
@@ -59,6 +60,7 @@
         'vendors' => 'Search vendor name or product...',
         'consultants' => 'Search consultant name or service...',
         'services' => 'Search provider name or service...',
+        'community' => 'Search community posts...',
       ];
     @endphp
     <select name="module" class="search-module-select" aria-label="Search module">
@@ -67,6 +69,7 @@
       <option value="vendors" @selected($activeSearchModule === 'vendors')>Vendors</option>
       <option value="consultants" @selected($activeSearchModule === 'consultants')>Consultants</option>
       <option value="services" @selected($activeSearchModule === 'services')>Services</option>
+      <option value="community" @selected($activeSearchModule === 'community')>Community</option>
     </select>
     <input
       class="search-query-input"
