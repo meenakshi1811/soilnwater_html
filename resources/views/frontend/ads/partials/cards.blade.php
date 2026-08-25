@@ -37,7 +37,7 @@
 
             if ($adWidth >= 900) {
                 $mobileSizeTier = 'full';
-            } else            if ($adMaxDim <= 320 || $adArea <= 70000) {
+            } elseif ($adMaxDim <= 320 || $adArea <= 70000) {
                 $mobileSizeTier = 'xs';
             } elseif (abs($adWidth - $adHeight) <= 40 && $adMaxDim <= 520) {
                 $mobileSizeTier = 'xs';
@@ -1277,9 +1277,81 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return fillers;
     }
 
+    function resolveGridWidth(grid) {
+        if (!grid) {
+            return 0;
+        }
+
+        const layout = grid.closest('.ads-layout') || grid.closest('[id$="Layout"]');
+        const host = grid.closest('.ads-market-grid');
+        const page = grid.closest('.ads-market-page');
+        const candidates = [
+            grid.clientWidth,
+            layout ? layout.clientWidth : 0,
+            host ? host.clientWidth : 0,
+            page ? page.clientWidth : 0,
+            grid.parentElement ? grid.parentElement.clientWidth : 0,
+        ];
+
+        for (let i = 0; i < candidates.length; i++) {
+            if (candidates[i]) {
+                return candidates[i];
+            }
+        }
+
+        if (isStackedLayout()) {
+            return window.innerWidth;
+        }
+
+        if (page && page.clientWidth) {
+            return Math.max(320, page.clientWidth - 72);
+        }
+
+        return 0;
+    }
+
+    function schedulePackGrids(layout, keepPinnedFillers, targetGrids) {
+        if (!layout) {
+            return;
+        }
+
+        let attempts = 0;
+
+        function run() {
+            const grids = (targetGrids && targetGrids.length)
+                ? targetGrids
+                : Array.from(layout.querySelectorAll('.masonry-grid'));
+
+            if (!grids.length) {
+                return;
+            }
+
+            let needsRetry = false;
+
+            grids.forEach(function (grid) {
+                const width = resolveGridWidth(grid);
+                if (!width) {
+                    needsRetry = true;
+                    return;
+                }
+
+                packGrid(grid, keepPinnedFillers);
+            });
+
+            if (needsRetry && attempts < 10) {
+                attempts++;
+                requestAnimationFrame(run);
+            }
+        }
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(run);
+        });
+    }
+
     // Always re-pack every card currently in this grid so append never stacks on top of old ads.
     function packGrid(grid, keepPinnedFillers) {
-        const packWidth = grid.clientWidth;
+        const packWidth = resolveGridWidth(grid);
         if (!packWidth) return;
 
         if (isStackedLayout()) {
@@ -1443,11 +1515,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 }
             });
 
-            requestAnimationFrame(function () {
-                layout.querySelectorAll('.masonry-grid').forEach(function (grid) {
-                    packGrid(grid, false);
-                });
-            });
+            schedulePackGrids(layout, false);
             return;
         }
 
@@ -1488,12 +1556,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         if (!dirtyGrids.length) return;
 
-        requestAnimationFrame(function () {
-            dirtyGrids.forEach(function (grid) {
-                // Keep already-shown sponsored slots in this grid stable across appends.
-                packGrid(grid, true);
-            });
-        });
+        schedulePackGrids(layout, true, dirtyGrids);
     }
 
     buildLayout();

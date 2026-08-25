@@ -77,21 +77,9 @@ let nextPageUrl = adsGrid.dataset.nextPageUrl || ''; let isLoading = false; let 
 const adsMarketFillers = @json($sponsoredFillers);
 const adsMarketBlankSizes = @json($sponsoredBlankSizes ?? []);
 const adsMarketStaticImages = @json($staticSponsoredImages ?? []);
-if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}
-
-function layoutAdsGrid(){
-    const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
-    items.forEach((item)=>{
-        item.style.position = 'static';
-        item.style.left = '';
-        item.style.top = '';
-    });
-    adsGrid.style.height = 'auto';
-}
-window.addEventListener('resize', ()=>{ clearTimeout(debounce); debounce=setTimeout(layoutAdsGrid,120); });
 const categories = JSON.parse(document.getElementById('adsFilterBar').dataset.categories || '[]');
 function populateSubcategories(){const id=categoryFilter.value;subcategoryFilter.innerHTML='<option value="">All subcategories</option>';const cat=categories.find(c=>String(c.id)===String(id));if(!cat||!cat.children.length){subcategoryFilter.disabled=true;return;}cat.children.forEach(child=>{const o=document.createElement('option');o.value=child.id;o.textContent=child.name;if(String(new URLSearchParams(location.search).get('subcategory_id')||'')===String(child.id)) o.selected=true; subcategoryFilter.appendChild(o);});subcategoryFilter.disabled=false;}
-populateSubcategories(); layoutAdsGrid(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
+populateSubcategories(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
 if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener('click', function () {
         searchFilter.value = '';
@@ -111,8 +99,8 @@ function parseCardsHtml(html){
         layout: temp.querySelector('#adsLayout')
     };
 }
-async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();if(!payload.total){adsGrid.innerHTML='<div class="text-center py-4"><h4>No result found</h4></div>';nextPageUrl='';adsGrid.dataset.nextPageUrl='';summaryText.textContent='';loadingText.classList.add('d-none');isLoading=false;return;}adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=`Showing 1 to ${payload.loaded_to} of ${payload.total} results`;if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { resetFillers: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}layoutAdsGrid();loadingText.classList.add('d-none');isLoading=false;}
-async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();const parsed=parseCardsHtml(p.html||'');const existingSource=adsGrid.querySelector('#adsSource');if(existingSource&&parsed.source){existingSource.insertAdjacentHTML('beforeend',parsed.source.innerHTML);}else if(parsed.source){adsGrid.insertAdjacentHTML('beforeend',p.html||'');}nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { append: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}layoutAdsGrid();loadingText.classList.add('d-none');isLoading=false;}
+async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();if(!payload.total){adsGrid.innerHTML='<div class="text-center py-4"><h4>No result found</h4></div>';nextPageUrl='';adsGrid.dataset.nextPageUrl='';summaryText.textContent='';loadingText.classList.add('d-none');isLoading=false;return;}adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=`Showing 1 to ${payload.loaded_to} of ${payload.total} results`;if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { resetFillers: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}loadingText.classList.add('d-none');isLoading=false;}
+async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();const parsed=parseCardsHtml(p.html||'');const existingSource=adsGrid.querySelector('#adsSource');if(existingSource&&parsed.source){existingSource.insertAdjacentHTML('beforeend',parsed.source.innerHTML);}else if(parsed.source){adsGrid.insertAdjacentHTML('beforeend',p.html||'');}nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { append: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}loadingText.classList.add('d-none');isLoading=false;}
 if(scrollSentinel && 'IntersectionObserver' in window){new IntersectionObserver(e=>{if(e[0].isIntersecting) loadMore();},{rootMargin:'250px'}).observe(scrollSentinel);}
 });
 </script>
