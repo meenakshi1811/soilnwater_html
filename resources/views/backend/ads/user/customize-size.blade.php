@@ -225,7 +225,7 @@
                     <select name="category_ids[]" id="categorySelect" class="form-select" required multiple>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values($category->modules ?? []))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -1517,10 +1517,18 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateSubmitButtonState();
         }
 
+        function initSelect2(selectElement, placeholder) {
+            if (!window.jQuery?.fn?.select2 || !selectElement) return;
+            const $select = window.jQuery(selectElement);
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+            $select.select2({ width: '100%', placeholder: placeholder, closeOnSelect: false });
+        }
+
         function initCategorySubcategorySelect2() {
-            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
-            if (categorySelect) window.jQuery(categorySelect).select2({ width: '100%', placeholder: 'Select category(s)', closeOnSelect: false });
-            if (subcategorySelect) window.jQuery(subcategorySelect).select2({ width: '100%', placeholder: 'Select sub category(s)', closeOnSelect: false });
+            initSelect2(categorySelect, 'Select category(s)');
+            initSelect2(subcategorySelect, 'Select sub category(s)');
         }
         function syncSelect2State(selectElement) {
             if (!selectElement || !window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
@@ -1565,21 +1573,76 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 .replace(/[^a-z0-9]+/g, '');
         }
 
-        function selectedModuleKeys() {
+        function expandModuleKeys(modules) {
+            const expanded = new Set();
+
+            (Array.isArray(modules) ? modules : []).forEach((module) => {
+                const slug = String(module || '').trim();
+                if (!slug) return;
+
+                expanded.add(normalizeModuleKey(slug));
+
+                if (slug === 'service_providers' || slug === 'services') {
+                    expanded.add('services');
+                    expanded.add('serviceproviders');
+                }
+            });
+
+            return expanded;
+        }
+
+        function selectedModuleSlugs() {
             return moduleCheckboxes
                 .filter((checkbox) => checkbox.checked)
-                .map((checkbox) => normalizeModuleKey(checkbox.value))
+                .map((checkbox) => checkbox.value)
                 .filter(Boolean);
         }
 
-        function renderCategoryOptions(allowedIds, currentCategoryValues) {
+        function categoryMatchesSelectedModules(categoryModulesJson, selectedSlugs) {
+            if (!selectedSlugs.length) {
+                return true;
+            }
+
+            let categoryModules = [];
+            try {
+                categoryModules = JSON.parse(categoryModulesJson || '[]');
+            } catch (error) {
+                categoryModules = [];
+            }
+
+            const selectedKeys = expandModuleKeys(selectedSlugs);
+            const categoryKeys = expandModuleKeys(categoryModules);
+
+            for (const key of categoryKeys) {
+                if (selectedKeys.has(key)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function selectedModuleKeys() {
+            return selectedModuleSlugs().map((slug) => normalizeModuleKey(slug)).filter(Boolean);
+        }
+
+        function renderCategoryOptions(allowedIds, currentCategoryValues, selectedSlugs) {
+            const activeModuleSlugs = selectedSlugs || selectedModuleSlugs();
             const options = [];
             allCategoryOptions.forEach((item) => {
                 if (!item.value) return;
                 if (allowedIds && !allowedIds.has(String(item.value))) return;
+                if (activeModuleSlugs.length && !categoryMatchesSelectedModules(item.modules, activeModuleSlugs)) return;
                 const isSelected = currentCategoryValues.includes(String(item.value));
                 options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
             });
+
+            if (window.jQuery?.fn?.select2 && categorySelect) {
+                const $categorySelect = window.jQuery(categorySelect);
+                if ($categorySelect.hasClass('select2-hidden-accessible')) {
+                    $categorySelect.select2('destroy');
+                }
+            }
 
             categorySelect.innerHTML = options.join('');
             categorySelect.disabled = false;
@@ -1590,19 +1653,18 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 option.selected = nextSelected.includes(String(option.value));
             });
 
-            syncSelect2State(categorySelect);
+            initSelect2(categorySelect, 'Select category(s)');
 
             return nextSelected;
         }
 
         async function filterCategoriesByModules() {
             if (!categorySelect) return;
-            const selectedModules = selectedModuleKeys();
-            console.log('[AdsCustomize] filterCategoriesByModules selectedModules:', selectedModules);
+            const selectedSlugs = selectedModuleSlugs();
             const currentCategoryValues = Array.from(categorySelect.selectedOptions || []).map((opt) => opt.value);
 
-            if (selectedModules.length === 0) {
-                const nextSelected = renderCategoryOptions(null, currentCategoryValues);
+            if (selectedSlugs.length === 0) {
+                const nextSelected = renderCategoryOptions(null, currentCategoryValues, []);
                 if (nextSelected.length === 0) {
                     if (subcategorySelect) {
                         subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
@@ -1618,17 +1680,15 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
 
             const filterUrl = form.dataset.categoryFilterUrl || '';
-            console.log('[AdsCustomize] category filter URL:', filterUrl);
             try {
-                const requestUrl = `${filterUrl}?${new URLSearchParams(selectedModules.map((module) => ['modules[]', module]))}`;
-                console.log('[AdsCustomize] fetching categories:', requestUrl);
-                const response = await fetch(requestUrl, {
+                const params = new URLSearchParams();
+                selectedSlugs.forEach((module) => params.append('modules[]', module));
+                const response = await fetch(`${filterUrl}?${params.toString()}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const data = await response.json();
-                console.log('[AdsCustomize] categories response status:', response.status, 'payload:', data);
                 const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
-                const nextSelected = renderCategoryOptions(allowedIds, currentCategoryValues);
+                const nextSelected = renderCategoryOptions(allowedIds, currentCategoryValues, selectedSlugs);
 
                 if (nextSelected.length === 0) {
                     if (subcategorySelect) {

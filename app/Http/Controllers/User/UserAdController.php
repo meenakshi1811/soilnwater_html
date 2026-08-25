@@ -801,19 +801,24 @@ class UserAdController extends Controller
     {
         $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]+/', '', str_replace('&', 'and', strtolower(trim($value)))) ?? '';
 
-        $selectedModules = collect($request->input('modules', []))
-            ->filter(fn ($module) => is_string($module) && $module !== '')
-            ->flatMap(fn (string $module) => Category::moduleAliases($module))
-            ->map(fn (string $module) => $normalize($module))
-            ->filter()
-            ->unique()
-            ->values();
+        $expandModules = static function (array $modules) use ($normalize): array {
+            return collect($modules)
+                ->filter(fn ($module) => is_string($module) && $module !== '')
+                ->flatMap(fn (string $module) => Category::moduleAliases($module))
+                ->map(fn (string $module) => $normalize($module))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        };
+
+        $selectedModules = $expandModules($request->input('modules', []));
 
         $categoryQuery = Category::query()
             ->whereNull('parent_id')
             ->orderBy('name');
 
-        if ($selectedModules->isEmpty()) {
+        if ($selectedModules === []) {
             return response()->json(
                 $categoryQuery
                     ->get(['id', 'name'])
@@ -822,17 +827,14 @@ class UserAdController extends Controller
             );
         }
 
+        $selectedSet = collect($selectedModules);
+
         $categories = $categoryQuery
             ->get(['id', 'name', 'modules'])
-            ->filter(function (Category $category) use ($selectedModules, $normalize): bool {
-                $categoryModules = collect($category->modules ?? [])
-                    ->filter(fn ($module) => is_string($module) && $module !== '')
-                    ->map(fn (string $module) => $normalize($module))
-                    ->filter()
-                    ->unique()
-                    ->values();
+            ->filter(function (Category $category) use ($expandModules, $selectedSet): bool {
+                $categoryModules = $expandModules($category->modules ?? []);
 
-                return $categoryModules->intersect($selectedModules)->isNotEmpty();
+                return collect($categoryModules)->intersect($selectedSet)->isNotEmpty();
             })
             ->values()
             ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name]);
