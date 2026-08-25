@@ -3374,7 +3374,9 @@
 .top-vendors-section .vendor-offer-card .card-body {
   flex: 1 1 auto;
   flex-shrink: 0;
+  gap: .45rem !important;
   min-height: 0;
+  padding: .7rem .9rem .85rem;
 }
 .top-vendors-section .top-vendors-ad-card {
   height: 320px;
