@@ -25,7 +25,7 @@ class CommunityChatController extends Controller
 
         $topics = DiscussionTopic::query()
             ->with(['user:id,name,full_name', 'parent:id,title'])
-            ->withCount(['replies', 'members', 'children'])
+            ->withCount(['members', 'children'])
             ->withMax('replies', 'created_at')
             ->latest();
 
@@ -119,7 +119,7 @@ class CommunityChatController extends Controller
             'replies.user',
             'children.user',
         ]);
-        $topic->loadCount(['members', 'children', 'replies']);
+        $topic->loadCount(['members', 'children']);
 
         $participants = $this->participantsFor($topic);
 
