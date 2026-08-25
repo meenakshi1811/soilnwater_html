@@ -790,6 +790,17 @@ function pushScreenshotToServer(dataURL) {
         let uploadedImageFile = null;
         let uploadedImagePositionX = 50;
         let uploadedImagePositionY = 50;
+        let nextLayerOffset = 20;
+
+        function setSelectedLayer(node) {
+            selectedLayer = node || null;
+
+            if (selectedLayer) {
+                selectedLayer.style.zIndex = String(Date.now() % 100000);
+            }
+
+            updateControlPanelFromSelection();
+        }
 
         function toast(type, message) {
             const normalizedType = type === 'danger' ? 'error' : type;
@@ -886,7 +897,7 @@ function pushScreenshotToServer(dataURL) {
             if (mode === 'customize') {
                 canvasWrap.classList.remove('d-none');
                 if (!preview.querySelector('[data-custom-stage="1"]')) {
-                    selectedLayer = null;
+                    setSelectedLayer(null);
                     preview.innerHTML = '';
                     const stage = document.createElement('div');
                     stage.setAttribute('data-custom-stage', '1');
@@ -984,7 +995,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 sx = e.clientX; sy = e.clientY;
                 ox = parseFloat(node.style.left || '20');
                 oy = parseFloat(node.style.top || '20');
-                selectedLayer = node;
+                setSelectedLayer(node);
             });
             window.addEventListener('mousemove', (e) => {
                 if (!dragging) return;
@@ -995,15 +1006,20 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         }
 
         function addLayer(node) {
+            const offset = nextLayerOffset;
+            nextLayerOffset = Math.min(offset + 24, Math.max(20, Math.min(sizeW, sizeH) - 80));
+
             node.style.position = 'absolute';
-            node.style.left = '20px';
-            node.style.top = '20px';
+            node.style.left = offset + 'px';
+            node.style.top = offset + 'px';
             node.style.zIndex = String(Date.now() % 100000);
             makeDraggable(node);
-            node.addEventListener('click', (e) => { e.stopPropagation(); selectedLayer = node; });
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setSelectedLayer(node);
+            });
             preview.appendChild(node);
-            selectedLayer = node;
-            updateControlPanelFromSelection();
+            setSelectedLayer(node);
         }
 
         document.getElementById('addTextBtn')?.addEventListener('click', () => {
@@ -1015,6 +1031,9 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             t.style.padding = '4px 6px';
             t.style.cursor = 'move';
             t.style.minWidth = '80px';
+            t.style.display = 'inline-block';
+            t.style.width = 'fit-content';
+            t.style.maxWidth = Math.max(80, sizeW - 40) + 'px';
             t.setAttribute('contenteditable', 'false');
             t.setAttribute('data-editing', '0');
             t.setAttribute('data-layer-type', 'text');
@@ -1056,13 +1075,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         document.getElementById('removeLayerBtn')?.addEventListener('click', () => {
             if (!selectedLayer) return;
             selectedLayer.remove();
-            selectedLayer = null;
-            updateControlPanelFromSelection();
+            setSelectedLayer(null);
         });
 
         preview?.addEventListener('click', () => {
-            selectedLayer = null;
-            updateControlPanelFromSelection();
+            setSelectedLayer(null);
         });
 
         adBgColorInput?.addEventListener('input', function () {
