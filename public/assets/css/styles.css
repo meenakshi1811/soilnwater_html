@@ -3542,6 +3542,25 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
     height: auto !important;
 }
 
+@media (min-width: 992px) {
+    .ads-full-width .ad-banner .ad-image img,
+    .ads-full-width .ad-hero .ad-image img,
+    .ads-full-width .ad-card:not(.filler):not(.ad-card--gap-fill) .ad-image img {
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    .masonry-grid .ad-card:not(.filler):not(.ad-card--gap-fill) .ad-image img {
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    .masonry-grid .ad-card.ad-portrait:not(.filler):not(.ad-card--gap-fill) .ad-image img {
+        object-fit: contain;
+        object-position: center center;
+    }
+}
+
 /* Sponsored gap-fill cards in desktop masonry grids */
 .masonry-grid .ad-card.ad-card--gap-fill {
     padding: 0;
