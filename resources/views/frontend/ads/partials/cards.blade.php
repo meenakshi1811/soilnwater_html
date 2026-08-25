@@ -416,14 +416,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         if (!isStackedLayout()) {
-            const isLandscape = cardH <= cardW * 1.2;
-
             if (cardW >= packWidth * 0.85) {
                 cardW = packWidth;
-            } else if (isLandscape && cardW >= packWidth * 0.55) {
-                const scale = packWidth / cardW;
-                cardW = packWidth;
-                cardH = Math.max(1, Math.round(cardH * scale));
             }
 
             return { w: cardW, h: cardH };
@@ -1009,7 +1003,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         };
     }
 
-    function fillArbitraryGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys) {
+    function fillArbitraryGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys, startFlexIndex) {
         const fillers = [];
 
         if (isStackedLayout()) {
@@ -1021,7 +1015,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return fillers;
         }
 
-        let flexIndex = 0;
+        let flexIndex = startFlexIndex || 0;
         const maxFlexFillers = Math.max(
             16,
             getFlexSponsoredItems(grid).length * 4,
@@ -1046,7 +1040,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             const item = pickFlexSponsoredItem(grid, flexIndex);
             let slot = null;
 
-            if (item && item.image && Number(item.h) <= 320 && Number(item.h) <= Number(item.w) * 1.35) {
+            if (item && item.image) {
                 slot = mountFillerWithItem(grid, gap.left, gap.top, gap.w, gap.h, item, { gapFill: true });
             } else {
                 const sizeMeta = findBlankSizeMeta(gap.w, gap.h, sideSizes);
@@ -1066,6 +1060,118 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         return fillers;
+    }
+
+    function isDesktopSideGap(slot, placedAds) {
+        const slotTop = slot.top || 0;
+        const slotBottom = slotTop + (slot.h || ((slot.bottom || slotTop) - slotTop));
+        const slotLeft = slot.left || 0;
+
+        if (slotLeft <= 0) {
+            return false;
+        }
+
+        for (let i = 0; i < placedAds.length; i++) {
+            const ad = placedAds[i];
+            if (ad.left >= slotLeft) {
+                continue;
+            }
+            if (ad.bottom > slotTop + 1 && ad.top < slotBottom - 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function pickDesktopSideSize(sideWidth, remainingH, sideSizes) {
+        let picked = null;
+
+        for (let si = sideSizes.length - 1; si >= 0; si--) {
+            const size = sideSizes[si];
+            if (Number(size.w) <= sideWidth && Number(size.h) <= remainingH) {
+                picked = size;
+                break;
+            }
+        }
+
+        return picked;
+    }
+
+    function fillDesktopSideColumns(grid, placedAds, packWidth, obstacles, usedGapKeys, startFlexIndex) {
+        const fillers = [];
+        const sideSizes = getDesktopSideBlankSizes(packWidth);
+
+        if (!sideSizes.length || !placedAds.length) {
+            return { fillers: fillers, flexIndex: startFlexIndex };
+        }
+
+        let flexIndex = startFlexIndex;
+        const maxTiles = Math.max(16, getFlexSponsoredItems(grid).length * 4, (instance.staticImages || []).length * 3);
+        const sortedAds = placedAds.slice().sort(function (a, b) {
+            return (b.bottom - b.top) - (a.bottom - a.top) || a.left - b.left;
+        });
+
+        sortedAds.forEach(function (ad) {
+            if (flexIndex >= maxTiles) {
+                return;
+            }
+
+            const sideLeft = ad.right + GAP;
+            const sideWidth = packWidth - sideLeft;
+
+            if (sideWidth < 180) {
+                return;
+            }
+
+            const adHeight = ad.bottom - ad.top;
+            if (adHeight < 100) {
+                return;
+            }
+
+            let tileTop = ad.top;
+
+            while (tileTop + 80 <= ad.bottom && flexIndex < maxTiles) {
+                const remainingH = ad.bottom - tileTop;
+                const picked = pickDesktopSideSize(sideWidth, remainingH, sideSizes);
+
+                if (!picked) {
+                    tileTop += 40;
+                    continue;
+                }
+
+                const tileW = Number(picked.w);
+                const tileH = Number(picked.h);
+                const key = gapKey(sideLeft, tileTop, tileW, tileH);
+
+                if (usedGapKeys[key] || !isFree(obstacles, sideLeft, tileTop, tileW, tileH, packWidth)) {
+                    tileTop += tileH + GAP;
+                    continue;
+                }
+
+                const item = pickFlexSponsoredItem(grid, flexIndex);
+                let slot = null;
+
+                if (item && item.image) {
+                    slot = mountFillerWithItem(grid, sideLeft, tileTop, tileW, tileH, item, { gapFill: true });
+                } else {
+                    slot = mountBlankFiller(grid, sideLeft, tileTop, tileW, tileH, picked);
+                }
+
+                if (!slot) {
+                    tileTop += tileH + GAP;
+                    continue;
+                }
+
+                fillers.push(slot);
+                obstacles.push(toRect(slot));
+                usedGapKeys[key] = true;
+                flexIndex++;
+                tileTop += tileH + GAP;
+            }
+        });
+
+        return { fillers: fillers, flexIndex: flexIndex };
     }
 
     function createFiller(width, height, grid) {
@@ -1195,12 +1301,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         const slotBottom = slot.top + (slot.h || (slot.bottom - slot.top));
+
         for (let i = 0; i < placedAds.length; i++) {
             if (placedAds[i].top >= slotBottom - 1) {
                 return true;
             }
         }
-        return false;
+
+        return isDesktopSideGap(slot, placedAds);
     }
 
     function addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes) {
@@ -1222,14 +1330,24 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         availableAds.forEach(function (item) {
             const adW = Number(item.w) || 458;
             const adH = Number(item.h) || 229;
-
-            if (!isStackedLayout() && (adH > 320 || adH > adW * 1.35)) {
-                return;
-            }
-
-            const adSize = isStackedLayout()
+            let adSize = isStackedLayout()
                 ? scaleSizeForMobile(item.w, item.h, packWidth)
                 : { w: adW, h: adH };
+
+            if (!isStackedLayout()) {
+                const sideSizes = getDesktopSideBlankSizes(packWidth);
+                const exactSide = sideSizes.find(function (size) {
+                    return Number(size.w) === adW && Number(size.h) === adH;
+                });
+                const fittedSide = exactSide || pickDesktopSideSize(packWidth, 320, sideSizes);
+
+                if (!fittedSide) {
+                    return;
+                }
+
+                adSize = { w: Number(fittedSide.w), h: Number(fittedSide.h) };
+            }
+
             const gapCandidates = collectGapCandidates(
                 placedAds,
                 packWidth,
@@ -1297,13 +1415,24 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         if (!useMobileGaps) {
+            const sideColumnFill = fillDesktopSideColumns(
+                grid,
+                placedAds,
+                packWidth,
+                obstacles,
+                usedGapKeys,
+                availableAds.length
+            );
+            fillers.push.apply(fillers, sideColumnFill.fillers);
+
             const arbitraryFillers = fillArbitraryGaps(
                 grid,
                 placedAds,
                 packWidth,
                 contentHeight,
                 obstacles,
-                usedGapKeys
+                usedGapKeys,
+                sideColumnFill.flexIndex
             );
             fillers.push.apply(fillers, arbitraryFillers);
         }
