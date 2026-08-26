@@ -14,7 +14,7 @@
                 <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> {{ $sectionTitle }}</div>
                 <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
             </div>
-            <div class="recent-ads-slider recent-ads-card-carousel auto-ad-slider vendor-store-recent-ads-slider" data-slide-by="card" data-show-arrows="true" data-show-dots="false" aria-label="{{ $sliderLabel }}">
+            <div class="recent-ads-slider recent-ads-card-carousel auto-ad-slider vendor-store-recent-ads-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" aria-label="{{ $sliderLabel }}">
                 <div class="recent-ads-track">
                     @foreach($ads as $ad)
                         @php

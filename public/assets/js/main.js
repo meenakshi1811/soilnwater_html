@@ -206,17 +206,17 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
 })();
 
 (function(){
-  const carousels = Array.from(document.querySelectorAll('.recent-ads-slider[data-slide-by="card"]'));
+  const carousels = Array.from(document.querySelectorAll('[data-slide-by="card"]'));
 
   if (!carousels.length) return;
 
   carousels.forEach((slider, sliderIndex) => {
     if (slider.dataset.sliderReady === 'true') return;
 
-    const track = slider.querySelector('.recent-ads-track');
+    const track = slider.querySelector('.card-carousel-track, .recent-ads-track');
     if (!track) return;
 
-    const items = Array.from(track.querySelectorAll('.recent-ads-carousel-item'));
+    const items = Array.from(track.querySelectorAll('.card-carousel-item, .recent-ads-carousel-item'));
     slider.dataset.sliderReady = 'true';
 
     const getGap = () => {

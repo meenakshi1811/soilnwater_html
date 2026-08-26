@@ -886,8 +886,7 @@
   }
   .con-card:hover { box-shadow: 0 6px 18px rgba(15,47,82,.16); transform: translateY(-2px); }
   a.con-card { color: inherit; display: flex; flex-direction: column; height: 100%; text-decoration: none; }
-  .consultants-home-slider { border-radius: 12px; }
-  .consultants-home-slider > .ad-slide.is-active { display: block !important; }
+  .consultants-home-slider { border-radius: 12px; position: relative; }
   .consultant-empty-card { min-height: 120px; display: flex; align-items: center; justify-content: center; }
   .con-card img {
     width: 100%;
@@ -1623,13 +1622,14 @@
   .recent-ads-section {
     padding: 22px;
   }
-  .recent-ads-card-carousel {
+  [data-slide-by="card"] {
     position: relative;
     overflow: hidden;
   }
-  .recent-ads-card-carousel .recent-ads-track {
+  [data-slide-by="card"] .card-carousel-track,
+  [data-slide-by="card"] .recent-ads-track {
     display: flex;
-    gap: 14px;
+    gap: var(--carousel-gap, 14px);
     overflow-x: auto;
     scroll-behavior: smooth;
     scroll-snap-type: x proximity;
@@ -1637,13 +1637,45 @@
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
-  .recent-ads-card-carousel .recent-ads-track::-webkit-scrollbar {
+  [data-slide-by="card"] .card-carousel-track::-webkit-scrollbar,
+  [data-slide-by="card"] .recent-ads-track::-webkit-scrollbar {
     display: none;
   }
-  .recent-ads-card-carousel .recent-ads-carousel-item {
-    flex: 0 0 calc((100% - (14px * 5)) / 6);
+  [data-slide-by="card"] .card-carousel-item,
+  [data-slide-by="card"] .recent-ads-carousel-item {
+    flex: 0 0 calc((100% - (var(--carousel-gap, 14px) * (var(--carousel-visible, 6) - 1))) / var(--carousel-visible, 6));
     min-width: 0;
     scroll-snap-align: start;
+  }
+  [data-slide-by="card"][data-carousel-cols="5"] {
+    --carousel-visible: 5;
+  }
+  [data-slide-by="card"][data-carousel-cols="6"] {
+    --carousel-visible: 6;
+  }
+  [data-slide-by="card"] .card-carousel-item > .offer-coupon-card,
+  [data-slide-by="card"] .card-carousel-item > .vendor-offer-card,
+  [data-slide-by="card"] .card-carousel-item > .prod-card {
+    height: 100%;
+  }
+  [data-slide-by="card"] .card-carousel-item {
+    display: flex;
+    flex-direction: column;
+  }
+  [data-slide-by="card"] .con-card.card-carousel-item {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  [data-slide-by="card"] .card-carousel-track.consult-grid-professional {
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    border: 1px solid #e1e8f2;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .recent-ads-card-carousel {
+    position: relative;
+    overflow: hidden;
   }
   .recent-ads-grid {
     display: grid;
@@ -1728,10 +1760,18 @@
     color: #114a84;
   }
   @media (max-width: 1199.98px) {
-    .recent-ads-card-carousel .recent-ads-carousel-item {
+    [data-slide-by="card"][data-carousel-cols="6"] .card-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="6"] .recent-ads-carousel-item {
       flex-basis: calc((100% - (12px * 4)) / 5);
     }
-    .recent-ads-card-carousel .recent-ads-track {
+    [data-slide-by="card"][data-carousel-cols="5"] .card-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="5"] .recent-ads-carousel-item {
+      flex-basis: calc((100% - (12px * 3)) / 4);
+    }
+    [data-slide-by="card"][data-carousel-cols="6"] .card-carousel-track,
+    [data-slide-by="card"][data-carousel-cols="6"] .recent-ads-track,
+    [data-slide-by="card"][data-carousel-cols="5"] .card-carousel-track,
+    [data-slide-by="card"][data-carousel-cols="5"] .recent-ads-track {
       gap: 12px;
     }
     .recent-ads-grid {
@@ -1741,7 +1781,10 @@
     }
   }
   @media (max-width: 991.98px) {
-    .recent-ads-card-carousel .recent-ads-carousel-item {
+    [data-slide-by="card"][data-carousel-cols="6"] .card-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="6"] .recent-ads-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="5"] .card-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="5"] .recent-ads-carousel-item {
       flex-basis: calc((100% - (12px * 2)) / 3);
     }
     .recent-ads-grid {
@@ -1752,10 +1795,12 @@
     .recent-ads-section {
       padding: 16px;
     }
-    .recent-ads-card-carousel .recent-ads-carousel-item {
+    [data-slide-by="card"] .card-carousel-item,
+    [data-slide-by="card"] .recent-ads-carousel-item {
       flex-basis: calc((100% - 10.4px) / 2);
     }
-    .recent-ads-card-carousel .recent-ads-track {
+    [data-slide-by="card"] .card-carousel-track,
+    [data-slide-by="card"] .recent-ads-track {
       gap: 10.4px;
     }
     .recent-ads-grid {
@@ -1786,10 +1831,12 @@
     }
   }
   @media (max-width: 479.98px) {
-    .recent-ads-card-carousel .recent-ads-carousel-item {
+    [data-slide-by="card"] .card-carousel-item,
+    [data-slide-by="card"] .recent-ads-carousel-item {
       flex-basis: 100%;
     }
-    .recent-ads-card-carousel .recent-ads-track {
+    [data-slide-by="card"] .card-carousel-track,
+    [data-slide-by="card"] .recent-ads-track {
       gap: 14px;
     }
     .recent-ads-grid {
