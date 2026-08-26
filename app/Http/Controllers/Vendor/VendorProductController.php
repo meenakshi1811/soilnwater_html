@@ -109,7 +109,10 @@ class VendorProductController extends Controller
 
     public function subcategories(Category $category): JsonResponse
     {
+        abort_unless($category->parent_id === null && $category->hasModule('vendors'), 404);
+
         $subcategories = Category::query()->where('parent_id', $category->id)->orderBy('name')->get(['id', 'name']);
+
         return response()->json(['subcategories' => $subcategories]);
     }
 

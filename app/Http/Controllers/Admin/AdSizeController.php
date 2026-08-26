@@ -15,7 +15,7 @@ class AdSizeController extends Controller
 {
     public function index()
     {
-        $categories = Category::query()->whereNull('parent_id')->orderBy('name')->pluck('name', 'id');
+        $categories = $this->adCategories()->pluck('name', 'id');
 
         $modules = ModulePermissions::modules();
 
@@ -265,7 +265,7 @@ class AdSizeController extends Controller
     {
         return Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'ads')
+            ->forModule('ads')
             ->orderBy('name')
             ->get(['id', 'name']);
     }

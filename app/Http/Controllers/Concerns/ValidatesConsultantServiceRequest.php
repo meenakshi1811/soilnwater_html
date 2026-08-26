@@ -16,7 +16,7 @@ trait ValidatesConsultantServiceRequest
     {
         return Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'consultants')
+            ->forModule('consultants')
             ->with(['children' => fn ($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
             ->orderBy('name')
             ->get(['id', 'name']);
@@ -26,7 +26,12 @@ trait ValidatesConsultantServiceRequest
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query
+                    ->whereNull('parent_id')
+                    ->whereJsonContains('modules', 'consultants')),
+            ],
             'subcategory_id' => ['nullable', Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],

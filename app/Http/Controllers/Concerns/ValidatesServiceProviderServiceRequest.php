@@ -26,7 +26,16 @@ trait ValidatesServiceProviderServiceRequest
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(function ($query): void {
+                    $query->whereNull('parent_id')
+                        ->where(function ($moduleQuery): void {
+                            $moduleQuery->whereJsonContains('modules', 'service_providers')
+                                ->orWhereJsonContains('modules', 'services');
+                        });
+                }),
+            ],
             'subcategory_id' => ['nullable', Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],

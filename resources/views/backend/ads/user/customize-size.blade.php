@@ -1599,10 +1599,6 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         }
 
         function categoryMatchesSelectedModules(categoryModulesJson, selectedSlugs) {
-            if (!selectedSlugs.length) {
-                return true;
-            }
-
             let categoryModules = [];
             try {
                 categoryModules = JSON.parse(categoryModulesJson || '[]');
@@ -1610,8 +1606,13 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 categoryModules = [];
             }
 
-            const selectedKeys = expandModuleKeys(selectedSlugs);
             const categoryKeys = expandModuleKeys(categoryModules);
+
+            if (!selectedSlugs.length) {
+                return categoryKeys.has('ads');
+            }
+
+            const selectedKeys = expandModuleKeys(selectedSlugs);
 
             for (const key of categoryKeys) {
                 if (selectedKeys.has(key)) {
@@ -1631,9 +1632,15 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             const options = [];
             allCategoryOptions.forEach((item) => {
                 if (!item.value) return;
-                if (allowedIds && !allowedIds.has(String(item.value))) return;
-                if (activeModuleSlugs.length && !categoryMatchesSelectedModules(item.modules, activeModuleSlugs)) return;
                 const isSelected = currentCategoryValues.includes(String(item.value));
+                if (allowedIds && !allowedIds.has(String(item.value))) return;
+                if (
+                    activeModuleSlugs.length
+                    && !categoryMatchesSelectedModules(item.modules, activeModuleSlugs)
+                    && !isSelected
+                ) {
+                    return;
+                }
                 options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
             });
 
@@ -1660,50 +1667,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
         async function filterCategoriesByModules() {
             if (!categorySelect) return;
+
             const selectedSlugs = selectedModuleSlugs();
             const currentCategoryValues = Array.from(categorySelect.selectedOptions || []).map((opt) => opt.value);
+            const nextSelected = renderCategoryOptions(null, currentCategoryValues, selectedSlugs);
 
-            if (selectedSlugs.length === 0) {
-                const nextSelected = renderCategoryOptions(null, currentCategoryValues, []);
-                if (nextSelected.length === 0) {
-                    if (subcategorySelect) {
-                        subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
-                        subcategorySelect.disabled = true;
-                        syncSelect2State(subcategorySelect);
-                    }
-                } else {
-                    await loadSubcategories(nextSelected);
+            if (nextSelected.length === 0) {
+                if (subcategorySelect) {
+                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                    subcategorySelect.disabled = true;
+                    syncSelect2State(subcategorySelect);
                 }
-                updateCategoryPriceNote();
-                updateSubmitButtonState();
-                return;
-            }
-
-            const filterUrl = form.dataset.categoryFilterUrl || '';
-            try {
-                const params = new URLSearchParams();
-                selectedSlugs.forEach((module) => params.append('modules[]', module));
-                const response = await fetch(`${filterUrl}?${params.toString()}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
-                const nextSelected = renderCategoryOptions(allowedIds, currentCategoryValues, selectedSlugs);
-
-                if (nextSelected.length === 0) {
-                    if (subcategorySelect) {
-                        subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
-                        subcategorySelect.disabled = true;
-                        syncSelect2State(subcategorySelect);
-                    }
-                } else {
-                    await loadSubcategories(nextSelected);
-                }
-            } catch (error) {
-                console.error('[AdsCustomize] categories fetch failed:', error);
-                categorySelect.innerHTML = '<option value="">— Unable to load categories —</option>';
-                categorySelect.disabled = true;
-                syncSelect2State(categorySelect);
+            } else {
+                await loadSubcategories(nextSelected);
             }
 
             updateCategoryPriceNote();

@@ -139,9 +139,13 @@ class UserAdController extends Controller
             'reason' => ['required', 'string', 'max:2000'],
         ]);
 
-        $category = Category::query()->find($validated['category_id']);
+        $category = Category::query()
+            ->whereKey($validated['category_id'])
+            ->whereNull('parent_id')
+            ->forModule('vendors')
+            ->first();
         $subcategory = Category::query()->find($validated['subcategory_id']);
-        if (! $category || ! $subcategory || (int) $subcategory->parent_id !== (int) $category->id) {
+        if (! $category || ! $subcategory || (int) $subcategory->parent_id !== (int) $category->id || ! $subcategory->hasModule('vendors')) {
             return response()->json(['message' => 'Please select a valid category and subcategory combination.'], 422);
         }
 
@@ -219,7 +223,7 @@ class UserAdController extends Controller
             ->where('parent_id', $validated['category_id'])
             ->find($validated['subcategory_id']);
 
-        if (! $category || ! $subcategory) {
+        if (! $category || ! $subcategory || ! $subcategory->hasModule('consultants')) {
             return response()->json(['message' => 'Please select a valid consultant category and subcategory combination.'], 422);
         }
 
@@ -326,7 +330,7 @@ class UserAdController extends Controller
             ->where('parent_id', $validated['category_id'])
             ->find($validated['subcategory_id']);
 
-        if (! $category || ! $subcategory) {
+        if (! $category || ! $subcategory || ! $subcategory->hasModule('service_providers')) {
             return response()->json(['message' => 'Please select a valid service category and subcategory combination.'], 422);
         }
 
@@ -452,22 +456,20 @@ class UserAdController extends Controller
 
         // abort_if(! $template, 404, 'No active template found for this size.');
 
-        $categories = Category::query()
-            ->whereNull('parent_id')
-            ->orderBy('name')
-            ->get(['id', 'name', 'modules']);
+        $categories = $this->adFormCategories([], ['id', 'name', 'modules']);
 
-        $allowedModuleKeys = $categories
-            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
-            ->unique()
-            ->values()
-            ->all();
+        $moduleOptions = array_intersect_key(ModulePermissions::modules(), array_flip([
+            'vendors',
+            'consultants',
+            'service_providers',
+            'services',
+        ]));
 
         return view('backend.ads.user.customize-size', [
             'sizeType' => $sizeType,
             'size' => AdSizes::all(true)[$sizeType],
             'categories' => $categories,
-            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
+            'moduleOptions' => $moduleOptions,
         ]);
     }
 
@@ -553,21 +555,30 @@ class UserAdController extends Controller
     {
         abort_unless($this->canManageAd($request, $ad), 404);
 
-        $categories = Category::query()
-            ->whereNull('parent_id')
-            ->orderBy('name')
-            ->get(['id', 'name', 'modules']);
-
-        $subcategories = Category::query()
-            ->where('parent_id', $ad->category_id)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $allowedModuleKeys = $categories
-            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
+        $selectedCategoryIds = collect($ad->selected_category_ids ?? [])
+            ->when($ad->category_id, fn ($ids) => $ids->prepend($ad->category_id))
+            ->map(fn ($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
+
+        $categories = $this->adFormCategories($selectedCategoryIds, ['id', 'name', 'modules']);
+
+        $subcategories = Category::query()
+            ->when(
+                $selectedCategoryIds !== [],
+                fn ($query) => $query->whereIn('parent_id', $selectedCategoryIds),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $moduleOptions = array_intersect_key(ModulePermissions::modules(), array_flip([
+            'vendors',
+            'consultants',
+            'service_providers',
+            'services',
+        ]));
 
         return view('backend.ads.user.customize-size', [
             'ad' => $ad,
@@ -576,7 +587,7 @@ class UserAdController extends Controller
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'categories' => $categories,
             'subcategories' => $subcategories,
-            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
+            'moduleOptions' => $moduleOptions,
         ]);
     }
 
@@ -588,7 +599,10 @@ class UserAdController extends Controller
             'title' => 'required|string|max:140',
             'short_description' => 'nullable|string|max:1000',
             'category_ids' => ['required', 'array', 'min:1'],
-            'category_ids.*' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
+            'category_ids.*' => [
+                'required',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')),
+            ],
             'subcategory_ids' => ['required', 'array', 'min:1'],
             'subcategory_ids.*' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
@@ -602,17 +616,28 @@ class UserAdController extends Controller
             'accept_terms' => 'accepted',
         ]);
 
+        $size = AdSizes::all()[$ad->size_type] ?? null;
+        $selectedModules = ($size && AdSizes::isSponsoredFillerSize($size))
+            ? []
+            : collect($validated['selected_modules'] ?? [])->unique()->values()->all();
+
+        if ($message = $this->validateAdCategorySelection(
+            array_map('intval', $validated['category_ids']),
+            $selectedModules
+        )) {
+            return back()->withErrors(['category_ids' => $message])->withInput();
+        }
+
         $this->validateSquareValidUntil($request, $validated['valid_until'], $ad->size_type);
 
         if ($request->filled('generated_image_data')) {
-            $size = AdSizes::all(true)[$ad->size_type] ?? ['w' => 0, 'h' => 0];
+            $sizeForImage = AdSizes::all(true)[$ad->size_type] ?? ['w' => 0, 'h' => 0];
             if ($ad->final_image) {
                 File::delete(public_path($ad->final_image));
             }
-            $ad->final_image = $this->storeGeneratedAdImage($validated['generated_image_data'], (int) $size['w'], (int) $size['h']);
+            $ad->final_image = $this->storeGeneratedAdImage($validated['generated_image_data'], (int) $sizeForImage['w'], (int) $sizeForImage['h']);
         }
 
-        $size = AdSizes::all()[$ad->size_type] ?? null;
         $isSponsoredSize = $size && AdSizes::isSponsoredFillerSize($size);
 
         $ad->fill([
@@ -767,11 +792,7 @@ class UserAdController extends Controller
             'sizeType' => $sizeType,
             'size' => AdSizes::all()[$sizeType],
             'template' => $template,
-            'categories' => Category::query()
-                ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'ads')
-                ->orderBy('name')
-                ->get(['id', 'name', 'modules']),
+            'categories' => $this->adFormCategories([], ['id', 'name', 'modules']),
         ]);
     }
 
@@ -799,51 +820,22 @@ class UserAdController extends Controller
 
     public function categoriesByModules(Request $request): JsonResponse
     {
-        $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]+/', '', str_replace('&', 'and', strtolower(trim($value)))) ?? '';
-
-        $expandModules = static function (array $modules) use ($normalize): array {
-            return collect($modules)
-                ->filter(fn ($module) => is_string($module) && $module !== '')
-                ->flatMap(fn (string $module) => Category::moduleAliases($module))
-                ->map(fn (string $module) => $normalize($module))
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-        };
-
-        $selectedModules = $expandModules($request->input('modules', []));
-
-        $categoryQuery = Category::query()
-            ->whereNull('parent_id')
-            ->orderBy('name');
-
-        if ($selectedModules === []) {
-            return response()->json(
-                $categoryQuery
-                    ->get(['id', 'name'])
-                    ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name])
-                    ->values()
-            );
-        }
-
-        $selectedSet = collect($selectedModules);
-
-        $categories = $categoryQuery
-            ->get(['id', 'name', 'modules'])
-            ->filter(function (Category $category) use ($expandModules, $selectedSet): bool {
-                $categoryModules = $expandModules($category->modules ?? []);
-
-                return collect($categoryModules)->intersect($selectedSet)->isNotEmpty();
-            })
+        $modules = collect($request->input('modules', []))
+            ->filter(fn ($module) => is_string($module) && $module !== '')
             ->values()
-            ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name]);
+            ->all();
+
+        $categories = $this->categoriesForAdModules($modules, ['id', 'name'])
+            ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name])
+            ->values();
 
         return response()->json($categories);
     }
 
     public function subcategories(Category $category): JsonResponse
     {
+        abort_unless($category->parent_id === null && $this->categoryIsAllowedForAdForm($category), 404);
+
         return response()->json(
             $category->children()
                 ->orderBy('name')
@@ -889,6 +881,18 @@ class UserAdController extends Controller
 ]));
 
         $this->validateSquareValidUntil($request, $validated['valid_until'], $sizeType);
+
+        $size = AdSizes::all()[$sizeType] ?? null;
+        $selectedModules = ($size && AdSizes::isSponsoredFillerSize($size))
+            ? []
+            : collect($validated['selected_modules'] ?? [])->unique()->values()->all();
+
+        if ($message = $this->validateAdCategorySelection(
+            array_map('intval', $validated['category_ids']),
+            $selectedModules
+        )) {
+            return back()->withErrors(['category_ids' => $message])->withInput();
+        }
 
         $isValidSubcategory = Category::query()
             ->whereIn('id', $validated['subcategory_ids'])
@@ -1280,5 +1284,120 @@ class UserAdController extends Controller
         }
 
         return $sizeType;
+    }
+
+    /**
+     * @param  list<int>  $includeIds
+     * @param  list<string>  $columns
+     */
+    private function adFormCategories(array $includeIds = [], array $columns = ['id', 'name']): \Illuminate\Support\Collection
+    {
+        return $this->categoriesForAdModules(
+            ['ads', 'vendors', 'consultants', 'service_providers', 'services'],
+            $includeIds,
+            $columns
+        );
+    }
+
+    /**
+     * @param  list<string>  $modules
+     * @param  list<int>  $includeIds
+     * @param  list<string>  $columns
+     */
+    private function categoriesForAdModules(array $modules, array $includeIds = [], array $columns = ['id', 'name']): \Illuminate\Support\Collection
+    {
+        $modules = array_values(array_unique(array_filter(
+            $modules,
+            fn ($module) => is_string($module) && $module !== ''
+        )));
+
+        $query = Category::query()->whereNull('parent_id');
+
+        if ($modules === []) {
+            $query->forModule('ads');
+        } else {
+            $query->where(function ($moduleQuery) use ($modules): void {
+                foreach ($modules as $module) {
+                    foreach (Category::moduleAliases($module) as $alias) {
+                        $moduleQuery->orWhereJsonContains('modules', $alias);
+                    }
+                }
+            });
+        }
+
+        $categories = $query->orderBy('name')->get($columns);
+
+        if ($includeIds === []) {
+            return $categories;
+        }
+
+        $existingIds = $categories->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $missingIds = array_values(array_diff(
+            array_map('intval', $includeIds),
+            $existingIds
+        ));
+
+        if ($missingIds === []) {
+            return $categories;
+        }
+
+        $extra = Category::query()
+            ->whereNull('parent_id')
+            ->whereIn('id', $missingIds)
+            ->orderBy('name')
+            ->get($columns);
+
+        return $categories->merge($extra)->sortBy('name')->values();
+    }
+
+    private function categoryIsAllowedForAdForm(Category $category): bool
+    {
+        foreach (['ads', 'vendors', 'consultants', 'service_providers', 'services'] as $module) {
+            if ($category->hasModule($module)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<string>  $selectedModules
+     */
+    private function categoryMatchesAdSelection(Category $category, array $selectedModules): bool
+    {
+        $modules = $selectedModules === [] ? ['ads'] : $selectedModules;
+
+        foreach ($modules as $module) {
+            if ($category->hasModule($module)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<int>  $categoryIds
+     * @param  list<string>  $selectedModules
+     */
+    private function validateAdCategorySelection(array $categoryIds, array $selectedModules): ?string
+    {
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereIn('id', $categoryIds)
+            ->get();
+
+        if ($categories->count() !== count($categoryIds)) {
+            return 'Please select valid categories for this ad.';
+        }
+
+        foreach ($categories as $category) {
+            if (! $this->categoryMatchesAdSelection($category, $selectedModules)) {
+                return 'Selected categories must match the chosen ad modules.';
+            }
+        }
+
+        return null;
     }
 }

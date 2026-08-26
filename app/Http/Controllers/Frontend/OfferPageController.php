@@ -98,7 +98,7 @@ class OfferPageController extends Controller
             'topServiceProviders' => $this->topServiceProvidersQuery($lat, $lng)->limit(15)->get(),
             'vendorEnquiryCategories' => Category::query()
                 ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'enquiry')
+                ->forModule('vendors')
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']),
