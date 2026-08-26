@@ -1374,49 +1374,43 @@
         </div>
         <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured services slider">
           <div class="card-carousel-track consult-grid-professional">
-            @forelse ($homepageServiceProviders as $serviceProvider)
-              @php
-                $primaryBranch = $serviceProvider->branches->first();
-                $professionalExperience = $serviceProvider->branches->first(
-                  fn ($branch) => filled($branch->professional_experience)
-                )?->professional_experience;
-                $servicesOffered = $serviceProvider->branches->first(
-                  fn ($branch) => filled($branch->services_offered)
-                )?->services_offered;
-                $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-                $serviceProviderProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
-                $serviceProviderCardImage = $serviceProvider->logo ? asset($serviceProvider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder);
-                $serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area');
-                $serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null
-                  ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
-                  : '';
-              @endphp
-              <a class="con-card card-carousel-item text-decoration-none{{ $serviceProvider->is_premium ? ' is-premium-card' : '' }}" href="{{ route('service_provider.show', $serviceProvider->slug) }}" aria-label="View {{ $serviceProvider->publicDisplayName() }} service page">
-                <img src="{{ $serviceProviderCardImage }}" alt="{{ $serviceProvider->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
-                <div class="con-card-body">
-                  <p class="con-name">
-                    {{ $serviceProvider->publicDisplayName() }}
-                    @if($serviceProvider->is_premium)
-                      @include('frontend.premium.partials.badge', ['size' => 'xs'])
+            @if($homepageServiceProviders->isNotEmpty())
+              @foreach($homepageServiceProviders as $serviceProvider)
+                @php($primaryBranch = $serviceProvider->branches->first())
+                @php($professionalExperience = $serviceProvider->branches->first(fn ($branch) => filled($branch->professional_experience))?->professional_experience)
+                @php($servicesOffered = $serviceProvider->branches->first(fn ($branch) => filled($branch->services_offered))?->services_offered)
+                @php($profilePlaceholder = asset('assets/images/profile-placeholder.svg'))
+                @php($serviceProviderProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null)
+                @php($serviceProviderCardImage = $serviceProvider->logo ? asset($serviceProvider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder))
+                @php($serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area'))
+                @php($serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km' : '')
+                <a class="con-card card-carousel-item text-decoration-none{{ $serviceProvider->is_premium ? ' is-premium-card' : '' }}" href="{{ route('service_provider.show', $serviceProvider->slug) }}" aria-label="View {{ $serviceProvider->publicDisplayName() }} service page">
+                  <img src="{{ $serviceProviderCardImage }}" alt="{{ $serviceProvider->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
+                  <div class="con-card-body">
+                    <p class="con-name">
+                      {{ $serviceProvider->publicDisplayName() }}
+                      @if($serviceProvider->is_premium)
+                        @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                      @endif
+                    </p>
+                    <span class="con-role">{{ $serviceProviderCity }} • {{ $serviceProvider->services_count }} Services{{ $serviceProviderDistance }}</span>
+                    @if(filled($professionalExperience))
+                      <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
                     @endif
-                  </p>
-                  <span class="con-role">{{ $serviceProviderCity }} • {{ $serviceProvider->services_count }} Services{{ $serviceProviderDistance }}</span>
-                  @if (filled($professionalExperience))
-                    <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
-                  @endif
-                  @if (filled($servicesOffered))
-                    <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
-                  @endif
-                </div>
-              </a>
-            @empty
+                    @if(filled($servicesOffered))
+                      <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
+                    @endif
+                  </div>
+                </a>
+              @endforeach
+            @else
               <div class="con-card card-carousel-item consultant-empty-card">
                 <div class="con-card-body">
                   <p class="con-name">No services available</p>
                   <span class="con-role">Please check back later.</span>
                 </div>
               </div>
-            @endforelse
+            @endif
           </div>
         </div>
         @if($showPremiumOptions)
@@ -1450,50 +1444,44 @@
         </div>
         <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
           <div class="card-carousel-track consult-grid-professional">
-            @forelse ($homepageConsultants as $consultant)
-              @php
-                $primaryBranch = $consultant->branches->first();
-                $professionalExperience = $consultant->branches->first(
-                  fn ($branch) => filled($branch->professional_experience)
-                )?->professional_experience;
-                $servicesOffered = $consultant->branches->first(
-                  fn ($branch) => filled($branch->services_offered)
-                )?->services_offered;
-                $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-                $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
-                $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
-                $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
-                $consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area');
-                $consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null
-                  ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
-                  : '';
-              @endphp
-              <a class="con-card card-carousel-item text-decoration-none{{ $consultant->is_premium ? ' is-premium-card' : '' }}" href="{{ route('consultant.show', $consultant->slug) }}" aria-label="View {{ $consultant->publicDisplayName() }} consultant page">
-                <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
-                <div class="con-card-body">
-                  <p class="con-name">
-                    {{ $consultant->publicDisplayName() }}
-                    @if($consultant->is_premium)
-                      @include('frontend.premium.partials.badge', ['size' => 'xs'])
+            @if($homepageConsultants->isNotEmpty())
+              @foreach($homepageConsultants as $consultant)
+                @php($primaryBranch = $consultant->branches->first())
+                @php($professionalExperience = $consultant->branches->first(fn ($branch) => filled($branch->professional_experience))?->professional_experience)
+                @php($servicesOffered = $consultant->branches->first(fn ($branch) => filled($branch->services_offered))?->services_offered)
+                @php($profilePlaceholder = asset('assets/images/profile-placeholder.svg'))
+                @php($consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null)
+                @php($consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder))
+                @php($consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder)
+                @php($consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area'))
+                @php($consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null ? ' • '.number_format($consultant->nearest_distance_km, 1).' km' : '')
+                <a class="con-card card-carousel-item text-decoration-none{{ $consultant->is_premium ? ' is-premium-card' : '' }}" href="{{ route('consultant.show', $consultant->slug) }}" aria-label="View {{ $consultant->publicDisplayName() }} consultant page">
+                  <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
+                  <div class="con-card-body">
+                    <p class="con-name">
+                      {{ $consultant->publicDisplayName() }}
+                      @if($consultant->is_premium)
+                        @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                      @endif
+                    </p>
+                    <span class="con-role">{{ $consultantCity }} • {{ $consultant->services_count }} Services{{ $consultantDistance }}</span>
+                    @if(filled($professionalExperience))
+                      <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
                     @endif
-                  </p>
-                  <span class="con-role">{{ $consultantCity }} • {{ $consultant->services_count }} Services{{ $consultantDistance }}</span>
-                  @if (filled($professionalExperience))
-                    <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
-                  @endif
-                  @if (filled($servicesOffered))
-                    <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
-                  @endif
-                </div>
-              </a>
-            @empty
+                    @if(filled($servicesOffered))
+                      <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
+                    @endif
+                  </div>
+                </a>
+              @endforeach
+            @else
               <div class="con-card card-carousel-item consultant-empty-card">
                 <div class="con-card-body">
                   <p class="con-name">No consultants available</p>
                   <span class="con-role">Please check back later.</span>
                 </div>
               </div>
-            @endforelse
+            @endif
           </div>
         </div>
 
