@@ -71,6 +71,10 @@
         })->values()->all(),
       ];
     })->values()->all();
+  $showServiceProvidersSection = !empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'];
+  $homepageServiceProviders = collect($topServiceProviders ?? []);
+  $showConsultantsSection = !empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'];
+  $homepageConsultants = collect($topConsultants ?? []);
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -1000,12 +1004,12 @@
       </div>
     @endif
     <!-- Top Vendors + Properties with Right Ad Rail -->
-    <?php if ($showTopVendors || $showPopularPropertiesNearGreenwood): ?>
+    @if($showTopVendors || $showPopularPropertiesNearGreenwood)
 
       <div class="content-with-ad-rail">
         <div class="content-main-stack">
           <!-- Top Vendors -->
-          <?php if ($showTopVendors): ?>
+          @if($showTopVendors)
 
           <div class="sec recent-ads-section top-vendors-section">
             <div class="sec-head">
@@ -1062,11 +1066,11 @@
               @include('frontend.premium.partials.module-cta', ['type' => 'vendor'])
             @endif
           </div>
-          <?php endif; ?>
+          @endif
 
 
           <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
-          <?php if ($showPopularPropertiesNearGreenwood): ?>
+          @if($showPopularPropertiesNearGreenwood)
 
             <section class="sec ppng-bootstrap-section">
               <div class="sec-head">
@@ -1158,10 +1162,10 @@
                 </div>
               </div>
             </section>
-          <?php endif; ?>
+          @endif
         </div><!-- /content-main-stack -->
       </div><!-- /content-with-ad-rail -->
-      <?php endif; ?>
+    @endif
 
     <!-- Popular Properties redesign (single right-side ad with equal height) -->
     @if(!empty($sectionToggles['popular_properties']) && $sectionToggles['popular_properties'])
@@ -1359,17 +1363,13 @@
     @endif
 
     <!-- Popular Services -->
-    <?php
-      $showServiceProvidersSection = ! empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'];
-      $homepageServiceProviders = $topServiceProviders ?? collect();
-    ?>
-    <?php if ($showServiceProvidersSection): ?>
+    @if($showServiceProvidersSection)
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">Enquiry</button>
-            <a class="view-all" href="<?= e(route('frontend.service_providers.index')) ?>">VIEW ALL ▶</a>
+            <a class="view-all" href="{{ route('frontend.service_providers.index') }}">VIEW ALL ▶</a>
           </div>
         </div>
         <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured services slider">
@@ -1436,20 +1436,16 @@
           </button>
         </div>
       </div> -->
-    <?php endif; ?>
+    @endif
 
     <!-- Consultants & Enquiry -->
-    <?php
-      $showConsultantsSection = ! empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'];
-      $homepageConsultants = $topConsultants ?? collect();
-    ?>
-    <?php if ($showConsultantsSection): ?>
+    @if($showConsultantsSection)
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">Enquiry</button>
-            <a class="view-all" href="<?= e(route('frontend.consultants.index')) ?>">VIEW ALL ▶</a>
+            <a class="view-all" href="{{ route('frontend.consultants.index') }}">VIEW ALL ▶</a>
           </div>
         </div>
         <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
@@ -1505,7 +1501,7 @@
           @include('frontend.premium.partials.module-cta', ['type' => 'consultant'])
         @endif
       </div>
-    <?php endif; ?>
+    @endif
 
     <!-- @if($showConsultantsSection)
 
