@@ -403,7 +403,9 @@ class LoginController extends Controller
     {
         $data = $request->validate([
             'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'whatsapp_same_as_phone' => ['nullable', 'boolean'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
@@ -412,12 +414,19 @@ class LoginController extends Controller
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
         ], [
             'role.required' => 'Please select a role before continuing with Google.',
+            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'phone_number.unique' => 'This phone number is already registered.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
         ]);
 
+        if (filter_var($data['whatsapp_same_as_phone'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $data['whatsapp_number'] = $data['phone_number'];
+        }
+
         $registrationPayload = [
+            'phone_number' => $data['phone_number'],
             'whatsapp_number' => $data['whatsapp_number'],
             'address' => $data['address'],
             'city' => $data['city'],
@@ -1015,7 +1024,7 @@ class LoginController extends Controller
             'name' => $displayName,
             'full_name' => $displayName,
             'email' => strtolower($email),
-            'phone_number' => $phoneNumber,
+            'phone_number' => $registration['phone_number'] ?? $phoneNumber,
             'whatsapp_number' => $registration['whatsapp_number'] ?? null,
             'address' => $registration['address'] ?? null,
             'city' => $registration['city'] ?? null,

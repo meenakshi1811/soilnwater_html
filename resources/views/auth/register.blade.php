@@ -48,8 +48,21 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input id="phone_number" type="tel" class="form-control @error('phone_number') is-invalid @enderror" name="phone_number" value="{{ old('phone_number') }}" required autocomplete="tel" inputmode="numeric">
+                            @error('phone_number')
+                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                            @enderror
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="whatsapp_same_as_phone" name="whatsapp_same_as_phone" value="1" {{ old('whatsapp_same_as_phone', '1') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="whatsapp_same_as_phone">WhatsApp number is same as phone number</label>
+                        </div>
+
+                        <div class="mb-3 {{ old('whatsapp_same_as_phone', '1') ? 'd-none' : '' }}" id="whatsappNumberWrap">
                             <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
-                            <input id="whatsapp_number" type="tel" class="form-control @error('whatsapp_number') is-invalid @enderror" name="whatsapp_number" value="{{ old('whatsapp_number') }}" required autocomplete="tel">
+                            <input id="whatsapp_number" type="tel" class="form-control @error('whatsapp_number') is-invalid @enderror" name="whatsapp_number" value="{{ old('whatsapp_number') }}" autocomplete="tel" inputmode="numeric">
                             @error('whatsapp_number')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
@@ -201,7 +214,7 @@
 </section>
 
 
-<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true" data-bs-focus="false" data-open-on-error="{{ old('google_registration') === '1' && ($errors->has('role') || $errors->has('whatsapp_number') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth')) ? 'true' : 'false' }}">
+<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true" data-bs-focus="false" data-open-on-error="{{ old('google_registration') === '1' && ($errors->has('role') || $errors->has('phone_number') || $errors->has('whatsapp_number') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth')) ? 'true' : 'false' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -230,8 +243,21 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="google_phone_number" class="form-label">Phone Number</label>
+                        <input id="google_phone_number" type="tel" class="form-control @error('phone_number') is-invalid @enderror" name="phone_number" value="{{ old('phone_number') }}" required autocomplete="tel" inputmode="numeric">
+                        @error('phone_number')
+                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                        @enderror
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="google_whatsapp_same_as_phone" name="whatsapp_same_as_phone" value="1" {{ old('whatsapp_same_as_phone', '1') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="google_whatsapp_same_as_phone">WhatsApp number is same as phone number</label>
+                    </div>
+
+                    <div class="mb-3 {{ old('whatsapp_same_as_phone', '1') ? 'd-none' : '' }}" id="googleWhatsappNumberWrap">
                         <label for="google_whatsapp_number" class="form-label">WhatsApp Number</label>
-                        <input id="google_whatsapp_number" type="tel" class="form-control @error('whatsapp_number') is-invalid @enderror" name="whatsapp_number" value="{{ old('whatsapp_number') }}" required autocomplete="tel" inputmode="numeric">
+                        <input id="google_whatsapp_number" type="tel" class="form-control @error('whatsapp_number') is-invalid @enderror" name="whatsapp_number" value="{{ old('whatsapp_number') }}" autocomplete="tel" inputmode="numeric">
                         @error('whatsapp_number')
                             <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                         @enderror

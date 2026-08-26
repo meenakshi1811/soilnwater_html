@@ -573,9 +573,54 @@
             });
         },
 
+        initRegisterWhatsappSync: function (options) {
+            options = options || {};
+            var phoneSelector = options.phoneSelector || '#phone_number';
+            var whatsappSelector = options.whatsappSelector || '#whatsapp_number';
+            var sameSelector = options.sameSelector || '#whatsapp_same_as_phone';
+            var wrapSelector = options.wrapSelector || '#whatsappNumberWrap';
+
+            var $phone = $(phoneSelector);
+            var $whatsapp = $(whatsappSelector);
+            var $same = $(sameSelector);
+            var $wrap = $(wrapSelector);
+
+            if (!$phone.length || !$whatsapp.length || !$same.length || !$wrap.length) {
+                return;
+            }
+
+            var syncWhatsappFromPhone = function () {
+                if ($same.is(':checked')) {
+                    $whatsapp.val($phone.val());
+                }
+            };
+
+            var toggleWhatsappField = function () {
+                var same = $same.is(':checked');
+                $wrap.toggleClass('d-none', same);
+                if (same) {
+                    syncWhatsappFromPhone();
+                }
+            };
+
+            $same.off('change.registerWhatsapp').on('change.registerWhatsapp', toggleWhatsappField);
+            $phone.off('input.registerWhatsapp change.registerWhatsapp').on('input.registerWhatsapp change.registerWhatsapp', function () {
+                syncWhatsappFromPhone();
+            });
+
+            toggleWhatsappField();
+        },
+
         initRegisterForm: function () {
             this.initRegisterPlaceAutocomplete();
             this.initRegisterBusinessFields();
+            this.initRegisterWhatsappSync();
+            this.initRegisterWhatsappSync({
+                phoneSelector: '#google_phone_number',
+                whatsappSelector: '#google_whatsapp_number',
+                sameSelector: '#google_whatsapp_same_as_phone',
+                wrapSelector: '#googleWhatsappNumberWrap'
+            });
             this.attachAjaxForm({
                 formSelector: '#registerForm',
                 buttonSelector: '#registerSubmitBtn',
@@ -585,7 +630,15 @@
                 rules: {
                     fullname: { required: true, minlength: 3, maxlength: 255 },
                     email: { required: true, email: true },
-                    whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    whatsapp_number: {
+                        required: function () {
+                            return !$('#whatsapp_same_as_phone').is(':checked');
+                        },
+                        digits: true,
+                        minlength: 10,
+                        maxlength: 15
+                    },
                     address: { required: true, minlength: 5, maxlength: 500 },
                     city: { required: true, maxlength: 120 },
                     pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
@@ -629,6 +682,12 @@
                     email: {
                         required: 'Please enter your email address.',
                         email: 'Please enter a valid email address.'
+                    },
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
                     },
                     whatsapp_number: {
                         required: 'Please enter your WhatsApp number.',
@@ -685,6 +744,9 @@
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
                 validationMessage: 'Please fix the highlighted fields and try again.',
                 beforeSubmit: function () {
+                    if ($('#whatsapp_same_as_phone').is(':checked')) {
+                        $('#whatsapp_number').val($('#phone_number').val());
+                    }
                     FormHelper.showToast('info', 'Submitting your registration...');
                 },
                 onInvalid: function () {

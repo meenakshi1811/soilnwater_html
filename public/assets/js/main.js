@@ -404,7 +404,10 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
   const addressInput = document.getElementById('google_address');
   const cityInput = document.getElementById('google_city');
   const pincodeInput = document.getElementById('google_pincode');
+  const phoneInput = document.getElementById('google_phone_number');
   const whatsappInput = document.getElementById('google_whatsapp_number');
+  const sameAsPhoneCheckbox = document.getElementById('google_whatsapp_same_as_phone');
+  const googleRegisterForm = document.getElementById('googleRegisterRoleForm');
   const latitudeInput = document.getElementById('google_latitude');
   const longitudeInput = document.getElementById('google_longitude');
   const dateOfBirthInput = document.getElementById('google_date_of_birth');
@@ -413,10 +416,19 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
   if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
 
   const roleModal = new bootstrap.Modal(modalElement);
-  const requiredInputs = [roleSelect, whatsappInput, addressInput, cityInput, pincodeInput, dateOfBirthInput].filter(Boolean);
+  const requiredInputs = [roleSelect, phoneInput, addressInput, cityInput, pincodeInput, dateOfBirthInput].filter(Boolean);
+
+  const syncGoogleWhatsappFromPhone = () => {
+    if (sameAsPhoneCheckbox?.checked && phoneInput && whatsappInput) {
+      whatsappInput.value = phoneInput.value;
+    }
+  };
 
   const syncContinueState = () => {
-    continueBtn.disabled = requiredInputs.some((input) => input.value.trim() === '');
+    syncGoogleWhatsappFromPhone();
+    const needsWhatsapp = !sameAsPhoneCheckbox?.checked;
+    continueBtn.disabled = requiredInputs.some((input) => input.value.trim() === '')
+      || (needsWhatsapp && whatsappInput && whatsappInput.value.trim() === '');
   };
 
   if (registerRoleSelect && registerRoleSelect.value) {
@@ -449,6 +461,13 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       }
       syncContinueState();
     });
+  });
+
+  sameAsPhoneCheckbox?.addEventListener('change', syncContinueState);
+  whatsappInput?.addEventListener('input', syncContinueState);
+
+  googleRegisterForm?.addEventListener('submit', () => {
+    syncGoogleWhatsappFromPhone();
   });
 
   if (addressInput) {

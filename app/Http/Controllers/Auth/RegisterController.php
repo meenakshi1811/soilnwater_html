@@ -47,7 +47,9 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'whatsapp_same_as_phone' => ['nullable', 'boolean'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
@@ -61,6 +63,8 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
         ], [
+            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'phone_number.unique' => 'This phone number is already registered.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
@@ -81,6 +85,7 @@ class RegisterController extends Controller
             'name' => $data['fullname'],
             'full_name' => $data['fullname'],
             'email' => $data['email'],
+            'phone_number' => $data['phone_number'],
             'whatsapp_number' => $data['whatsapp_number'],
             'address' => $data['address'],
             'city' => $data['city'],
@@ -96,9 +101,10 @@ class RegisterController extends Controller
      */
     public function register(Request $request)
     {
-        $this->validator($request->all())->validate();
+        $payload = $this->normalizeRegistrationContact($request->all());
+        $this->validator($payload)->validate();
 
-        $user = $this->create($request->all());
+        $user = $this->create($payload);
 
         if ($user->isGeneralUser() && $request->hasFile('profile_image')) {
             $user->forceFill([
@@ -589,5 +595,14 @@ class RegisterController extends Controller
     private function phoneOtpCacheKey(int $userId): string
     {
         return 'phone_verification_otp_'.$userId;
+    }
+
+    private function normalizeRegistrationContact(array $data): array
+    {
+        if (filter_var($data['whatsapp_same_as_phone'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $data['whatsapp_number'] = $data['phone_number'] ?? $data['whatsapp_number'] ?? null;
+        }
+
+        return $data;
     }
 }
