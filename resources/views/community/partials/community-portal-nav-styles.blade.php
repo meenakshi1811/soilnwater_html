@@ -3,6 +3,32 @@
         width: 100%;
     }
 
+    .community-portal-nav__back {
+        align-items: center;
+        color: #1b5e20;
+        display: inline-flex;
+        font-size: 0.88rem;
+        font-weight: 700;
+        gap: 0.45rem;
+        margin-bottom: 0.7rem;
+        text-decoration: none;
+        transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .community-portal-nav__back:hover {
+        color: #2e7d32;
+        text-decoration: none;
+        transform: translateX(-2px);
+    }
+
+    .community-portal-nav--on-dark .community-portal-nav__back {
+        color: rgba(255, 255, 255, 0.92);
+    }
+
+    .community-portal-nav--on-dark .community-portal-nav__back:hover {
+        color: #fff;
+    }
+
     .community-portal-nav__breadcrumb {
         color: #5f7083;
         font-size: 0.85rem;

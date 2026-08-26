@@ -337,6 +337,7 @@
         'authorName' => $authorName,
         'activeType' => $activeType ?? '',
         'activeHub' => $activeHub ?? null,
+        'showNav' => ! $usePortalListing,
     ])
 
     @if (!isset($activeAuthor))

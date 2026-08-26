@@ -3,8 +3,19 @@
 @section('meta_title', 'Community Posting Policy | SoilnWater')
 @section('meta_description', 'Read the SoilnWater Community Posting Policy for My Voice, content guidelines, prohibited content, moderation, and user responsibilities.')
 
+@push('styles')
+<style>@include('community.partials.community-portal-nav-styles')</style>
+@endpush
+
 @section('content')
 <div class="refund-policy-page">
+  <div class="refund-policy-wrap" style="padding-top: 1.25rem;">
+    @include('community.partials.community-portal-nav', [
+        'navContext' => 'listing',
+        'backUrlOverride' => route('community.index'),
+        'backLabelOverride' => 'Back to Community Hub',
+    ])
+  </div>
   <section class="refund-hero">
     <div class="refund-hero__content">
       <span class="refund-eyebrow"><i class="fa-solid fa-users"></i> Community Posting Policy</span>

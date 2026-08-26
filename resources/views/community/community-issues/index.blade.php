@@ -8,6 +8,7 @@
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
+    @include('community.partials.community-portal-nav-styles')
     .ci-hero {
         background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 40%, #dc2626 100%);
         color: #fff;
@@ -102,6 +103,14 @@
 @section('content')
 <section class="ci-hero">
     <div class="ci-hero__inner">
+        @include('community.partials.community-portal-nav', [
+            'navContext' => 'listing',
+            'activeHub' => 'local-civic',
+            'activeType' => 'community-issues',
+            'navTheme' => 'dark',
+            'backUrlOverride' => route('community.index'),
+            'backLabelOverride' => 'Back to Community Hub',
+        ])
         <p class="ci-unique-kicker">Unique SoilnWater Features</p>
         <h1 class="ci-hero__title">Community Issues Hub</h1>
         <p class="ci-hero__text">
@@ -117,12 +126,6 @@
 </section>
 
 <div class="ci-shell">
-    <nav class="ci-breadcrumb mb-3" aria-label="Breadcrumb">
-        <a href="{{ route('community.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Community Hub</a>
-        <span class="text-muted mx-2">/</span>
-        <span class="text-muted">Community Issues</span>
-    </nav>
-
     <section aria-labelledby="communityDashboardHeading">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
