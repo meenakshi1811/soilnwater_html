@@ -186,13 +186,24 @@
                 @if(! $isSponsoredSize)
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Select Module(s)</label>
-                    @php $selectedModulesForCheckboxes = old('selected_modules', $ad->selected_modules ?? []); @endphp
+                    @php
+                        $selectedModulesForCheckboxes = collect(old('selected_modules', $ad->selected_modules ?? []))
+                            ->map(fn ($module) => $module === 'services' ? 'service_providers' : $module)
+                            ->unique()
+                            ->values()
+                            ->all();
+                    @endphp
                     <div id="moduleCheckboxGroup" class="row g-2" data-module-prices='@json($size["module_prices"] ?? [])'>
                         {{-- Temporarily hidden modules (commented out per request): ecommerce, properties, builders, enquiry, user_enquiry, offers, products --}}
                         @php $hiddenModuleKeys = ['ecommerce', 'properties', 'builders', 'enquiry', 'user_enquiry', 'offers', 'products']; @endphp
                         @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
                             @continue(in_array($moduleKey, $hiddenModuleKeys, true))
-                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
+                            @php
+                                $modulePrice = $size['module_prices'][$moduleKey] ?? null;
+                                if ($modulePrice === null && $moduleKey === 'service_providers') {
+                                    $modulePrice = $size['module_prices']['services'] ?? null;
+                                }
+                            @endphp
                             <div class="col-sm-6">
                                 <div class="form-check border rounded px-3 py-2 h-100">
                                     <input
@@ -1598,7 +1609,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 .filter(Boolean);
         }
 
-        function categoryMatchesSelectedModules(categoryModulesJson, selectedSlugs) {
+        function categoryHasAdsModule(categoryModulesJson) {
             let categoryModules = [];
             try {
                 categoryModules = JSON.parse(categoryModulesJson || '[]');
@@ -1606,41 +1617,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 categoryModules = [];
             }
 
-            const categoryKeys = expandModuleKeys(categoryModules);
-
-            if (!selectedSlugs.length) {
-                return categoryKeys.has('ads');
-            }
-
-            const selectedKeys = expandModuleKeys(selectedSlugs);
-
-            for (const key of categoryKeys) {
-                if (selectedKeys.has(key)) {
-                    return true;
-                }
-            }
-
-            return false;
+            return expandModuleKeys(categoryModules).has('ads');
         }
 
         function selectedModuleKeys() {
             return selectedModuleSlugs().map((slug) => normalizeModuleKey(slug)).filter(Boolean);
         }
 
-        function renderCategoryOptions(allowedIds, currentCategoryValues, selectedSlugs) {
-            const activeModuleSlugs = selectedSlugs || selectedModuleSlugs();
+        function renderCategoryOptions(currentCategoryValues) {
             const options = [];
             allCategoryOptions.forEach((item) => {
                 if (!item.value) return;
+                if (!categoryHasAdsModule(item.modules)) return;
                 const isSelected = currentCategoryValues.includes(String(item.value));
-                if (allowedIds && !allowedIds.has(String(item.value))) return;
-                if (
-                    activeModuleSlugs.length
-                    && !categoryMatchesSelectedModules(item.modules, activeModuleSlugs)
-                    && !isSelected
-                ) {
-                    return;
-                }
                 options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
             });
 
@@ -1668,9 +1657,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         async function filterCategoriesByModules() {
             if (!categorySelect) return;
 
-            const selectedSlugs = selectedModuleSlugs();
             const currentCategoryValues = Array.from(categorySelect.selectedOptions || []).map((opt) => opt.value);
-            const nextSelected = renderCategoryOptions(null, currentCategoryValues, selectedSlugs);
+            const nextSelected = renderCategoryOptions(currentCategoryValues);
 
             if (nextSelected.length === 0) {
                 if (subcategorySelect) {
