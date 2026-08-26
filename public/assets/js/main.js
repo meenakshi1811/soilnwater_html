@@ -53,6 +53,7 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
 
   sliders.forEach((slider, sliderIndex) => {
     if (slider.dataset.sliderReady === 'true') return;
+    if (slider.dataset.slideBy === 'card') return;
 
     const slides = Array.from(slider.children).filter((child) =>
       child.classList.contains('ad-slide') ||
@@ -201,6 +202,125 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     slider.addEventListener('focusout', startAuto);
 
     startAuto();
+  });
+})();
+
+(function(){
+  const carousels = Array.from(document.querySelectorAll('.recent-ads-slider[data-slide-by="card"]'));
+
+  if (!carousels.length) return;
+
+  carousels.forEach((slider, sliderIndex) => {
+    if (slider.dataset.sliderReady === 'true') return;
+
+    const track = slider.querySelector('.recent-ads-track');
+    if (!track) return;
+
+    const items = Array.from(track.querySelectorAll('.recent-ads-carousel-item'));
+    slider.dataset.sliderReady = 'true';
+
+    const getGap = () => {
+      const styles = getComputedStyle(track);
+      return parseFloat(styles.columnGap || styles.gap) || 0;
+    };
+
+    const getStep = () => {
+      const firstItem = items[0];
+      if (!firstItem) return 0;
+      return firstItem.getBoundingClientRect().width + getGap();
+    };
+
+    const scrollByStep = (direction) => {
+      const step = getStep();
+      if (!step) return;
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      if (direction > 0 && track.scrollLeft >= maxScroll - 2) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+        return;
+      }
+
+      if (direction < 0 && track.scrollLeft <= 2) {
+        track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        return;
+      }
+
+      track.scrollBy({ left: direction * step, behavior: 'smooth' });
+    };
+
+    let autoTimer;
+
+    const stopAuto = () => {
+      if (autoTimer) clearTimeout(autoTimer);
+    };
+
+    const baseIntervalMs = Number(slider.dataset.intervalMs) > 0 ? Number(slider.dataset.intervalMs) : 3500;
+    const autoIntervalMs = Number(slider.dataset.intervalMs) > 0
+      ? Number(slider.dataset.intervalMs)
+      : (baseIntervalMs + ((sliderIndex % 5) * 250));
+    const initialDelayMs = Number(slider.dataset.initialDelayMs) >= 0
+      ? Number(slider.dataset.initialDelayMs)
+      : (600 + ((sliderIndex % 7) * 300));
+
+    const startAuto = () => {
+      if (items.length <= 1) return;
+      stopAuto();
+      autoTimer = setTimeout(function tick() {
+        scrollByStep(1);
+        autoTimer = setTimeout(tick, autoIntervalMs);
+      }, initialDelayMs);
+    };
+
+    const restartAuto = () => {
+      startAuto();
+    };
+
+    const showArrows = slider.dataset.showArrows !== 'false';
+
+    if (showArrows && items.length > 1) {
+      const controlsWrap = document.createElement('div');
+      controlsWrap.className = 'ad-slider-arrows';
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'ad-slider-arrow ad-slider-arrow-prev';
+      prevBtn.type = 'button';
+      prevBtn.setAttribute('aria-label', 'Previous ad');
+      prevBtn.innerHTML = '&#10094;';
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'ad-slider-arrow ad-slider-arrow-next';
+      nextBtn.type = 'button';
+      nextBtn.setAttribute('aria-label', 'Next ad');
+      nextBtn.innerHTML = '&#10095;';
+
+      prevBtn.addEventListener('click', () => {
+        scrollByStep(-1);
+        restartAuto();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        scrollByStep(1);
+        restartAuto();
+      });
+
+      controlsWrap.appendChild(prevBtn);
+      controlsWrap.appendChild(nextBtn);
+      slider.appendChild(controlsWrap);
+    }
+
+    const pauseOnHover = slider.dataset.pauseOnHover !== 'false';
+
+    if (pauseOnHover) {
+      slider.addEventListener('mouseenter', stopAuto);
+      slider.addEventListener('mouseleave', startAuto);
+    }
+
+    slider.addEventListener('focusin', stopAuto);
+    slider.addEventListener('focusout', startAuto);
+
+    if (slider.classList.contains('auto-ad-slider')) {
+      startAuto();
+    }
   });
 })();
 

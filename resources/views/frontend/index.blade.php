@@ -542,56 +542,48 @@
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
           <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
         </div>
-        <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
-          @forelse(($recentApprovedAds ?? collect())->chunk(6) as $recentAdsChunk)
-            <div class="ad-slide">
-              <div class="product-grid-4 recent-ads-grid">
-                @foreach($recentAdsChunk as $recentAd)
-                  @php
-                    $selectedCategoryNames = $selectedCategoryNamesByRecentAdId[$recentAd->id] ?? [];
-                    if ($selectedCategoryNames === [] && $recentAd->category?->name) {
-                      $selectedCategoryNames = [$recentAd->category->name];
-                    }
+        <div class="recent-ads-slider recent-ads-card-carousel auto-ad-slider" data-slide-by="card" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
+          <div class="recent-ads-track">
+            @forelse(($recentApprovedAds ?? collect()) as $recentAd)
+              @php
+                $selectedCategoryNames = $selectedCategoryNamesByRecentAdId[$recentAd->id] ?? [];
+                if ($selectedCategoryNames === [] && $recentAd->category?->name) {
+                  $selectedCategoryNames = [$recentAd->category->name];
+                }
 
-                    $moduleLabels = \App\Support\ModulePermissions::modules();
-                    $selectedServiceNames = collect($recentAd->selected_modules ?? [])
-                      ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
-                      ->map(fn ($key) => $moduleLabels[$key])
-                      ->values()
-                      ->all();
-                  @endphp
-                  <article class="prod-card recent-ad-card"
-                    data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}"
-                    data-ad-url="{{ $recentAd->shareUrl() }}"
-                    data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
-                    data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
-                  >
-                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" data-ad-id="{{ $recentAd->id }}" data-ad-url="{{ $recentAd->shareUrl() }}" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
-                    <div class="prod-card-body">
-                      <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
-                      <span class="recent-ad-meta">
-                        <i class="fa-solid fa-layer-group"></i>
-                        {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Uncategorized') }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
-                      </span>
-                    </div>
-                  </article>
-                @endforeach
-              </div>
-            </div>
-          @empty
-            <div class="ad-slide">
-              <div class="product-grid-4 recent-ads-grid">
-                <article class="prod-card recent-ad-card">
-                  <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
-                  <div class="prod-card-body">
-                    <p>No approved ads available yet</p>
-                    <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
-                    <button class="btn btn-sm" type="button">View Ad</button>
-                  </div>
-                </article>
-              </div>
-            </div>
-          @endforelse
+                $moduleLabels = \App\Support\ModulePermissions::modules();
+                $selectedServiceNames = collect($recentAd->selected_modules ?? [])
+                  ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
+                  ->map(fn ($key) => $moduleLabels[$key])
+                  ->values()
+                  ->all();
+              @endphp
+              <article class="prod-card recent-ad-card recent-ads-carousel-item"
+                data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}"
+                data-ad-url="{{ $recentAd->shareUrl() }}"
+                data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
+                data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
+              >
+                <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" data-ad-id="{{ $recentAd->id }}" data-ad-url="{{ $recentAd->shareUrl() }}" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
+                <div class="prod-card-body">
+                  <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
+                  <span class="recent-ad-meta">
+                    <i class="fa-solid fa-layer-group"></i>
+                    {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Uncategorized') }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
+                  </span>
+                </div>
+              </article>
+            @empty
+              <article class="prod-card recent-ad-card recent-ads-carousel-item">
+                <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
+                <div class="prod-card-body">
+                  <p>No approved ads available yet</p>
+                  <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
+                  <button class="btn btn-sm" type="button">View Ad</button>
+                </div>
+              </article>
+            @endforelse
+          </div>
         </div>
       </div>
     @endif

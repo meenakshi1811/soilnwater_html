@@ -1623,6 +1623,28 @@
   .recent-ads-section {
     padding: 22px;
   }
+  .recent-ads-card-carousel {
+    position: relative;
+    overflow: hidden;
+  }
+  .recent-ads-card-carousel .recent-ads-track {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .recent-ads-card-carousel .recent-ads-track::-webkit-scrollbar {
+    display: none;
+  }
+  .recent-ads-card-carousel .recent-ads-carousel-item {
+    flex: 0 0 calc((100% - (14px * 5)) / 6);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
   .recent-ads-grid {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -1706,6 +1728,12 @@
     color: #114a84;
   }
   @media (max-width: 1199.98px) {
+    .recent-ads-card-carousel .recent-ads-carousel-item {
+      flex-basis: calc((100% - (12px * 4)) / 5);
+    }
+    .recent-ads-card-carousel .recent-ads-track {
+      gap: 12px;
+    }
     .recent-ads-grid {
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: .75rem;
@@ -1713,6 +1741,9 @@
     }
   }
   @media (max-width: 991.98px) {
+    .recent-ads-card-carousel .recent-ads-carousel-item {
+      flex-basis: calc((100% - (12px * 2)) / 3);
+    }
     .recent-ads-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -1720,6 +1751,12 @@
   @media (max-width: 767.98px) {
     .recent-ads-section {
       padding: 16px;
+    }
+    .recent-ads-card-carousel .recent-ads-carousel-item {
+      flex-basis: calc((100% - 10.4px) / 2);
+    }
+    .recent-ads-card-carousel .recent-ads-track {
+      gap: 10.4px;
     }
     .recent-ads-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1749,6 +1786,12 @@
     }
   }
   @media (max-width: 479.98px) {
+    .recent-ads-card-carousel .recent-ads-carousel-item {
+      flex-basis: 100%;
+    }
+    .recent-ads-card-carousel .recent-ads-track {
+      gap: 14px;
+    }
     .recent-ads-grid {
       grid-template-columns: 1fr;
     }
