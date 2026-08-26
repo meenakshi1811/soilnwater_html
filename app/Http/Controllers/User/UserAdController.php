@@ -565,6 +565,7 @@ class UserAdController extends Controller
                 fn ($query) => $query->whereIn('parent_id', $selectedCategoryIds),
                 fn ($query) => $query->whereRaw('1 = 0')
             )
+            ->forModule('ads')
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -591,9 +592,7 @@ class UserAdController extends Controller
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => [
                 'required',
-                Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereNull('parent_id')
-                    ->whereJsonContains('modules', 'ads')),
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')),
             ],
             'subcategory_ids' => ['required', 'array', 'min:1'],
             'subcategory_ids.*' => ['required', Rule::exists('categories', 'id')],
@@ -617,6 +616,13 @@ class UserAdController extends Controller
             array_map('intval', $validated['category_ids'])
         )) {
             return back()->withErrors(['category_ids' => $message])->withInput();
+        }
+
+        if ($message = $this->validateAdSubcategorySelection(
+            array_map('intval', $validated['category_ids']),
+            array_map('intval', $validated['subcategory_ids'])
+        )) {
+            return back()->withErrors(['subcategory_ids' => $message])->withInput();
         }
 
         $this->validateSquareValidUntil($request, $validated['valid_until'], $ad->size_type);
@@ -820,10 +826,11 @@ class UserAdController extends Controller
 
     public function subcategories(Category $category): JsonResponse
     {
-        abort_unless($category->parent_id === null && $category->hasModule('ads'), 404);
+        abort_unless($category->parent_id === null, 404);
 
         return response()->json(
             $category->children()
+                ->forModule('ads')
                 ->orderBy('name')
                 ->get(['id', 'name'])
         );
@@ -853,9 +860,7 @@ class UserAdController extends Controller
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => [
                 'required',
-                Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereNull('parent_id')
-                    ->whereJsonContains('modules', 'ads')),
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')),
             ],
             'subcategory_ids' => ['required', 'array', 'min:1'],
             'subcategory_ids.*' => ['required', Rule::exists('categories', 'id')],
@@ -881,15 +886,11 @@ class UserAdController extends Controller
             return back()->withErrors(['category_ids' => $message])->withInput();
         }
 
-        $isValidSubcategory = Category::query()
-            ->whereIn('id', $validated['subcategory_ids'])
-            ->whereIn('parent_id', $validated['category_ids'])
-            ->count() === count($validated['subcategory_ids']);
-
-        if (! $isValidSubcategory) {
-            return back()->withErrors([
-                'subcategory_id' => 'Selected subcategory does not belong to the selected category.',
-            ])->withInput();
+        if ($message = $this->validateAdSubcategorySelection(
+            array_map('intval', $validated['category_ids']),
+            array_map('intval', $validated['subcategory_ids'])
+        )) {
+            return back()->withErrors(['subcategory_ids' => $message])->withInput();
         }
 
         $fields = [];
@@ -1280,7 +1281,10 @@ class UserAdController extends Controller
     {
         return Category::query()
             ->whereNull('parent_id')
-            ->forModule('ads')
+            ->where(function ($query): void {
+                $query->forModule('ads')
+                    ->orWhereHas('children', fn ($childQuery) => $childQuery->forModule('ads'));
+            })
             ->orderBy('name')
             ->get($columns);
     }
@@ -1299,7 +1303,15 @@ class UserAdController extends Controller
 
     private function categoryMatchesAdSelection(Category $category): bool
     {
-        return $category->hasModule('ads');
+        if ($category->hasModule('ads')) {
+            return true;
+        }
+
+        if ($category->parent_id === null) {
+            return $category->children()->forModule('ads')->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -1319,6 +1331,30 @@ class UserAdController extends Controller
         foreach ($categories as $category) {
             if (! $this->categoryMatchesAdSelection($category)) {
                 return 'Selected categories must be assigned to the Ads module.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<int>  $categoryIds
+     * @param  list<int>  $subcategoryIds
+     */
+    private function validateAdSubcategorySelection(array $categoryIds, array $subcategoryIds): ?string
+    {
+        $subcategories = Category::query()
+            ->whereIn('id', $subcategoryIds)
+            ->whereIn('parent_id', $categoryIds)
+            ->get();
+
+        if ($subcategories->count() !== count($subcategoryIds)) {
+            return 'Selected subcategory does not belong to the selected category.';
+        }
+
+        foreach ($subcategories as $subcategory) {
+            if (! $subcategory->hasModule('ads')) {
+                return 'Selected subcategories must be assigned to the Ads module.';
             }
         }
 

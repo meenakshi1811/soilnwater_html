@@ -1609,17 +1609,6 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 .filter(Boolean);
         }
 
-        function categoryHasAdsModule(categoryModulesJson) {
-            let categoryModules = [];
-            try {
-                categoryModules = JSON.parse(categoryModulesJson || '[]');
-            } catch (error) {
-                categoryModules = [];
-            }
-
-            return expandModuleKeys(categoryModules).has('ads');
-        }
-
         function selectedModuleKeys() {
             return selectedModuleSlugs().map((slug) => normalizeModuleKey(slug)).filter(Boolean);
         }
@@ -1628,7 +1617,6 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             const options = [];
             allCategoryOptions.forEach((item) => {
                 if (!item.value) return;
-                if (!categoryHasAdsModule(item.modules)) return;
                 const isSelected = currentCategoryValues.includes(String(item.value));
                 options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
             });
