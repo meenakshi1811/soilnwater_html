@@ -131,6 +131,29 @@ class CommunityPostSubmissionTest extends TestCase
             ->assertDontSee('Content Responsibility Disclaimer');
     }
 
+    public function test_article_submission_ignores_empty_childrens_corner_quiz_fields(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->postJson(route('community.posts.store'), array_merge($this->validPayload(), [
+                'childrens_corner_quiz' => [
+                    [
+                        'question' => '',
+                        'options' => ['', '', ''],
+                        'correct_answer' => '',
+                    ],
+                ],
+            ]))
+            ->assertOk()
+            ->assertJsonFragment([
+                'message' => 'Post saved successfully. You can publish it later from My Posts.',
+            ]);
+
+        $post = CommunityPost::query()->where('title', 'Policy Tracking Test Post')->firstOrFail();
+        $this->assertNull(data_get($post->meta, 'childrens_corner_quiz'));
+    }
+
     public function test_create_rejects_foul_word_in_title(): void
     {
         FoulWord::query()->create(['word' => 'fuck', 'is_active' => true]);

@@ -2188,6 +2188,13 @@ class CommunityPostController extends Controller
             && $request->input('youth_corner_content_type') === CommunityContentTaxonomy::youthCornerProjectContentType();
         $childShareType = $request->input('child_share_type');
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
+        $isChildrensCornerQuiz = $isChildrensCorner && $childContentMode === 'quiz';
+
+        if ($isChildrensCornerQuiz) {
+            $request->merge([
+                'childrens_corner_quiz' => $this->sanitizeChildrensCornerQuizPayload($request->input('childrens_corner_quiz')),
+            ]);
+        }
 
         if ($isChildrensCorner && $request->filled('child_share_type')) {
             $request->merge(['category' => $request->input('child_share_type')]);
@@ -4753,16 +4760,38 @@ class CommunityPostController extends Controller
             'keep_childrens_corner_project_files.*' => ['string', 'max:255'],
             'existing_childrens_corner_project_files' => ['nullable', 'array'],
             'childrens_corner_quiz' => [
-                Rule::requiredIf(fn () => $isChildrensCorner && $childContentMode === 'quiz'),
+                Rule::excludeIf(fn () => ! $isChildrensCornerQuiz),
+                Rule::requiredIf(fn () => $isChildrensCornerQuiz),
                 'nullable',
                 'array',
                 'min:1',
                 'max:'.self::MAX_CHILDRENS_CORNER_QUIZ_QUESTIONS,
             ],
-            'childrens_corner_quiz.*.question' => ['required_with:childrens_corner_quiz', 'string', 'max:500'],
-            'childrens_corner_quiz.*.options' => ['required_with:childrens_corner_quiz', 'array', 'min:2', 'max:6'],
-            'childrens_corner_quiz.*.options.*' => ['required', 'string', 'max:255'],
-            'childrens_corner_quiz.*.correct_answer' => ['required_with:childrens_corner_quiz', 'string', 'max:255'],
+            'childrens_corner_quiz.*.question' => [
+                Rule::excludeIf(fn () => ! $isChildrensCornerQuiz),
+                'required',
+                'string',
+                'max:500',
+            ],
+            'childrens_corner_quiz.*.options' => [
+                Rule::excludeIf(fn () => ! $isChildrensCornerQuiz),
+                'required',
+                'array',
+                'min:2',
+                'max:6',
+            ],
+            'childrens_corner_quiz.*.options.*' => [
+                Rule::excludeIf(fn () => ! $isChildrensCornerQuiz),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'childrens_corner_quiz.*.correct_answer' => [
+                Rule::excludeIf(fn () => ! $isChildrensCornerQuiz),
+                'required',
+                'string',
+                'max:255',
+            ],
             'childrens_corner_themes' => ['nullable', 'array'],
             'childrens_corner_themes.*' => ['string', Rule::in(CommunityContentTaxonomy::childrensCornerThemes())],
             'childrens_corner_gallery' => ['nullable', 'array', 'max:'.self::MAX_CHILDRENS_CORNER_GALLERY],
@@ -8582,6 +8611,33 @@ class CommunityPostController extends Controller
         }
 
         return array_values(array_slice($kept, 0, self::MAX_CHILDRENS_CORNER_PROJECT_FILES));
+    }
+
+    /**
+     * @return list<array{question: string, options: list<string>, correct_answer: string}>
+     */
+    private function sanitizeChildrensCornerQuizPayload(mixed $quiz): array
+    {
+        return collect(is_array($quiz) ? $quiz : [])
+            ->filter(fn (mixed $question): bool => is_array($question))
+            ->map(function (array $question): array {
+                $options = collect((array) ($question['options'] ?? []))
+                    ->map(fn (mixed $option): string => trim((string) $option))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return [
+                    'question' => trim((string) ($question['question'] ?? '')),
+                    'options' => $options,
+                    'correct_answer' => trim((string) ($question['correct_answer'] ?? '')),
+                ];
+            })
+            ->filter(fn (array $question): bool => $question['question'] !== ''
+                || $question['options'] !== []
+                || $question['correct_answer'] !== '')
+            ->values()
+            ->all();
     }
 
     /**

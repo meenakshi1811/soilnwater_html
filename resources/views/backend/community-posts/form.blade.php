@@ -3478,6 +3478,12 @@ The mountains keep.</pre>
         return 'rich_text';
     }
 
+    function isChildrensCornerQuizMode() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        return contentType === 'childrens-corner'
+            && getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '') === 'quiz';
+    }
+
     function syncChildrensCornerCategory() {
         const shareType = document.getElementById('childShareType')?.value || '';
         const categorySelect = document.getElementById('categorySelect');
@@ -5156,7 +5162,7 @@ The mountains keep.</pre>
 
         refreshPoetryEditorMode(isChildrensCorner && mode === 'poem' ? 'poetry' : contentType);
         syncChildrensCornerCategory();
-        refreshChildrensCornerQuizRequiredState(isChildrensCorner && mode === 'quiz');
+        refreshChildrensCornerQuizRequiredState(isChildrensCornerQuizMode());
         mountChildrensCornerFeaturedImage(shareType);
         syncChildrensCornerCommentsSettings(isChildrensCorner);
         refreshBodyEditorVisibility(contentType);
@@ -9738,11 +9744,24 @@ The mountains keep.</pre>
     let childrensCornerQuizNextIndex = 0;
 
     function refreshChildrensCornerQuizRequiredState(isQuizMode) {
-        if (!childrensCornerQuizEntries) {
+        const quizEntries = document.getElementById('childrensCornerQuizEntries');
+        if (!quizEntries) {
             return;
         }
 
-        childrensCornerQuizEntries.querySelectorAll('.childrens-corner-quiz-entry').forEach((entry) => {
+        quizEntries.querySelectorAll('.childrens-corner-quiz-entry').forEach((entry, index) => {
+            entry.querySelectorAll('[data-name]').forEach((field) => {
+                if (isQuizMode) {
+                    const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+                    field.name = fieldName;
+                    field.id = fieldName.replace(/[\[\]]/g, '_');
+                    field.disabled = false;
+                } else {
+                    field.removeAttribute('name');
+                    field.disabled = true;
+                }
+            });
+
             entry.querySelectorAll('.js-quiz-question, .js-quiz-option, .js-quiz-correct-answer').forEach((field) => {
                 field.required = Boolean(isQuizMode);
             });
@@ -9767,9 +9786,6 @@ The mountains keep.</pre>
         entry.querySelector('.js-remove-childrens-quiz-entry')?.addEventListener('click', function () {
             entry.remove();
             reindexChildrensCornerQuizEntries();
-            refreshChildrensCornerQuizRequiredState(
-                getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '') === 'quiz'
-            );
         });
     }
 
@@ -9782,6 +9798,7 @@ The mountains keep.</pre>
             syncChildrensCornerQuizFieldNames(entry, index);
         });
         childrensCornerQuizNextIndex = childrensCornerQuizEntries.querySelectorAll('.childrens-corner-quiz-entry').length;
+        refreshChildrensCornerQuizRequiredState(isChildrensCornerQuizMode());
     }
 
     function addChildrensCornerQuizEntry(data) {
@@ -9805,9 +9822,7 @@ The mountains keep.</pre>
         bindChildrensCornerQuizEntry(entry);
         childrensCornerQuizEntries.appendChild(entry);
         childrensCornerQuizNextIndex += 1;
-        refreshChildrensCornerQuizRequiredState(
-            getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '') === 'quiz'
-        );
+        refreshChildrensCornerQuizRequiredState(isChildrensCornerQuizMode());
     }
 
     function initializeChildrensCornerQuizEntries() {
