@@ -1309,18 +1309,24 @@ class CommunityPostController extends Controller
             CommunityCompetitionsEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
-        $message = $post->isPendingApproval()
-            ? 'Community post submitted for admin approval.'
-            : 'Community post created successfully.';
+        $message = $post->status === CommunityPost::STATUS_DRAFT
+            ? 'Post saved successfully. You can publish it later from My Posts.'
+            : ($post->isPendingApproval()
+                ? 'Community post submitted for admin approval.'
+                : 'Community post created successfully.');
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
-                'redirect' => route('community.posts.show', $post),
+                'redirect' => $post->status === CommunityPost::STATUS_DRAFT
+                    ? route('community.posts.index')
+                    : route('community.posts.show', $post),
             ]);
         }
 
-        return redirect()->route('community.posts.show', $post)->with('success', $message);
+        return redirect()
+            ->to($post->status === CommunityPost::STATUS_DRAFT ? route('community.posts.index') : route('community.posts.show', $post))
+            ->with('success', $message);
     }
 
     public function edit(Request $request, CommunityPost $post): View
@@ -2085,18 +2091,24 @@ class CommunityPostController extends Controller
             CommunityCompetitionsEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
-        $message = $post->isPendingApproval()
-            ? 'Community post submitted for admin approval.'
-            : 'Community post updated successfully.';
+        $message = $post->status === CommunityPost::STATUS_DRAFT
+            ? 'Post saved successfully. You can publish it later from My Posts.'
+            : ($post->isPendingApproval()
+                ? 'Community post submitted for admin approval.'
+                : 'Community post updated successfully.');
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
-                'redirect' => route('community.posts.show', $post),
+                'redirect' => $post->status === CommunityPost::STATUS_DRAFT
+                    ? route('community.posts.index')
+                    : route('community.posts.show', $post),
             ]);
         }
 
-        return redirect()->route('community.posts.show', $post)->with('success', $message);
+        return redirect()
+            ->to($post->status === CommunityPost::STATUS_DRAFT ? route('community.posts.index') : route('community.posts.show', $post))
+            ->with('success', $message);
     }
 
     public function destroy(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
@@ -2247,6 +2259,10 @@ class CommunityPostController extends Controller
 
         if ($isMyArea && $request->filled('my_area_activity_type')) {
             $request->merge(['writing_purpose' => $request->input('my_area_activity_type')]);
+        }
+
+        if ($request->input('status') === CommunityPost::STATUS_DRAFT) {
+            return $this->validatedDraft($request, $post, $typeKeys);
         }
 
         $rules = [
@@ -4899,6 +4915,73 @@ class CommunityPostController extends Controller
         if (! ($validated['allow_poll'] ?? false)) {
             $validated['poll_subject'] = null;
         }
+
+        app(FoulWordFilter::class)->assertCleanPayload($validated);
+
+        return $validated;
+    }
+
+    /**
+     * @param  list<string>  $typeKeys
+     * @return array<string, mixed>
+     */
+    private function validatedDraft(Request $request, ?CommunityPost $post, array $typeKeys): array
+    {
+        $contentType = $request->input('content_type');
+
+        $validated = $request->validate([
+            'content_type' => ['required', Rule::in($typeKeys)],
+            'writing_purpose' => ['nullable', 'string', 'max:120'],
+            'category' => ['nullable', 'string', 'max:120'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'excerpt' => ['nullable', 'string', 'max:1000'],
+            'body' => ['nullable', 'string'],
+            'status' => ['required', Rule::in([CommunityPost::STATUS_DRAFT])],
+            'tags' => ['nullable', 'string', 'max:500'],
+            'location_type' => ['nullable', Rule::in(array_keys(CommunityPost::locationTypeOptions(is_string($contentType) ? $contentType : null)))],
+            'location' => ['nullable', 'string', 'max:160'],
+            'location_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'location_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'accept_content_responsibility' => ['nullable'],
+            'accept_original_work_indemnity' => ['nullable'],
+        ]);
+
+        $validated['title'] = filled($validated['title'] ?? null)
+            ? trim((string) $validated['title'])
+            : 'Untitled draft';
+
+        $category = trim((string) ($validated['category'] ?? ''));
+        if ($category === '' && is_string($contentType)) {
+            $category = CommunityContentTaxonomy::firstCategoryFor($contentType);
+        }
+        $validated['category'] = $category;
+
+        if (CommunityPost::isBookContentType($contentType)) {
+            $bookPages = $this->normalizeBookPages(
+                $request->input('book_pages', []),
+                is_string($contentType) ? $contentType : null
+            );
+
+            if ($bookPages !== []) {
+                $validated['body'] = CommunityPost::bodyFromBookPages($bookPages);
+            }
+        }
+
+        $validated['location_type'] = filled($validated['location_type'] ?? null)
+            ? $validated['location_type']
+            : CommunityPost::LOCATION_TYPE_GLOBAL;
+
+        if (! filled($validated['location'] ?? null)) {
+            $validated = array_merge(
+                $validated,
+                CommunityPost::defaultLocationForType((string) $validated['location_type'])
+            );
+        }
+
+        $validated['publish_as'] = null;
+        $validated['pen_name'] = null;
+        $validated['allow_poll'] = false;
+        $validated['poll_subject'] = null;
 
         app(FoulWordFilter::class)->assertCleanPayload($validated);
 

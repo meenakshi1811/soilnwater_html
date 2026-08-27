@@ -20,7 +20,30 @@ class CommunityPostSubmissionTest extends TestCase
         FoulWordFilter::forgetCache();
     }
 
-    public function test_post_submission_requires_policy_checkboxes(): void
+    public function test_post_submission_allows_draft_without_policy_checkboxes(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->postJson(route('community.posts.store'), [
+                'content_type' => 'articles',
+                'title' => 'Draft write-up in progress',
+                'body' => 'Saving this article to finish later.',
+                'status' => CommunityPost::STATUS_DRAFT,
+            ])
+            ->assertOk()
+            ->assertJsonFragment([
+                'message' => 'Post saved successfully. You can publish it later from My Posts.',
+            ]);
+
+        $this->assertDatabaseHas('community_posts', [
+            'user_id' => $user->id,
+            'title' => 'Draft write-up in progress',
+            'status' => CommunityPost::STATUS_DRAFT,
+        ]);
+    }
+
+    public function test_post_submission_requires_policy_checkboxes_for_publish(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
@@ -31,7 +54,7 @@ class CommunityPostSubmissionTest extends TestCase
                 'writing_purpose' => 'Share Knowledge',
                 'title' => 'Missing Policy Acceptance',
                 'body' => 'This article body contains enough content to pass validation for publishing.',
-                'status' => CommunityPost::STATUS_DRAFT,
+                'status' => CommunityPost::STATUS_PUBLISHED,
                 'location_type' => 'city',
                 'location' => 'Jaipur, Rajasthan, India',
                 'location_lat' => '26.9124000',

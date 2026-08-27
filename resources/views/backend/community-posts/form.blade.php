@@ -382,17 +382,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-8">
+            <div class="col-12">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
-                <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255" required>
+                <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255">
+                <small class="text-muted d-block mt-1">Use <strong>Save Post</strong> to keep your write-up and publish later from My Posts.</small>
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Status <span class="text-danger">*</span></label>
-                <select name="status" id="communityPostStatus" class="form-select" required>
-                    <option value="published" @selected($formStatus === 'published')>Publish now</option>
-                    <option value="draft" @selected($formStatus === 'draft')>Save as draft</option>
-                </select>
-            </div>
+            <input type="hidden" name="status" id="communityPostStatus" value="{{ $formStatus === 'draft' ? 'draft' : 'published' }}">
             <div class="col-12">
                 <label class="form-label" id="excerptLabel">Short excerpt</label>
                 <textarea name="excerpt" id="excerptField" class="form-control" rows="2" maxlength="1000">{{ old('excerpt', $post->excerpt) }}</textarea>
@@ -2444,9 +2439,10 @@ The mountains keep.</pre>
         </div>
             </div>
 
-        <div class="d-flex justify-content-end gap-2 mt-4">
+        <div class="d-flex justify-content-end gap-2 mt-4 flex-wrap">
             <a href="{{ route('community.posts.index') }}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary ems-btn-primary">{{ $mode === 'edit' ? 'Update Post' : 'Create Post' }}</button>
+            <button type="submit" class="btn btn-outline-primary" data-save-mode="draft">{{ $mode === 'edit' ? 'Save Post' : 'Save Post' }}</button>
+            <button type="submit" class="btn btn-primary ems-btn-primary" data-save-mode="publish">{{ $mode === 'edit' ? 'Update & Publish' : 'Publish Post' }}</button>
         </div>
             </div>
         </div>
@@ -3876,6 +3872,32 @@ The mountains keep.</pre>
     }
 
     document.getElementById('competitionsCategory')?.addEventListener('change', syncCompetitionsCategory);
+
+    function syncAllFlowCategoriesForSubmit(contentType) {
+        const syncMap = {
+            'childrens-corner': syncChildrensCornerCategory,
+            'awareness': syncAwarenessCategory,
+            'business': syncBusinessCategory,
+            'womens-world': syncWomensWorldCategory,
+            'senior-citizens-forum': syncSeniorCitizensForumCategory,
+            'student-corner': syncStudentCornerCategory,
+            'youth-corner': syncYouthCornerCategory,
+            'local-voices': syncLocalVoicesCategory,
+            'my-area': syncMyAreaCategory,
+            'community-issues': syncCommunityIssuesCategory,
+            'agriculture': syncAgricultureCategory,
+            'environment': syncEnvironmentCategory,
+            'science-technology': syncScienceTechnologyCategory,
+            'astro-consultancy': syncAstroConsultancyCategory,
+            'religion-spirituality': syncReligionSpiritualityCategory,
+            'creative-corner': syncCreativeCornerCategory,
+            'competitions': syncCompetitionsCategory,
+        };
+
+        if (syncMap[contentType]) {
+            syncMap[contentType]();
+        }
+    }
 
     function refreshCompetitionsConditionalSections() {
         const contentType = document.getElementById('contentType')?.value || '';
@@ -6651,7 +6673,9 @@ The mountains keep.</pre>
         const isNews = selectedType === 'news';
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
-        help.textContent = type ? type.description : '';
+        if (help) {
+            help.textContent = type ? type.description : '';
+        }
 
         const categoryLabel = document.getElementById('categoryLabel');
         const categoryHelp = document.getElementById('categoryHelp');
@@ -10824,8 +10848,25 @@ The mountains keep.</pre>
     document.getElementById('community-post-form').addEventListener('submit', function (event) {
         event.preventDefault();
         const form = event.currentTarget;
-        const submitButton = form.querySelector('button[type="submit"]');
+        const submitButton = event.submitter || form.querySelector('button[type="submit"][data-save-mode="publish"]');
+        const isDraftSave = submitButton?.dataset?.saveMode === 'draft';
         const originalButtonHtml = submitButton.innerHTML;
+        const statusField = document.getElementById('communityPostStatus');
+
+        if (statusField) {
+            statusField.value = isDraftSave ? 'draft' : 'published';
+        }
+
+        if (!document.getElementById('contentType')?.value) {
+            notify('error', 'Please select a post type first.');
+            return;
+        }
+
+        if (!isDraftSave && !document.querySelector('#communityPostDetails input[name="title"]')?.value.trim()) {
+            notify('error', 'Please enter a title before publishing.');
+            document.querySelector('#communityPostDetails input[name="title"]')?.focus();
+            return;
+        }
 
         if (window.communityBodyEditor) {
             if (isBookContentType(document.getElementById('contentType').value)) {
@@ -10835,7 +10876,7 @@ The mountains keep.</pre>
                     return (page.content || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== '';
                 });
 
-                if (!hasBookContent) {
+                if (!isDraftSave && !hasBookContent) {
                     notify('error', chapterMode
                         ? 'Please add content to at least one chapter.'
                         : 'Please add content to at least one book page.');
@@ -10843,7 +10884,7 @@ The mountains keep.</pre>
                     return;
                 }
 
-                if (chapterMode) {
+                if (!isDraftSave && chapterMode) {
                     const missingChapterTitle = window.communityBookPages.some(function (page) {
                         const hasContent = (page.content || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== '';
                         return hasContent && !(page.title || '').trim();
@@ -10860,9 +10901,9 @@ The mountains keep.</pre>
                 const childrensMode = contentTypeValue === 'childrens-corner'
                     ? getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '')
                     : null;
-                const requiresBody = contentTypeValue !== 'childrens-corner'
+                const requiresBody = !isDraftSave && (contentTypeValue !== 'childrens-corner'
                     || childrensMode === 'rich_text'
-                    || childrensMode === 'poem';
+                    || childrensMode === 'poem');
 
                 document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
 
@@ -10873,7 +10914,7 @@ The mountains keep.</pre>
                         window.communityBodyEditor.editing.view.focus();
                         return;
                     }
-                } else {
+                } else if (!isDraftSave) {
                     document.getElementById('bodyEditor').value = '';
                 }
             }
@@ -10884,7 +10925,7 @@ The mountains keep.</pre>
 
         const contentType = document.getElementById('contentType')?.value || '';
 
-        if (contentType === 'childrens-corner') {
+        if (!isDraftSave && contentType === 'childrens-corner') {
             syncChildrensCornerCategory();
             reindexChildrensCornerQuizEntries();
 
@@ -10989,6 +11030,9 @@ The mountains keep.</pre>
             }
         }
 
+        if (isDraftSave) {
+            syncAllFlowCategoriesForSubmit(contentType);
+        } else {
         if (contentType === 'astro-consultancy') {
             syncAstroConsultancyCategory();
 
@@ -11238,7 +11282,7 @@ The mountains keep.</pre>
             return;
         }
 
-        if (!document.getElementById('acceptContentResponsibility')?.checked || !document.getElementById('acceptOriginalWorkIndemnity')?.checked) {
+        if (!isDraftSave && (!document.getElementById('acceptContentResponsibility')?.checked || !document.getElementById('acceptOriginalWorkIndemnity')?.checked)) {
             notify('error', 'Please accept both content responsibility statements before submitting.');
             return;
         }
@@ -11467,9 +11511,13 @@ The mountains keep.</pre>
                 return;
             }
         }
+        }
 
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
+        form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+            button.disabled = true;
+        });
 
         if (contentType === 'student-corner') {
             reindexStudentCornerAchievements();
@@ -11548,13 +11596,17 @@ The mountains keep.</pre>
                     notify('error', firstError || payload.message || 'Please fix the highlighted fields and try again.');
                     return;
                 }
-                notify('success', payload.message || 'Community post saved successfully.');
+                notify('success', payload.message || (isDraftSave ? 'Post saved successfully.' : 'Community post saved successfully.'));
                 setTimeout(() => { window.location.href = payload.redirect || '{{ route('community.posts.index') }}'; }, 800);
             })
             .catch(() => notify('error', 'Network error while saving the community post.'))
             .finally(() => {
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonHtml;
+                form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+                    button.disabled = false;
+                    if (button === submitButton) {
+                        button.innerHTML = originalButtonHtml;
+                    }
+                });
             });
     });
 </script>

@@ -5718,6 +5718,30 @@ class CommunityContentTaxonomy
         return ['Drip', 'Sprinkler', 'Flood', 'Rainfed'];
     }
 
+    public static function firstCategoryFor(string $type): string
+    {
+        $types = self::formTypes();
+        $config = $types[$type] ?? null;
+
+        if (! is_array($config)) {
+            return 'General';
+        }
+
+        if (isset($config['categoryGroups']) && is_array($config['categoryGroups'])) {
+            foreach ($config['categoryGroups'] as $categories) {
+                if (is_array($categories) && isset($categories[0]) && filled($categories[0])) {
+                    return (string) $categories[0];
+                }
+            }
+        }
+
+        if (isset($config['categories'][0]) && filled($config['categories'][0])) {
+            return (string) $config['categories'][0];
+        }
+
+        return 'General';
+    }
+
     public static function isValidCategory(string $type, string $category): bool
     {
         if ($type === 'stories' && in_array($category, ['Real Life Experiences', 'Fiction'], true)) {
