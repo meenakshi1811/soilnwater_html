@@ -942,10 +942,11 @@
                 formSelector: '#contactVerifyForm',
                 buttonSelector: '#contactVerifyBtn',
                 alertSelector: '#contactVerifyAlert',
-                defaultText: 'Verify Email',
+                defaultText: 'Verify Account',
                 loadingText: 'Verifying...',
                 rules: {
-                    email_otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                    email_otp: { required: true, digits: true, minlength: 6, maxlength: 6 },
+                    phone_otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
                 },
                 messages: {
                     email_otp: {
@@ -953,6 +954,12 @@
                         digits: 'Email code must contain only numbers.',
                         minlength: 'Email code must be 6 digits.',
                         maxlength: 'Email code must be 6 digits.'
+                    },
+                    phone_otp: {
+                        required: 'Please enter the phone verification code.',
+                        digits: 'Phone code must contain only numbers.',
+                        minlength: 'Phone code must be 6 digits.',
+                        maxlength: 'Phone code must be 6 digits.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to verify code right now. Please try again.',

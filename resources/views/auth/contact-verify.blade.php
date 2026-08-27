@@ -10,8 +10,8 @@
         <div class="otp-layout justify-content-center">
             <div class="card auth-form-card otp-form-card">
                 <div class="card-body">
-                    <h2 class="auth-title otp-title">Verify Your Email</h2>
-                    <p class="auth-subtitle mb-1">We've sent a 6-digit code to <strong>{{ $email }}</strong>.</p>
+                    <h2 class="auth-title otp-title">Verify Your Account</h2>
+                    <p class="auth-subtitle mb-1">We've sent separate 6-digit codes to <strong>{{ $email }}</strong> and <strong>{{ $phoneNumber }}</strong>.</p>
                     <p class="auth-subtitle mb-4">Expires in <span id="otp-timer" class="otp-timer" data-expires-at="{{ $expiresAt }}">05:00</span></p>
 
                     <div id="contactVerifyAlert" class="alert d-none" role="alert"></div>
@@ -24,6 +24,10 @@
                         <div class="alert alert-danger" role="alert">{{ $errors->first('email_otp') }}</div>
                     @endif
 
+                    @if ($errors->has('phone_otp'))
+                        <div class="alert alert-danger" role="alert">{{ $errors->first('phone_otp') }}</div>
+                    @endif
+
                     <form id="contactVerifyForm" method="POST" action="{{ route('register.contact.verify') }}" novalidate>
                         @csrf
                         <div class="mb-3">
@@ -31,8 +35,13 @@
                             <input id="email_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="email_otp" required placeholder="Enter 6-digit email code">
                         </div>
 
+                        <div class="mb-3">
+                            <label for="phone_otp" class="form-label">Phone Verification Code</label>
+                            <input id="phone_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="phone_otp" required placeholder="Enter 6-digit phone code">
+                        </div>
+
                         <button id="contactVerifyBtn" type="submit" class="btn otp-btn w-100 js-auto-loader">
-                            <span class="btn-text">Verify Email</span>
+                            <span class="btn-text">Verify Account</span>
                             <span class="btn-loader d-none" aria-hidden="true"></span>
                         </button>
                     </form>

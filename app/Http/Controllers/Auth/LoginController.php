@@ -109,7 +109,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your email is not verified yet. Please verify your account before signing in.'
+                'Your email and phone number are not verified yet. Please verify your account before signing in.'
             );
         }
 
@@ -124,7 +124,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your account is approved. Please verify your email before signing in.'
+                'Your account is approved. Please verify your email and phone number before signing in.'
             );
         }
 
@@ -186,7 +186,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your email is not verified yet. Please verify your account first.',
+                'Your email and phone number are not verified yet. Please verify your account first.',
                 $credentials['login_contact']
             );
         }
@@ -200,7 +200,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your account is approved. Please verify your email before signing in.',
+                'Your account is approved. Please verify your email and phone number before signing in.',
                 $credentials['login_contact']
             );
         }
@@ -343,8 +343,8 @@ class LoginController extends Controller
                 $request,
                 $user,
                 $this->isMarketplaceUser($user)
-                    ? 'Your account is approved. Please verify your email before signing in.'
-                    : 'Your email is not verified yet. Please verify your account first.'
+                    ? 'Your account is approved. Please verify your email and phone number before signing in.'
+                    : 'Your email and phone number are not verified yet. Please verify your account first.'
             );
         }
 
@@ -519,7 +519,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your email is not verified yet. Please verify your email to continue.'
+                'Your email and phone number are not verified yet. Please verify your account to continue.'
             );
         }
 
@@ -545,7 +545,7 @@ class LoginController extends Controller
                 return $this->contactVerificationRequiredResponse(
                     $request,
                     $user,
-                    'Your account is approved. Please verify your email before signing in.'
+                    'Your account is approved. Please verify your email and phone number before signing in.'
                 );
             }
         }

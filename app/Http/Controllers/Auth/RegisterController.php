@@ -165,7 +165,7 @@ class RegisterController extends Controller
             $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
 
-            $message = 'Registration successful. We sent a 6-digit verification code to your email address.';
+            $message = 'Registration successful. We sent separate 6-digit verification codes to your email and phone number.';
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -238,6 +238,7 @@ class RegisterController extends Controller
 
         return view('auth.contact-verify', [
             'email' => $user->email,
+            'phoneNumber' => $user->phone_number,
             'expiresAt' => $otpData['expires_at'],
         ]);
     }
@@ -246,6 +247,7 @@ class RegisterController extends Controller
     {
         $request->validate([
             'email_otp' => ['required', 'digits:6'],
+            'phone_otp' => ['required', 'digits:6'],
         ]);
 
         $user = $this->verificationUserFromSession($request);
@@ -267,14 +269,21 @@ class RegisterController extends Controller
             return $this->contactVerificationErrorResponse($request, 'Invalid email OTP. Please try again.', 422, 'email_otp');
         }
 
+        if (! hash_equals((string) $otpData['phone_otp'], (string) $request->string('phone_otp'))) {
+            return $this->contactVerificationErrorResponse($request, 'Invalid phone OTP. Please try again.', 422, 'phone_otp');
+        }
+
         $user->forceFill([
             'email_verified_at' => $user->email_verified_at ?? now(),
+            'phone_verified_at' => now(),
         ])->save();
+
+        app(DiscussionGroupInvitationService::class)->claimPendingInvitationsForUser($user->fresh());
 
         Cache::forget($cacheKey);
         $request->session()->forget('contact_verification_user_id');
 
-        $message = 'Your email is verified successfully. Please login to continue.';
+        $message = 'Your email and phone number are verified successfully. Please login to continue.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -296,7 +305,7 @@ class RegisterController extends Controller
 
         $otpPayload = $this->sendContactVerificationOtp($user);
 
-        $message = 'A new email verification code was sent successfully.';
+        $message = 'New email and phone verification codes were sent successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -329,7 +338,7 @@ class RegisterController extends Controller
         $request->session()->put('contact_verification_user_id', $user->id);
         $this->sendContactVerificationOtp($user);
 
-        return redirect()->route('register.contact.verify.form')->with('status', 'We sent a new email verification code.');
+        return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
     }
 
     public function startPhoneVerification(Request $request): RedirectResponse
@@ -481,10 +490,12 @@ class RegisterController extends Controller
     private function sendContactVerificationOtp(User $user): array
     {
         $emailOtpCode = (string) random_int(100000, 999999);
+        $phoneOtpCode = (string) random_int(100000, 999999);
         $expiresAt = now()->addMinutes(5);
 
         Cache::put($this->contactOtpCacheKey($user->id), [
             'email_otp' => $emailOtpCode,
+            'phone_otp' => $phoneOtpCode,
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
@@ -495,9 +506,11 @@ class RegisterController extends Controller
             contextLine: 'Use the OTP below to complete your SoilNWater registration and verify your email address.',
         ));
 
+        $this->sendOtpToPhone($user->phone_number, $phoneOtpCode);
+
         return [
             'expires_at' => $expiresAt->toIso8601String(),
-            'debug' => "email:{$emailOtpCode}",
+            'debug' => "email:{$emailOtpCode}|phone:{$phoneOtpCode}",
         ];
     }
 
