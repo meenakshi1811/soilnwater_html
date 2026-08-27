@@ -264,6 +264,8 @@
         table = $('#communityPostsAllTable').DataTable({
             processing: true,
             serverSide: true,
+            autoWidth: false,
+            scrollX: true,
             ajax: {
                 url: $('#communityPostsAllTable').data('source-url'),
                 data: function (payload) {
@@ -288,6 +290,10 @@
 
         $('#statusFilter').on('change', function () {
             table.ajax.reload();
+        });
+
+        table.on('draw', function () {
+            table.columns.adjust();
         });
     }
 })(window.jQuery);

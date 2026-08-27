@@ -900,12 +900,41 @@
     overflow-x: hidden;
 }
 
+.community-posts-table-wrap,
 .offers-table-wrap {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+}
+
+.ems-page .community-posts-table-wrap {
+    overflow-x: auto;
+}
+
+.community-posts-table-wrap .dataTables_wrapper,
+.community-posts-table-wrap .dataTables_scroll,
+.community-posts-table-wrap .dataTables_scrollBody {
+    width: 100%;
+    max-width: 100%;
+}
+
+.community-posts-table-wrap table.dataTable,
+#communityPostsAllTable {
+    width: 100% !important;
+    min-width: 1280px;
+}
+
+.community-posts-table-wrap table.dataTable th,
+.community-posts-table-wrap table.dataTable td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.community-posts-table-wrap table.dataTable td:first-child {
+    white-space: normal;
+    min-width: 220px;
 }
 
 .offers-table-wrap .dataTables_wrapper {

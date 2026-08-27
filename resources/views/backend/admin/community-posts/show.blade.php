@@ -207,14 +207,15 @@
         </div>
         <div class="col-lg-4">
             <div class="community-admin-action-group h-100">
-                <h6 class="mb-2">Promotion flags</h6>
+                <h6 class="mb-2">Pin / Promotion flags</h6>
+                <p class="text-muted small mb-2">Click <strong>Pin to top</strong> to keep this post above newer posts on the Community Hub.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <button
                         type="button"
                         class="btn btn-sm {{ $post->is_featured ? 'btn-primary' : 'btn-outline-primary' }} js-feature"
                         data-slug="{{ $post->slug }}"
                         data-enabled="{{ $post->is_featured ? '1' : '0' }}"
-                    >Feature</button>
+                    >Pin to top</button>
                     <button
                         type="button"
                         class="btn btn-sm {{ $post->is_sponsored ? 'btn-info' : 'btn-outline-info' }} js-sponsor"
