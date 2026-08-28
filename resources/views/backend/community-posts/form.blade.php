@@ -1235,7 +1235,7 @@ The mountains keep.</pre>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
-                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard.</small>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. To paste Hindi from old documents, convert Krutidev or other legacy fonts to Unicode first.</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
                             @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
@@ -5268,7 +5268,7 @@ The mountains keep.</pre>
         if (help) {
             help.textContent = contentType === 'poetry'
                 ? 'Choose the script you are writing in. Type English letters and press space to convert automatically.'
-                : 'Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard.';
+                : 'Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. To paste Hindi from old documents, convert Krutidev or other legacy fonts to Unicode first.';
         }
 
         syncCommunityEditorTransliteration(nextValue);
@@ -5516,6 +5516,7 @@ The mountains keep.</pre>
                     + '<li>Click in the editor, then press <strong>Win + Space</strong> (or <strong>Alt + Shift</strong>) to switch to Hindi.</li>'
                     + '<li>Start typing. Press <strong>Win + Space</strong> again to switch back to English.</li>'
                     + '</ol>'
+                    + '<span class="d-block mt-2"><strong>Pasting Hindi text?</strong> If your text uses Krutidev, Chanakya, or other legacy fonts (for example, copied from old Word files), convert it to <strong>Unicode (Devanagari)</strong> before pasting. Direct paste may show garbled or junk characters. Search online for a free &ldquo;Krutidev to Unicode&rdquo; converter.</span>'
                     + '<span class="d-block mt-2">Use the toolbar for font, size, color, highlight, and alignment.</span>';
             } else {
                 hint.classList.add('d-none');
