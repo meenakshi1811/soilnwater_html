@@ -1235,7 +1235,7 @@ The mountains keep.</pre>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
-                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. To paste Hindi from old documents, convert Krutidev or other legacy fonts to Unicode first.</small>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. KrutiDev text pasted from old Word files is converted to Unicode automatically.</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
                             @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
@@ -3275,6 +3275,7 @@ The mountains keep.</pre>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js"></script>
+<script src="{{ asset('assets/js/krutidev-to-unicode.js') }}?v={{ now()->timestamp }}"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -5268,7 +5269,7 @@ The mountains keep.</pre>
         if (help) {
             help.textContent = contentType === 'poetry'
                 ? 'Choose the script you are writing in. Type English letters and press space to convert automatically.'
-                : 'Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. To paste Hindi from old documents, convert Krutidev or other legacy fonts to Unicode first.';
+                : 'Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard. KrutiDev text pasted from old Word files is converted to Unicode automatically.';
         }
 
         syncCommunityEditorTransliteration(nextValue);
@@ -5516,7 +5517,7 @@ The mountains keep.</pre>
                     + '<li>Click in the editor, then press <strong>Win + Space</strong> (or <strong>Alt + Shift</strong>) to switch to Hindi.</li>'
                     + '<li>Start typing. Press <strong>Win + Space</strong> again to switch back to English.</li>'
                     + '</ol>'
-                    + '<span class="d-block mt-2"><strong>Pasting Hindi text?</strong> If your text uses Krutidev, Chanakya, or other legacy fonts (for example, copied from old Word files), convert it to <strong>Unicode (Devanagari)</strong> before pasting. Direct paste may show garbled or junk characters. Search online for a free &ldquo;Krutidev to Unicode&rdquo; converter.</span>'
+                    + '<span class="d-block mt-2"><strong>Pasting Hindi text?</strong> You can paste KrutiDev, DevLys, or Chanakya text directly from old Word files. It is converted to Unicode Hindi automatically.</span>'
                     + '<span class="d-block mt-2">Use the toolbar for font, size, color, highlight, and alignment.</span>';
             } else {
                 hint.classList.add('d-none');
@@ -5570,6 +5571,8 @@ The mountains keep.</pre>
         applyEditorLanguage(this.value);
         window.communityBodyEditor?.editing.view.focus();
     });
+    window.SoilnWaterKrutiDev?.attachToInput(document.querySelector('#communityPostDetails input[name="title"]'));
+    window.SoilnWaterKrutiDev?.attachToInput(document.getElementById('excerptField'));
     window.communityFeaturedImages = {
         max: 5,
         existing: @json($communityFeaturedImagesForJs),
@@ -7808,33 +7811,34 @@ The mountains keep.</pre>
         }
 
         const isPublishing = statusSelect.value === 'published';
+        const usesDedicatedPublishAs = isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues;
 
         if (publishWrap) {
-            publishWrap.style.display = (isPublishing && !isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues) ? '' : 'none';
+            publishWrap.style.display = usesDedicatedPublishAs ? 'none' : '';
         }
 
         if (womensWorldPublishWrap) {
-            womensWorldPublishWrap.style.display = (isPublishing && isWomensWorld) ? '' : 'none';
+            womensWorldPublishWrap.style.display = isWomensWorld ? '' : 'none';
         }
 
         if (studentCornerPublishWrap) {
-            studentCornerPublishWrap.style.display = (isPublishing && isStudentCorner) ? '' : 'none';
+            studentCornerPublishWrap.style.display = isStudentCorner ? '' : 'none';
         }
 
         if (youthCornerPublishWrap) {
-            youthCornerPublishWrap.style.display = (isPublishing && isYouthCorner) ? '' : 'none';
+            youthCornerPublishWrap.style.display = isYouthCorner ? '' : 'none';
         }
 
         if (localVoicePublishWrap) {
-            localVoicePublishWrap.style.display = (isPublishing && isLocalVoices) ? '' : 'none';
+            localVoicePublishWrap.style.display = isLocalVoices ? '' : 'none';
         }
 
         if (myAreaPublishWrap) {
-            myAreaPublishWrap.style.display = (isPublishing && isMyArea) ? '' : 'none';
+            myAreaPublishWrap.style.display = isMyArea ? '' : 'none';
         }
 
         if (communityIssuePublishWrap) {
-            communityIssuePublishWrap.style.display = (isPublishing && isCommunityIssues) ? '' : 'none';
+            communityIssuePublishWrap.style.display = isCommunityIssues ? '' : 'none';
         }
 
         document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
@@ -7844,18 +7848,26 @@ The mountains keep.</pre>
             const inLocalVoicesFlow = Boolean(input.closest('#localVoicePublishAsWrap'));
             const inMyAreaFlow = Boolean(input.closest('#myAreaPublishAsWrap'));
             const inCommunityIssuesFlow = Boolean(input.closest('#communityIssuePublishAsWrap'));
-            const enabled = isPublishing && (
-                (isWomensWorld && inWomensWorldFlow)
+            const inActiveWrap = (isWomensWorld && inWomensWorldFlow)
                 || (isStudentCorner && inStudentCornerFlow)
                 || (isYouthCorner && inYouthCornerFlow)
                 || (isLocalVoices && inLocalVoicesFlow)
                 || (isMyArea && inMyAreaFlow)
                 || (isCommunityIssues && inCommunityIssuesFlow)
-                || (!isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues && !inWomensWorldFlow && !inStudentCornerFlow && !inYouthCornerFlow && !inLocalVoicesFlow && !inMyAreaFlow && !inCommunityIssuesFlow)
-            );
-            input.required = enabled;
-            input.disabled = !enabled;
+                || (!usesDedicatedPublishAs && !inWomensWorldFlow && !inStudentCornerFlow && !inYouthCornerFlow && !inLocalVoicesFlow && !inMyAreaFlow && !inCommunityIssuesFlow);
+            input.required = isPublishing && inActiveWrap;
+            input.disabled = !inActiveWrap;
+            if (!inActiveWrap) {
+                input.checked = false;
+            }
         });
+
+        if (!document.querySelector('input[name="publish_as"]:checked:not(:disabled)')) {
+            const fallback = document.querySelector('input[name="publish_as"][value="public_profile"]:not(:disabled)');
+            if (fallback) {
+                fallback.checked = true;
+            }
+        }
 
         const selectedPublishAs = document.querySelector('input[name="publish_as"]:checked:not(:disabled)')?.value || 'public_profile';
         const showPenName = isPublishing && selectedPublishAs === 'pen_name';
@@ -8888,6 +8900,7 @@ The mountains keep.</pre>
                             }
 
                             applyEditorLanguage(initialLanguage, { skipSave: true });
+                            window.SoilnWaterKrutiDev?.attachToEditor(editor);
                             editor.model.document.on('change:data', function () {
                                 if (window.communitySwitchingBookPage) {
                                     return;
@@ -10873,6 +10886,8 @@ The mountains keep.</pre>
             statusField.value = isDraftSave ? 'draft' : 'published';
         }
 
+        refreshPublishAsFields();
+
         if (!document.getElementById('contentType')?.value) {
             notify('error', 'Please select a post type first.');
             return;
@@ -11265,9 +11280,10 @@ The mountains keep.</pre>
 
         const postStatus = document.getElementById('communityPostStatus')?.value || 'draft';
         if (postStatus === 'published') {
-            const publishAs = document.querySelector('input[name="publish_as"]:checked')?.value;
+            const publishAs = document.querySelector('input[name="publish_as"]:checked:not(:disabled)')?.value;
             if (!publishAs) {
                 notify('error', 'Please choose how you want to publish this post.');
+                document.getElementById('publishAsWrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 

@@ -195,6 +195,71 @@ class CommunityPostApprovalFlowTest extends TestCase
         $this->assertNull($post->pen_name);
     }
 
+    public function test_publish_defaults_publish_as_when_the_field_is_missing(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+
+        $payload = $this->validPostPayload();
+        unset($payload['publish_as']);
+
+        $this->actingAs($author)->postJson(route('community.posts.store'), $payload)->assertOk();
+
+        $post = CommunityPost::query()->where('title', 'Community Approval Test Post')->firstOrFail();
+        $this->assertSame(CommunityPost::PUBLISH_AS_PUBLIC_PROFILE, $post->publish_as);
+    }
+
+    public function test_hindi_story_can_be_published_without_publish_as_in_the_request(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($author)->postJson(route('community.posts.store'), [
+            'content_type' => 'stories',
+            'category' => 'Inspirational Stories',
+            'writing_purpose' => 'Personal Experience',
+            'title' => 'बनमनसा का थरथराता कहाना',
+            'excerpt' => 'एक हिंदी कहानी।',
+            'status' => CommunityPost::STATUS_DRAFT,
+            'location_type' => 'city',
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+            'story_type' => 'Fiction',
+            'story_language' => 'Hindi',
+            'book_pages' => [
+                ['content' => '<p>बहुत सालों बाद आखिरकार बारिश आई।</p>', 'language' => 'hi'],
+            ],
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
+        ])->assertOk();
+
+        $post = CommunityPost::query()->where('title', 'बनमनसा का थरथराता कहाना')->firstOrFail();
+        $this->assertSame(CommunityPost::STATUS_DRAFT, $post->status);
+
+        $this->actingAs($author)->putJson(route('community.posts.update', $post), [
+            'content_type' => 'stories',
+            'category' => 'Inspirational Stories',
+            'writing_purpose' => 'Personal Experience',
+            'title' => 'बनमनसा का थरथराता कहाना',
+            'excerpt' => 'एक हिंदी कहानी।',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'location_type' => 'city',
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+            'story_type' => 'Fiction',
+            'story_language' => 'Hindi',
+            'book_pages' => [
+                ['content' => '<p>बहुत सालों बाद आखिरकार बारिश आई।</p>', 'language' => 'hi'],
+            ],
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
+        ])->assertOk();
+
+        $post->refresh();
+        $this->assertSame(CommunityPost::STATUS_PENDING, $post->status);
+        $this->assertSame(CommunityPost::PUBLISH_AS_PUBLIC_PROFILE, $post->publish_as);
+    }
+
     public function test_anonymous_posts_hide_author_profile_on_frontend(): void
     {
         $author = User::factory()->create([

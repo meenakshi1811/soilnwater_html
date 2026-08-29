@@ -37,6 +37,7 @@ use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostAuditLogger;
 use App\Support\CommunityPostFileUploader;
 use App\Support\CommunityPostFormFields;
+use App\Support\KrutiDevToUnicode;
 use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -2340,7 +2341,6 @@ class CommunityPostController extends Controller
             ],
             'status' => ['required', Rule::in([CommunityPost::STATUS_DRAFT, CommunityPost::STATUS_PUBLISHED])],
             'publish_as' => [
-                Rule::requiredIf(fn () => $request->input('status') === CommunityPost::STATUS_PUBLISHED),
                 'nullable',
                 Rule::in(array_keys(CommunityPost::PUBLISH_AS_OPTIONS)),
             ],
@@ -4909,6 +4909,8 @@ class CommunityPostController extends Controller
             $validated['book_pages'] = $bookPages;
         }
 
+        $validated = $this->convertLegacyHindiFonts($validated);
+
         app(FoulWordFilter::class)->assertCleanPayload($validated);
 
         unset($validated['book_pages']);
@@ -4932,8 +4934,11 @@ class CommunityPostController extends Controller
         if (($validated['status'] ?? null) === CommunityPost::STATUS_DRAFT) {
             $validated['publish_as'] = null;
             $validated['pen_name'] = null;
-        } elseif (($validated['publish_as'] ?? null) !== CommunityPost::PUBLISH_AS_PEN_NAME) {
-            $validated['pen_name'] = null;
+        } else {
+            $validated['publish_as'] = $validated['publish_as'] ?? CommunityPost::PUBLISH_AS_PUBLIC_PROFILE;
+            if ($validated['publish_as'] !== CommunityPost::PUBLISH_AS_PEN_NAME) {
+                $validated['pen_name'] = null;
+            }
         }
 
         if (($validated['content_type'] ?? null) === 'reports' || ! ($validated['allow_poll'] ?? false)) {
@@ -5011,6 +5016,8 @@ class CommunityPostController extends Controller
         $validated['pen_name'] = null;
         $validated['allow_poll'] = false;
         $validated['poll_subject'] = null;
+
+        $validated = $this->convertLegacyHindiFonts($validated);
 
         app(FoulWordFilter::class)->assertCleanPayload($validated);
 
@@ -8493,6 +8500,25 @@ class CommunityPostController extends Controller
     }
 
     /**
+     * Convert KrutiDev / DevLys paste into Unicode Devanagari when it is detected.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function convertLegacyHindiFonts(array $validated): array
+    {
+        foreach (['title', 'excerpt', 'body'] as $field) {
+            if (! isset($validated[$field]) || ! is_string($validated[$field]) || $validated[$field] === '') {
+                continue;
+            }
+
+            $validated[$field] = KrutiDevToUnicode::convertIfNeeded($validated[$field]);
+        }
+
+        return $validated;
+    }
+
+    /**
      * @param  list<array{content?: string, language?: string, title?: string, summary?: string}>|list<string>  $pages
      * @return list<array{content: string, language: string, title?: string, summary?: string}>
      */
@@ -8503,15 +8529,15 @@ class CommunityPostController extends Controller
         return collect($pages)
             ->map(function (mixed $page) use ($usesChapters): array {
                 $normalized = [
-                    'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
+                    'content' => KrutiDevToUnicode::convertIfNeeded(is_array($page) ? (string) ($page['content'] ?? '') : (string) $page),
                     'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
                         ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
                         : 'en',
                 ];
 
                 if ($usesChapters) {
-                    $normalized['title'] = trim(is_array($page) ? (string) ($page['title'] ?? '') : '');
-                    $normalized['summary'] = trim(is_array($page) ? (string) ($page['summary'] ?? '') : '');
+                    $normalized['title'] = KrutiDevToUnicode::convertIfNeeded(trim(is_array($page) ? (string) ($page['title'] ?? '') : ''));
+                    $normalized['summary'] = KrutiDevToUnicode::convertIfNeeded(trim(is_array($page) ? (string) ($page['summary'] ?? '') : ''));
                 }
 
                 return $normalized;
