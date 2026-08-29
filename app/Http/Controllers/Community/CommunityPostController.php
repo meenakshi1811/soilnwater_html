@@ -2191,6 +2191,22 @@ class CommunityPostController extends Controller
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
         $isChildrensCornerQuiz = $isChildrensCorner && $childContentMode === 'quiz';
 
+        if (is_array($request->input('book_pages'))) {
+            $request->merge([
+                'book_pages' => collect($request->input('book_pages'))
+                    ->map(function (mixed $page): mixed {
+                        if (! is_array($page)) {
+                            return $page;
+                        }
+
+                        $page['language'] = CommunityContentTaxonomy::bookPageLanguageCode($page['language'] ?? 'en');
+
+                        return $page;
+                    })
+                    ->all(),
+            ]);
+        }
+
         if ($isChildrensCornerQuiz) {
             $request->merge([
                 'childrens_corner_quiz' => $this->sanitizeChildrensCornerQuizPayload($request->input('childrens_corner_quiz')),
@@ -8530,9 +8546,7 @@ class CommunityPostController extends Controller
             ->map(function (mixed $page) use ($usesChapters): array {
                 $normalized = [
                     'content' => KrutiDevToUnicode::convertIfNeeded(is_array($page) ? (string) ($page['content'] ?? '') : (string) $page),
-                    'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
-                        ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
-                        : 'en',
+                    'language' => CommunityContentTaxonomy::bookPageLanguageCode(is_array($page) ? ($page['language'] ?? 'en') : 'en'),
                 ];
 
                 if ($usesChapters) {

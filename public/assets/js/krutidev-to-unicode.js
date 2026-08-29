@@ -194,9 +194,11 @@
             positionOfWrongEe = modified.indexOf('ि्', positionOfWrongEe + 2);
         }
 
-        const setOfMatras = 'अ आ इ ई उ ऊ ए ऐ ओ औ ा ि ी ु ू ृ े ै ो ौ ं : ँ ॅ';
+        const setOfMatras = 'अआइईउऊएऐओऔािीुूृेैोौं:ँॅ';
         let positionOfR = modified.indexOf('Z');
-        while (positionOfR > 0) {
+        let rephGuard = 0;
+        while (positionOfR > 0 && rephGuard < 20000) {
+            rephGuard += 1;
             let probable = positionOfR - 1;
             let charAtProbable = modified.charAt(probable);
             while (probable > 0 && setOfMatras.indexOf(charAtProbable) !== -1) {
@@ -318,12 +320,94 @@
             .join('');
     }
 
+    function convertedPasteHtml(html, plain) {
+        if (looksLike(plain)) {
+            return plainToHtml(convert(plain));
+        }
+
+        if (html && (LEGACY_FONT_PATTERN.test(html) || looksLike(html))) {
+            return convertHtml(html, { force: true });
+        }
+
+        return '';
+    }
+
+    function insertHtmlIntoEditor(editor, html, plainFallback) {
+        const processor = editor.data.htmlProcessor || editor.data.processor;
+
+        try {
+            const viewFragment = processor.toView(html);
+            const modelFragment = editor.data.toModel(viewFragment);
+            editor.model.insertContent(modelFragment);
+            return;
+        } catch (error) {
+            console.warn('Unable to insert converted KrutiDev HTML.', error);
+        }
+
+        const unicode = convert(plainFallback || stripTags(html));
+        editor.model.change(function (writer) {
+            editor.model.insertContent(writer.createText(unicode));
+        });
+    }
+
     function attachToEditor(editor) {
         if (!editor || editor._krutidevPasteBound) {
             return;
         }
 
         editor._krutidevPasteBound = true;
+        let nativePasteHandledAt = 0;
+
+        const onNativePaste = function (event) {
+            if (editor.isReadOnly) {
+                return;
+            }
+
+            const transfer = event.clipboardData;
+            if (!transfer) {
+                return;
+            }
+
+            let converted = '';
+            try {
+                converted = convertedPasteHtml(
+                    transfer.getData('text/html') || '',
+                    transfer.getData('text/plain') || ''
+                );
+            } catch (error) {
+                console.warn('KrutiDev conversion failed.', error);
+                return;
+            }
+
+            if (!converted) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            nativePasteHandledAt = Date.now();
+            insertHtmlIntoEditor(editor, converted, transfer.getData('text/plain') || '');
+        };
+
+        const bindNativePaste = function () {
+            const root = editor.editing.view.getDomRoot();
+            if (!root || root.dataset.krutidevPasteBound === '1') {
+                return Boolean(root);
+            }
+
+            root.dataset.krutidevPasteBound = '1';
+            root.addEventListener('paste', onNativePaste, true);
+            const mount = document.getElementById('bodyEditorMount');
+            if (mount && mount.dataset.krutidevPasteBound !== '1') {
+                mount.dataset.krutidevPasteBound = '1';
+                mount.addEventListener('paste', onNativePaste, true);
+            }
+            return true;
+        };
+
+        if (!bindNativePaste()) {
+            editor.editing.view.once('render', bindNativePaste);
+        }
 
         editor.editing.view.document.on('clipboardInput', function (evt, data) {
             if (editor.isReadOnly) {
@@ -335,28 +419,32 @@
                 return;
             }
 
-            const html = transfer.getData('text/html') || '';
-            const plain = transfer.getData('text/plain') || '';
-            const force = LEGACY_FONT_PATTERN.test(html);
             let converted = '';
-
-            if (html && (force || looksLike(html) || looksLike(plain))) {
-                converted = convertHtml(html, { force: force || looksLike(plain) });
-            } else if (looksLike(plain)) {
-                converted = plainToHtml(convert(plain));
+            try {
+                converted = convertedPasteHtml(
+                    transfer.getData('text/html') || '',
+                    transfer.getData('text/plain') || ''
+                );
+            } catch (error) {
+                return;
             }
 
-            if (!converted || converted === html) {
+            if (!converted) {
+                return;
+            }
+
+            if (Date.now() - nativePasteHandledAt < 400) {
+                evt.stop();
                 return;
             }
 
             try {
-                data.content = editor.data.htmlProcessor.toView(converted);
-                evt.stop();
+                const processor = editor.data.htmlProcessor || editor.data.processor;
+                data.content = processor.toView(converted);
             } catch (error) {
-                console.warn('Unable to insert converted KrutiDev text.', error);
+                console.warn('Unable to convert pasted KrutiDev text.', error);
             }
-        }, { priority: 'high' });
+        }, { priority: 'highest' });
     }
 
     return {

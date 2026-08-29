@@ -7702,6 +7702,11 @@ The mountains keep.</pre>
         loadActiveChapterMeta();
     }
 
+    function bookPageLanguage(code) {
+        const normalized = normalizeEditorLanguage(code);
+        return (normalized === 'hi' || normalized === 'hindi' || normalized === 'mr') ? 'hi' : 'en';
+    }
+
     function appendBookPagesToFormData(formData) {
         saveActiveBookPageContent();
         formData.delete('body');
@@ -7709,7 +7714,7 @@ The mountains keep.</pre>
 
         window.communityBookPages.forEach(function (page, index) {
             formData.append('book_pages[' + index + '][content]', page.content || '');
-            formData.append('book_pages[' + index + '][language]', normalizeEditorLanguage(page.language || 'en'));
+            formData.append('book_pages[' + index + '][language]', bookPageLanguage(page.language || 'en'));
             formData.append('book_pages[' + index + '][title]', page.title || '');
             formData.append('book_pages[' + index + '][summary]', page.summary || '');
         });

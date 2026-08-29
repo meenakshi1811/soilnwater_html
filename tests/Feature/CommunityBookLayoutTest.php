@@ -55,6 +55,37 @@ class CommunityBookLayoutTest extends TestCase
             ->assertSee('बहुत सालों बाद');
     }
 
+    public function test_story_publish_accepts_hindi_editor_language_on_book_pages(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->postJson(route('community.posts.store'), [
+                'content_type' => 'stories',
+                'category' => 'Inspirational Stories',
+                'writing_purpose' => 'Personal Experience',
+                'title' => 'Hindi Editor Language Story',
+                'excerpt' => 'A Hindi story page.',
+                'status' => CommunityPost::STATUS_PUBLISHED,
+                'location_type' => 'city',
+                'location' => 'Jaipur, Rajasthan, India',
+                'location_lat' => '26.9124000',
+                'location_lng' => '75.7873000',
+                'story_type' => 'Fiction',
+                'story_language' => 'Hindi',
+                'publish_as' => CommunityPost::PUBLISH_AS_PUBLIC_PROFILE,
+                'book_pages' => [
+                    ['content' => '<p>आज हम तुम्हें एक कहानी सुनाते हैं।</p>', 'language' => 'hindi'],
+                ],
+                'accept_content_responsibility' => '1',
+                'accept_original_work_indemnity' => '1',
+            ])
+            ->assertOk();
+
+        $post = CommunityPost::query()->where('title', 'Hindi Editor Language Story')->firstOrFail();
+        $this->assertSame('hi', $post->bookPages()[0]['language']);
+    }
+
     public function test_autobiography_post_can_be_saved_with_chapters(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);

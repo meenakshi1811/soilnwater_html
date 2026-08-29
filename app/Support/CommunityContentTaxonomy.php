@@ -2541,6 +2541,16 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Book/story pages only store English or Hindi. Map editor language codes onto that pair.
+     */
+    public static function bookPageLanguageCode(mixed $code): string
+    {
+        $normalized = is_string($code) ? strtolower(trim($code)) : '';
+
+        return in_array($normalized, ['hi', 'hindi', 'mr'], true) ? 'hi' : 'en';
+    }
+
+    /**
      * @return list<string>
      */
     public static function editorLanguageCodesFor(?string $contentType): array

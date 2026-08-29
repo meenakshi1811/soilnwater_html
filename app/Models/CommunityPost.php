@@ -3636,9 +3636,7 @@ class CommunityPost extends Model
                 ->map(function (mixed $page) use ($usesChapters): array {
                     $normalized = [
                         'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
-                        'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
-                            ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
-                            : 'en',
+                        'language' => \App\Support\CommunityContentTaxonomy::bookPageLanguageCode(is_array($page) ? ($page['language'] ?? 'en') : 'en'),
                     ];
 
                     if ($usesChapters) {
