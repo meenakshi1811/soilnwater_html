@@ -11564,13 +11564,26 @@ The mountains keep.</pre>
             reindexYouthCornerAchievements();
         }
 
+        const emptyFileInputs = [];
+        form.querySelectorAll('input[type="file"]').forEach(function (input) {
+            if (!input.disabled && (!input.files || input.files.length === 0)) {
+                input.disabled = true;
+                emptyFileInputs.push(input);
+            }
+        });
+
         const formData = new FormData(form);
+        emptyFileInputs.forEach(function (input) {
+            input.disabled = false;
+        });
         formData.delete('featured_images[]');
         if (isBookContentType(document.getElementById('contentType').value)) {
             appendBookPagesToFormData(formData);
         }
         featuredImagesState.pending.forEach((item) => {
-            formData.append('featured_images[]', item.file);
+            if (item?.file instanceof File && item.file.size > 0) {
+                formData.append('featured_images[]', item.file);
+            }
         });
 
         if (document.getElementById('contentType').value === 'stories') {

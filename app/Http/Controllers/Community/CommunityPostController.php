@@ -42,6 +42,7 @@ use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -2161,6 +2162,8 @@ class CommunityPostController extends Controller
      */
     private function validated(Request $request, ?CommunityPost $post = null): array
     {
+        $this->pruneUnreadableUploads($request);
+
         $typeKeys = CommunityContentTaxonomy::allowedContentTypeKeys($post);
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
@@ -4977,6 +4980,8 @@ class CommunityPostController extends Controller
      */
     private function validatedDraft(Request $request, ?CommunityPost $post, array $typeKeys): array
     {
+        $this->pruneUnreadableUploads($request);
+
         $contentType = $request->input('content_type');
 
         $validated = $request->validate([
@@ -8513,6 +8518,46 @@ class CommunityPostController extends Controller
             $data['meta']['book_pages'] = $pages;
             $data['body'] = CommunityPost::bodyFromBookPages($pages);
         }
+    }
+
+    /**
+     * Drop empty or already-deleted PHP temp uploads so validation does not fail
+     * with "file does not exist or is not readable".
+     */
+    private function pruneUnreadableUploads(Request $request): void
+    {
+        $cleaned = $this->filterReadableUploadedFiles($request->allFiles());
+        $request->files->replace(is_array($cleaned) ? $cleaned : []);
+    }
+
+    private function filterReadableUploadedFiles(mixed $files): mixed
+    {
+        if ($files instanceof UploadedFile) {
+            try {
+                $path = $files->getPathname();
+
+                return $files->isValid() && $path !== '' && is_readable($path)
+                    ? $files
+                    : null;
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        if (! is_array($files)) {
+            return $files;
+        }
+
+        $filtered = [];
+        foreach ($files as $key => $file) {
+            $kept = $this->filterReadableUploadedFiles($file);
+            if ($kept === null || $kept === []) {
+                continue;
+            }
+            $filtered[$key] = $kept;
+        }
+
+        return $filtered;
     }
 
     /**
