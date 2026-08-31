@@ -5,7 +5,7 @@
         ->filter(fn ($image) => filled(data_get($image, 'url')))
         ->values();
     $sidebarLayout = $sidebarLayout ?? false;
-    $hasContent = $orderedStoryMeta->isNotEmpty() || (! $sidebarLayout && $storyGallery->isNotEmpty());
+    $hasContent = $orderedStoryMeta->isNotEmpty() || $storyGallery->isNotEmpty();
 @endphp
 
 @if($hasContent)
@@ -23,7 +23,7 @@
             <div @class([
                 'row g-3' => ! $sidebarLayout,
                 'news-sidebar-meta-grid' => $sidebarLayout,
-                'mb-3' => ! $sidebarLayout && $storyGallery->isNotEmpty(),
+                'mb-3' => $storyGallery->isNotEmpty(),
             ])>
                 @foreach($orderedStoryMeta as $key => $value)
                     <div @class([
@@ -48,9 +48,16 @@
             </div>
         @endif
 
-        @if(! $sidebarLayout && $storyGallery->isNotEmpty())
-            <h5 class="h6 mb-3">Story gallery</h5>
-            <div class="story-gallery-grid">
+        @if($storyGallery->isNotEmpty())
+            @if($sidebarLayout)
+                <p class="community-news-sidebar__label mb-2">Story gallery</p>
+            @else
+                <h5 class="h6 mb-3">Story gallery</h5>
+            @endif
+            <div @class([
+                'story-gallery-grid' => ! $sidebarLayout,
+                'story-gallery-grid story-gallery-grid--sidebar' => $sidebarLayout,
+            ])>
                 @foreach($storyGallery as $index => $image)
                     <a href="{{ data_get($image, 'url') }}" target="_blank" rel="noopener" class="story-gallery-grid__item">
                         <img src="{{ data_get($image, 'url') }}" alt="{{ $post->title }} — gallery image {{ $index + 1 }}" loading="lazy">

@@ -30,6 +30,12 @@
         object-fit: cover;
         display: block;
     }
+    .story-gallery-grid--sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .story-gallery-grid--sidebar .story-gallery-grid__item img {
+        height: 96px;
+    }
     .story-audio-player {
         border-left: 4px solid #0dcaf0;
         background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
