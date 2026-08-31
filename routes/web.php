@@ -437,6 +437,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
             Route::get('/all', [CommunityPostApprovalController::class, 'allIndex'])->name('all.index');
             Route::get('/all/data', [CommunityPostApprovalController::class, 'allData'])->name('all.data');
+            Route::delete('/{post}', [CommunityPostController::class, 'destroy'])->name('destroy');
             Route::get('/{post}/preview', [CommunityPostApprovalController::class, 'preview'])->name('preview');
             Route::get('/{post}', [CommunityPostApprovalController::class, 'show'])->name('show');
             Route::post('/{post}/approve', [CommunityPostApprovalController::class, 'approve'])->name('approve');

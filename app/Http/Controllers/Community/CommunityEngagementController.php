@@ -92,9 +92,9 @@ class CommunityEngagementController extends Controller
             ->latest();
 
         return DataTables::of($query)
-            ->addColumn('title', fn (CommunityPostSave $save): string => e($save->post?->title ?? 'Deleted post'))
-            ->addColumn('type_label', fn (CommunityPostSave $save): string => e($save->post?->typeLabel() ?? '—'))
-            ->addColumn('category_display', fn (CommunityPostSave $save): string => e($save->post?->category ?? '—'))
+            ->addColumn('title', fn (CommunityPostSave $save): string => $save->post?->title ?? 'Deleted post')
+            ->addColumn('type_label', fn (CommunityPostSave $save): string => $save->post?->typeLabel() ?? '—')
+            ->addColumn('category_display', fn (CommunityPostSave $save): string => $save->post?->category ?? '—')
             ->addColumn('published_display', function (CommunityPostSave $save): string {
                 $publishedAt = $save->post?->published_at;
 

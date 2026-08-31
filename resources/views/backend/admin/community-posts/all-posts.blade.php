@@ -39,7 +39,8 @@
         <div class="community-posts-table-wrap">
         <table id="communityPostsAllTable" class="table table-bordered align-middle w-100"
             data-source-url="{{ route('admin.community-posts.all.data') }}"
-            data-action-base-url="{{ url('/admin/community-posts') }}">
+            data-action-base-url="{{ url('/admin/community-posts') }}"
+            data-delete-base-url="{{ url('/admin/community-posts') }}">
             <thead>
                 <tr>
                     <th>Title</th>

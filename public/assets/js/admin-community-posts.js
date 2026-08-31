@@ -65,6 +65,59 @@
         return baseUrl + '/' + slug + '/' + action;
     }
 
+    function deleteBaseUrl() {
+        return $('#communityPostsTable').data('delete-base-url')
+            || $('#communityPostsAllTable').data('delete-base-url')
+            || '/admin/community-posts';
+    }
+
+    function confirmDeletePost(slug) {
+        var proceed = function () {
+            $.ajax({
+                url: deleteBaseUrl() + '/' + slug,
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                data: { _token: csrfToken() }
+            })
+                .done(function (response) {
+                    toast('success', response.message || 'Community post deleted successfully.');
+
+                    if (!refreshTable()) {
+                        window.location.reload();
+                    }
+                })
+                .fail(function (xhr) {
+                    toast('error', (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete this post.');
+                });
+        };
+
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                title: 'Delete this post?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545',
+                reverseButtons: true
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    proceed();
+                }
+            });
+            return;
+        }
+
+        if (confirm('Delete this community post?')) {
+            proceed();
+        }
+    }
+
     function confirmApprove(slug) {
         var url = config.approveUrl || actionUrl(slug, 'approve');
 
@@ -188,6 +241,10 @@
 
     $(document).on('click', '.js-archive', function () {
         confirmArchive($(this).data('slug'));
+    });
+
+    $(document).on('click', '.js-delete-community-post', function () {
+        confirmDeletePost($(this).data('slug'));
     });
 
     $(document).on('click', '.js-feature', function () {

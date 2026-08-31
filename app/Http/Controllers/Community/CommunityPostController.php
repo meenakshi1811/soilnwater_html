@@ -792,8 +792,8 @@ class CommunityPostController extends Controller
             ]);
 
         return DataTables::of($query)
-            ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
-            ->addColumn('category_display', fn (CommunityPost $post): string => e($post->listingCategoryLabel()))
+            ->addColumn('type_label', fn (CommunityPost $post): string => $post->typeLabel())
+            ->addColumn('category_display', fn (CommunityPost $post): string => $post->listingCategoryLabel())
             ->addColumn('trust_score_display', fn (CommunityPost $post): string => CommunityReportTrustScoreService::badgeHtml($post))
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('published_display', function (CommunityPost $post): string {

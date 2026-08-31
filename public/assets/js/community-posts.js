@@ -45,8 +45,10 @@
                 text: 'This action cannot be undone.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Delete',
-                confirmButtonColor: '#dc3545'
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545',
+                reverseButtons: true
             }).then(function (result) {
                 if (result.isConfirmed) {
                     proceed();

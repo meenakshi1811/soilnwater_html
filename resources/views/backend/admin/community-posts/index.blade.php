@@ -20,7 +20,8 @@
     <div class="chart-card p-3 table-responsive">
         <table id="communityPostsTable" class="table table-bordered align-middle w-100"
             data-source-url="{{ route('admin.community-posts.data') }}"
-            data-action-base-url="{{ url('/admin/community-posts') }}">
+            data-action-base-url="{{ url('/admin/community-posts') }}"
+            data-delete-base-url="{{ url('/admin/community-posts') }}">
             <thead>
                 <tr>
                     <th>Title</th>

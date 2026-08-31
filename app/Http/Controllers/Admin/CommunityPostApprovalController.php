@@ -58,8 +58,8 @@ class CommunityPostApprovalController extends Controller
             ]);
 
         return DataTables::of($query)
-            ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
-            ->addColumn('owner_name', fn (CommunityPost $post): string => e($post->user?->full_name ?: ($post->user?->name ?? 'Unknown user')))
+            ->addColumn('type_label', fn (CommunityPost $post): string => $post->typeLabel())
+            ->addColumn('owner_name', fn (CommunityPost $post): string => $post->user?->full_name ?: ($post->user?->name ?? 'Unknown user'))
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('actions', fn (CommunityPost $post): string => $this->renderActionButtons($post, true))
             ->editColumn('submitted_at', function (CommunityPost $post): string {
@@ -370,9 +370,9 @@ class CommunityPostApprovalController extends Controller
         }
 
         return DataTables::of($query)
-            ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
-            ->addColumn('category_display', fn (CommunityPost $post): string => e($post->listingCategoryLabel()))
-            ->addColumn('owner_name', fn (CommunityPost $post): string => e($post->user?->full_name ?: ($post->user?->name ?? 'Unknown user')))
+            ->addColumn('type_label', fn (CommunityPost $post): string => $post->typeLabel())
+            ->addColumn('category_display', fn (CommunityPost $post): string => $post->listingCategoryLabel())
+            ->addColumn('owner_name', fn (CommunityPost $post): string => $post->user?->full_name ?: ($post->user?->name ?? 'Unknown user'))
             ->addColumn('owner_role', fn (CommunityPost $post): string => '<span class="badge bg-light text-dark border">'.e($this->roleLabel($post->user?->role)).'</span>')
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('promotion_badges', fn (CommunityPost $post): string => $this->renderPromotionBadges($post))
@@ -451,6 +451,8 @@ class CommunityPostApprovalController extends Controller
                 $actions .= '<button type="button" class="btn btn-sm btn-outline-dark js-archive" data-slug="'.e($post->slug).'">Archive</button>';
             }
         }
+
+        $actions .= '<button type="button" class="btn btn-sm btn-outline-danger js-delete-community-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash"></i></button>';
 
         return $actions.'</div>';
     }
