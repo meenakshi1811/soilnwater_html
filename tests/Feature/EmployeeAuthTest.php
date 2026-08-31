@@ -84,8 +84,33 @@ class EmployeeAuthTest extends TestCase
             ->assertSee('Vendor Management');
 
         $this->actingAs($employee, 'employee')
+            ->get(route('admin.consultants.index'))
+            ->assertForbidden();
+
+        $this->actingAs($employee, 'employee')
             ->get(route('modules.show', 'ads'))
             ->assertForbidden();
+    }
+
+    public function test_employee_with_consultants_permission_can_open_admin_consultants(): void
+    {
+        $this->seed(ModulePermissionSeeder::class);
+
+        $role = Role::query()->create([
+            'name' => 'Consultant Desk',
+            'guard_name' => 'web',
+        ]);
+        $role->syncPermissions(['consultants.read']);
+
+        $employee = Employee::factory()->create([
+            'email' => 'consultant-desk@example.com',
+            'is_active' => true,
+        ]);
+        $employee->syncRoles([$role]);
+
+        $this->actingAs($employee, 'employee')
+            ->get(route('admin.consultants.index'))
+            ->assertOk();
     }
 
     public function test_user_login_does_not_authenticate_an_employee_with_the_same_email(): void

@@ -415,8 +415,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{ad}', [UserAdController::class, 'destroy'])->middleware('marketplace.approved')->name('destroy');
         Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });
+});
 
-    Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
@@ -708,7 +709,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/{foulWord}/toggle-status', [FoulWordController::class, 'toggleStatus'])->name('toggle-status');
             Route::delete('/{foulWord}', [FoulWordController::class, 'destroy'])->name('destroy');
         });
-    });
 });
 
 Route::get('/consultant/{slug}', [ConsultantStoreController::class, 'show'])->name('consultant.show');
