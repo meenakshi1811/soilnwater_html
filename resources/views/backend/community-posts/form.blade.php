@@ -43,6 +43,7 @@
             $lockedContentType = $lockedContentType ?? null;
             $selectedContentType = old('content_type', $post->content_type);
             $formLimitTypeSections = $mode === 'edit' && filled($selectedContentType);
+            $usesBookLayoutOnLoad = $formLimitTypeSections && in_array($selectedContentType, \App\Models\CommunityPost::BOOK_CONTENT_TYPES, true);
             $postTypeIcons = [
                     'articles' => 'fa-file-lines',
                     'reports' => 'fa-clipboard-list',
@@ -80,6 +81,23 @@
             @endphp
             @if($lockedContentType)
                 <input type="hidden" name="content_type" id="contentType" value="{{ $lockedContentType }}">
+                @if(isset($types[$lockedContentType]))
+                    @php
+                        $lockedTypePillColor = $postTypePillColors[$lockedContentType] ?? $postTypePillFallback;
+                    @endphp
+                    <div class="col-12">
+                        <div class="community-post-type-locked d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <span class="text-muted small mb-0">Post type</span>
+                            <span
+                                class="community-post-type-locked__pill badge rounded-pill px-3 py-2"
+                                style="background: {{ $lockedTypePillColor }}; border-color: {{ $lockedTypePillColor }}; color: #fff;"
+                            >{{ $types[$lockedContentType]['label'] }}</span>
+                        </div>
+                        @if(filled($types[$lockedContentType]['description'] ?? null))
+                            <p class="text-muted small mb-0">{{ $types[$lockedContentType]['description'] }}</p>
+                        @endif
+                    </div>
+                @endif
             @else
             <div class="col-12">
                 <div class="community-post-type-picker">
@@ -489,8 +507,8 @@
                 @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
             @endif
-            <div class="col-12" id="bodyContentSection">
-                <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
+            <div class="col-12{{ filled($selectedContentType) ? '' : ' is-waiting-for-type' }}" id="bodyContentSection">
+                <div id="storyContentGuide" class="story-content-guide mb-3" style="display:{{ $selectedContentType === 'stories' ? '' : 'none' }};">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
                             <div>
@@ -1220,11 +1238,11 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
-                <div id="standardBodyHeader">
+                <div id="standardBodyHeader" style="display:{{ $usesBookLayoutOnLoad ? 'none' : '' }};">
                     <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
                     <small id="bodyHelp" class="text-muted d-block mb-2">Add text and images together. There is no word limit. Select an image to align it, or drag its corner to resize.</small>
                 </div>
-                <div id="bookBodyHeader" style="display:none;">
+                <div id="bookBodyHeader" style="display:{{ $usesBookLayoutOnLoad ? '' : 'none' }};">
                     <label class="form-label" id="bookBodyLabel">Book pages <span class="text-danger">*</span></label>
                     <small id="bookBodyHelp" class="text-muted d-block mb-3">Write your story page by page, like a book. Use the CKEditor below for each page.</small>
                     <div class="community-book-editor border rounded-3 p-3 bg-light mb-3">
@@ -1257,7 +1275,7 @@ The mountains keep.</pre>
                     </div>
                 </div>
                 <div id="bodyEditorMount" class="community-body-editor-mount border rounded-3 bg-white p-2">
-                    <div id="bodyEditorPlaceholder" class="community-body-editor-placeholder">
+                    <div id="bodyEditorPlaceholder" class="community-body-editor-placeholder" @if(filled($selectedContentType)) style="display:none;" @endif>
                         <i class="fa-solid fa-pen-to-square fa-2x mb-3 text-primary" aria-hidden="true"></i>
                         <p class="mb-0 fw-semibold">Select a post type above to load the rich text editor.</p>
                     </div>
@@ -2527,6 +2545,23 @@ The mountains keep.</pre>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
 <style>
     .type-extra { display: none; }
+    @if($formLimitTypeSections && filled($selectedContentType))
+    .type-extra[data-for="{{ $selectedContentType }}"],
+    .type-extra[data-for^="{{ $selectedContentType }},"],
+    .type-extra[data-for$=",{{ $selectedContentType }}"],
+    .type-extra[data-for*=",{{ $selectedContentType }},"] {
+        display: block;
+    }
+    @endif
+    #bodyEditorMount:not(.is-editor-ready) #bodyEditor {
+        height: 1px;
+        margin: 0;
+        min-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding: 0;
+        pointer-events: none;
+    }
     .community-consent-section__title {
         font-size: 0.95rem;
         font-weight: 700;
@@ -2546,6 +2581,10 @@ The mountains keep.</pre>
         border: 0;
         border-radius: 0;
         padding: 0;
+    }
+    .community-post-type-locked__pill {
+        font-size: 0.85rem;
+        font-weight: 600;
     }
     .community-post-type-search {
         min-width: min(100%, 220px);
@@ -6750,23 +6789,37 @@ The mountains keep.</pre>
         const categorySelect = document.getElementById('categorySelect');
         const categoryWrap = document.getElementById('categoryFieldWrap');
         const help = document.getElementById('typeHelp');
-
-        if (!typeSelect || !categorySelect || !categoryWrap) {
-            return;
-        }
-
-        const selected = categorySelect.dataset.selected;
-        const type = window.communityTypes[typeSelect.value];
-        const selectedType = typeSelect.value;
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType);
+        const selectedType = typeSelect?.value || '';
 
         syncContentTypePicker(selectedType);
+
+        if (!typeSelect) {
+            refreshBodyEditorVisibility(selectedType);
+            return;
+        }
 
         if (!selectedType) {
             document.querySelectorAll('#communityPostDetails input, #communityPostDetails select, #communityPostDetails textarea').forEach((field) => {
                 field.required = false;
             });
-        } else {
+            document.querySelectorAll('.type-extra').forEach((field) => {
+                field.style.display = 'none';
+            });
+            refreshBodyEditorVisibility('');
+            return;
+        }
+
+        if (!categorySelect || !categoryWrap) {
+            applyCommunityTypeFieldState(selectedType);
+            refreshBodyEditorVisibility(selectedType);
+            return;
+        }
+
+        const selected = categorySelect.dataset.selected;
+        const type = window.communityTypes[typeSelect.value];
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType);
+
+        {
             const titleInput = document.querySelector('#communityPostDetails input[name="title"]');
             if (titleInput) {
                 titleInput.required = true;
@@ -6802,6 +6855,35 @@ The mountains keep.</pre>
         categorySelect.disabled = !selectedType;
         categoryWrap.style.display = selectedType ? '' : 'none';
 
+        applyCommunityTypeFieldState(selectedType, {
+            selected,
+            type,
+            hasTypeSection,
+            isReport,
+            isNews,
+            categoryLabel,
+            categoryHelp,
+            subCategoryWrap,
+            subCategoryHelp,
+            categorySelect,
+            categoryWrap,
+        });
+    }
+
+    function applyCommunityTypeFieldState(selectedType, categoryContext) {
+        categoryContext = categoryContext || {};
+        const type = categoryContext.type ?? window.communityTypes[selectedType];
+        const hasTypeSection = categoryContext.hasTypeSection ?? (Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType));
+        const isReport = categoryContext.isReport ?? (selectedType === 'reports');
+        const isNews = categoryContext.isNews ?? (selectedType === 'news');
+        const categorySelect = categoryContext.categorySelect ?? document.getElementById('categorySelect');
+        const categoryWrap = categoryContext.categoryWrap ?? document.getElementById('categoryFieldWrap');
+        const categoryLabel = categoryContext.categoryLabel ?? document.getElementById('categoryLabel');
+        const categoryHelp = categoryContext.categoryHelp ?? document.getElementById('categoryHelp');
+        const subCategoryWrap = categoryContext.subCategoryWrap ?? document.getElementById('subCategoryFieldWrap');
+        const subCategoryHelp = categoryContext.subCategoryHelp ?? document.getElementById('subCategoryHelp');
+        const selected = categoryContext.selected ?? categorySelect?.dataset.selected;
+
         const isStories = selectedType === 'stories';
         const isPoetry = selectedType === 'poetry';
         const isLifeStory = isLifeStoryContentType(selectedType);
@@ -6824,6 +6906,7 @@ The mountains keep.</pre>
         const isCreativeCorner = selectedType === 'creative-corner';
         const isCompetitions = selectedType === 'competitions';
 
+        if (categoryWrap && categorySelect) {
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
             categorySelect.required = false;
@@ -6918,6 +7001,7 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
         }
+        }
 
         if (categoryLabel) {
             categoryLabel.innerHTML = (isStories || isReport || isPoetry)
@@ -6940,7 +7024,7 @@ The mountains keep.</pre>
                 : '';
         }
 
-        if (type) {
+        if (type && categorySelect) {
             const categoryGroups = type.categoryGroups || null;
 
             if (categoryGroups && typeof categoryGroups === 'object') {
@@ -7866,8 +7950,11 @@ The mountains keep.</pre>
         saveActiveChapterMeta();
     });
 
-    document.getElementById('contentType').addEventListener('change', function () {
-        document.getElementById('categorySelect').dataset.selected = '';
+    document.getElementById('contentType')?.addEventListener('change', function () {
+        const categorySelectEl = document.getElementById('categorySelect');
+        if (categorySelectEl) {
+            categorySelectEl.dataset.selected = '';
+        }
         refreshCommunityCategories();
         refreshBodyEditorVisibility(this.value);
         if (window.communityBodyEditor) {
@@ -8300,12 +8387,6 @@ The mountains keep.</pre>
     }
 
     document.getElementById('actionNeeded')?.addEventListener('change', refreshCommunityActionFields);
-
-    try {
-        refreshCommunityCategories();
-    } catch (error) {
-        console.error('Unable to initialize community form fields.', error);
-    }
 
     class CommunityUploadAdapter {
         constructor(loader) {
@@ -8972,6 +9053,7 @@ The mountains keep.</pre>
         bodyEditorMount.style.display = '';
 
         if (window.communityBodyEditor) {
+            bodyEditorMount.classList.add('is-editor-ready');
             return Promise.resolve(window.communityBodyEditor);
         }
 
@@ -9006,7 +9088,8 @@ The mountains keep.</pre>
                     EditorClass.create(bodyEditor, getCommunityBodyEditorConfig())
                         .then((editor) => {
                             window.communityBodyEditor = editor;
-                            const contentType = document.getElementById('contentType').value;
+                            bodyEditorMount.classList.add('is-editor-ready');
+                            const contentType = document.getElementById('contentType')?.value || '';
                             let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
 
                             if (isBookContentType(contentType)) {
@@ -9055,12 +9138,23 @@ The mountains keep.</pre>
         return communityBodyEditorInitPromise;
     }
 
+    function bootstrapCommunityForm() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        syncContentTypePicker(contentType);
+
+        try {
+            refreshCommunityCategories();
+        } catch (error) {
+            console.error('Unable to initialize community form fields.', error);
+            applyCommunityTypeFieldState(contentType);
+            refreshBodyEditorVisibility(contentType);
+        }
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            refreshBodyEditorVisibility(document.getElementById('contentType')?.value || '');
-        });
+        document.addEventListener('DOMContentLoaded', bootstrapCommunityForm);
     } else {
-        refreshBodyEditorVisibility(document.getElementById('contentType')?.value || '');
+        bootstrapCommunityForm();
     }
 
     const tagInput = document.getElementById('tagInput');
