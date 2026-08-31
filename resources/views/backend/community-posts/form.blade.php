@@ -488,6 +488,7 @@
             <div class="col-12 type-extra competitions-flow" data-for="competitions">
                 @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -1283,7 +1284,6 @@ The mountains keep.</pre>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
             </div>
-            @endif
             @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('poetry', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
                 @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'rest'])
@@ -6750,6 +6750,11 @@ The mountains keep.</pre>
         const categorySelect = document.getElementById('categorySelect');
         const categoryWrap = document.getElementById('categoryFieldWrap');
         const help = document.getElementById('typeHelp');
+
+        if (!typeSelect || !categorySelect || !categoryWrap) {
+            return;
+        }
+
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
         const selectedType = typeSelect.value;
@@ -7394,12 +7399,15 @@ The mountains keep.</pre>
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         })))))))))))))));
 
-        document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
-        document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
-        document.getElementById('excerptHelp').textContent = fieldCopy.excerptHelp;
-        document.getElementById('bodyLabel').innerHTML = fieldCopy.bodyLabel;
-        document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
-        document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
+        document.getElementById('excerptLabel')?.textContent = fieldCopy.excerptLabel;
+        document.getElementById('excerptField')?.placeholder = fieldCopy.excerptPlaceholder;
+        document.getElementById('excerptHelp')?.textContent = fieldCopy.excerptHelp;
+        const bodyLabel = document.getElementById('bodyLabel');
+        if (bodyLabel) {
+            bodyLabel.innerHTML = fieldCopy.bodyLabel;
+        }
+        document.getElementById('bodyHelp')?.textContent = fieldCopy.bodyHelp;
+        document.getElementById('locationLabel')?.innerHTML = fieldCopy.locationLabel;
 
         const storyContentGuide = document.getElementById('storyContentGuide');
         if (storyContentGuide) {
@@ -9205,6 +9213,8 @@ The mountains keep.</pre>
                 },
             }));
         });
+
+        syncFeaturedImagesRemovedInputs();
     }
 
     function createFeaturedImageCard({ src, label, onRemove }) {
@@ -11786,6 +11796,12 @@ The mountains keep.</pre>
             input.disabled = false;
         });
         formData.delete('featured_images[]');
+        formData.delete('removed_featured_images[]');
+        featuredImagesState.removed.forEach((path) => {
+            if (path) {
+                formData.append('removed_featured_images[]', path);
+            }
+        });
         if (isBookContentType(document.getElementById('contentType').value)) {
             appendBookPagesToFormData(formData);
         }
@@ -11795,6 +11811,12 @@ The mountains keep.</pre>
             }
         });
         formData.delete('story_gallery[]');
+        formData.delete('removed_story_gallery[]');
+        storyGalleryState.removed.forEach((path) => {
+            if (path) {
+                formData.append('removed_story_gallery[]', path);
+            }
+        });
         storyGalleryState.pending.forEach((item) => {
             if (item?.file instanceof File && item.file.size > 0) {
                 formData.append('story_gallery[]', item.file);
