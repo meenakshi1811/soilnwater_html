@@ -7483,15 +7483,30 @@ The mountains keep.</pre>
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         })))))))))))))));
 
-        document.getElementById('excerptLabel')?.textContent = fieldCopy.excerptLabel;
-        document.getElementById('excerptField')?.placeholder = fieldCopy.excerptPlaceholder;
-        document.getElementById('excerptHelp')?.textContent = fieldCopy.excerptHelp;
+        const excerptLabelEl = document.getElementById('excerptLabel');
+        if (excerptLabelEl) {
+            excerptLabelEl.textContent = fieldCopy.excerptLabel;
+        }
+        const excerptFieldEl = document.getElementById('excerptField');
+        if (excerptFieldEl) {
+            excerptFieldEl.placeholder = fieldCopy.excerptPlaceholder;
+        }
+        const excerptHelpEl = document.getElementById('excerptHelp');
+        if (excerptHelpEl) {
+            excerptHelpEl.textContent = fieldCopy.excerptHelp;
+        }
         const bodyLabel = document.getElementById('bodyLabel');
         if (bodyLabel) {
             bodyLabel.innerHTML = fieldCopy.bodyLabel;
         }
-        document.getElementById('bodyHelp')?.textContent = fieldCopy.bodyHelp;
-        document.getElementById('locationLabel')?.innerHTML = fieldCopy.locationLabel;
+        const bodyHelpEl = document.getElementById('bodyHelp');
+        if (bodyHelpEl) {
+            bodyHelpEl.textContent = fieldCopy.bodyHelp;
+        }
+        const locationLabelEl = document.getElementById('locationLabel');
+        if (locationLabelEl) {
+            locationLabelEl.innerHTML = fieldCopy.locationLabel;
+        }
 
         const storyContentGuide = document.getElementById('storyContentGuide');
         if (storyContentGuide) {
