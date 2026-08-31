@@ -545,16 +545,38 @@
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-stats, .about-page--articles .community-engagement-panel--article .community-engagement-stats{
+        display: grid;
         gap: 0.45rem;
         grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
         margin-bottom: 0.65rem;
+        width: 100%;
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-stat, .about-page--articles .community-engagement-panel--article .community-engagement-stat{
+        align-items: center;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        border: 1px solid rgba(15, 47, 85, 0.1);
         border-radius: 0.65rem;
+        color: #0f2744;
+        display: flex;
         flex-direction: row;
+        gap: 0.45rem;
+        justify-content: center;
         min-height: 0;
         padding: 0.5rem 0.6rem;
+    }
+
+    .about-page--community-post .community-engagement-panel--article .community-engagement-stat i, .about-page--articles .community-engagement-panel--article .community-engagement-stat i{
+        color: #1b6ca8;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+    }
+
+    .about-page--community-post .community-engagement-panel--article .community-engagement-stat__value, .about-page--articles .community-engagement-panel--article .community-engagement-stat__value{
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
     }
 
     .about-page--community-post .community-engagement-panel--article .community-engagement-actions, .about-page--articles .community-engagement-panel--article .community-engagement-actions{
