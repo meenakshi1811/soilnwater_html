@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    @if($audiences !== [])
+    @if($audiences !== [] && ! ($moveCultureSpiritualityExtrasToRail ?? false))
         <div class="rs-section-panel">
             <div class="rs-section-panel__label">Target audience</div>
             <div class="d-flex flex-wrap gap-2">
@@ -167,7 +167,7 @@
         </div>
     @endif
 
-    @if($meditationTopics !== [])
+    @if($meditationTopics !== [] && ! ($moveCultureSpiritualityExtrasToRail ?? false))
         <div class="rs-section-panel">
             <div class="rs-section-panel__label">Meditation &amp; wellness</div>
             <div class="d-flex flex-wrap gap-2">
@@ -191,6 +191,7 @@
 
     @include('community.partials.religion-spirituality-unique-features-show', ['post' => $post])
 
+    @unless($moveCultureSpiritualityExtrasToRail ?? false)
     <div class="rs-section-panel">
         <div class="rs-section-panel__label">Post capabilities</div>
         <div class="rs-capability-grid">
@@ -202,6 +203,7 @@
             @endforeach
         </div>
     </div>
+    @endunless
 
     @if($post->featuredImageUrl() || $post->hasVideo() || $gallery !== [] || filled($audio) || $documents !== [])
         <div class="business-section-panel about-box mb-4">

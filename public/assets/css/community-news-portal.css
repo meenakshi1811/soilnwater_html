@@ -1207,8 +1207,18 @@
 .community-news-sidebar__card--awareness-event,
 .community-news-sidebar__card--community-issues-details,
 .community-news-sidebar__card--community-issues-overview,
-.community-news-sidebar__card--community-issues-status {
+.community-news-sidebar__card--community-issues-status,
+.community-news-sidebar__card--religion-spirituality-details {
     padding-bottom: 1rem;
+}
+
+.community-news-sidebar__card--religion-spirituality-details .rs-capability-grid {
+    gap: 0.35rem;
+}
+
+.community-news-sidebar__card--religion-spirituality-details .rs-capability-pill {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.65rem;
 }
 
 .community-news-sidebar__card--childrens-intro,

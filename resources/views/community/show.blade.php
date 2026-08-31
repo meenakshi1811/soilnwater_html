@@ -597,6 +597,7 @@
                         'moveLifeLearningExtrasToSidebar' => $moveLifeLearningExtrasToSidebar,
                         'moveLocalCivicExtrasToRail' => $moveLocalCivicExtrasToRail,
                         'moveCreativeCommunityExtrasToRail' => $moveCreativeCommunityExtrasToRail,
+                        'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail,
                         'isFollowingAuthor' => $isFollowingAuthor,
                         'trendingPosts' => $trendingPortalPosts ?? $trendingNews ?? collect(),
                     ])

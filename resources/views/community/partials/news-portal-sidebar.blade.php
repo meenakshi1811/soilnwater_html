@@ -175,6 +175,10 @@
         @include('community.partials.competitions-portal-sidebar-sections', ['post' => $post])
     @endif
 
+    @if(isset($post) && ($moveCultureSpiritualityExtrasToRail ?? false) && $post->isReligionSpiritualityPost())
+        @include('community.partials.religion-spirituality-portal-sidebar-sections', ['post' => $post])
+    @endif
+
     @if(isset($post))
         @include('community.partials.news-sidebar-tags', [
             'post' => $post,
