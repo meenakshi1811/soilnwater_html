@@ -142,12 +142,8 @@
         width: 100%;
     }
 
-    .community-news-detail__lead {
-        padding: 1rem 1.25rem 0;
-    }
-
-    .community-news-detail__lead .rs-show-overview--detail-lead {
-        margin-bottom: 0;
+    .community-news-detail__content .rs-show-overview--detail-lead {
+        margin-bottom: 1rem;
     }
 
     .community-news-detail__content {
