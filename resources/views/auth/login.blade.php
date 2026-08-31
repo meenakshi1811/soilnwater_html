@@ -125,6 +125,7 @@
                     </a>
 
                     <p class="signin-copy mt-3 mb-0">Don’t have an account? <a href="{{ route('register') }}">Sign up</a></p>
+                    <p class="signin-copy mt-2 mb-0">Staff member? <a href="{{ route('employee.login') }}">Employee portal</a></p>
                 </div>
             </div>
         </div>

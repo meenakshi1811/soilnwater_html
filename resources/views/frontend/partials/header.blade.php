@@ -138,6 +138,7 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
+          <li><a class="dropdown-item" href="{{ route('employee.login') }}">Employee portal</a></li>
           @if($user->isVendor() && ! $user->vendor?->is_premium)
             <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'vendor') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
           @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
@@ -155,6 +156,7 @@
       </div>
     @else
       <a class="btn-login" href="{{ route('login') }}">Login</a>
+      <a class="btn-login" href="{{ route('employee.login') }}">Employee</a>
     @endauth
   </div>
 
@@ -187,6 +189,7 @@
       </form>
     @else
       <a class="btn-login" href="{{ route('login') }}">Login</a>
+      <a class="btn-login" href="{{ route('employee.login') }}">Employee</a>
     @endauth
   </div>
 </header>

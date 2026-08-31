@@ -4,26 +4,28 @@
     $isVendor = $user->isVendor();
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
+    $isEmployee = $user->isEmployee();
+    $isAdmin = $user->isAdmin();
     $dashboardUrl = $isGeneralUser
         ? route('user.dashboard')
-        : ($isVendor ? route('vendor.dashboard') : ($isConsultant ? route('consultant.dashboard') : ($isServiceProvider ? route('service_provider.dashboard') : route('admin.dashboard'))));
+        : ($isVendor ? route('vendor.dashboard') : ($isConsultant ? route('consultant.dashboard') : ($isServiceProvider ? route('service_provider.dashboard') : ($isEmployee ? route('employee.dashboard') : route('admin.dashboard')))));
     $dashboardActive = $isGeneralUser
         ? request()->routeIs('user.dashboard')
-        : ($isVendor ? request()->routeIs('vendor.dashboard') : ($isConsultant ? request()->routeIs('consultant.dashboard') : ($isServiceProvider ? request()->routeIs('service_provider.dashboard') : request()->routeIs('admin.dashboard'))));
+        : ($isVendor ? request()->routeIs('vendor.dashboard') : ($isConsultant ? request()->routeIs('consultant.dashboard') : ($isServiceProvider ? request()->routeIs('service_provider.dashboard') : ($isEmployee ? request()->routeIs('employee.dashboard') : request()->routeIs('admin.dashboard')))));
     $profileUrl = $isGeneralUser
         ? route('user.profile.edit')
-        : ($isVendor ? route('vendor.profile.edit') : ($isConsultant ? route('consultant.profile.edit') : ($isServiceProvider ? route('service_provider.profile.edit') : route('admin.profile.edit'))));
+        : ($isVendor ? route('vendor.profile.edit') : ($isConsultant ? route('consultant.profile.edit') : ($isServiceProvider ? route('service_provider.profile.edit') : ($isEmployee ? route('employee.profile.edit') : route('admin.profile.edit')))));
     $profileActive = $isGeneralUser
         ? request()->routeIs('user.profile.*')
-        : ($isVendor ? request()->routeIs('vendor.profile.*') : ($isConsultant ? request()->routeIs('consultant.profile.*') : ($isServiceProvider ? request()->routeIs('service_provider.profile.*') : request()->routeIs('admin.profile.*'))));
+        : ($isVendor ? request()->routeIs('vendor.profile.*') : ($isConsultant ? request()->routeIs('consultant.profile.*') : ($isServiceProvider ? request()->routeIs('service_provider.profile.*') : ($isEmployee ? request()->routeIs('employee.profile.*') : request()->routeIs('admin.profile.*')))));
     $panelTitle = $isGeneralUser
         ? 'User Dashboard'
-        : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Dashboard' : 'Admin Control Panel')));
+        : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Dashboard' : ($isEmployee ? 'Employee Portal' : 'Admin Control Panel'))));
     $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
         || ($isConsultant && $user->consultant?->is_premium)
         || ($isServiceProvider && $user->serviceProvider?->is_premium);
-    $notifications = $user->notifications()->latest()->limit(8)->get();
-    $unreadNotificationCount = $user->unreadNotifications()->count();
+    $notifications = $isEmployee ? collect() : $user->notifications()->latest()->limit(8)->get();
+    $unreadNotificationCount = $isEmployee ? 0 : $user->unreadNotifications()->count();
 @endphp
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -50,10 +52,11 @@
                 <span class="d-none d-md-inline">Home</span>
             </a>
             <a class="btn btn-sm admin-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
-            @if($isGeneralUser || $user->isAdmin() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider())
+            @if($isGeneralUser || $isAdmin || $isVendor || $isConsultant || $isServiceProvider)
                 <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
                 <a class="btn btn-sm admin-header-action-ad" href="{{ route('ads.create.size') }}">Post Ad</a>
             @endif
+            @if(! $isEmployee)
             <div class="dropdown admin-notification-dropdown">
                 <button class="btn btn-sm admin-icon-link admin-notification-button" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Notifications">
                     <i class="fa-solid fa-bell"></i>
@@ -94,8 +97,9 @@
                     </div>
                 </div>
             </div>
+            @endif
             <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-sm admin-logout">Logout</button>
             </form>

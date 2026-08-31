@@ -55,13 +55,6 @@ class LoginController extends Controller
             return route('admin.dashboard');
         }
 
-        if ($user && $user->role === 'employee') {
-            $slug = $user->firstReadableModuleSlug();
-            if ($slug) {
-                return route('modules.show', ['module' => $slug]);
-            }
-        }
-
         if ($user && $user->isGeneralUser()) {
             return route('user.dashboard');
         }
@@ -152,6 +145,8 @@ class LoginController extends Controller
 
         PremiumPromptService::flashForUser($user);
         app(DiscussionGroupInvitationService::class)->claimPendingInvitationsForUser($user);
+
+        Auth::guard('employee')->logout();
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -370,6 +365,7 @@ class LoginController extends Controller
         Cache::forget($this->otpCacheKey($userId));
         $request->session()->forget('otp_login_user_id');
 
+        Auth::guard('employee')->logout();
         Auth::login($user, true);
 
         PremiumPromptService::flashForUser($user);
@@ -550,6 +546,7 @@ class LoginController extends Controller
             }
         }
 
+        Auth::guard('employee')->logout();
         Auth::login($user, true);
 
         PremiumPromptService::flashForUser($user);
@@ -708,6 +705,7 @@ class LoginController extends Controller
         }
 
         if ($user->isGeneralUser()) {
+            Auth::guard('employee')->logout();
             Auth::login($user, true);
             PremiumPromptService::flashForUser($user);
 

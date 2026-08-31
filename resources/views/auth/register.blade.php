@@ -202,6 +202,7 @@
                         </button>
 
                         <p class="signin-copy">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
+                        <p class="signin-copy mt-2 mb-0">Joining as staff? <a href="{{ route('employee.register') }}">Employee sign up</a></p>
                     </form>
                     <div class="auth-divider"><span>or</span></div>
                     <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">

@@ -30,15 +30,6 @@ class HomeController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user?->role === 'employee') {
-            $slug = $user->firstReadableModuleSlug();
-            if ($slug) {
-                return redirect()->route('modules.show', ['module' => $slug]);
-            }
-
-            return view('home');
-        }
-
         if ($user?->isGeneralUser()) {
             return redirect()->route('user.dashboard');
         }

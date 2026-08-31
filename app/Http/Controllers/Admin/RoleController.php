@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Employee;
 use App\Support\ModulePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -92,8 +92,8 @@ class RoleController extends Controller
 
     public function destroy(Role $role): JsonResponse
     {
-        $usersWithRole = User::role($role->name)->count();
-        if ($usersWithRole > 0) {
+        $employeesWithRole = Employee::role($role->name)->count();
+        if ($employeesWithRole > 0) {
             return response()->json([
                 'message' => 'Cannot delete role while employees are assigned to it.',
             ], 422);

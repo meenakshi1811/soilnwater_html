@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\EmployeeRegistrationMail;
-use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,26 +24,25 @@ class EmployeeController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $employees = User::query()
-            ->where('role', 'employee')
+        $employees = Employee::query()
             ->with(['roles'])
             ->select(['id', 'name', 'email', 'phone_number', 'is_active', 'created_at']);
 
         return DataTables::of($employees)
-            ->addColumn('role_name', function (User $employee): string {
+            ->addColumn('role_name', function (Employee $employee): string {
                 $role = $employee->roles->first();
 
-                return $role ? e($role->name) : '<span class="text-muted">—</span>';
+                return $role ? e($role->name) : '<span class="text-muted">Pending role</span>';
             })
-            ->editColumn('created_at', function (User $employee) {
+            ->editColumn('created_at', function (Employee $employee) {
                 return $employee->created_at ? $employee->created_at->format('Y-m-d') : '';
             })
-            ->addColumn('status_badge', function (User $employee): string {
+            ->addColumn('status_badge', function (Employee $employee): string {
                 return $employee->is_active
                     ? '<span class="badge text-bg-success">Active</span>'
                     : '<span class="badge text-bg-secondary">Inactive</span>';
             })
-            ->addColumn('actions', function (User $employee): string {
+            ->addColumn('actions', function (Employee $employee): string {
                 return '<div class="d-flex gap-2 justify-content-end">'
                     . '<button type="button" class="btn btn-sm btn-outline-primary js-edit-employee" data-id="'.$employee->id.'"><i class="fa-solid fa-pen"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-employee" data-id="'.$employee->id.'"><i class="fa-solid fa-trash"></i></button>'
@@ -72,10 +71,8 @@ class EmployeeController extends Controller
             ->make(true);
     }
 
-    public function show(User $employee): JsonResponse
+    public function show(Employee $employee): JsonResponse
     {
-        abort_if($employee->role !== 'employee', 404);
-
         $role = $employee->roles->first();
 
         return response()->json([
@@ -95,12 +92,10 @@ class EmployeeController extends Controller
         $validated = $this->validateEmployee($request);
         $role = Role::query()->where('guard_name', 'web')->findOrFail($validated['role_id']);
 
-        $employee = User::create([
+        $employee = Employee::query()->create([
             'name' => $validated['name'],
-            'full_name' => $validated['name'],
             'email' => strtolower($validated['email']),
             'phone_number' => $validated['phone_number'],
-            'role' => 'employee',
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'created_by' => $request->user()?->id,
             'email_verified_at' => now(),
@@ -116,20 +111,17 @@ class EmployeeController extends Controller
         ));
 
         return response()->json([
-            'message' => 'Employee created successfully. Login credentials were emailed.',
+            'message' => 'Employee created successfully. Login credentials were emailed. They sign in at the employee portal, even if the same email is already a user.',
         ]);
     }
 
-    public function update(Request $request, User $employee): JsonResponse
+    public function update(Request $request, Employee $employee): JsonResponse
     {
-        abort_if($employee->role !== 'employee', 404);
-
         $validated = $this->validateEmployee($request, $employee);
         $role = Role::query()->where('guard_name', 'web')->findOrFail($validated['role_id']);
 
         $employee->fill([
             'name' => $validated['name'],
-            'full_name' => $validated['name'],
             'email' => strtolower($validated['email']),
             'phone_number' => $validated['phone_number'],
             'is_active' => (bool) ($validated['is_active'] ?? true),
@@ -147,9 +139,8 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function destroy(User $employee): JsonResponse
+    public function destroy(Employee $employee): JsonResponse
     {
-        abort_if($employee->role !== 'employee', 404);
         $employee->syncRoles([]);
         $employee->delete();
 
@@ -158,7 +149,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    private function validateEmployee(Request $request, ?User $employee = null): array
+    private function validateEmployee(Request $request, ?Employee $employee = null): array
     {
         $passwordRules = $employee
             ? ['nullable', 'string', 'min:8', 'confirmed']
@@ -166,8 +157,8 @@ class EmployeeController extends Controller
 
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employee?->id)],
-            'phone_number' => ['required', 'digits_between:10,15'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('employees', 'email')->ignore($employee?->id)],
+            'phone_number' => ['required', 'digits_between:10,15', Rule::unique('employees', 'phone_number')->ignore($employee?->id)],
             'role_id' => ['required', 'integer', Rule::exists('roles', 'id')->where('guard_name', 'web')],
             'is_active' => ['nullable', 'boolean'],
             'password' => $passwordRules,

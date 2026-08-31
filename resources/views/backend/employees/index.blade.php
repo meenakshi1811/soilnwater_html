@@ -12,7 +12,7 @@
         <div>
             <p class="ems-kicker mb-1">Employee Management System</p>
             <h2 class="admin-title mb-1">Employees</h2>
-            <p class="mb-0 text-secondary">Create employees and assign a Spatie role — module permissions apply automatically from that role.</p>
+            <p class="mb-0 text-secondary">Employees are stored separately from users, so the same email can exist on both. Assign a role to control which modules they can open.</p>
         </div>
         <button type="button" class="btn btn-primary ems-btn-primary" id="openEmployeeModalBtn">
             <i class="fa-solid fa-user-plus me-2"></i> Add Employee

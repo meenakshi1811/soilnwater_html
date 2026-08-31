@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Models\AdSize;
-use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 final class AdSizes
 {
@@ -57,9 +57,9 @@ final class AdSizes
     /**
      * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float, category_prices:array<int,float>}>
      */
-    public static function visibleFor(?User $user): array
+    public static function visibleFor(?Authenticatable $user): array
     {
-        if ((bool) ($user?->isStaff())) {
+        if ($user && method_exists($user, 'isStaff') && $user->isStaff()) {
             return self::all(true);
         }
 

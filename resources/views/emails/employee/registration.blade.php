@@ -4,7 +4,7 @@
     <h1 style="margin: 0 0 10px; color: #111827; font-size: 24px; line-height: 1.3;">Welcome to SoilNWater Employee Portal</h1>
 
     <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-        Your employee account has been created successfully. Use the credentials below to login and start managing your assigned modules.
+        Your employee account has been created successfully. Sign in at the employee portal (not the regular user login). The same email can also be used for a separate user account.
     </p>
 
     <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 16px;">
@@ -19,7 +19,7 @@
     </table>
 
     <p style="margin: 0 0 12px; color: #374151; font-size: 14px; line-height: 1.7;">
-        Please login and change your password immediately for security. Access will be limited based on your role and permission matrix.
+        Please sign in at {{ url('/employee/login') }} and change your password immediately. You will only see modules granted by your assigned role.
     </p>
 
     <p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.7;">Regards,<br><strong>{{ config('app.name', 'SoilNWater') }} Team</strong></p>

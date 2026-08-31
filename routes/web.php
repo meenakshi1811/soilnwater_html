@@ -33,8 +33,11 @@ use App\Http\Controllers\Admin\VendorPublicPageController as AdminVendorPublicPa
 use App\Http\Controllers\Admin\ConsultantPublicPageController as AdminConsultantPublicPageController;
 use App\Http\Controllers\Admin\ServiceProviderPublicPageController as AdminServiceProviderPublicPageController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\EmployeeLoginController;
+use App\Http\Controllers\Auth\EmployeeRegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Employee\EmployeeDashboardController;
 use App\Http\Controllers\Community\CommunityAstroConsultancyEngagementController;
 use App\Http\Controllers\Community\CommunityAuthorQuestionController;
 use App\Http\Controllers\Community\CommunityAwarenessEngagementController;
@@ -166,6 +169,29 @@ Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, '
 
 Auth::routes(['verify' => true]);
 
+Route::middleware('guest:employee')->group(function () {
+    Route::get('/employee/login', [EmployeeLoginController::class, 'showLoginForm'])->name('employee.login');
+    Route::post('/employee/login', [EmployeeLoginController::class, 'login']);
+    Route::get('/employee/register', [EmployeeRegisterController::class, 'showRegistrationForm'])->name('employee.register');
+    Route::post('/employee/register', [EmployeeRegisterController::class, 'register']);
+});
+
+Route::post('/employee/logout', [EmployeeLoginController::class, 'logout'])
+    ->middleware('auth:employee')
+    ->name('employee.logout');
+
+Route::middleware(['auth:employee', 'employee.active'])->prefix('employee')->name('employee.')->group(function () {
+    Route::get('/', [EmployeeDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [EmployeeDashboardController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [EmployeeDashboardController::class, 'updateProfile'])->name('profile.update');
+});
+
+Route::middleware('employee.or.admin')->group(function () {
+    Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
+        ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|service_providers|enquiry|products|offers|ads|user_enquiry')
+        ->name('modules.show');
+});
+
 Route::middleware('guest')->group(function () {
     Route::post('/login/otp/send', [LoginController::class, 'sendOtp'])->name('login.otp.send');
     Route::get('/login/otp', [LoginController::class, 'showOtpForm'])->name('login.otp.form');
@@ -245,10 +271,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('marketplace.approved')
         ->name('offers.categories.subcategories');
     Route::get('/post-offer', [PostOfferController::class, 'index'])->middleware('marketplace.approved')->name('post-offer');
-
-    Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
-        ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|service_providers|enquiry|products|offers|ads|user_enquiry')
-        ->name('modules.show');
 
     Route::get('/vendor/pending', [VendorPendingController::class, 'show'])->name('vendor.pending');
 

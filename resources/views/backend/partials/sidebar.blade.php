@@ -45,6 +45,9 @@
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
+    } elseif ($isEmployee) {
+        $dashboardUrl = route('employee.dashboard');
+        $dashboardActive = request()->routeIs('employee.dashboard') || request()->routeIs('modules.show');
     } else {
         $slug = auth()->user()->firstReadableModuleSlug();
         $dashboardUrl = $slug ? route('modules.show', $slug) : route('home');
@@ -443,7 +446,11 @@
         @endif
 
          @foreach($emsModules as $slug => $label)
-            @if(($isAdmin || auth()->user()->can($slug.'.read')) && !in_array($slug, ['offers', 'ads'], true))
+            @php
+                $hideAdminModuleDuplicates = $isAdmin && in_array($slug, ['offers', 'ads'], true);
+                $canReadModule = $isAdmin || auth()->user()->canModule($slug, 'read');
+            @endphp
+            @if($canReadModule && ! $hideAdminModuleDuplicates)
                 <li>
                     <a class="{{ request()->routeIs('modules.show') && request()->route('module') === $slug ? 'active' : '' }}" href="{{ route('modules.show', $slug) }}">
                         <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
@@ -753,43 +760,10 @@
                 </details>
             </li>
         @elseif($isEmployee)
-            @if($canAccessOffers)
-                <li>
-                    <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
-                        <i class="fa-solid fa-tags"></i>
-                        <span>My Offers</span>
-                    </a>
-                </li>
-            @endif
-
             <li>
-                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
-                    <i class="fa-solid fa-pen-nib"></i>
-                    <span>Community Posts</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
-                    <i class="fa-solid fa-bookmark"></i>
-                    <span>Saved Posts</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
-                    <i class="fa-solid fa-bell"></i>
-                    <span>Subscriptions</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
-                    <i class="fa-solid fa-circle-question"></i>
-                    <span>Reader Questions</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Home</span>
+                <a class="{{ request()->routeIs('employee.profile.*') ? 'active' : '' }}" href="{{ route('employee.profile.edit') }}">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Profile</span>
                 </a>
             </li>
         @else
@@ -801,7 +775,7 @@
             </li>
         @endif
         <li>
-            <form method="POST" action="{{ route('logout') }}" class="w-100">
+            <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}" class="w-100">
                 @csrf
                 <button type="submit" class="admin-sidebar-logout">
                     <i class="fa-solid fa-right-from-bracket"></i>

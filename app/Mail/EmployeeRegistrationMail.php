@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -13,7 +13,7 @@ class EmployeeRegistrationMail extends Mailable
     use SerializesModels;
 
     public function __construct(
-        public User $employee,
+        public Employee $employee,
         public string $temporaryPassword,
         public string $roleName,
         public string $subjectLine = 'Your Employee Account Is Ready',
