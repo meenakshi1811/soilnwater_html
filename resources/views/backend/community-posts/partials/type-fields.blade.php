@@ -1,5 +1,6 @@
 @foreach(\App\Support\CommunityPostFormFields::sections() as $typeKey => $section)
     @continue(empty($section['fields']))
+    @continue(! \App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection($typeKey, $selectedContentType ?? null, $formLimitTypeSections ?? false))
     <div class="col-12 type-extra type-fields-flow" data-for="{{ $typeKey }}">
         <div class="type-fields-card border rounded-3 p-3 bg-light">
             <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">

@@ -29,13 +29,15 @@ class CommunityPostFileUploader
      */
     public static function storeAttachment(UploadedFile $file, string $subfolder = 'issues'): array
     {
+        $originalName = $file->getClientOriginalName();
+        $mimeType = (string) ($file->getClientMimeType() ?: $file->getMimeType());
         $path = self::storeFile($file, $subfolder);
 
         return [
             'path' => $path,
             'url' => self::url($path),
-            'name' => $file->getClientOriginalName(),
-            'type' => Str::before($file->getMimeType(), '/'),
+            'name' => $originalName,
+            'type' => Str::before($mimeType !== '' ? $mimeType : 'application/octet-stream', '/'),
         ];
     }
 

@@ -1747,6 +1747,21 @@ class CommunityContentTaxonomy
         return $types;
     }
 
+    public static function shouldRenderFormTypeSection(string $dataFor, ?string $activeType, bool $limitToActiveType): bool
+    {
+        if (! $limitToActiveType || ! filled($activeType)) {
+            return true;
+        }
+
+        foreach (explode(',', $dataFor) as $type) {
+            if (trim($type) === $activeType) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @return list<string>
      */

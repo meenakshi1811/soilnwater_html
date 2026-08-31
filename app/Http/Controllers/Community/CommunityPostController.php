@@ -37,8 +37,11 @@ use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostAuditLogger;
 use App\Support\CommunityPostFileUploader;
 use App\Support\CommunityPostFormFields;
+use App\Support\CommunityPostUploadSanitizer;
 use App\Support\KrutiDevToUnicode;
 use App\Support\UserFileUploader;
+use App\Rules\SafeUploadedFile;
+use App\Rules\SafeUploadedImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -910,6 +913,8 @@ class CommunityPostController extends Controller
 
     public function updateAuthorUrl(Request $request): RedirectResponse
     {
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
+
         $user = $request->user();
         $data = $request->validate([
             'author_slug' => [
@@ -919,7 +924,7 @@ class CommunityPostController extends Controller
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('users', 'author_slug')->ignore($user->id),
             ],
-            'author_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'author_image' => ['nullable', $this->communityImageRule(4096, ['jpg', 'jpeg', 'png', 'webp'])],
             'remove_author_image' => ['nullable', 'boolean'],
         ], [
             'author_slug.regex' => 'Use lowercase letters, numbers, and single hyphens only.',
@@ -1335,10 +1340,18 @@ class CommunityPostController extends Controller
     {
         $this->authorizeOwner($request, $post);
 
+        $types = CommunityContentTaxonomy::editableTypes($post);
+        $lockedContentType = $post->content_type;
+
+        if ($lockedContentType && array_key_exists($lockedContentType, $types)) {
+            $types = [$lockedContentType => $types[$lockedContentType]];
+        }
+
         return view('backend.community-posts.form', [
             'post' => $post,
-            'types' => CommunityContentTaxonomy::editableTypes($post),
+            'types' => $types,
             'mode' => 'edit',
+            'lockedContentType' => $lockedContentType,
         ]);
     }
 
@@ -2120,8 +2133,10 @@ class CommunityPostController extends Controller
 
     public function uploadInlineImage(Request $request): JsonResponse
     {
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
+
         $request->validate([
-            'upload' => ['required', 'image', 'max:4096'],
+            'upload' => ['required', $this->communityImageRule()],
         ]);
 
         $file = $request->file('upload');
@@ -2133,12 +2148,12 @@ class CommunityPostController extends Controller
 
     public function uploadInlineAttachment(Request $request): JsonResponse
     {
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
+
         $request->validate([
             'upload' => [
                 'required',
-                'file',
-                'max:20480',
-                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,avi,mkv',
+                new SafeUploadedFile(20480, ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'mp4', 'webm', 'mov', 'avi', 'mkv']),
             ],
         ]);
 
@@ -2162,7 +2177,7 @@ class CommunityPostController extends Controller
      */
     private function validated(Request $request, ?CommunityPost $post = null): array
     {
-        $this->pruneUnreadableUploads($request);
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
 
         $typeKeys = CommunityContentTaxonomy::allowedContentTypeKeys($post);
         $contentType = $request->input('content_type');
@@ -2335,7 +2350,7 @@ class CommunityPostController extends Controller
                 Rule::in(CommunityContentTaxonomy::editorLanguageCodesFor(is_string($contentType) ? $contentType : null)),
             ],
             'featured_images' => ['nullable', 'array', 'max:'.self::MAX_FEATURED_IMAGES],
-            'featured_images.*' => ['image', 'max:4096'],
+            'featured_images.*' => [$this->communityImageRule()],
             'removed_featured_images' => ['nullable', 'array'],
             'removed_featured_images.*' => ['string', 'max:255'],
             'tags' => [
@@ -2442,13 +2457,13 @@ class CommunityPostController extends Controller
             'recommendations' => ['nullable', 'string', 'max:3000'],
             'report_conclusion' => ['nullable', 'string', 'max:3000'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
-            'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
+            'issue_attachments.*' => [new SafeUploadedFile(20480, ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'avi', 'pdf', 'doc', 'docx'])],
             'news_documents' => ['nullable', 'array', 'max:6'],
-            'news_documents.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx'],
+            'news_documents.*' => [new SafeUploadedFile(20480, ['pdf', 'doc', 'docx'])],
             'removed_news_documents' => ['nullable', 'array'],
             'removed_news_documents.*' => ['string', 'max:255'],
             'story_gallery' => ['nullable', 'array', 'max:'.self::MAX_STORY_GALLERY],
-            'story_gallery.*' => ['image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'story_gallery.*' => [$this->communityImageRule()],
             'removed_story_gallery' => ['nullable', 'array'],
             'removed_story_gallery.*' => ['string', 'max:255'],
             'story_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
@@ -2557,7 +2572,7 @@ class CommunityPostController extends Controller
             'life_timeline.*.title' => ['required_with:life_timeline', 'string', 'max:160'],
             'life_timeline.*.description' => ['required_with:life_timeline', 'string', 'max:2000'],
             'life_timeline.*.existing_photo_path' => ['nullable', 'string', 'max:255'],
-            'life_timeline.*.photo' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'life_timeline.*.photo' => ['nullable', $this->communityImageRule()],
             'autobiography_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
             'autobiography_audio_file' => [
                 Rule::requiredIf(fn () => CommunityPost::usesAutobiographyFlow(is_string($contentType) ? $contentType : null)
@@ -2590,7 +2605,7 @@ class CommunityPostController extends Controller
             'autobiography_achievements.*.year' => ['nullable', 'string', 'max:10'],
             'autobiography_achievements.*.description' => ['nullable', 'string', 'max:1000'],
             'autobiography_achievements.*.existing_image_path' => ['nullable', 'string', 'max:255'],
-            'autobiography_achievements.*.image' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'autobiography_achievements.*.image' => ['nullable', $this->communityImageRule()],
             'autobiography_documents' => ['nullable', 'array', 'max:'.self::MAX_AUTOBIOGRAPHY_DOCUMENTS],
             'autobiography_documents.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx'],
             'removed_autobiography_documents' => ['nullable', 'array'],
@@ -3050,9 +3065,7 @@ class CommunityPostController extends Controller
             ],
             'business_gallery.*' => [
                 Rule::excludeIf(fn () => ! $isBusiness),
-                'image',
-                'max:4096',
-                'mimes:jpg,jpeg,png,webp,gif',
+                $this->communityImageRule(),
             ],
             'removed_business_gallery' => [
                 Rule::excludeIf(fn () => ! $isBusiness),
@@ -3216,8 +3229,7 @@ class CommunityPostController extends Controller
             ],
             'student_corner_gallery.*' => [
                 Rule::excludeIf(fn () => ! $isStudentCorner),
-                'image',
-                'max:4096',
+                $this->communityImageRule(),
             ],
             'removed_student_corner_gallery' => [
                 Rule::excludeIf(fn () => ! $isStudentCorner),
@@ -3346,7 +3358,7 @@ class CommunityPostController extends Controller
             'agriculture_problem_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureProblemTypes())],
             'agriculture_expert_assistance' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', Rule::in(['yes', 'no'])],
             'agriculture_problem_photos' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array', 'max:'.self::MAX_AGRICULTURE_PROBLEM_PHOTOS],
-            'agriculture_problem_photos.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'image', 'max:4096'],
+            'agriculture_problem_photos.*' => [Rule::excludeIf(fn () => ! $isAgriculture), $this->communityImageRule()],
             'removed_agriculture_problem_photos' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
             'removed_agriculture_problem_photos.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', 'max:255'],
             'agriculture_equipment_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
@@ -3670,7 +3682,7 @@ class CommunityPostController extends Controller
             'removed_religion_spirituality_documents' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
             'removed_religion_spirituality_documents.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', 'max:255'],
             'religion_spirituality_gallery' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array', 'max:'.self::MAX_RELIGION_SPIRITUALITY_GALLERY],
-            'religion_spirituality_gallery.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'image', 'max:4096'],
+            'religion_spirituality_gallery.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), $this->communityImageRule()],
             'removed_religion_spirituality_gallery' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
             'removed_religion_spirituality_gallery.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', 'max:255'],
             'religion_spirituality_related_service_actions' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
@@ -3774,7 +3786,7 @@ class CommunityPostController extends Controller
             'removed_creative_corner_documents' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
             'removed_creative_corner_documents.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', 'max:255'],
             'creative_corner_gallery' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array', 'max:'.self::MAX_CREATIVE_CORNER_GALLERY],
-            'creative_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'image', 'max:4096'],
+            'creative_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), $this->communityImageRule()],
             'removed_creative_corner_gallery' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
             'removed_creative_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', 'max:255'],
             'creative_corner_ask_community' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:500'],
@@ -3812,7 +3824,7 @@ class CommunityPostController extends Controller
             'competitions_organizer_email' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'email', 'max:160'],
             'competitions_organizer_phone' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:40'],
             'competitions_organizer_website' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'url', 'max:255'],
-            'competitions_organizer_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'image', 'max:4096'],
+            'competitions_organizer_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', $this->communityImageRule()],
             'removed_competitions_organizer_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
             'competitions_eligibility' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
             'competitions_eligibility.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsEligibilityGroups())],
@@ -3853,7 +3865,7 @@ class CommunityPostController extends Controller
             'competitions_jury.*.organization' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
             'competitions_jury.*.profile' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
             'competitions_jury_photos' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
-            'competitions_jury_photos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'image', 'max:4096'],
+            'competitions_jury_photos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), $this->communityImageRule()],
             'competitions_jury_remove_photo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
             'competitions_jury_remove_photo.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'integer', 'min:0'],
             'competitions_prize_first' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
@@ -3876,7 +3888,7 @@ class CommunityPostController extends Controller
             'competitions_sponsors.*.website' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'url', 'max:255'],
             'competitions_sponsors.*.contribution' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
             'competitions_sponsor_logos' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
-            'competitions_sponsor_logos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'image', 'max:4096'],
+            'competitions_sponsor_logos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), $this->communityImageRule()],
             'competitions_sponsor_remove_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
             'competitions_sponsor_remove_logo.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'integer', 'min:0'],
             'competitions_voting_system' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::competitionsVotingSystems())],
@@ -3957,7 +3969,7 @@ class CommunityPostController extends Controller
                 Rule::in(array_keys(CommunityContentTaxonomy::communityIssueVisibilitySettings())),
             ],
             'community_issue_photo_evidence' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array', 'max:'.self::MAX_COMMUNITY_ISSUE_PHOTO_EVIDENCE],
-            'community_issue_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'image', 'max:4096'],
+            'community_issue_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), $this->communityImageRule()],
             'removed_community_issue_photo_evidence' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array'],
             'removed_community_issue_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'string', 'max:255'],
             'community_issue_documents' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array', 'max:'.self::MAX_COMMUNITY_ISSUE_DOCUMENTS],
@@ -3990,8 +4002,7 @@ class CommunityPostController extends Controller
             ],
             'local_voice_photo_evidence.*' => [
                 Rule::excludeIf(fn () => ! $isLocalVoices),
-                'image',
-                'max:4096',
+                $this->communityImageRule(),
             ],
             'removed_local_voice_photo_evidence' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
             'removed_local_voice_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'string', 'max:255'],
@@ -4049,7 +4060,7 @@ class CommunityPostController extends Controller
                 'array',
                 'max:'.self::MAX_LOCAL_VOICE_HERO_IMAGES,
             ],
-            'local_voice_hero_images.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'image', 'max:4096'],
+            'local_voice_hero_images.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), $this->communityImageRule()],
             'removed_local_voice_hero_images' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
             'removed_local_voice_hero_images.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'string', 'max:255'],
             'local_voice_initiatives' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
@@ -4118,7 +4129,7 @@ class CommunityPostController extends Controller
                 'array',
                 'max:'.self::MAX_MY_AREA_PHOTO_EVIDENCE,
             ],
-            'my_area_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isMyArea), 'image', 'max:4096'],
+            'my_area_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isMyArea), $this->communityImageRule()],
             'removed_my_area_photo_evidence' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
             'my_area_documents' => [
                 Rule::excludeIf(fn () => ! $isMyArea),
@@ -4134,7 +4145,7 @@ class CommunityPostController extends Controller
                 'array',
                 'max:'.self::MAX_MY_AREA_HERO_IMAGES,
             ],
-            'my_area_hero_images.*' => [Rule::excludeIf(fn () => ! $isMyArea), 'image', 'max:4096'],
+            'my_area_hero_images.*' => [Rule::excludeIf(fn () => ! $isMyArea), $this->communityImageRule()],
             'removed_my_area_hero_images' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
             'my_area_visibility' => [
                 Rule::excludeIf(fn () => ! $isMyArea),
@@ -4197,7 +4208,7 @@ class CommunityPostController extends Controller
             'removed_youth_corner_documents.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', 'max:255'],
             'youth_corner_video_type' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::youthCornerVideoTypes())],
             'youth_corner_gallery' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array', 'max:'.self::MAX_YOUTH_CORNER_GALLERY],
-            'youth_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'image', 'max:4096'],
+            'youth_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), $this->communityImageRule()],
             'removed_youth_corner_gallery' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
             'removed_youth_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', 'max:255'],
             'youth_corner_themes' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
@@ -4378,9 +4389,7 @@ class CommunityPostController extends Controller
             'senior_citizens_forum_achievements.*.photo' => [
                 Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
                 'nullable',
-                'image',
-                'max:4096',
-                'mimes:jpg,jpeg,png,webp,gif',
+                $this->communityImageRule(),
             ],
             'senior_citizens_forum_achievements.*.certificate' => [
                 Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
@@ -4451,8 +4460,7 @@ class CommunityPostController extends Controller
             ],
             'womens_world_gallery.*' => [
                 Rule::excludeIf(fn () => ! $isWomensWorld),
-                'image',
-                'max:4096',
+                $this->communityImageRule(),
             ],
             'removed_womens_world_gallery' => [
                 Rule::excludeIf(fn () => ! $isWomensWorld),
@@ -4758,9 +4766,7 @@ class CommunityPostController extends Controller
                     && ! $request->boolean('keep_existing_childrens_corner_art')
                     && ! ($post && filled(data_get($post->meta, 'childrens_corner_art.path')))),
                 'nullable',
-                'image',
-                'max:4096',
-                'mimes:jpg,jpeg,png,webp',
+                $this->communityImageRule(4096, ['jpg', 'jpeg', 'png', 'webp']),
             ],
             'keep_existing_childrens_corner_art' => ['nullable', 'boolean'],
             'childrens_corner_project_description' => [
@@ -4814,7 +4820,7 @@ class CommunityPostController extends Controller
             'childrens_corner_themes' => ['nullable', 'array'],
             'childrens_corner_themes.*' => ['string', Rule::in(CommunityContentTaxonomy::childrensCornerThemes())],
             'childrens_corner_gallery' => ['nullable', 'array', 'max:'.self::MAX_CHILDRENS_CORNER_GALLERY],
-            'childrens_corner_gallery.*' => ['image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'childrens_corner_gallery.*' => [$this->communityImageRule()],
             'removed_childrens_corner_gallery' => ['nullable', 'array'],
             'removed_childrens_corner_gallery.*' => ['string', 'max:255'],
             'accept_content_responsibility' => ['accepted'],
@@ -4832,6 +4838,7 @@ class CommunityPostController extends Controller
             );
         }
 
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
         $validated = $request->validate($rules);
         $this->assertFeaturedImageLimit($request, $post);
         $this->assertAwarenessCampaignBanner($request, $post);
@@ -4980,7 +4987,7 @@ class CommunityPostController extends Controller
      */
     private function validatedDraft(Request $request, ?CommunityPost $post, array $typeKeys): array
     {
-        $this->pruneUnreadableUploads($request);
+        CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
 
         $contentType = $request->input('content_type');
 
@@ -5209,7 +5216,7 @@ class CommunityPostController extends Controller
      */
     private function storeFeaturedImages(Request $request): array
     {
-        return collect($request->file('featured_images', []))
+        return collect(CommunityPostUploadSanitizer::usableUploads($request->file('featured_images', [])))
             ->map(fn ($file) => CommunityPostFileUploader::storeImage($file))
             ->values()
             ->all();
@@ -5574,7 +5581,7 @@ class CommunityPostController extends Controller
      */
     private function storeStoryGallery(Request $request): array
     {
-        return collect($request->file('story_gallery', []))
+        return collect(CommunityPostUploadSanitizer::usableUploads($request->file('story_gallery', [])))
             ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'story-gallery'))
             ->values()
             ->all();
@@ -8520,44 +8527,9 @@ class CommunityPostController extends Controller
         }
     }
 
-    /**
-     * Drop empty or already-deleted PHP temp uploads so validation does not fail
-     * with "file does not exist or is not readable".
-     */
-    private function pruneUnreadableUploads(Request $request): void
+    private function communityImageRule(int $maxKilobytes = 4096, array $mimes = ['jpg', 'jpeg', 'png', 'webp', 'gif']): SafeUploadedImage
     {
-        $cleaned = $this->filterReadableUploadedFiles($request->allFiles());
-        $request->files->replace(is_array($cleaned) ? $cleaned : []);
-    }
-
-    private function filterReadableUploadedFiles(mixed $files): mixed
-    {
-        if ($files instanceof UploadedFile) {
-            try {
-                $path = $files->getPathname();
-
-                return $files->isValid() && $path !== '' && is_readable($path)
-                    ? $files
-                    : null;
-            } catch (\Throwable) {
-                return null;
-            }
-        }
-
-        if (! is_array($files)) {
-            return $files;
-        }
-
-        $filtered = [];
-        foreach ($files as $key => $file) {
-            $kept = $this->filterReadableUploadedFiles($file);
-            if ($kept === null || $kept === []) {
-                continue;
-            }
-            $filtered[$key] = $kept;
-        }
-
-        return $filtered;
+        return new SafeUploadedImage($maxKilobytes, $mimes);
     }
 
     /**

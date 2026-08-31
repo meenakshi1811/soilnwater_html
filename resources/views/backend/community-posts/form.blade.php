@@ -40,9 +40,10 @@
 
         <div class="row g-3">
             @php
-                $lockedContentType = $lockedContentType ?? null;
-                $selectedContentType = old('content_type', $post->content_type);
-                $postTypeIcons = [
+            $lockedContentType = $lockedContentType ?? null;
+            $selectedContentType = old('content_type', $post->content_type);
+            $formLimitTypeSections = $mode === 'edit' && filled($selectedContentType);
+            $postTypeIcons = [
                     'articles' => 'fa-file-lines',
                     'reports' => 'fa-clipboard-list',
                     'news' => 'fa-newspaper',
@@ -146,6 +147,7 @@
                 </select>
                 <small id="subCategoryHelp" class="text-muted d-block mt-1"></small>
             </div>
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('stories', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra" data-for="stories">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
@@ -197,6 +199,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('poetry', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra" data-for="poetry">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
@@ -274,6 +278,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('biography,autobiography', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra life-story-flow-section" data-for="biography,autobiography">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
@@ -304,6 +310,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('childrens-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra childrens-corner-flow-section" data-for="childrens-corner">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
@@ -338,6 +346,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('news', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra" data-for="news">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
@@ -407,56 +417,88 @@
                     ];
                 })->values()->all();
             @endphp
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('poetry', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
                 @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('awareness', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra awareness-flow" data-for="awareness">
                 @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('business', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra business-flow" data-for="business">
                 @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('womens-world', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
                 @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('senior-citizens-forum', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
                 @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('student-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra student-corner-flow" data-for="student-corner">
                 @include('backend.community-posts.partials.student-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('youth-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
                 @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('local-voices', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
                 @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
-            @if(old('content_type', $post->content_type) === 'my-area')
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('my-area', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra my-area-flow" data-for="my-area">
                 @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
             @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('community-issues', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
                 @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('agriculture', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
                 @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('environment', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra environment-flow" data-for="environment">
                 @include('backend.community-posts.partials.environment-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('science-technology', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra science-technology-flow" data-for="science-technology">
                 @include('backend.community-posts.partials.science-technology-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('astro-consultancy', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra astro-consultancy-flow" data-for="astro-consultancy">
                 @include('backend.community-posts.partials.astro-consultancy-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('religion-spirituality', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra religion-spirituality-flow" data-for="religion-spirituality">
                 @include('backend.community-posts.partials.religion-spirituality-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('creative-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
                 @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('competitions', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra competitions-flow" data-for="competitions">
                 @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
@@ -1255,65 +1297,103 @@ The mountains keep.</pre>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('poetry', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
                 @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('biography,autobiography', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra autobiography-flow life-story-flow-section" data-for="biography,autobiography">
                 @include('backend.community-posts.partials.autobiography-flow-fields', ['post' => $post])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('childrens-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra childrens-corner-flow" data-for="childrens-corner">
                 @include('backend.community-posts.partials.childrens-corner-flow-fields', ['post' => $post])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('awareness', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra awareness-flow" data-for="awareness">
                 @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('business', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra business-flow" data-for="business">
                 @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('womens-world', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
                 @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('senior-citizens-forum', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
                 @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('student-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra student-corner-flow" data-for="student-corner">
                 @include('backend.community-posts.partials.student-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('youth-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
                 @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('local-voices', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
                 @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
-            @if(old('content_type', $post->content_type) === 'my-area')
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('my-area', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra my-area-flow" data-for="my-area">
                 @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('community-issues', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
                 @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('agriculture', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
                 @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('environment', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra environment-flow" data-for="environment">
                 @include('backend.community-posts.partials.environment-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('science-technology', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra science-technology-flow" data-for="science-technology">
                 @include('backend.community-posts.partials.science-technology-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('astro-consultancy', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra astro-consultancy-flow" data-for="astro-consultancy">
                 @include('backend.community-posts.partials.astro-consultancy-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('religion-spirituality', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra religion-spirituality-flow" data-for="religion-spirituality">
                 @include('backend.community-posts.partials.religion-spirituality-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('creative-corner', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
                 @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('competitions', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra competitions-flow" data-for="competitions">
                 @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('stories', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -1531,18 +1611,19 @@ The mountains keep.</pre>
                         <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
                     </div>
                     <p class="small text-muted mb-3">Upload: Photos, Illustrations, Drawings, Old Images</p>
-                    <input type="file" name="story_gallery[]" class="form-control" accept="image/*" multiple>
-                    <small class="text-muted d-block mt-1">JPG, PNG, WebP, or GIF. Up to 10 images, max 4 MB each.</small>
-                    @if(!empty(data_get($post->meta, 'story_gallery')))
-                        <div class="mt-3 d-flex flex-column gap-2">
-                            @foreach(data_get($post->meta, 'story_gallery', []) as $galleryImage)
-                                <label class="form-check border rounded py-2 px-3 bg-white mb-0">
-                                    <input type="checkbox" name="removed_story_gallery[]" value="{{ data_get($galleryImage, 'path') }}" class="form-check-input">
-                                    <span class="form-check-label">Remove {{ data_get($galleryImage, 'name', 'gallery image') }}</span>
-                                </label>
-                            @endforeach
+                    <div class="featured-images-uploader border rounded-3 p-3 bg-white">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <span class="form-label mb-0">Gallery images</span>
+                            <small class="text-muted fw-normal" id="storyGalleryCount">0 / 10</small>
                         </div>
-                    @endif
+                        <input type="file" id="storyGalleryInput" class="d-none" accept="image/*" multiple>
+                        <button type="button" id="storyGalleryAddBtn" class="btn btn-outline-primary btn-sm">
+                            <i class="fa-solid fa-images me-1"></i>Add images
+                        </button>
+                        <small class="text-muted d-block mt-2">JPG, PNG, WebP, or GIF. Up to 10 images, max 4 MB each.</small>
+                        <div id="storyGalleryPreview" class="featured-images-grid mt-3"></div>
+                        <div id="storyGalleryRemovedWrap"></div>
+                    </div>
                 </div>
 
                 @php
@@ -1619,6 +1700,7 @@ The mountains keep.</pre>
                     <div id="communityStoryVideoSlot"></div>
                 </div>
             </div>
+            @endif
             <div class="col-md-6" id="communityFeaturedImagesWrap">
                 <label class="form-label d-flex align-items-center justify-content-between gap-2">
                     <span id="featuredImagesLabel">Featured images</span>
@@ -1650,6 +1732,7 @@ The mountains keep.</pre>
                 <label class="form-label">Author bio</label>
                 <input type="text" name="author_bio" class="form-control" value="{{ old('author_bio', data_get($post->meta, 'author_bio')) }}" maxlength="500">
             </div>
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('news', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra news-flow" data-for="news">
                 <div class="news-flow-stack d-flex flex-column gap-3">
                     <div class="news-flow-card border rounded-3 p-3 p-md-4 bg-light">
@@ -1910,6 +1993,8 @@ The mountains keep.</pre>
                     data_get($post->meta, 'report_author_name', $post->user?->name ?: $post->user?->full_name ?: auth()->user()?->name ?: auth()->user()?->full_name)
                 );
             @endphp
+            @endif
+            @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('reports', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra report-flow" data-for="reports">
                 <div class="report-flow-stack d-flex flex-column gap-3">
                     <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-light">
@@ -2226,6 +2311,7 @@ The mountains keep.</pre>
                     </div>
                 </div>
             </div>
+            @endif
             @include('backend.community-posts.partials.type-fields')
             <div id="communityStructuredLocationHiddenSlot" class="d-none">
                 <div id="communityStructuredLocationWrapper">
@@ -3258,7 +3344,9 @@ The mountains keep.</pre>
         border-top-color: rgba(15, 23, 42, 0.08) !important;
     }
 </style>
+@if(!$formLimitTypeSections || $selectedContentType === 'stories')
 @include('community.partials.story-styles')
+@endif
 @endpush
 
 @php
@@ -3268,6 +3356,15 @@ The mountains keep.</pre>
             'url' => \App\Models\CommunityPost::resolveImageUrl($path),
         ];
     })->values()->all();
+    $communityStoryGalleryForJs = collect((array) data_get($post->meta, 'story_gallery', []))->map(function ($image) {
+        $path = (string) data_get($image, 'path');
+
+        return [
+            'path' => $path,
+            'url' => data_get($image, 'url') ?: \App\Models\CommunityPost::resolveImageUrl($path),
+            'name' => data_get($image, 'name', 'Gallery image'),
+        ];
+    })->filter(fn (array $image): bool => filled($image['path']))->values()->all();
 @endphp
 
 @push('scripts')
@@ -5576,6 +5673,12 @@ The mountains keep.</pre>
     window.communityFeaturedImages = {
         max: 5,
         existing: @json($communityFeaturedImagesForJs),
+        pending: [],
+        removed: [],
+    };
+    window.communityStoryGallery = {
+        max: 10,
+        existing: @json($communityStoryGalleryForJs),
         pending: [],
         removed: [],
     };
@@ -9156,6 +9259,108 @@ The mountains keep.</pre>
 
     updateFeaturedImagesUi();
 
+    const storyGalleryInput = document.getElementById('storyGalleryInput');
+    const storyGalleryAddBtn = document.getElementById('storyGalleryAddBtn');
+    const storyGalleryPreview = document.getElementById('storyGalleryPreview');
+    const storyGalleryRemovedWrap = document.getElementById('storyGalleryRemovedWrap');
+    const storyGalleryCount = document.getElementById('storyGalleryCount');
+    const storyGalleryState = window.communityStoryGallery;
+
+    function storyGalleryTotal() {
+        return storyGalleryState.existing.length + storyGalleryState.pending.length;
+    }
+
+    function updateStoryGalleryUi() {
+        if (!storyGalleryPreview || !storyGalleryAddBtn || !storyGalleryCount) {
+            return;
+        }
+
+        storyGalleryPreview.innerHTML = '';
+        if (storyGalleryRemovedWrap) {
+            storyGalleryRemovedWrap.innerHTML = '';
+        }
+        storyGalleryCount.textContent = storyGalleryTotal() + ' / ' + storyGalleryState.max;
+        storyGalleryAddBtn.disabled = storyGalleryTotal() >= storyGalleryState.max;
+
+        storyGalleryState.existing.forEach((image, index) => {
+            storyGalleryPreview.appendChild(createFeaturedImageCard({
+                src: image.url,
+                label: index === 0 ? 'Saved' : 'Saved',
+                onRemove: () => {
+                    storyGalleryState.removed.push(image.path);
+                    storyGalleryState.existing.splice(index, 1);
+                    syncStoryGalleryRemovedInputs();
+                    updateStoryGalleryUi();
+                },
+            }));
+        });
+
+        storyGalleryState.pending.forEach((item, index) => {
+            storyGalleryPreview.appendChild(createFeaturedImageCard({
+                src: item.previewUrl,
+                label: storyGalleryState.existing.length === 0 && index === 0 ? 'New' : 'New',
+                onRemove: () => {
+                    URL.revokeObjectURL(item.previewUrl);
+                    storyGalleryState.pending.splice(index, 1);
+                    updateStoryGalleryUi();
+                },
+            }));
+        });
+
+        syncStoryGalleryRemovedInputs();
+    }
+
+    function syncStoryGalleryRemovedInputs() {
+        if (!storyGalleryRemovedWrap) {
+            return;
+        }
+
+        storyGalleryRemovedWrap.innerHTML = '';
+        storyGalleryState.removed.forEach((path) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'removed_story_gallery[]';
+            input.value = path;
+            storyGalleryRemovedWrap.appendChild(input);
+        });
+    }
+
+    if (storyGalleryAddBtn && storyGalleryInput) {
+        storyGalleryAddBtn.addEventListener('click', () => storyGalleryInput.click());
+
+        storyGalleryInput.addEventListener('change', function () {
+            const files = Array.from(this.files || []);
+            this.value = '';
+
+            files.forEach((file) => {
+                if (storyGalleryTotal() >= storyGalleryState.max) {
+                    notify('error', 'You can upload up to ' + storyGalleryState.max + ' gallery images.');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    notify('error', 'Only image files are allowed.');
+                    return;
+                }
+
+                if (file.size > 4194304) {
+                    notify('error', 'Each gallery image must be 4 MB or smaller.');
+                    return;
+                }
+
+                storyGalleryState.pending.push({
+                    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+                    file,
+                    previewUrl: URL.createObjectURL(file),
+                });
+            });
+
+            updateStoryGalleryUi();
+        });
+
+        updateStoryGalleryUi();
+    }
+
     const maxVideoFileBytes = 52428800;
     const videoYoutubeWrap = document.getElementById('videoYoutubeWrap');
     const videoUploadWrap = document.getElementById('videoUploadWrap');
@@ -11572,7 +11777,13 @@ The mountains keep.</pre>
             }
         });
 
-        const formData = new FormData(form);
+        const formData = new FormData();
+        new FormData(form).forEach(function (value, key) {
+            if (value instanceof File) {
+                return;
+            }
+            formData.append(key, value);
+        });
         emptyFileInputs.forEach(function (input) {
             input.disabled = false;
         });
@@ -11583,6 +11794,12 @@ The mountains keep.</pre>
         featuredImagesState.pending.forEach((item) => {
             if (item?.file instanceof File && item.file.size > 0) {
                 formData.append('featured_images[]', item.file);
+            }
+        });
+        formData.delete('story_gallery[]');
+        storyGalleryState.pending.forEach((item) => {
+            if (item?.file instanceof File && item.file.size > 0) {
+                formData.append('story_gallery[]', item.file);
             }
         });
 

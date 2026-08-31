@@ -3784,16 +3784,21 @@ class CommunityPostFormFields
         }
 
         if ($contentType === 'stories') {
-            return [
-                self::select('story_type', 'Story type', CommunityContentTaxonomy::storyTypes(), true),
-                self::select('story_language', 'Language', CommunityContentTaxonomy::storyLanguages(), true, 'col-md-6'),
-                self::textarea('story_moral_takeaway', 'Moral / takeaway', 1000, false, 'Never underestimate the power of community cooperation.'),
-                self::textarea('story_main_characters', 'Main characters', 2000, false, 'Ramesh Kumar, Village Head, School Teacher'),
-                self::select('story_character_type', 'Character type', CommunityContentTaxonomy::storyCharacterTypes(), false, 'col-md-6'),
-                self::select('story_place_type', 'Story location', CommunityContentTaxonomy::storyPlaceTypes(), false, 'col-md-6'),
-                self::text('story_place_names', 'Place names', 500, false, 'Dehradun, Uttarakhand, India'),
-                self::select('story_time_period', 'Time period', CommunityContentTaxonomy::storyTimePeriods(), false, 'col-md-6'),
-            ];
+            return array_merge(
+                self::narrativeFields('story_genre', [
+                    'Inspirational', 'Motivational', 'Fiction', 'Real Life', 'Family', 'Social', 'Short Story',
+                ]),
+                [
+                    self::select('story_type', 'Story type', CommunityContentTaxonomy::storyTypes(), true),
+                    self::select('story_language', 'Language', CommunityContentTaxonomy::storyLanguages(), true, 'col-md-6'),
+                    self::textarea('story_moral_takeaway', 'Moral / takeaway', 1000, false, 'Never underestimate the power of community cooperation.'),
+                    self::textarea('story_main_characters', 'Main characters', 2000, false, 'Ramesh Kumar, Village Head, School Teacher'),
+                    self::select('story_character_type', 'Character type', CommunityContentTaxonomy::storyCharacterTypes(), false, 'col-md-6'),
+                    self::select('story_place_type', 'Story location', CommunityContentTaxonomy::storyPlaceTypes(), false, 'col-md-6'),
+                    self::text('story_place_names', 'Place names', 500, false, 'Dehradun, Uttarakhand, India'),
+                    self::select('story_time_period', 'Time period', CommunityContentTaxonomy::storyTimePeriods(), false, 'col-md-6'),
+                ]
+            );
         }
 
         if ($contentType === 'poetry') {
