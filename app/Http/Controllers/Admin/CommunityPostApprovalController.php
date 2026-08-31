@@ -434,25 +434,27 @@ class CommunityPostApprovalController extends Controller
 
     private function renderActionButtons(CommunityPost $post, bool $compact): string
     {
-        $actions = '<div class="d-flex gap-2 justify-content-end flex-wrap">'
-            .'<a href="'.route('admin.community-posts.show', $post).'" class="btn btn-sm btn-outline-secondary">'.($compact ? 'Review' : 'Manage').'</a>';
+        $manageTitle = $compact ? 'Review post' : 'Manage post';
+
+        $actions = '<div class="d-flex gap-1 justify-content-end align-items-center flex-nowrap community-post-actions">'
+            .'<a href="'.route('admin.community-posts.show', $post).'" class="btn btn-sm btn-outline-secondary" title="'.$manageTitle.'"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><span class="visually-hidden">'.$manageTitle.'</span></a>';
 
         if ($post->isPendingApproval()) {
-            $actions .= '<button type="button" class="btn btn-sm btn-success js-approve" data-slug="'.e($post->slug).'">Approve</button>'
-                .'<button type="button" class="btn btn-sm btn-outline-danger js-reject" data-slug="'.e($post->slug).'">Reject</button>';
+            $actions .= '<button type="button" class="btn btn-sm btn-success js-approve" data-slug="'.e($post->slug).'" title="Approve"><i class="fa-solid fa-check" aria-hidden="true"></i><span class="visually-hidden">Approve</span></button>'
+                .'<button type="button" class="btn btn-sm btn-outline-danger js-reject" data-slug="'.e($post->slug).'" title="Reject"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span class="visually-hidden">Reject</span></button>';
         }
 
         if (! $compact && ! $post->isArchived()) {
             if ($post->status !== CommunityPost::STATUS_DRAFT) {
-                $actions .= '<button type="button" class="btn btn-sm btn-outline-secondary js-draft" data-slug="'.e($post->slug).'">Draft</button>';
+                $actions .= '<button type="button" class="btn btn-sm btn-outline-secondary js-draft" data-slug="'.e($post->slug).'" title="Move to draft"><i class="fa-solid fa-file-pen" aria-hidden="true"></i><span class="visually-hidden">Move to draft</span></button>';
             }
 
             if ($post->isPubliclyVisible() || $post->status === CommunityPost::STATUS_DECLINED) {
-                $actions .= '<button type="button" class="btn btn-sm btn-outline-dark js-archive" data-slug="'.e($post->slug).'">Archive</button>';
+                $actions .= '<button type="button" class="btn btn-sm btn-outline-dark js-archive" data-slug="'.e($post->slug).'" title="Archive"><i class="fa-solid fa-box-archive" aria-hidden="true"></i><span class="visually-hidden">Archive</span></button>';
             }
         }
 
-        $actions .= '<button type="button" class="btn btn-sm btn-outline-danger js-delete-community-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash"></i></button>';
+        $actions .= '<button type="button" class="btn btn-sm btn-outline-danger js-delete-community-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash" aria-hidden="true"></i><span class="visually-hidden">Delete</span></button>';
 
         return $actions.'</div>';
     }

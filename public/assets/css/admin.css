@@ -937,6 +937,28 @@
     min-width: 220px;
 }
 
+.community-post-actions {
+    flex-wrap: nowrap !important;
+}
+
+.community-post-actions .btn {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.community-posts-table-wrap table.dataTable td:last-child,
+.community-posts-table-wrap table.dataTable th:last-child,
+#communityPostsTable td:last-child,
+#communityPostsTable th:last-child {
+    min-width: 9rem;
+    white-space: nowrap;
+}
+
 .offers-table-wrap .dataTables_wrapper {
     width: 100%;
     max-width: 100%;
