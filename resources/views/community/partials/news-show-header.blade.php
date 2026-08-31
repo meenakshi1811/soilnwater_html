@@ -13,6 +13,14 @@
     $isBreaking = $newsPriority === 'Breaking';
     $authorInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($post->authorDisplayName(), 0, 1));
     $coverUrl = $post->featuredImageUrl();
+    $showsFeaturedInDetailBody = filled($coverUrl) && in_array($post->content_type, [
+        'religion-spirituality',
+        'astro-consultancy',
+        'agriculture',
+        'environment',
+        'creative-corner',
+        'community-issues',
+    ], true);
     $portalIndexUrl = route('community.index', array_filter(['type' => $portalType, 'hub' => $activeHub]));
     $topBadge = $portalCopy['top_badge'];
     $breakingBadge = $portalCopy['breaking_badge'];
@@ -68,7 +76,7 @@
 </header>
 
 <article class="community-news-detail">
-    @if($coverUrl)
+    @if($coverUrl && ! $showsFeaturedInDetailBody)
         <figure class="community-news-detail__hero">
             <img src="{{ $coverUrl }}" alt="{{ $post->title }}">
         </figure>
