@@ -28,13 +28,16 @@
 @endphp
 
 <header class="community-news-main__header community-news-main__header--detail">
-    @include('community.partials.community-portal-nav', [
-        'navContext' => 'detail',
-        'portalType' => $portalType,
-        'activeHub' => $activeHub,
-        'currentLabel' => $post->title,
-    ])
-    <div class="community-news-detail__actions">
+    <div class="community-news-detail__toolbar">
+        <div class="community-news-detail__toolbar-main">
+            @include('community.partials.community-portal-nav', [
+                'navContext' => 'detail',
+                'portalType' => $portalType,
+                'activeHub' => $activeHub,
+                'currentLabel' => $post->title,
+            ])
+        </div>
+        <div class="community-news-detail__actions">
             @auth
                 @if($post->isPubliclyVisible())
                     <button type="button"
@@ -72,6 +75,7 @@
                     </a>
                 @endif
             @endauth
+        </div>
     </div>
 </header>
 

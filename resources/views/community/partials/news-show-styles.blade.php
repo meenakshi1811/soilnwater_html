@@ -39,11 +39,73 @@
         width: 100%;
     }
 
+    .community-news-detail__toolbar {
+        align-items: flex-start;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .community-news-detail__toolbar-main {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .community-news-detail__toolbar-main .community-portal-nav {
+        margin-bottom: 0;
+    }
+
     .community-news-detail__actions {
         align-items: center;
         display: inline-flex;
+        flex: 0 0 auto;
+        gap: 0.4rem;
+        padding-top: 0.1rem;
+    }
+
+    .community-news-detail__actions .community-banner-action,
+    .community-news-detail__actions .community-banner-action--icon {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #dbe6f2;
+        border-radius: 10px;
+        box-sizing: border-box;
+        color: #5a7189;
+        display: inline-flex;
         flex-shrink: 0;
-        gap: 0.35rem;
+        font-size: 0.95rem;
+        height: 2.25rem;
+        justify-content: center;
+        line-height: 1;
+        min-width: 2.25rem;
+        padding: 0;
+        text-decoration: none;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        width: 2.25rem;
+    }
+
+    .community-news-detail__actions .community-banner-action:hover,
+    .community-news-detail__actions .community-banner-action:focus,
+    .community-news-detail__actions .community-banner-action:focus-visible {
+        background: #f3f8fd;
+        border-color: #9ed4a5;
+        color: #2e7d32;
+        outline: none;
+        transform: none;
+    }
+
+    .community-news-detail__actions .community-banner-action.is-saved,
+    .community-news-detail__actions .community-banner-action.is-subscribed {
+        background: #e8f5e9;
+        border-color: #9ed4a5;
+        color: #2e7d32;
+    }
+
+    .community-news-detail__actions .community-banner-action i {
+        font-size: 0.95rem;
+        line-height: 1;
+        margin: 0;
     }
 
     .community-news-detail__back {

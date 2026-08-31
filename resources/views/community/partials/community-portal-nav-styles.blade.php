@@ -111,11 +111,6 @@
         width: 100%;
     }
 
-    .community-news-main__header--detail .community-news-detail__actions {
-        align-self: flex-end;
-        margin-top: 0.15rem;
-    }
-
     .community-article-hero .community-portal-nav {
         box-sizing: border-box;
         margin-bottom: 1rem;
