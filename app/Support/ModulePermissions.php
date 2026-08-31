@@ -68,8 +68,8 @@ final class ModulePermissions
             'products' => 'admin.vendor-products.index',
             'consultants' => 'admin.consultants.index',
             'service_providers' => 'admin.service_providers.index',
-            'offers' => 'admin.offers.reports.index',
-            'ads' => 'admin.ads.submissions.index',
+            'offers' => 'offers.index',
+            'ads' => 'ads.index',
         ];
     }
 
@@ -91,7 +91,9 @@ final class ModulePermissions
             'admin.service-provider-services.' => 'service_providers',
             'admin.offers.' => 'offers',
             'admin.offer-prices.' => 'offers',
+            'offers.' => 'offers',
             'admin.ads.' => 'ads',
+            'ads.' => 'ads',
         ];
 
         foreach ($prefixMap as $prefix => $module) {
@@ -101,5 +103,40 @@ final class ModulePermissions
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the RBAC action required for an admin/workspace route from the sidebar registry.
+     */
+    public static function actionForRoute(?string $routeName): ?string
+    {
+        if (! is_string($routeName) || $routeName === '') {
+            return null;
+        }
+
+        foreach (ModuleSidebar::sections() as $section) {
+            foreach ($section['items'] as $item) {
+                if (! self::routeMatchesPattern($routeName, $item['active'])) {
+                    continue;
+                }
+
+                foreach ($item['active_except'] ?? [] as $except) {
+                    if (self::routeMatchesPattern($routeName, $except)) {
+                        continue 2;
+                    }
+                }
+
+                return $item['action'];
+            }
+        }
+
+        return null;
+    }
+
+    private static function routeMatchesPattern(string $routeName, string $pattern): bool
+    {
+        $regex = '/^'.str_replace(['.', '*'], ['\.', '.*'], $pattern).'$/';
+
+        return (bool) preg_match($regex, $routeName);
     }
 }

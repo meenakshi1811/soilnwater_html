@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureChatNotBlocked;
 use App\Http\Middleware\EnsureAdminOrModuleAccess;
 use App\Http\Middleware\EnsureEmployeeIsActive;
 use App\Http\Middleware\EnsureEmployeeOrAdmin;
+use App\Http\Middleware\EnsureWebVerifiedOrEmployee;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'admin.or.module' => EnsureAdminOrModuleAccess::class,
+            'auth.web_or_employee' => EnsureWebVerifiedOrEmployee::class,
             'employee.active' => EnsureEmployeeIsActive::class,
             'employee.or.admin' => EnsureEmployeeOrAdmin::class,
             'chat.not_blocked' => EnsureChatNotBlocked::class,

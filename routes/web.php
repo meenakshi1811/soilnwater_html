@@ -256,17 +256,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('marketplace.approved')
         ->name('listing.payment.submit');
 
-    Route::prefix('dashboard/offers')->name('offers.')->group(function () {
-        Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
-        Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
-        Route::get('/{offer}/edit', [PostOfferController::class, 'edit'])->middleware('marketplace.approved')->name('edit');
-        Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
-        Route::put('/{offer}/update-offer-status', [PostOfferController::class, 'updateOfferStatus'])->middleware('marketplace.approved')->name('update-offer-status');
-        Route::post('/', [PostOfferController::class, 'store'])->middleware('marketplace.approved')->name('store');
-        Route::put('/{offer}', [PostOfferController::class, 'update'])->middleware('marketplace.approved')->name('update');
-        Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->middleware('marketplace.approved')->name('destroy');
-    });
-
     Route::get('dashboard/offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
         ->middleware('marketplace.approved')
         ->name('offers.categories.subcategories');
@@ -395,6 +384,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/dashboard/community-subscriptions', [CommunityEngagementController::class, 'subscriptions'])->name('community.subscriptions.index');
+});
+
+Route::middleware(['auth.web_or_employee'])->group(function () {
+    Route::prefix('dashboard/offers')->name('offers.')->group(function () {
+        Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
+        Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
+        Route::get('/{offer}/edit', [PostOfferController::class, 'edit'])->middleware('marketplace.approved')->name('edit');
+        Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
+        Route::put('/{offer}/update-offer-status', [PostOfferController::class, 'updateOfferStatus'])->middleware('marketplace.approved')->name('update-offer-status');
+        Route::post('/', [PostOfferController::class, 'store'])->middleware('marketplace.approved')->name('store');
+        Route::put('/{offer}', [PostOfferController::class, 'update'])->middleware('marketplace.approved')->name('update');
+        Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->middleware('marketplace.approved')->name('destroy');
+    });
 
     Route::prefix('dashboard/ads')->name('ads.')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');

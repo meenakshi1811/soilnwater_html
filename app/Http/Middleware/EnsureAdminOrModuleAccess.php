@@ -35,9 +35,11 @@ class EnsureAdminOrModuleAccess
 
             Auth::shouldUse('employee');
 
-            $module = ModulePermissions::moduleForAdminRoute($request->route()?->getName());
+            $routeName = $request->route()?->getName();
+            $module = ModulePermissions::moduleForAdminRoute($routeName);
+            $action = ModulePermissions::actionForRoute($routeName) ?? 'read';
 
-            if ($module && $employee->canModule($module, 'read')) {
+            if ($module && $employee->canModule($module, $action)) {
                 return $next($request);
             }
 

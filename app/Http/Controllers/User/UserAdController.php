@@ -471,6 +471,7 @@ class UserAdController extends Controller
     public function data(Request $request): JsonResponse
     {
         $user = $request->user();
+        $isStaff = (bool) ($user?->isStaff());
 
         $ads = UserAd::query()
             ->with(['template:id,name', 'category:id,name', 'subcategory:id,name'])
@@ -484,6 +485,8 @@ class UserAdController extends Controller
             } elseif ($postedBy === 'user') {
                 $ads->whereHas('user', fn ($userQuery) => $userQuery->whereNotIn('role', ['admin', 'employee']));
             }
+        } elseif ($isStaff && method_exists($user, 'canModule') && $user->canModule('ads', 'read')) {
+            // Staff employees with ads.read see the full ads listing.
         } else {
             $ads->where('user_id', $user?->id);
         }

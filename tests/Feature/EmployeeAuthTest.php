@@ -111,6 +111,34 @@ class EmployeeAuthTest extends TestCase
         $this->actingAs($employee, 'employee')
             ->get(route('admin.consultants.index'))
             ->assertOk();
+
+        $this->actingAs($employee, 'employee')
+            ->get(route('employee.dashboard'))
+            ->assertOk()
+            ->assertSee('All Consultants', false)
+            ->assertDontSee('All Vendors', false);
+    }
+
+    public function test_employee_with_offers_write_can_open_offer_prices(): void
+    {
+        $this->seed(ModulePermissionSeeder::class);
+
+        $role = Role::query()->create([
+            'name' => 'Offer Pricing',
+            'guard_name' => 'web',
+        ]);
+        $role->syncPermissions(['offers.write']);
+
+        $employee = Employee::factory()->create(['is_active' => true]);
+        $employee->syncRoles([$role]);
+
+        $this->actingAs($employee, 'employee')
+            ->get(route('admin.offer-prices.index'))
+            ->assertOk();
+
+        $this->actingAs($employee, 'employee')
+            ->get(route('offers.index'))
+            ->assertForbidden();
     }
 
     public function test_user_login_does_not_authenticate_an_employee_with_the_same_email(): void

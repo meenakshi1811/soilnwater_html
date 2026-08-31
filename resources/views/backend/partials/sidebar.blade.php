@@ -1,15 +1,16 @@
 @php
+    $user = \App\Support\AuthActor::user();
     $emsModules = \App\Support\ModulePermissions::modules();
-    $isGeneralUser = auth()->user()->isGeneralUser();
-    $isAdmin = auth()->user()->isAdmin();
-    $isEmployee = auth()->user()->isEmployee();
-    $isVendor = auth()->user()->isVendor();
-    $isConsultant = auth()->user()->isConsultant();
-    $isServiceProvider = auth()->user()->isServiceProvider();
-    $vendorApproved = $isVendor && auth()->user()->vendor?->isApproved();
-    $consultantApproved = $isConsultant && auth()->user()->consultant?->isApproved();
-    $serviceProviderApproved = $isServiceProvider && auth()->user()->serviceProvider?->isApproved();
-    $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
+    $isGeneralUser = $user->isGeneralUser();
+    $isAdmin = $user->isAdmin();
+    $isEmployee = $user->isEmployee();
+    $isVendor = $user->isVendor();
+    $isConsultant = $user->isConsultant();
+    $isServiceProvider = $user->isServiceProvider();
+    $vendorApproved = $isVendor && $user->vendor?->isApproved();
+    $consultantApproved = $isConsultant && $user->consultant?->isApproved();
+    $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
+    $canAccessOffers = $isAdmin || $isGeneralUser || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $communityPostsActive = request()->routeIs('community.posts.*');
@@ -49,7 +50,7 @@
         $dashboardUrl = route('employee.dashboard');
         $dashboardActive = request()->routeIs('employee.dashboard') || request()->routeIs('modules.show');
     } else {
-        $slug = auth()->user()->firstReadableModuleSlug();
+        $slug = $user->firstReadableModuleSlug();
         $dashboardUrl = $slug ? route('modules.show', $slug) : route('home');
         $dashboardActive = request()->routeIs('modules.show');
     }
@@ -96,6 +97,9 @@
                 <span>Dashboard</span>
             </a>
         </li>
+        @if($isEmployee)
+            @include('backend.partials.sidebar-module-menus', ['sidebarUser' => $user, 'sidebarIsAdmin' => false])
+        @endif
         @if($isAdmin)
             <li class="sidebar-section-label">Employee system</li>
             <li>
@@ -190,204 +194,7 @@
                 </a>
             </li>
             <hr>
-            <li class="admin-sidebar-group">
-                <details {{ $offersMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $offersMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-tags"></i>
-                            <span>Offers</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Offers</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.offers.reports.*') ? 'active' : '' }}" href="{{ route('admin.offers.reports.index') }}">
-                                <i class="fa-regular fa-flag"></i>
-                                <span>Report Offers</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.offer-prices.*') ? 'active' : '' }}" href="{{ route('admin.offer-prices.index') }}">
-                                <i class="fa-solid fa-indian-rupee-sign"></i>
-                                <span>Offer Prices</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-            <li class="admin-sidebar-group">
-                <details {{ $adsMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $adsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-rectangle-ad"></i>
-                            <span>Ads</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Ads</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
-                                <i class="fa-solid fa-ruler-combined"></i>
-                                <span>Ad Sizes</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
-                                <i class="fa-solid fa-inbox"></i>
-                                <span>Ad Submissions</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
-                                <i class="fa-regular fa-flag"></i>
-                                <span>Report Ads</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.contact-support.*') ? 'active' : '' }}" href="{{ route('admin.ads.contact-support.index') }}">
-                                <i class="fa-regular fa-envelope"></i>
-                                <span>Contact Support</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-            <li class="admin-sidebar-group">
-                <details {{ $vendorsMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $vendorsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-store"></i>
-                            <span>Vendor</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Vendors</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.create') }}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Create Product</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.*') && ! request()->routeIs('admin.vendor-products.all.*') && ! request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
-                                <i class="fa-solid fa-boxes-stacked"></i>
-                                <span>Products Approval</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.all.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.all.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Products</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-            <li class="admin-sidebar-group">
-                <details {{ $consultantsMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $consultantsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-user-tie"></i>
-                            <span>Consultants</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('admin.consultants.*') && ! request()->routeIs('admin.consultants.reports.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Consultants</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.consultant-services.create') ? 'active' : '' }}" href="{{ route('admin.consultant-services.create') }}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Create Service</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.consultant-services.*') && ! request()->routeIs('admin.consultant-services.all.*') && ! request()->routeIs('admin.consultant-services.create') ? 'active' : '' }}" href="{{ route('admin.consultant-services.index') }}">
-                                <i class="fa-solid fa-clipboard-check"></i>
-                                <span>Services Approval</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.consultant-services.all.*') ? 'active' : '' }}" href="{{ route('admin.consultant-services.all.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Services</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.consultants.reports.*') ? 'active' : '' }}" href="{{ route('admin.consultants.reports.index') }}">
-                                <i class="fa-regular fa-flag"></i>
-                                <span>Report Consultants</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-
-            <li class="admin-sidebar-group">
-                <details {{ $serviceProvidersMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $serviceProvidersMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-screwdriver-wrench"></i>
-                            <span>Services</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('admin.service_providers.*') && ! request()->routeIs('admin.service_providers.reports.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Service Providers</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.service-provider-services.create') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.create') }}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Create Service</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.service-provider-services.*') && ! request()->routeIs('admin.service-provider-services.all.*') && ! request()->routeIs('admin.service-provider-services.create') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.index') }}">
-                                <i class="fa-solid fa-clipboard-check"></i>
-                                <span>Services Approval</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.service-provider-services.all.*') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.all.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Services</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.service_providers.reports.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.reports.index') }}">
-                                <i class="fa-regular fa-flag"></i>
-                                <span>Report Services</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
+            @include('backend.partials.sidebar-module-menus', ['sidebarUser' => $user, 'sidebarIsAdmin' => $isAdmin])
             <li class="admin-sidebar-group">
                 <details {{ $communityMenuActive ? 'open' : '' }}>
                     <summary class="{{ $communityMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -447,9 +254,9 @@
 
          @foreach($emsModules as $slug => $label)
             @php
-                $hideAdminModuleDuplicates = $isAdmin && in_array($slug, ['offers', 'ads'], true);
-                $hideEmployeeModuleDuplicates = $isEmployee && in_array($slug, ['vendors', 'products'], true);
-                $canReadModule = $isAdmin || auth()->user()->canModule($slug, 'read');
+                $sidebarManagedModules = ['offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers'];
+                $hideSidebarManagedModule = ($isAdmin || $isEmployee) && in_array($slug, $sidebarManagedModules, true);
+                $canReadModule = $isAdmin || $user->canModule($slug, 'read');
                 $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);
                 $moduleUrl = ($entryRoute && \Illuminate\Support\Facades\Route::has($entryRoute))
                     ? route($entryRoute)
@@ -462,7 +269,7 @@
                     $moduleActive = true;
                 }
             @endphp
-            @if($canReadModule && ! $hideAdminModuleDuplicates && ! $hideEmployeeModuleDuplicates)
+            @if($canReadModule && ! $hideSidebarManagedModule)
                 <li>
                     <a class="{{ $moduleActive ? 'active' : '' }}" href="{{ $moduleUrl }}">
                         <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
@@ -470,48 +277,6 @@
                 </li>
             @endif
         @endforeach
-
-        @if($isEmployee && auth()->user()->canModule('vendors', 'read'))
-            <li class="admin-sidebar-group">
-                <details {{ $vendorsMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $vendorsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-store"></i>
-                            <span>Vendor</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Vendors</span>
-                            </a>
-                        </li>
-                        @if(auth()->user()->canModule('products', 'read'))
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.create') }}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Create Product</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.*') && ! request()->routeIs('admin.vendor-products.all.*') && ! request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
-                                <i class="fa-solid fa-boxes-stacked"></i>
-                                <span>Products Approval</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.all.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.all.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Products</span>
-                            </a>
-                        </li>
-                        @endif
-                    </ul>
-                </details>
-            </li>
-        @endif
 
         @if($isAdmin)
             <li>
