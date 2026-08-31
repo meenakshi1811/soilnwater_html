@@ -392,6 +392,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             <div class="col-12">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
                 <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255">
@@ -403,21 +404,6 @@
                 <textarea name="excerpt" id="excerptField" class="form-control" rows="2" maxlength="1000">{{ old('excerpt', $post->excerpt) }}</textarea>
                 <small id="excerptHelp" class="text-muted d-block mt-1">A concise teaser shown in listing cards.</small>
             </div>
-            @php
-                $initialBookPages = old('book_pages', $post->usesBookLayout() ? $post->bookPages() : []);
-                if ($initialBookPages === []) {
-                    $initialBookPages = [['content' => old('body', $post->body ?? '')]];
-                }
-                $communityBookPagesForJs = collect($initialBookPages)->map(function ($page) {
-                    return [
-                        'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
-                        'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
-                        'title' => is_array($page) ? ($page['title'] ?? '') : '',
-                        'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
-                    ];
-                })->values()->all();
-            @endphp
-            @endif
             @if(\App\Support\CommunityContentTaxonomy::shouldRenderFormTypeSection('poetry', $selectedContentType, $formLimitTypeSections))
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
                 @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'setup'])
@@ -3350,6 +3336,18 @@ The mountains keep.</pre>
 @endpush
 
 @php
+    $initialBookPages = old('book_pages', $post->usesBookLayout() ? $post->bookPages() : []);
+    if ($initialBookPages === []) {
+        $initialBookPages = [['content' => old('body', $post->body ?? '')]];
+    }
+    $communityBookPagesForJs = collect($initialBookPages)->map(function ($page) {
+        return [
+            'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
+            'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
+            'title' => is_array($page) ? ($page['title'] ?? '') : '',
+            'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
+        ];
+    })->values()->all();
     $communityFeaturedImagesForJs = collect($post->featuredImages())->map(function ($path) {
         return [
             'path' => $path,
