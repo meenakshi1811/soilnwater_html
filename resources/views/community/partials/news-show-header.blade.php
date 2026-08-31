@@ -80,6 +80,15 @@
 </header>
 
 <article class="community-news-detail">
+    @if($post->isReligionSpiritualityPost())
+        <div class="community-news-detail__lead">
+            @include('community.partials.religion-spirituality-show-overview', [
+                'post' => $post,
+                'detailLeadLayout' => true,
+            ])
+        </div>
+    @endif
+
     @if($coverUrl && ! $showsFeaturedInDetailBody)
         <figure class="community-news-detail__hero">
             <img src="{{ $coverUrl }}" alt="{{ $post->title }}">

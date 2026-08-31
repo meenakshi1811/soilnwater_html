@@ -1,8 +1,5 @@
 @if($post->isReligionSpiritualityPost())
     @php
-        $postType = $post->religionSpiritualityPostTypeLabel();
-        $category = $post->religionSpiritualityCategoryLabel();
-        $tradition = data_get($post->meta, 'religion_spirituality_tradition');
         $audiences = $post->religionSpiritualityTargetAudiences();
         $moralMessages = (array) data_get($post->meta, 'religion_spirituality_moral_messages', []);
         $meditationTopics = $post->religionSpiritualityMeditationTopics();
@@ -13,7 +10,6 @@
         $gallery = (array) data_get($post->meta, 'religion_spirituality_gallery', []);
         $audio = data_get($post->meta, 'religion_spirituality_audio');
         $videoType = data_get($post->meta, 'religion_spirituality_video_type');
-        $uniqueFeatures = $post->religionSpiritualityUniqueFeatureLabels();
         $capabilities = [
             ['label' => 'Digital Pilgrimage Guide', 'enabled' => (bool) data_get($post->meta, 'religion_spirituality_enable_digital_pilgrimage_guide'), 'icon' => 'fa-map-location-dot'],
             ['label' => 'Festival Calendar', 'enabled' => (bool) data_get($post->meta, 'religion_spirituality_enable_festival_calendar'), 'icon' => 'fa-calendar-days'],
@@ -26,24 +22,9 @@
         ];
     @endphp
 
-    <div class="rs-show-overview">
-        <div class="rs-show-overview__kicker">Religion &amp; Spirituality · SoilnWater community</div>
-        <p class="rs-show-overview__objective mb-0">{{ \App\Support\CommunityContentTaxonomy::religionSpiritualityObjective() }}</p>
-        <div class="rs-show-overview__chips mt-3">
-            @if(filled($postType))
-                <span class="rs-show-chip">{{ $postType }}</span>
-            @endif
-            @if(filled($category))
-                <span class="rs-show-chip">{{ $category }}</span>
-            @endif
-            @if(filled($tradition))
-                <span class="rs-show-chip">{{ $tradition }}</span>
-            @endif
-            @foreach($uniqueFeatures as $feature)
-                <span class="rs-show-chip rs-show-chip--flagship"><i class="fa-solid fa-star me-1" aria-hidden="true"></i>{{ $feature }}</span>
-            @endforeach
-        </div>
-    </div>
+    @unless($overviewInHeader ?? false)
+        @include('community.partials.religion-spirituality-show-overview', ['post' => $post])
+    @endunless
 
     @if($audiences !== [] && ! ($moveCultureSpiritualityExtrasToRail ?? false))
         <div class="rs-section-panel">

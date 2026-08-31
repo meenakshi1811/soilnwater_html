@@ -142,6 +142,14 @@
         width: 100%;
     }
 
+    .community-news-detail__lead {
+        padding: 1rem 1.25rem 0;
+    }
+
+    .community-news-detail__lead .rs-show-overview--detail-lead {
+        margin-bottom: 0;
+    }
+
     .community-news-detail__content {
         padding: 1.15rem 1.25rem 1.35rem;
     }

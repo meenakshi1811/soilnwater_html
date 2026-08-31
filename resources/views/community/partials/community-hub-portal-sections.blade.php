@@ -32,6 +32,7 @@
         @include('community.partials.religion-spirituality-show-sections', [
             'post' => $post,
             'moveCultureSpiritualityExtrasToRail' => $moveCultureSpiritualityExtrasToRail ?? false,
+            'overviewInHeader' => true,
         ])
     @endif
 
