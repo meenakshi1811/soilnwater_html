@@ -416,7 +416,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });
 
-    Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');

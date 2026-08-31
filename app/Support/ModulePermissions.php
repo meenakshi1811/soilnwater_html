@@ -49,4 +49,57 @@ final class ModulePermissions
     {
         return $moduleSlug.'.'.$action;
     }
+
+    /**
+     * Primary backend route for a module workspace.
+     */
+    public static function entryRouteName(string $moduleSlug): ?string
+    {
+        return self::entryRoutes()[$moduleSlug] ?? null;
+    }
+
+    /**
+     * @return array<string, string> module slug => route name
+     */
+    public static function entryRoutes(): array
+    {
+        return [
+            'vendors' => 'admin.vendors.index',
+            'products' => 'admin.vendor-products.index',
+            'consultants' => 'admin.consultants.index',
+            'service_providers' => 'admin.service_providers.index',
+            'offers' => 'admin.offers.reports.index',
+            'ads' => 'admin.ads.submissions.index',
+        ];
+    }
+
+    /**
+     * Map an admin route name to its RBAC module slug.
+     */
+    public static function moduleForAdminRoute(?string $routeName): ?string
+    {
+        if (! is_string($routeName) || $routeName === '') {
+            return null;
+        }
+
+        $prefixMap = [
+            'admin.vendors.' => 'vendors',
+            'admin.vendor-products.' => 'products',
+            'admin.consultants.' => 'consultants',
+            'admin.consultant-services.' => 'consultants',
+            'admin.service_providers.' => 'service_providers',
+            'admin.service-provider-services.' => 'service_providers',
+            'admin.offers.' => 'offers',
+            'admin.offer-prices.' => 'offers',
+            'admin.ads.' => 'ads',
+        ];
+
+        foreach ($prefixMap as $prefix => $module) {
+            if (str_starts_with($routeName, $prefix)) {
+                return $module;
+            }
+        }
+
+        return null;
+    }
 }

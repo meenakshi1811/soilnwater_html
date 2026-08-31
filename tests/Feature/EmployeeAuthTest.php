@@ -76,10 +76,12 @@ class EmployeeAuthTest extends TestCase
 
         $this->actingAs($employee, 'employee')
             ->get(route('modules.show', 'vendors'))
+            ->assertRedirect(route('admin.vendors.index'));
+
+        $this->actingAs($employee, 'employee')
+            ->get(route('admin.vendors.index'))
             ->assertOk()
-            ->assertSee('Vendors')
-            ->assertSee('READ')
-            ->assertSee('WRITE');
+            ->assertSee('Vendor Management');
 
         $this->actingAs($employee, 'employee')
             ->get(route('modules.show', 'ads'))

@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureConsultantIsApproved;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureServiceProviderIsApproved;
 use App\Http\Middleware\EnsureChatNotBlocked;
+use App\Http\Middleware\EnsureAdminOrModuleAccess;
 use App\Http\Middleware\EnsureEmployeeIsActive;
 use App\Http\Middleware\EnsureEmployeeOrAdmin;
 use App\Http\Middleware\EnsureUserIsAdmin;
@@ -48,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'admin.or.module' => EnsureAdminOrModuleAccess::class,
             'employee.active' => EnsureEmployeeIsActive::class,
             'employee.or.admin' => EnsureEmployeeOrAdmin::class,
             'chat.not_blocked' => EnsureChatNotBlocked::class,

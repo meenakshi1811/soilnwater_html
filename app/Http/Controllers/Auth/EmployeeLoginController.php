@@ -64,6 +64,11 @@ class EmployeeLoginController extends Controller
         $slug = $employee->firstReadableModuleSlug();
 
         if ($slug) {
+            $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);
+            if ($entryRoute && \Illuminate\Support\Facades\Route::has($entryRoute)) {
+                return route($entryRoute);
+            }
+
             return route('modules.show', ['module' => $slug]);
         }
 

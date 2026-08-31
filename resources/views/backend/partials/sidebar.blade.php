@@ -448,16 +448,70 @@
          @foreach($emsModules as $slug => $label)
             @php
                 $hideAdminModuleDuplicates = $isAdmin && in_array($slug, ['offers', 'ads'], true);
+                $hideEmployeeModuleDuplicates = $isEmployee && in_array($slug, ['vendors', 'products'], true);
                 $canReadModule = $isAdmin || auth()->user()->canModule($slug, 'read');
+                $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);
+                $moduleUrl = ($entryRoute && \Illuminate\Support\Facades\Route::has($entryRoute))
+                    ? route($entryRoute)
+                    : route('modules.show', $slug);
+                $moduleActive = false;
+                if ($entryRoute) {
+                    $routePrefix = preg_replace('/\.[^.]+$/', '.*', $entryRoute);
+                    $moduleActive = request()->routeIs($routePrefix);
+                } elseif (request()->routeIs('modules.show') && request()->route('module') === $slug) {
+                    $moduleActive = true;
+                }
             @endphp
-            @if($canReadModule && ! $hideAdminModuleDuplicates)
+            @if($canReadModule && ! $hideAdminModuleDuplicates && ! $hideEmployeeModuleDuplicates)
                 <li>
-                    <a class="{{ request()->routeIs('modules.show') && request()->route('module') === $slug ? 'active' : '' }}" href="{{ route('modules.show', $slug) }}">
+                    <a class="{{ $moduleActive ? 'active' : '' }}" href="{{ $moduleUrl }}">
                         <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
                     </a>
                 </li>
             @endif
         @endforeach
+
+        @if($isEmployee && auth()->user()->canModule('vendors', 'read'))
+            <li class="admin-sidebar-group">
+                <details {{ $vendorsMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $vendorsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Vendor</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
+                                <i class="fa-solid fa-list"></i>
+                                <span>All Vendors</span>
+                            </a>
+                        </li>
+                        @if(auth()->user()->canModule('products', 'read'))
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.create') }}">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Create Product</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.*') && ! request()->routeIs('admin.vendor-products.all.*') && ! request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                                <span>Products Approval</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.all.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.all.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Products</span>
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
+                </details>
+            </li>
+        @endif
 
         @if($isAdmin)
             <li>
