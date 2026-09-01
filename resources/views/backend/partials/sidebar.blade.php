@@ -254,7 +254,7 @@
 
          @foreach($emsModules as $slug => $label)
             @php
-                $sidebarManagedModules = ['offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers'];
+                $sidebarManagedModules = ['users', 'offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers'];
                 $hideSidebarManagedModule = ($isAdmin || $isEmployee) && in_array($slug, $sidebarManagedModules, true);
                 $canReadModule = $isAdmin || $user->canModule($slug, 'read');
                 $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);

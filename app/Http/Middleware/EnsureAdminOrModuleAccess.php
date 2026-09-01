@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AccountCreation;
 use App\Support\ModulePermissions;
 use Closure;
 use Illuminate\Http\Request;
@@ -36,6 +37,19 @@ class EnsureAdminOrModuleAccess
             Auth::shouldUse('employee');
 
             $routeName = $request->route()?->getName();
+
+            if ($routeName === 'admin.users.store') {
+                if (AccountCreation::canCreateRole($employee, false, $request->input('role'))) {
+                    return $next($request);
+                }
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'You do not have permission to create this account type.'], 403);
+                }
+
+                abort(403, 'You do not have permission to create this account type.');
+            }
+
             $module = ModulePermissions::moduleForAdminRoute($routeName);
             $action = ModulePermissions::actionForRoute($routeName) ?? 'read';
 

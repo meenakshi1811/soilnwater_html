@@ -15,6 +15,11 @@
             <h2 class="admin-title mb-1">Consultants</h2>
             <p class="mb-0 text-secondary">Review consultant registrations, approve accounts, and manage company profiles.</p>
         </div>
+        @include('backend.partials.create-account-button', [
+            'role' => 'consultant',
+            'label' => 'Add Consultant',
+            'modalTitle' => 'Add Consultant',
+        ])
     </div>
 
     <div class="chart-card">
@@ -132,7 +137,13 @@
         </div>
     </div>
 </div>
+
+@include('backend.partials.create-account-modal')
 @endsection
+
+@push('styles')
+@include('backend.partials.create-account-styles')
+@endpush
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -140,5 +151,6 @@
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+@include('backend.partials.create-account-scripts')
 <script src="{{ asset('assets/js/admin-consultants.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

@@ -8,6 +8,44 @@
         modal: null,
         isEdit: false,
 
+        generatePassword: function (length) {
+            var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';
+            var password = '';
+            var size = length || 12;
+
+            for (var i = 0; i < size; i += 1) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            return password;
+        },
+
+        togglePasswordFields: function (isEdit) {
+            $('#employeeCreatePasswordWrap, #employeeCreatePasswordConfirmationWrap').toggleClass('d-none', isEdit);
+            $('#employeeEditPasswordSection').toggleClass('d-none', !isEdit);
+
+            if (isEdit) {
+                $('#employeePassword, #employeePasswordConfirmation').removeAttr('name');
+                $('#employeeNewPassword').attr('name', 'password');
+                $('#employeeNewPasswordConfirmation').attr('name', 'password_confirmation');
+            } else {
+                $('#employeeNewPassword, #employeeNewPasswordConfirmation').removeAttr('name');
+                $('#employeePassword').attr('name', 'password');
+                $('#employeePasswordConfirmation').attr('name', 'password_confirmation');
+            }
+        },
+
+        fillCreatePasswordFields: function () {
+            var password = this.generatePassword();
+            $('#employeePassword').val(password);
+            $('#employeePasswordConfirmation').val(password);
+        },
+
+        clearEditPasswordFields: function () {
+            $('#employeeNewPassword').val('');
+            $('#employeeNewPasswordConfirmation').val('');
+        },
+
         loadRoles: function () {
             return $.get('/admin/roles/options').done(function (response) {
                 var $select = $('#employeeRoleId');
@@ -54,7 +92,10 @@
                 $('#employeeForm')[0].reset();
                 $('#employeeId').val('');
                 $('#employeeStatus').prop('checked', true);
+                self.togglePasswordFields(false);
+                self.clearEditPasswordFields();
                 self.loadRoles().always(function () {
+                    self.fillCreatePasswordFields();
                     $('#employeeForm').attr('action', '/admin/employees').attr('method', 'POST');
                     self.modal.show();
                 });
@@ -66,6 +107,8 @@
                 $('#employeeModalTitle').text('Edit Employee');
                 $('#employeeForm')[0].reset();
                 $('#employeeId').val(id);
+                self.togglePasswordFields(true);
+                self.clearEditPasswordFields();
 
                 $.when($.get('/admin/employees/' + id), self.loadRoles()).done(function (a) {
                     var response = a[0];
@@ -75,8 +118,6 @@
                     $('#employeePhone').val(employee.phone_number || '');
                     $('#employeeRoleId').val(employee.role_id ? String(employee.role_id) : '');
                     $('#employeeStatus').prop('checked', !!employee.is_active);
-                    $('#employeePassword').val('');
-                    $('#employeePasswordConfirmation').val('');
                     $('#employeeForm').attr('action', '/admin/employees/' + id).attr('method', 'POST');
                     self.modal.show();
                 });
@@ -131,9 +172,11 @@
                                 return true;
                             }
 
-                            return $('#employeePassword').val().length > 0;
+                            return $('#employeeNewPassword').val().length > 0;
                         },
-                        equalTo: '#employeePassword'
+                        equalTo: function () {
+                            return self.isEdit ? '#employeeNewPassword' : '#employeePassword';
+                        }
                     }
                 },
                 messages: {

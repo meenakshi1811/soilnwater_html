@@ -142,32 +142,8 @@
         border-radius: 12px;
         border: 1px solid rgba(148, 163, 184, .25);
     }
-    #createUserModal .modal-dialog {
-        max-height: calc(100vh - 2rem);
-        margin: 1rem auto;
-    }
-    #createUserModal .modal-content {
-        max-height: calc(100vh - 2rem);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-    #createUserModal .create-user-form {
-        display: flex;
-        flex-direction: column;
-        flex: 1 1 auto;
-        min-height: 0;
-    }
-    #createUserModal .modal-body {
-        overflow-y: auto;
-        flex: 1 1 auto;
-    }
-    #createUserModal .modal-footer {
-        flex-shrink: 0;
-        border-top: 1px solid rgba(148, 163, 184, .22);
-        background: #fff;
-    }
 </style>
+@include('backend.partials.create-account-styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
@@ -179,9 +155,10 @@
             <h2 class="admin-title mb-1">Users</h2>
             <p class="mb-0 text-secondary">View every registered account with role-specific vendor, consultant and service provider profile details.</p>
         </div>
-        <button type="button" class="btn btn-primary ems-btn-primary" id="openCreateUserModalBtn">
-            <i class="fa-solid fa-user-plus me-2"></i> Add User
-        </button>
+        @include('backend.partials.create-account-button', [
+            'label' => 'Add User',
+            'modalTitle' => 'Add User',
+        ])
     </div>
 
     <div class="chart-card">
@@ -213,121 +190,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true" data-bs-focus="false">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content ems-modal">
-            <div class="modal-header">
-                <h5 class="modal-title">Add User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="createUserForm" class="create-user-form" method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data" novalidate>
-                @csrf
-                <div class="modal-body">
-                    <p class="text-secondary small mb-3">Create vendor or service provider accounts with the same fields as public registration. Email and phone are verified automatically and no notification email is sent.</p>
-                    <div id="createUserAlert" class="alert d-none" role="alert"></div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label" for="createFullname">Full Name</label>
-                            <input type="text" name="fullname" id="createFullname" class="form-control" autocomplete="name">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="createEmail">Email Address</label>
-                            <input type="email" name="email" id="createEmail" class="form-control" autocomplete="email">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="createPhone">Phone Number</label>
-                            <input type="tel" name="phone_number" id="createPhone" class="form-control" autocomplete="tel">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="createWhatsapp">WhatsApp Number</label>
-                            <input type="tel" name="whatsapp_number" id="createWhatsapp" class="form-control" autocomplete="tel">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label" for="createAddress">Address</label>
-                            <input type="text" name="address" id="createAddress" class="form-control" autocomplete="off" placeholder="Search and select your address">
-                            <input type="hidden" name="latitude" id="createLatitude" value="">
-                            <input type="hidden" name="longitude" id="createLongitude" value="">
-                            <small class="text-muted">Start typing and choose a Google address to auto-fill city and pincode. You can edit both fields.</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="createCity">City</label>
-                            <input type="text" name="city" id="createCity" class="form-control" autocomplete="address-level2">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="createPincode">Pincode</label>
-                            <input type="text" name="pincode" id="createPincode" class="form-control" autocomplete="postal-code">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="createRole">Role</label>
-                            <select name="role" id="createRole" class="form-select">
-                                <option value="">Choose role</option>
-                                <option value="user">User</option>
-                                <option value="vendor">Vendor</option>
-                                <option value="consultant">Consultant</option>
-                                <option value="service_provider">Service Provider</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6" id="createProfileImageWrap">
-                            <label class="form-label" for="createProfileImage">Profile Image <span class="text-muted fw-normal">(optional)</span></label>
-                            <input type="file" name="profile_image" id="createProfileImage" class="form-control" accept="image/jpeg,image/png,image/webp">
-                            <small class="text-muted">JPG, PNG, or WebP up to 2 MB. Leave empty to skip.</small>
-                        </div>
-                        <div class="col-md-6" id="createDateOfBirthWrap">
-                            <label class="form-label" for="createDateOfBirth">Date of Birth</label>
-                            <input type="date" name="date_of_birth" id="createDateOfBirth" class="form-control" max="{{ now()->subYears(18)->toDateString() }}">
-                        </div>
-                        <div class="col-12 d-none" id="createBusinessFields">
-                            <div class="row g-3">
-                                <div class="col-md-6" id="createDateOfIncorporationWrap">
-                                    <label class="form-label" for="createDateOfIncorporation">Date of Incorporation</label>
-                                    <input type="date" name="date_of_incorporation" id="createDateOfIncorporation" class="form-control" max="{{ now()->toDateString() }}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="createPanNumber">PAN Number</label>
-                                    <input type="text" name="pan_number" id="createPanNumber" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label d-block">Do you have a GST number?</label>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="has_gst" id="createHasGstNo" value="0" checked>
-                                        <label class="form-check-label" for="createHasGstNo">No</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="has_gst" id="createHasGstYes" value="1">
-                                        <label class="form-check-label" for="createHasGstYes">Yes</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 d-none" id="createGstNumberWrap">
-                                    <label class="form-label" for="createGstNumber">GST Number</label>
-                                    <input type="text" name="gst_number" id="createGstNumber" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="createCertificateNumber">Government Certificate Number</label>
-                                    <input type="text" name="government_certificate_number" id="createCertificateNumber" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="createPassword">Password</label>
-                            <input type="password" name="password" id="createPassword" class="form-control" autocomplete="new-password">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="createPasswordConfirmation">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="createPasswordConfirmation" class="form-control" autocomplete="new-password">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="createUserSubmitBtn" class="btn btn-primary ems-btn-primary">
-                        <span class="btn-text">Create User</span>
-                        <span class="btn-loader d-none" aria-hidden="true"></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+@include('backend.partials.create-account-modal')
 
 <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -427,13 +290,6 @@
     }
 </script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+@include('backend.partials.create-account-scripts')
 <script src="{{ asset('assets/js/admin-users.js') }}?v={{ now()->timestamp }}"></script>
-<script>
-    window.initAdminCreateUserLocationAutocomplete = function () {
-        if (window.FormHelper && typeof window.FormHelper.initAdminCreateUserPlaceAutocomplete === 'function') {
-            window.FormHelper.initAdminCreateUserPlaceAutocomplete();
-        }
-    };
-</script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdminCreateUserLocationAutocomplete"></script>
 @endpush

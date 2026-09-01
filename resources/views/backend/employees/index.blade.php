@@ -72,13 +72,27 @@
                                 <option value="">Select role</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Password</label>
+                        <div class="col-md-6" id="employeeCreatePasswordWrap">
+                            <label class="form-label" for="employeePassword">Password</label>
                             <input type="password" name="password" id="employeePassword" class="form-control" autocomplete="new-password">
+                            <small class="text-muted">Auto-generated. Use the eye icon to view.</small>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Confirm password</label>
+                        <div class="col-md-6" id="employeeCreatePasswordConfirmationWrap">
+                            <label class="form-label" for="employeePasswordConfirmation">Confirm password</label>
                             <input type="password" name="password_confirmation" id="employeePasswordConfirmation" class="form-control" autocomplete="new-password">
+                        </div>
+                        <div class="col-12 d-none" id="employeeEditPasswordSection">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="employeeNewPassword">New password</label>
+                                    <input type="password" name="password" id="employeeNewPassword" class="form-control" autocomplete="new-password">
+                                    <small class="text-muted">Leave blank to keep the current password.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="employeeNewPasswordConfirmation">Confirm new password</label>
+                                    <input type="password" name="password_confirmation" id="employeeNewPasswordConfirmation" class="form-control" autocomplete="new-password">
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">

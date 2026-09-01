@@ -14,173 +14,19 @@
         },
 
         toggleCreateBusinessFields: function () {
-            var role = $('#createRole').val();
-            var showBusiness = this.isBusinessRole(role);
-            var showProfileImage = role === 'user' || showBusiness;
-            var showGst = showBusiness && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
-
-            $('#createBusinessFields').toggleClass('d-none', !showBusiness);
-            $('#createDateOfBirthWrap').toggleClass('d-none', showBusiness);
-            $('#createProfileImageWrap').toggleClass('d-none', !showProfileImage);
-            $('#createGstNumberWrap').toggleClass('d-none', !showGst);
-
-            if (!showBusiness) {
-                $('#createPanNumber, #createGstNumber, #createCertificateNumber, #createDateOfIncorporation').val('');
-                $('#createHasGstNo').prop('checked', true);
-            } else {
-                $('#createDateOfBirth').val('');
-            }
-
-            if (!showGst) {
-                $('#createGstNumber').val('');
+            if (window.CreateAccount) {
+                window.CreateAccount.toggleCreateBusinessFields();
             }
         },
 
         resetCreateForm: function () {
-            var $form = $('#createUserForm');
-            if (!$form.length) {
-                return;
+            if (window.CreateAccount) {
+                window.CreateAccount.resetCreateForm();
             }
-
-            $form[0].reset();
-            if ($form.data('validator')) {
-                $form.validate().resetForm();
-            }
-            $form.find('.is-invalid').removeClass('is-invalid');
-            $('#createLatitude, #createLongitude').val('');
-            $('#createHasGstNo').prop('checked', true);
-            $('#createUserAlert').addClass('d-none').empty();
-            this.toggleCreateBusinessFields();
         },
 
         initCreateForm: function () {
-            var self = this;
-
-            if (!$('#createUserForm').length) {
-                return;
-            }
-
-            self.createModal = new bootstrap.Modal(document.getElementById('createUserModal'));
-
-            $('#openCreateUserModalBtn').on('click', function () {
-                self.resetCreateForm();
-                self.createModal.show();
-            });
-
-            document.getElementById('createUserModal').addEventListener('shown.bs.modal', function () {
-                if (window.FormHelper && typeof window.FormHelper.initAdminCreateUserPlaceAutocomplete === 'function') {
-                    window.FormHelper.initAdminCreateUserPlaceAutocomplete();
-                }
-            });
-
-            $('#createAddress').on('input', function () {
-                if (this.dataset.placeJustSelected === '1') {
-                    delete this.dataset.placeJustSelected;
-                    return;
-                }
-
-                $('#createLatitude, #createLongitude').val('');
-            });
-
-            $('#createRole').on('change', function () {
-                self.toggleCreateBusinessFields();
-            });
-
-            $('#createUserForm').on('input blur', '[name="phone_number"], [name="whatsapp_number"], [name="pincode"]', function () {
-                $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
-            });
-
-            $('#createUserForm').on('change', 'input[name="has_gst"]', function () {
-                self.toggleCreateBusinessFields();
-            });
-
-            FormHelper.attachAjaxForm({
-                formSelector: '#createUserForm',
-                buttonSelector: '#createUserSubmitBtn',
-                alertSelector: '#createUserAlert',
-                defaultText: 'Create User',
-                loadingText: 'Creating...',
-                rules: {
-                    fullname: { required: true, minlength: 3, maxlength: 255 },
-                    email: { required: true, email: true },
-                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
-                    whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
-                    address: { required: true, minlength: 5, maxlength: 500 },
-                    city: { required: true, maxlength: 120 },
-                    pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
-                    role: { required: true },
-                    pan_number: {
-                        required: function () {
-                            return self.isBusinessRole($('#createRole').val());
-                        },
-                        maxlength: 20
-                    },
-                    has_gst: {
-                        required: function () {
-                            return self.isBusinessRole($('#createRole').val());
-                        }
-                    },
-                    gst_number: {
-                        required: function () {
-                            return self.isBusinessRole($('#createRole').val())
-                                && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
-                        },
-                        maxlength: 20
-                    },
-                    government_certificate_number: { maxlength: 100 },
-                    date_of_birth: {
-                        required: function () {
-                            return $('#createRole').val() === 'user';
-                        },
-                        date: true
-                    },
-                    date_of_incorporation: {
-                        required: function () {
-                            return self.isBusinessRole($('#createRole').val());
-                        },
-                        date: true
-                    },
-                    password: { required: true, minlength: 8 },
-                    password_confirmation: { required: true, equalTo: '#createPassword' }
-                },
-                messages: {
-                    role: { required: 'Please select a role.' },
-                    pan_number: { required: 'PAN number is required for vendor, consultant, and service provider accounts.' },
-                    has_gst: { required: 'Please select whether the account has a GST number.' },
-                    gst_number: { required: 'GST number is required when GST is set to yes.' },
-                    date_of_birth: { required: 'Date of birth is required for general user accounts.' },
-                    date_of_incorporation: { required: 'Date of incorporation is required for vendor, consultant, and service provider accounts.' },
-                    password_confirmation: { equalTo: 'Password confirmation does not match.' }
-                },
-                beforeSubmit: function () {
-                    $('#createUserForm').find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
-                        $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
-                    });
-                },
-                onInvalid: function () {
-                    FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
-                },
-                onSuccess: function (response) {
-                    FormHelper.showToast('success', response.message || 'User created successfully.');
-                    if (self.table) {
-                        self.table.ajax.reload(null, false);
-                    }
-                    self.createModal.hide();
-                },
-                onValidationError: function (xhr, message) {
-                    FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
-                },
-                onError: function (xhr, message) {
-                    if (xhr.status === 422) {
-                        FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
-                        return;
-                    }
-
-                    FormHelper.showToast('danger', message || 'Unable to create user. Please try again.');
-                }
-            });
-
-            self.toggleCreateBusinessFields();
+            // Handled by admin-create-account.js
         },
 
         initTable: function () {
@@ -679,7 +525,6 @@
             this.initTable();
             this.bindUi();
             this.initForm();
-            this.initCreateForm();
         }
     };
 

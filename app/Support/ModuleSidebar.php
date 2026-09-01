@@ -15,6 +15,14 @@ final class ModuleSidebar
     public static function sections(): array
     {
         return [
+            'users' => [
+                'label' => 'Users',
+                'icon' => 'fa-solid fa-users',
+                'active_routes' => ['admin.users.*'],
+                'items' => [
+                    ['label' => 'All Users', 'route' => 'admin.users.index', 'icon' => 'fa-solid fa-list', 'module' => 'users', 'action' => 'read', 'active' => 'admin.users.*'],
+                ],
+            ],
             'offers' => [
                 'label' => 'Offers',
                 'icon' => 'fa-solid fa-tags',

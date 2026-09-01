@@ -16,6 +16,7 @@ final class ModulePermissions
     {
         return [
             'ecommerce' => 'E-Commerce',
+            'users' => 'Users',
             'vendors' => 'Vendors',
             'services' => 'Services',
             'properties' => 'Properties',
@@ -64,6 +65,7 @@ final class ModulePermissions
     public static function entryRoutes(): array
     {
         return [
+            'users' => 'admin.users.index',
             'vendors' => 'admin.vendors.index',
             'products' => 'admin.vendor-products.index',
             'consultants' => 'admin.consultants.index',
@@ -83,6 +85,7 @@ final class ModulePermissions
         }
 
         $prefixMap = [
+            'admin.users.' => 'users',
             'admin.vendors.' => 'vendors',
             'admin.vendor-products.' => 'products',
             'admin.consultants.' => 'consultants',
@@ -112,6 +115,21 @@ final class ModulePermissions
     {
         if (! is_string($routeName) || $routeName === '') {
             return null;
+        }
+
+        $overrides = [
+            'admin.users.index' => 'read',
+            'admin.users.data' => 'read',
+            'admin.users.show' => 'read',
+            'admin.users.store' => 'add',
+            'admin.users.update' => 'write',
+            'admin.users.destroy' => 'delete',
+            'admin.users.toggle-block' => 'write',
+            'admin.users.toggle-status' => 'write',
+        ];
+
+        if (isset($overrides[$routeName])) {
+            return $overrides[$routeName];
         }
 
         foreach (ModuleSidebar::sections() as $section) {

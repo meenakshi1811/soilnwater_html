@@ -10,10 +10,12 @@ use App\Models\Vendor;
 use App\Services\ConsultantRegistrationService;
 use App\Services\ServiceProviderRegistrationService;
 use App\Services\VendorRegistrationService;
+use App\Support\AccountCreation;
 use App\Support\GoogleGeocoder;
 use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,6 +26,11 @@ class UserController extends Controller
 {
     public function index()
     {
+        $actor = Auth::guard('employee')->user() ?? Auth::guard('web')->user();
+        $isAdmin = $actor && method_exists($actor, 'isAdmin') && $actor->isAdmin();
+
+        abort_unless($isAdmin || ($actor && method_exists($actor, 'canModule') && $actor->canModule('users', 'read')), 403);
+
         return view('backend.users.index');
     }
 
@@ -184,9 +191,12 @@ class UserController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $this->resolveUserCoordinates($this->validateNewUser($request));
+        $this->ensureCanCreateAccount($request);
 
-        $user = DB::transaction(function () use ($request, $validated) {
+        $validated = $this->resolveUserCoordinates($this->validateNewUser($request));
+        $adminUserId = Auth::guard('web')->id();
+
+        $user = DB::transaction(function () use ($request, $validated, $adminUserId) {
             $user = User::create([
                 'name' => $validated['fullname'],
                 'full_name' => $validated['fullname'],
@@ -201,7 +211,7 @@ class UserController extends Controller
                 'role' => $validated['role'],
                 'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'is_active' => true,
-                'created_by' => $request->user()?->id,
+                'created_by' => $adminUserId,
                 'password' => Hash::make($validated['password']),
             ]);
 
@@ -237,7 +247,7 @@ class UserController extends Controller
                 $vendor->update([
                     'status' => 'approved',
                     'approved_at' => now(),
-                    'approved_by' => $request->user()?->id,
+                    'approved_by' => $adminUserId,
                 ]);
             }
 
@@ -247,7 +257,7 @@ class UserController extends Controller
                 $consultant->update([
                     'status' => 'approved',
                     'approved_at' => now(),
-                    'approved_by' => $request->user()?->id,
+                    'approved_by' => $adminUserId,
                 ]);
             }
 
@@ -257,7 +267,7 @@ class UserController extends Controller
                 $serviceProvider->update([
                     'status' => 'approved',
                     'approved_at' => now(),
-                    'approved_by' => $request->user()?->id,
+                    'approved_by' => $adminUserId,
                 ]);
             }
 
@@ -646,5 +656,17 @@ class UserController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function ensureCanCreateAccount(Request $request): void
+    {
+        $actor = Auth::guard('employee')->user() ?? Auth::guard('web')->user();
+        $isAdmin = $actor && method_exists($actor, 'isAdmin') && $actor->isAdmin();
+
+        abort_unless(
+            AccountCreation::canCreateRole($actor, $isAdmin, $request->input('role')),
+            403,
+            'You do not have permission to create this account type.'
+        );
     }
 }
