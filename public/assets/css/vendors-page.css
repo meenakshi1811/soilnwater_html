@@ -178,16 +178,20 @@
   min-width: 0;
 }
 
+.vendors-main .premium-listing-cta {
+  margin-bottom: 0;
+}
+
 .vendors-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(220px, .85fr);
   gap: 1.25rem;
   align-items: center;
-  background: linear-gradient(135deg, #f8fbff 0%, #f3faf4 100%);
-  border: 1px solid var(--vendors-border);
+  background: #fff;
+  border: 1px solid #edf2f7;
   border-radius: 18px;
-  padding: 1.5rem 1.6rem;
-  box-shadow: var(--vendors-shadow);
+  padding: 1.65rem 1.75rem;
+  box-shadow: 0 8px 24px rgba(15, 51, 88, 0.05);
 }
 
 .vendors-hero__copy h1 {
@@ -220,20 +224,23 @@
 }
 
 .vendors-stat__icon {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: #e8f5e9;
   color: var(--vendors-green);
-  box-shadow: 0 4px 12px rgba(15, 51, 88, 0.08);
-  flex: 0 0 34px;
+  flex: 0 0 38px;
 }
 
-.vendors-stat__icon .fa-crown {
-  color: #c9a227;
+.vendors-stat__icon--premium {
+  color: #2e7d32;
+}
+
+.vendors-stat__icon .fa-gem {
+  color: #2e7d32;
 }
 
 .vendors-stat strong {
@@ -256,10 +263,10 @@
   align-items: center;
 }
 
-.vendors-hero__art img {
-  width: min(100%, 320px);
+.vendors-hero__illustration {
+  width: min(100%, 340px);
   height: auto;
-  object-fit: contain;
+  display: block;
 }
 
 .vendors-section {
@@ -860,10 +867,28 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  background: linear-gradient(135deg, #edf7ee, #f8fffa);
+  background: linear-gradient(90deg, #edf7ee 0%, #f8fffa 100%);
   border: 1px solid #cfe8d1;
-  border-radius: 18px;
-  padding: 1.2rem 1.35rem;
+  border-radius: 16px;
+  padding: 1.15rem 1.35rem;
+}
+
+.vendors-cta__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f5e9;
+  color: var(--vendors-green);
+  font-size: 1.15rem;
+  flex: 0 0 52px;
+}
+
+.vendors-cta__copy {
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
 .vendors-cta__copy h3 {
@@ -884,6 +909,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: .65rem;
+  margin-left: auto;
 }
 
 .vendors-cta__primary,
@@ -980,6 +1006,7 @@
 
   .vendors-cta__actions {
     width: 100%;
+    margin-left: 0;
   }
 
   .vendors-cta__primary,

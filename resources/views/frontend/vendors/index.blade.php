@@ -18,6 +18,7 @@
 @endphp
 
 @push('styles')
+  <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
   <link rel="stylesheet" href="{{ asset('assets/css/vendors-page.css') }}?v={{ now()->timestamp }}">
 @endpush
 
@@ -151,13 +152,15 @@
     </aside>
 
     <main class="vendors-main">
+      @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
+
       <section class="vendors-hero">
         <div class="vendors-hero__copy">
           <h1>Discover Trusted Vendors Near You</h1>
           <p>Find the best products and services from verified local businesses.</p>
           <div class="vendors-hero__stats">
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>
+              <span class="vendors-stat__icon vendors-stat__icon--premium"><i class="fa-solid fa-gem" aria-hidden="true"></i></span>
               <div>
                 <strong>{{ $formatStat($vendorStats['premium']) }}</strong>
                 <span>Premium Vendors</span>
@@ -171,23 +174,23 @@
               </div>
             </div>
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+              <span class="vendors-stat__icon"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i></span>
               <div>
                 <strong>{{ $formatStat($vendorStats['categories']) }}</strong>
                 <span>Categories</span>
               </div>
             </div>
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span>
+              <span class="vendors-stat__icon"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
               <div>
-                <strong>{{ $formatStat($vendorStats['products']) }}</strong>
-                <span>Listed Products</span>
+                <strong>{{ $formatStat($vendorStats['happy_customers']) }}</strong>
+                <span>Happy Customers</span>
               </div>
             </div>
           </div>
         </div>
         <div class="vendors-hero__art">
-          <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80" alt="Local marketplace storefront illustration">
+          <img src="{{ asset('assets/images/vendors-hero-store.svg') }}" alt="" class="vendors-hero__illustration">
         </div>
       </section>
 
@@ -278,6 +281,9 @@
       </section>
 
       <section class="vendors-cta">
+        <div class="vendors-cta__icon" aria-hidden="true">
+          <i class="fa-solid fa-store"></i>
+        </div>
         <div class="vendors-cta__copy">
           <h3>Are you a vendor?</h3>
           <p>List your business on SoilnWater and reach thousands of potential customers.</p>

@@ -9,6 +9,7 @@ use App\Models\HomepageSetting;
 use App\Models\Offer;
 use App\Models\ServiceProvider;
 use App\Models\UserAd;
+use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -446,7 +447,7 @@ class OfferPageController extends Controller
     }
 
     /**
-     * @return array{premium:int,trusted:int,categories:int,products:int}
+     * @return array{premium:int,trusted:int,categories:int,happy_customers:int}
      */
     private function vendorListingStats(): array
     {
@@ -456,15 +457,7 @@ class OfferPageController extends Controller
             'premium' => (clone $baseVendorQuery)->where('is_premium', true)->count(),
             'trusted' => (clone $baseVendorQuery)->count(),
             'categories' => Category::query()->whereNull('parent_id')->forModule('vendors')->count(),
-            'products' => DB::table('vendor_products')
-                ->join('vendors', 'vendors.id', '=', 'vendor_products.vendor_id')
-                ->where('vendor_products.status', 'approved')
-                ->where('vendors.status', 'approved')
-                ->where(function ($query): void {
-                    $query->whereNotNull('vendors.published_page_data')
-                        ->orWhere('vendors.public_page_status', 'approved');
-                })
-                ->count(),
+            'happy_customers' => User::query()->count(),
         ];
     }
 
