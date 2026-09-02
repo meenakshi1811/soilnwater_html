@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class OfferPageController extends Controller
 {
@@ -125,14 +126,41 @@ class OfferPageController extends Controller
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
         $hasLocation = is_numeric($lat) && is_numeric($lng);
 
-        $vendors = $this->topVendorsQuery($lat, $lng, $request->string('search')->trim()->toString())
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->forModule('vendors')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
+
+        $vendors = $this->topVendorsQuery($lat, $lng, $request)
             ->paginate(24)
             ->appends($request->query());
         $vendors->getCollection()->each->usePublishedPage();
 
+        $cardView = $request->string('view')->toString() === 'list' ? 'list' : 'grid';
+
         if ($request->ajax()) {
+            $cardsPartial = $cardView === 'list'
+                ? 'frontend.vendors.partials.list-cards'
+                : 'frontend.vendors.partials.cards';
+
             return response()->json([
-                'html' => view('frontend.vendors.partials.cards', [
+                'html' => view($cardsPartial, [
                     'vendors' => $vendors,
                     'hasLocation' => $hasLocation,
                 ])->render(),
@@ -142,10 +170,22 @@ class OfferPageController extends Controller
             ]);
         }
 
+        $premiumVendors = $this->topVendorsQuery($lat, $lng)
+            ->where('is_premium', true)
+            ->limit(5)
+            ->get();
+        $premiumVendors->each->usePublishedPage();
+
         return view('frontend/vendors/index', [
             'vendors' => $vendors,
+            'premiumVendors' => $premiumVendors,
+            'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
+            'topCategories' => $this->topVendorCategories(),
+            'vendorStats' => $this->vendorListingStats(),
             'hasLocation' => $hasLocation,
             'homepageSetting' => HomepageSetting::query()->find(1),
+            'cardView' => $cardView,
         ]);
     }
 
@@ -285,13 +325,25 @@ class OfferPageController extends Controller
         return $offer->valid_until === null || $offer->valid_until->isToday() || $offer->valid_until->isFuture();
     }
 
-    private function topVendorsQuery(?float $lat, ?float $lng, string $search = ''): Builder
+    private function topVendorsQuery(?float $lat, ?float $lng, Request|string|null $requestOrSearch = null): Builder
     {
+        $request = $requestOrSearch instanceof Request ? $requestOrSearch : null;
+        $search = $request
+            ? $request->string('search')->trim()->toString()
+            : trim((string) ($requestOrSearch ?? ''));
+
         $query = Vendor::query()
             ->where('status', 'approved')
             ->publiclyVisible()
-            ->with(['products:id,vendor_id,name,images,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary', 'bannerSlides:id,vendor_id,image_path,sort_order'])
-            ->withCount('products')
+            ->with([
+                'products' => fn ($productQuery) => $productQuery
+                    ->where('status', 'approved')
+                    ->select(['id', 'vendor_id', 'name', 'images', 'latitude', 'longitude', 'category_id', 'subcategory_id', 'is_online_sale'])
+                    ->with(['category:id,name', 'subcategory:id,name']),
+                'branches:id,vendor_id,address,city,state,is_primary',
+                'bannerSlides:id,vendor_id,image_path,sort_order',
+            ])
+            ->withCount(['products' => fn (Builder $productQuery) => $productQuery->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $searchQuery) use ($search): void {
                     $searchQuery
@@ -301,6 +353,31 @@ class OfferPageController extends Controller
                             ->where('status', 'approved')
                             ->where('name', 'like', '%'.$search.'%'));
                 });
+            })
+            ->when($request?->filled('category_id'), fn (Builder $query) => $query->whereHas(
+                'products',
+                fn (Builder $productQuery) => $productQuery
+                    ->where('status', 'approved')
+                    ->where('category_id', $request->integer('category_id'))
+            ))
+            ->when($request?->filled('subcategory_id'), fn (Builder $query) => $query->whereHas(
+                'products',
+                fn (Builder $productQuery) => $productQuery
+                    ->where('status', 'approved')
+                    ->where('subcategory_id', $request->integer('subcategory_id'))
+            ))
+            ->when($request?->boolean('premium'), fn (Builder $query) => $query->where('is_premium', true))
+            ->when($request?->boolean('verified'), fn (Builder $query) => $query->publiclyVisible())
+            ->when($request?->filled('payment'), function (Builder $query) use ($request): void {
+                if ($request->input('payment') === 'online') {
+                    $query->whereHas('products', fn (Builder $productQuery) => $productQuery
+                        ->where('status', 'approved')
+                        ->where('is_online_sale', true));
+                } elseif ($request->input('payment') === 'offline') {
+                    $query->whereHas('products', fn (Builder $productQuery) => $productQuery
+                        ->where('status', 'approved')
+                        ->where('is_online_sale', false));
+                }
             });
 
         if (is_numeric($lat) && is_numeric($lng)) {
@@ -309,18 +386,97 @@ class OfferPageController extends Controller
                     SELECT MIN(6371 * acos(cos(radians(?)) * cos(radians(vendor_products.latitude)) * cos(radians(vendor_products.longitude) - radians(?)) + sin(radians(?)) * sin(radians(vendor_products.latitude))))
                     FROM vendor_products
                     WHERE vendor_products.vendor_id = vendors.id
+                    AND vendor_products.status = ?
                     AND vendor_products.latitude IS NOT NULL
                     AND vendor_products.longitude IS NOT NULL
-                ) as nearest_distance_km', [$lat, $lng, $lat])
-                ->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
+                ) as nearest_distance_km', [$lat, $lng, $lat, 'approved']);
+
+            if ($request?->filled('radius')) {
+                $radius = max(1, (float) $request->input('radius'));
+                $query->havingRaw('nearest_distance_km IS NOT NULL AND nearest_distance_km <= ?', [$radius]);
+            }
+
+            $this->applyVendorListingOrder($query, $request, true);
+        } else {
+            $this->applyVendorListingOrder($query, $request, false);
+        }
+
+        return $query;
+    }
+
+    private function applyVendorListingOrder(Builder $query, ?Request $request, bool $hasLocation): void
+    {
+        $tab = $request?->string('tab')->toString() ?: 'all';
+        $sort = $request?->string('sort')->toString() ?: 'recent';
+
+        if ($tab === 'recent') {
+            $query->orderByDesc('created_at')->orderByDesc('id');
+        } elseif ($tab === 'top_rated') {
+            $query->orderByDesc('products_count')->orderByDesc('is_premium')->orderByDesc('id');
+        } elseif ($tab === 'most_reviewed') {
+            $query->orderByDesc('products_count')->orderByDesc('id');
+        } elseif ($sort === 'name') {
+            $query->orderByRaw('COALESCE(display_name, company_name) asc');
+        } elseif ($hasLocation) {
+            $query->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
                 ->orderByDesc('is_premium')
                 ->orderBy('nearest_distance_km')
                 ->latest('id');
         } else {
             $query->orderByDesc('is_premium')->latest('created_at')->latest('id');
         }
+    }
 
-        return $query;
+    /**
+     * @return array{premium:int,trusted:int,categories:int,products:int}
+     */
+    private function vendorListingStats(): array
+    {
+        $baseVendorQuery = Vendor::query()->where('status', 'approved')->publiclyVisible();
+
+        return [
+            'premium' => (clone $baseVendorQuery)->where('is_premium', true)->count(),
+            'trusted' => (clone $baseVendorQuery)->count(),
+            'categories' => Category::query()->whereNull('parent_id')->forModule('vendors')->count(),
+            'products' => DB::table('vendor_products')
+                ->join('vendors', 'vendors.id', '=', 'vendor_products.vendor_id')
+                ->where('vendor_products.status', 'approved')
+                ->where('vendors.status', 'approved')
+                ->where(function ($query): void {
+                    $query->whereNotNull('vendors.published_page_data')
+                        ->orWhere('vendors.public_page_status', 'approved');
+                })
+                ->count(),
+        ];
+    }
+
+    /**
+     * @return Collection<int, object{id:int,name:string,vendor_count:int}>
+     */
+    private function topVendorCategories(int $limit = 8): Collection
+    {
+        return Category::query()
+            ->whereNull('parent_id')
+            ->forModule('vendors')
+            ->select(['categories.id', 'categories.name'])
+            ->selectSub(function ($query): void {
+                $query->from('vendor_products')
+                    ->join('vendors', 'vendors.id', '=', 'vendor_products.vendor_id')
+                    ->whereColumn('vendor_products.category_id', 'categories.id')
+                    ->where('vendor_products.status', 'approved')
+                    ->where('vendors.status', 'approved')
+                    ->where(function ($vendorQuery): void {
+                        $vendorQuery->whereNotNull('vendors.published_page_data')
+                            ->orWhere('vendors.public_page_status', 'approved');
+                    })
+                    ->selectRaw('COUNT(DISTINCT vendor_products.vendor_id)');
+            }, 'vendor_count')
+            ->orderByDesc('vendor_count')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->filter(fn ($category) => (int) $category->vendor_count > 0)
+            ->values();
     }
 
     private function topConsultantsQuery(?float $lat, ?float $lng, string $search = ''): Builder
