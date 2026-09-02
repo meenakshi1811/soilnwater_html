@@ -486,7 +486,7 @@ class OfferPageController extends Controller
     /**
      * @return Collection<int, object{id:int,name:string,vendor_count:int}>
      */
-    private function topVendorCategories(int $limit = 8): Collection
+    private function topVendorCategories(int $limit = 16): Collection
     {
         return Category::query()
             ->whereNull('parent_id')
@@ -508,7 +508,6 @@ class OfferPageController extends Controller
             ->orderBy('name')
             ->limit($limit)
             ->get()
-            ->filter(fn ($category) => (int) $category->vendor_count > 0)
             ->values();
     }
 

@@ -156,14 +156,20 @@
 
     <main class="vendors-main">
       <section class="vendors-hero">
-        <div class="vendors-hero__copy">
-          <span class="vendors-hero__eyebrow">
-            <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
-            Vendor Marketplace
-          </span>
-          <h1>Discover Trusted Vendors Near You</h1>
-          <p>Find the best products and services from verified local businesses.</p>
-          <div class="vendors-hero__stats">
+        <div class="vendors-hero__top">
+          <div class="vendors-hero__intro">
+            <span class="vendors-hero__eyebrow">
+              <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
+              Vendor Marketplace
+            </span>
+            <h1>Discover Trusted Vendors Near You</h1>
+            <p>Find the best products and services from verified local businesses in your area.</p>
+          </div>
+          <div class="vendors-hero__art" aria-hidden="true">
+            <img src="{{ asset('assets/images/vendors-hero-store.svg') }}" alt="" class="vendors-hero__illustration">
+          </div>
+        </div>
+        <div class="vendors-hero__stats">
             <div class="vendors-stat">
               <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true">
                 <i class="fa-solid fa-gem"></i>
@@ -201,10 +207,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="vendors-hero__art">
-          <img src="{{ asset('assets/images/vendors-hero-store.svg') }}" alt="" class="vendors-hero__illustration">
-        </div>
       </section>
 
       @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
