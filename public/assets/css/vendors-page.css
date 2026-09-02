@@ -456,6 +456,15 @@
   text-overflow: ellipsis;
 }
 
+.vendors-category-chip__icon i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+}
+
 .vendors-category-chip__text small {
   font-size: .6rem;
   color: var(--vendors-muted);

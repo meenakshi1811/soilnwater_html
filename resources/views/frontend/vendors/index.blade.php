@@ -1,7 +1,8 @@
 @extends('frontend.layouts.app')
 
 @php
-  $categoryIcons = ['fa-laptop', 'fa-car', 'fa-shirt', 'fa-seedling', 'fa-house', 'fa-wrench', 'fa-basket-shopping', 'fa-heart-pulse'];
+  use App\Support\VendorCategoryIcon;
+
   $formatStat = function (int $count): string {
       if ($count >= 1000) {
           return number_format($count / 1000, $count >= 10000 ? 0 : 1).'K+';
@@ -210,17 +211,17 @@
         <section class="vendors-section vendors-section--categories">
           <div class="vendors-section__head vendors-section__head--compact">
             <h2>Top Categories</h2>
-            <a href="#vendorsAllSection" class="vendors-section__link">View all <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
           </div>
           <div class="vendors-categories-strip">
-            @foreach ($topCategories as $index => $category)
+            @foreach ($topCategories as $category)
               <a
                 href="#"
                 class="vendors-category-chip"
                 data-vendors-category-id="{{ $category->id }}"
+                title="{{ $category->name }}"
               >
-                <span class="vendors-category-chip__icon vendors-category-chip__icon--{{ ($index % 6) + 1 }}">
-                  <i class="fa-solid {{ $categoryIcons[$index % count($categoryIcons)] }}" aria-hidden="true"></i>
+                <span class="vendors-category-chip__icon vendors-category-chip__icon--{{ VendorCategoryIcon::toneIndex($category->name) }}">
+                  <i class="fa-solid {{ VendorCategoryIcon::iconClass($category->name) }}" aria-hidden="true"></i>
                 </span>
                 <span class="vendors-category-chip__text">
                   <strong>{{ $category->name }}</strong>
