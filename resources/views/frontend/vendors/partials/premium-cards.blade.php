@@ -10,9 +10,6 @@
                     <i class="fa-solid fa-crown" aria-hidden="true"></i> Premium
                 </span>
             @endif
-            <button type="button" class="vendors-premium-card__wishlist" aria-label="Save {{ $vendor->publicDisplayName() }}">
-                <i class="fa-regular fa-heart" aria-hidden="true"></i>
-            </button>
             <div class="vendors-premium-card__avatar">
                 <img
                     src="{{ $avatarImage }}"
@@ -34,16 +31,6 @@
                 <span class="vendors-rating-count">({{ number_format($ratingCount) }})</span>
                 <span class="vendors-verified-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
             </div>
-            @if ($featuredLabel)
-                <p class="vendors-premium-card__desc">{{ $featuredLabel }}</p>
-            @endif
-            @if (! empty($serviceTags))
-                <div class="vendors-premium-card__tags">
-                    @foreach ($serviceTags as $tag)
-                        <span>{{ $tag }}</span>
-                    @endforeach
-                </div>
-            @endif
             <a href="{{ $storeUrl }}" class="vendors-premium-card__cta">View Store</a>
         </div>
     </article>

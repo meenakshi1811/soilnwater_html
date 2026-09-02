@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const loadingText = document.getElementById('vendorsLoadingText');
   const summaryText = document.getElementById('vendorsSummaryText');
   const scrollSentinel = document.getElementById('vendorsScrollSentinel');
-  const viewPremiumLink = document.getElementById('vendorsViewPremiumLink');
+  const viewPremiumLinks = pageRoot.querySelectorAll('.js-vendors-view-premium-link');
   const categoryCards = pageRoot.querySelectorAll('[data-vendors-category-id]');
 
   const categories = JSON.parse(filterBar?.dataset.categories || '[]');
@@ -356,8 +356,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  if (viewPremiumLink) {
-    viewPremiumLink.addEventListener('click', function (event) {
+  viewPremiumLinks.forEach(function (link) {
+    link.addEventListener('click', function (event) {
       event.preventDefault();
       if (premiumFilter) premiumFilter.checked = true;
       activeTab = 'all';
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       scheduleReload(0);
     });
-  }
+  });
 
   if (scrollSentinel && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {

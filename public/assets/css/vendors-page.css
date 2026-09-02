@@ -450,23 +450,6 @@
   text-transform: uppercase;
 }
 
-.vendors-premium-card__wishlist {
-  position: absolute;
-  top: .55rem;
-  right: .55rem;
-  z-index: 2;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.92);
-  color: #64748b;
-  box-shadow: 0 4px 12px rgba(15, 51, 88, 0.12);
-}
-
 .vendors-premium-card__avatar {
   position: absolute;
   left: .75rem;
