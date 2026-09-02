@@ -347,7 +347,7 @@ class CommunityPostApprovalFlowTest extends TestCase
         $post = CommunityPost::query()->where('title', 'Community Approval Test Post')->firstOrFail();
         $this->assertTrue($post->allow_poll);
         $this->assertSame('rainwater harvesting', $post->poll_subject);
-        $this->assertSame('Do you support rainwater harvesting?', $post->pollQuestion());
+        $this->assertSame('rainwater harvesting', $post->pollQuestion());
     }
 
     public function test_poll_is_shown_on_frontend_when_enabled(): void
@@ -360,7 +360,7 @@ class CommunityPostApprovalFlowTest extends TestCase
 
         $this->get(route('community.show', $post))
             ->assertOk()
-            ->assertSee('Do you support rainwater harvesting?')
+            ->assertSee('rainwater harvesting')
             ->assertSee('Yes')
             ->assertSee('No')
             ->assertSee('Not Sure');
@@ -377,7 +377,7 @@ class CommunityPostApprovalFlowTest extends TestCase
         $this->get(route('community.show', $post))
             ->assertOk()
             ->assertDontSee('Community poll')
-            ->assertDontSee('Do you support rainwater harvesting?');
+            ->assertDontSee('rainwater harvesting');
     }
 
     public function test_authenticated_reader_can_vote_in_poll(): void

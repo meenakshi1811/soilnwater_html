@@ -1148,7 +1148,7 @@ class CommunityPost extends Model
             return (string) data_get($this->meta, 'creative_corner_poll_question');
         }
 
-        return 'Do you support '.$this->poll_subject.'?';
+        return (string) $this->poll_subject;
     }
 
     /**

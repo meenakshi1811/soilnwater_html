@@ -2467,7 +2467,7 @@ The mountains keep.</pre>
                         </div>
                         <div class="col-12" id="pollSubjectWrap" style="display:none;">
                             <div class="border rounded-3 p-3 bg-light">
-                                <label class="form-label" for="pollSubjectInput">Poll subject <span class="text-danger">*</span></label>
+                                <label class="form-label" for="pollSubjectInput">Poll question <span class="text-danger">*</span></label>
                                 <input
                                     type="text"
                                     name="poll_subject"
@@ -2475,10 +2475,10 @@ The mountains keep.</pre>
                                     class="form-control"
                                     value="{{ old('poll_subject', $post->poll_subject) }}"
                                     maxlength="160"
-                                    placeholder="e.g. rainwater harvesting"
+                                    placeholder="e.g. Is rainwater harvesting important for your area?"
                                 >
                                 <small class="text-muted d-block mt-2">Readers will see:</small>
-                                <div class="mt-1 fw-semibold" id="pollQuestionPreview">Do you support …?</div>
+                                <div class="mt-1 fw-semibold" id="pollQuestionPreview">…</div>
                             </div>
                         </div>
                     </div>
@@ -8282,9 +8282,7 @@ The mountains keep.</pre>
 
         if (preview) {
             const subject = subjectInput?.value.trim();
-            preview.textContent = subject
-                ? 'Do you support ' + subject + '?'
-                : 'Do you support …?';
+            preview.textContent = subject || '…';
         }
     }
 
@@ -11637,7 +11635,7 @@ The mountains keep.</pre>
         }
 
         if (document.getElementById('allowPoll')?.checked && !document.getElementById('pollSubjectInput')?.value.trim()) {
-            notify('error', 'Please enter the poll subject.');
+            notify('error', 'Please enter the poll question.');
             return;
         }
 
