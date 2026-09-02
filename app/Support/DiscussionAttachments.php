@@ -10,6 +10,14 @@ class DiscussionAttachments
     /** @var list<string> */
     public const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'avi'];
 
+    public const MAX_IMAGE_KILOBYTES = 10240;
+
+    public const MAX_VIDEO_KILOBYTES = 51200;
+
+    public const MAX_DOCUMENT_KILOBYTES = 10240;
+
+    public const MAX_ATTACHMENTS = 4;
+
     /** @var list<string> */
     public const DOCUMENT_EXTENSIONS = [
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar',
@@ -82,6 +90,82 @@ class DiscussionAttachments
             'txt' => 'fa-file-lines',
             default => 'fa-file-lines',
         };
+    }
+
+    public static function maxKilobytesForKind(string $kind): int
+    {
+        return match ($kind) {
+            'video' => self::MAX_VIDEO_KILOBYTES,
+            'image' => self::MAX_IMAGE_KILOBYTES,
+            default => self::MAX_DOCUMENT_KILOBYTES,
+        };
+    }
+
+    public static function maxKilobytesForUploadedFile(?string $mime, ?string $extension = null): int
+    {
+        return self::maxKilobytesForKind(self::detectKind((string) $mime, $extension));
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public static function clientMaxFileBytes(): array
+    {
+        $serverLimit = self::serverUploadLimitBytes();
+
+        return [
+            'video' => self::capBytes(self::MAX_VIDEO_KILOBYTES * 1024, $serverLimit),
+            'image' => self::capBytes(self::MAX_IMAGE_KILOBYTES * 1024, $serverLimit),
+            'document' => self::capBytes(self::MAX_DOCUMENT_KILOBYTES * 1024, $serverLimit),
+        ];
+    }
+
+    public static function serverUploadLimitBytes(): int
+    {
+        $uploadLimit = self::parseIniSizeToBytes((string) ini_get('upload_max_filesize'));
+        $postLimit = self::parseIniSizeToBytes((string) ini_get('post_max_size'));
+
+        if ($uploadLimit <= 0 && $postLimit <= 0) {
+            return 0;
+        }
+
+        if ($uploadLimit <= 0) {
+            return $postLimit;
+        }
+
+        if ($postLimit <= 0) {
+            return $uploadLimit;
+        }
+
+        return min($uploadLimit, $postLimit);
+    }
+
+    public static function parseIniSizeToBytes(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '-1') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $number = (float) $value;
+
+        return (int) match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    private static function capBytes(int $limit, int $serverLimit): int
+    {
+        if ($serverLimit <= 0) {
+            return $limit;
+        }
+
+        return min($limit, $serverLimit);
     }
 
     /**

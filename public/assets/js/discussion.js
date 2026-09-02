@@ -13,13 +13,21 @@
         try {
             if (window.toastr && window.jQuery && typeof window.toastr[toastType] === 'function') {
                 window.toastr[toastType](message);
-                return;
             }
         } catch (error) {
             console.warn('Toastr unavailable.', error);
         }
 
-        console.warn(message);
+        const notice = document.getElementById('discussionReplyComposerNotice');
+        if (notice && message) {
+            notice.hidden = false;
+            notice.className = `discussion-composer-notice discussion-composer-notice--${type === 'error' ? 'error' : 'success'}`;
+            notice.textContent = message;
+        }
+
+        if (type === 'error') {
+            console.warn(message);
+        }
     }
 
     async function postJson(url, payload) {
@@ -47,7 +55,26 @@
         return data;
     }
 
-    async function postFormData(url, formData) {
+    async function postFormData(url, formData, progressEl) {
+        const helpers = attachmentHelpers();
+        const hasUploadProgress = formData instanceof FormData
+            && Array.from(formData.entries()).some(([key, value]) => key.startsWith('attachments') && value instanceof File);
+
+        if (hasUploadProgress && typeof helpers.uploadFormData === 'function') {
+            helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', 0);
+
+            try {
+                return await helpers.uploadFormData(url, formData, {
+                    csrfToken: csrfToken(),
+                    onProgress(percent) {
+                        helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', percent);
+                    },
+                });
+            } finally {
+                helpers.hideUploadProgress?.(progressEl);
+            }
+        }
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -699,6 +726,9 @@
             imageButton: document.getElementById('replyAttachImageBtn'),
             videoButton: document.getElementById('replyAttachVideoBtn'),
             documentButton: document.getElementById('replyAttachDocumentBtn'),
+            onError(message) {
+                notify('error', message);
+            },
         });
 
         form.addEventListener('submit', async (event) => {
@@ -725,7 +755,11 @@
                 }
                 helpers.appendPoolToFormData?.(formData, replyAttachmentPool);
 
-                const data = await postFormData(form.dataset.url, formData);
+                const data = await postFormData(
+                    form.dataset.url,
+                    formData,
+                    document.getElementById('discussionReplyUploadProgress')
+                );
 
                 if (data.reply) {
                     appendReply(data.reply);

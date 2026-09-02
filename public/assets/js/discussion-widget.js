@@ -314,15 +314,52 @@
         try {
             if (window.toastr && typeof window.toastr[type] === 'function') {
                 window.toastr[type](message);
-                return;
             }
         } catch (error) {
             // fall through
         }
 
+        showComposerNotice(type, message);
+
         if (type === 'error') {
             console.error(message);
         }
+    }
+
+    function showComposerNotice(type, message) {
+        const notice = document.getElementById('discussionWidgetComposerNotice');
+        if (!notice || !message) {
+            return;
+        }
+
+        notice.hidden = false;
+        notice.className = `discussion-composer-notice discussion-composer-notice--${type === 'error' ? 'error' : 'success'}`;
+        notice.textContent = message;
+
+        window.clearTimeout(showComposerNotice._timer);
+        showComposerNotice._timer = window.setTimeout(() => {
+            notice.hidden = true;
+            notice.textContent = '';
+        }, type === 'error' ? 8000 : 4000);
+    }
+
+    async function sendFormDataWithUpload(url, formData, progressEl) {
+        const helpers = attachmentHelpersRef();
+        const hasUploadProgress = formData instanceof FormData
+            && Array.from(formData.entries()).some(([key, value]) => key.startsWith('attachments') && value instanceof File);
+
+        if (hasUploadProgress && typeof helpers.uploadFormData === 'function') {
+            helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', 0);
+
+            return helpers.uploadFormData(url, formData, {
+                csrfToken: csrfToken(),
+                onProgress(percent) {
+                    helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', percent);
+                },
+            });
+        }
+
+        return requestFormData(url, formData);
     }
 
     async function confirmDestructiveAction(options = {}) {
@@ -2757,6 +2794,7 @@
         event.preventDefault();
 
         if (!currentTopic?.id) {
+            notify('error', 'Select a chat before sending a message.');
             return;
         }
 
@@ -2764,10 +2802,13 @@
         const hasFiles = replyAttachmentPool?.files?.length > 0;
 
         if (!body && !hasFiles) {
+            notify('error', 'Please enter a message or attach a file.');
             return;
         }
 
         const submit = els.replyForm.querySelector('[type="submit"]');
+        const progressEl = document.getElementById('discussionWidgetUploadProgress');
+
         if (submit) {
             submit.disabled = true;
         }
@@ -2779,7 +2820,7 @@
             }
             attachmentHelpersRef().appendPoolToFormData?.(formData, replyAttachmentPool);
 
-            const data = await requestFormData(repliesUrl(currentTopic.id), formData);
+            const data = await sendFormDataWithUpload(repliesUrl(currentTopic.id), formData, progressEl);
 
             if (data.reply) {
                 appendReplyMessage(data.reply);
@@ -2799,6 +2840,7 @@
         } catch (error) {
             notify('error', error.message);
         } finally {
+            attachmentHelpersRef().hideUploadProgress?.(progressEl);
             if (submit) {
                 submit.disabled = false;
             }
@@ -2970,6 +3012,9 @@
         imageButton: document.getElementById('discussionWidgetReplyAttachImageBtn'),
         videoButton: document.getElementById('discussionWidgetReplyAttachVideoBtn'),
         documentButton: document.getElementById('discussionWidgetReplyAttachDocumentBtn'),
+        onError(message) {
+            notify('error', message);
+        },
     });
 
     replyEmojiPicker = window.soilnwaterDiscussionEmoji?.initPicker?.({

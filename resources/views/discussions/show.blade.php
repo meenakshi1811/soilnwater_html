@@ -111,6 +111,16 @@
                     <input type="file" id="replyAttachments" name="attachments[]" class="visually-hidden" multiple>
                     <div class="discussion-media-preview" id="replyAttachmentsPreview" hidden></div>
                 </div>
+                <div class="discussion-composer-notice" id="discussionReplyComposerNotice" hidden role="alert"></div>
+                <div class="discussion-upload-progress" id="discussionReplyUploadProgress" hidden aria-live="polite">
+                    <div class="discussion-upload-progress__meta">
+                        <span class="discussion-upload-progress__label">Uploading…</span>
+                        <span class="discussion-upload-progress__percent">0%</span>
+                    </div>
+                    <div class="discussion-upload-progress__track">
+                        <div class="discussion-upload-progress__bar"></div>
+                    </div>
+                </div>
                 <button type="submit" class="discussion-btn mt-3">
                     <i class="fa-solid fa-paper-plane"></i> Send reply
                 </button>

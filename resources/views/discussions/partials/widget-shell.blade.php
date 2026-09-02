@@ -208,6 +208,16 @@
                     </button>
                 </div>
                 <div class="discussion-media-preview" id="discussionWidgetReplyPreview" hidden></div>
+                <div class="discussion-composer-notice" id="discussionWidgetComposerNotice" hidden role="alert"></div>
+                <div class="discussion-upload-progress" id="discussionWidgetUploadProgress" hidden aria-live="polite">
+                    <div class="discussion-upload-progress__meta">
+                        <span class="discussion-upload-progress__label">Uploading…</span>
+                        <span class="discussion-upload-progress__percent">0%</span>
+                    </div>
+                    <div class="discussion-upload-progress__track">
+                        <div class="discussion-upload-progress__bar"></div>
+                    </div>
+                </div>
             </form>
         </section>
 

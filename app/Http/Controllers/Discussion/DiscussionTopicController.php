@@ -195,8 +195,8 @@ class DiscussionTopicController extends Controller
             'phone_numbers' => ['nullable', 'array'],
             'phone_numbers.*' => ['string', 'regex:/^[0-9]{10,15}$/'],
             'group_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
-            'attachments' => ['nullable', 'array', 'max:4'],
-            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
+            'attachments' => ['nullable', 'array', 'max:'.DiscussionAttachments::MAX_ATTACHMENTS],
+            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:'.DiscussionAttachments::MAX_VIDEO_KILOBYTES],
         ]);
 
         $this->foulWordFilter->assertCleanFields([

@@ -37,6 +37,125 @@
         return documentIcon(extension);
     }
 
+    function formatBytes(bytes) {
+        const value = Number(bytes) || 0;
+
+        if (value >= 1024 * 1024 * 1024) {
+            return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+        }
+
+        if (value >= 1024 * 1024) {
+            return `${Math.round(value / (1024 * 1024))} MB`;
+        }
+
+        if (value >= 1024) {
+            return `${Math.round(value / 1024)} KB`;
+        }
+
+        return `${value} B`;
+    }
+
+    function maxBytesForKind(kind) {
+        const limits = config().maxFileBytes || {};
+
+        return limits[kind] || limits.document || (50 * 1024 * 1024);
+    }
+
+    function validateFileSize(file) {
+        const kind = detectFileKind(file);
+        const maxBytes = maxBytesForKind(kind);
+
+        if (file.size <= maxBytes) {
+            return { ok: true };
+        }
+
+        return {
+            ok: false,
+            message: `${file.name} is too large. Maximum size for ${kind} files is ${formatBytes(maxBytes)}.`,
+        };
+    }
+
+    function showUploadProgress(container, label, percent) {
+        if (!container) {
+            return;
+        }
+
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+        const labelEl = container.querySelector('.discussion-upload-progress__label');
+        const percentEl = container.querySelector('.discussion-upload-progress__percent');
+        const barEl = container.querySelector('.discussion-upload-progress__bar');
+
+        container.hidden = false;
+        if (labelEl) {
+            labelEl.textContent = label || 'Uploading…';
+        }
+        if (percentEl) {
+            percentEl.textContent = `${safePercent}%`;
+        }
+        if (barEl) {
+            barEl.style.width = `${safePercent}%`;
+        }
+    }
+
+    function hideUploadProgress(container) {
+        if (!container) {
+            return;
+        }
+
+        container.hidden = true;
+        showUploadProgress(container, 'Uploading…', 0);
+    }
+
+    function uploadFormData(url, formData, options = {}) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(options.method || 'POST', url, true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-CSRF-TOKEN', options.csrfToken || '');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.upload.addEventListener('progress', (event) => {
+                if (!event.lengthComputable || typeof options.onProgress !== 'function') {
+                    return;
+                }
+
+                const percent = Math.round((event.loaded / event.total) * 100);
+                options.onProgress(percent, event.loaded, event.total);
+            });
+
+            xhr.onload = () => {
+                let data = {};
+
+                try {
+                    data = JSON.parse(xhr.responseText || '{}');
+                } catch (error) {
+                    data = {};
+                }
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(data);
+                    return;
+                }
+
+                if (xhr.status === 413 || (xhr.status === 0 && xhr.responseText === '')) {
+                    reject(new Error('The file is too large for the server. Try a smaller video or ask your admin to increase upload limits.'));
+                    return;
+                }
+
+                const message = (data.errors ? Object.values(data.errors).flat().filter(Boolean).join(' ') : '')
+                    || data.message
+                    || (xhr.status >= 500
+                        ? 'The server could not process this upload. Please try again.'
+                        : 'Something went wrong while uploading.');
+                reject(new Error(message));
+            };
+
+            xhr.onerror = () => reject(new Error('Network error while uploading. Please try again.'));
+            xhr.onabort = () => reject(new Error('Upload cancelled.'));
+            xhr.send(formData);
+        });
+    }
+
     function buildAttachmentsHtml(attachments, escapeHtml) {
         if (!attachments?.length) {
             return '';
@@ -153,6 +272,7 @@
             imageButton,
             videoButton,
             documentButton,
+            onError,
         } = options;
 
         if (!input || !previewEl) {
@@ -180,9 +300,30 @@
         });
 
         input.addEventListener('change', () => {
-            Array.from(input.files || []).forEach((file) => pool.items.add(file));
+            const maxAttachments = Number(config().maxAttachments || 4);
+            const errors = [];
+
+            Array.from(input.files || []).forEach((file) => {
+                if (pool.files.length >= maxAttachments) {
+                    errors.push(`You can attach up to ${maxAttachments} files per message.`);
+                    return;
+                }
+
+                const sizeCheck = validateFileSize(file);
+                if (!sizeCheck.ok) {
+                    errors.push(sizeCheck.message);
+                    return;
+                }
+
+                pool.items.add(file);
+            });
+
             input.value = '';
             renderAttachmentPreview(pool, previewEl);
+
+            if (errors.length && typeof onError === 'function') {
+                onError(errors[0]);
+            }
         });
 
         return pool;
@@ -216,5 +357,10 @@
         detectFileKind,
         documentIcon,
         kindIcon,
+        validateFileSize,
+        formatBytes,
+        showUploadProgress,
+        hideUploadProgress,
+        uploadFormData,
     };
 })();

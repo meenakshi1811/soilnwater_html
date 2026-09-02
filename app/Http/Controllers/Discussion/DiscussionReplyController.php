@@ -30,8 +30,8 @@ class DiscussionReplyController extends Controller
         $data = $request->validate([
             'body' => ['nullable', 'string', 'max:5000'],
             'parent_id' => ['nullable', 'integer', 'exists:discussion_replies,id'],
-            'attachments' => ['nullable', 'array', 'max:4'],
-            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
+            'attachments' => ['nullable', 'array', 'max:'.DiscussionAttachments::MAX_ATTACHMENTS],
+            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:'.DiscussionAttachments::MAX_VIDEO_KILOBYTES],
         ]);
 
         $body = trim((string) ($data['body'] ?? ''));

@@ -76,6 +76,8 @@
             acceptVideos: @json(DiscussionAttachments::acceptVideos()),
             acceptDocuments: @json(DiscussionAttachments::acceptDocuments()),
             documentIcons: @json(DiscussionAttachments::documentIconMap()),
+            maxFileBytes: @json(DiscussionAttachments::clientMaxFileBytes()),
+            maxAttachments: @json(DiscussionAttachments::MAX_ATTACHMENTS),
         },
     };
 </script>
