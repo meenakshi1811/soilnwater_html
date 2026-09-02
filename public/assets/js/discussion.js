@@ -66,8 +66,11 @@
             try {
                 return await helpers.uploadFormData(url, formData, {
                     csrfToken: csrfToken(),
-                    onProgress(percent) {
-                        helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', percent);
+                    onProgress(percent, loaded, total, phase) {
+                        const label = phase === 'processing' || percent >= 100
+                            ? 'Sending message…'
+                            : 'Uploading attachments…';
+                        helpers.showUploadProgress?.(progressEl, label, Math.min(percent, 100));
                     },
                 });
             } finally {
@@ -731,11 +734,20 @@
             },
         });
 
+        let replySubmitting = false;
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            if (replySubmitting) {
+                notify('error', 'Please wait for the current message to finish sending.');
+                return;
+            }
+
             const submit = form.querySelector('[type="submit"]');
             const textarea = form.querySelector('[name="body"]');
+            const progressEl = document.getElementById('discussionReplyUploadProgress');
+            const noticeEl = document.getElementById('discussionReplyComposerNotice');
             const body = textarea?.value?.trim() || '';
             const hasFiles = replyAttachmentPool?.files?.length > 0;
 
@@ -744,25 +756,34 @@
                 return;
             }
 
+            replySubmitting = true;
+
+            if (noticeEl) {
+                noticeEl.hidden = true;
+                noticeEl.textContent = '';
+            }
+
             if (submit) {
                 submit.disabled = true;
             }
 
             try {
                 const formData = new FormData();
+                const token = csrfToken();
+                if (token) {
+                    formData.append('_token', token);
+                }
                 if (body) {
                     formData.append('body', body);
                 }
                 helpers.appendPoolToFormData?.(formData, replyAttachmentPool);
 
-                const data = await postFormData(
-                    form.dataset.url,
-                    formData,
-                    document.getElementById('discussionReplyUploadProgress')
-                );
+                const data = await postFormData(form.dataset.url, formData, progressEl);
 
                 if (data.reply) {
                     appendReply(data.reply);
+                } else {
+                    throw new Error('Message sent, but the server returned an unexpected response. Please refresh and try again.');
                 }
 
                 if (textarea) {
@@ -777,6 +798,8 @@
             } catch (error) {
                 notify('error', error.message);
             } finally {
+                helpers.hideUploadProgress?.(progressEl);
+                replySubmitting = false;
                 if (submit) {
                     submit.disabled = false;
                 }

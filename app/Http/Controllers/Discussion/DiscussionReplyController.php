@@ -64,12 +64,16 @@ class DiscussionReplyController extends Controller
         $reply->load('user');
         $this->readService->markAsRead($request->user(), $topic);
 
-        ReplyCreated::dispatch($reply);
+        $replyPayload = $reply->toBroadcastArray();
+
+        dispatch(static function () use ($reply): void {
+            ReplyCreated::dispatch($reply);
+        })->afterResponse();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Reply posted.',
-                'reply' => $reply->toBroadcastArray(),
+                'reply' => $replyPayload,
             ]);
         }
 

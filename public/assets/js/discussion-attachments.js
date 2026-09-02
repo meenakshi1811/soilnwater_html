@@ -86,6 +86,7 @@
         const barEl = container.querySelector('.discussion-upload-progress__bar');
 
         container.hidden = false;
+        container.classList.toggle('is-processing', safePercent >= 100 && /send|process|finish/i.test(String(label || '')));
         if (labelEl) {
             labelEl.textContent = label || 'Uploading…';
         }
@@ -97,22 +98,55 @@
         }
     }
 
+    function resetUploadProgress(container) {
+        if (!container) {
+            return;
+        }
+
+        const labelEl = container.querySelector('.discussion-upload-progress__label');
+        const percentEl = container.querySelector('.discussion-upload-progress__percent');
+        const barEl = container.querySelector('.discussion-upload-progress__bar');
+
+        container.classList.remove('is-processing');
+        if (labelEl) {
+            labelEl.textContent = 'Uploading…';
+        }
+        if (percentEl) {
+            percentEl.textContent = '0%';
+        }
+        if (barEl) {
+            barEl.style.width = '0%';
+        }
+    }
+
     function hideUploadProgress(container) {
         if (!container) {
             return;
         }
 
+        resetUploadProgress(container);
         container.hidden = true;
-        showUploadProgress(container, 'Uploading…', 0);
     }
 
     function uploadFormData(url, formData, options = {}) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+            let settled = false;
+
+            const finish = (callback, value) => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                callback(value);
+            };
+
             xhr.open(options.method || 'POST', url, true);
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.setRequestHeader('X-CSRF-TOKEN', options.csrfToken || '');
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.timeout = Number(options.timeout) > 0 ? Number(options.timeout) : 180000;
 
             xhr.upload.addEventListener('progress', (event) => {
                 if (!event.lengthComputable || typeof options.onProgress !== 'function') {
@@ -121,6 +155,12 @@
 
                 const percent = Math.round((event.loaded / event.total) * 100);
                 options.onProgress(percent, event.loaded, event.total);
+            });
+
+            xhr.upload.addEventListener('load', () => {
+                if (typeof options.onProgress === 'function') {
+                    options.onProgress(100, 0, 0, 'processing');
+                }
             });
 
             xhr.onload = () => {
@@ -133,12 +173,17 @@
                 }
 
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(data);
+                    if (!data || typeof data !== 'object') {
+                        finish(reject, new Error('Unexpected server response while sending your message.'));
+                        return;
+                    }
+
+                    finish(resolve, data);
                     return;
                 }
 
                 if (xhr.status === 413 || (xhr.status === 0 && xhr.responseText === '')) {
-                    reject(new Error('The file is too large for the server. Try a smaller video or ask your admin to increase upload limits.'));
+                    finish(reject, new Error('The file is too large for the server. Try a smaller video or ask your admin to increase upload limits.'));
                     return;
                 }
 
@@ -147,11 +192,12 @@
                     || (xhr.status >= 500
                         ? 'The server could not process this upload. Please try again.'
                         : 'Something went wrong while uploading.');
-                reject(new Error(message));
+                finish(reject, new Error(message));
             };
 
-            xhr.onerror = () => reject(new Error('Network error while uploading. Please try again.'));
-            xhr.onabort = () => reject(new Error('Upload cancelled.'));
+            xhr.onerror = () => finish(reject, new Error('Network error while uploading. Please try again.'));
+            xhr.onabort = () => finish(reject, new Error('Upload cancelled.'));
+            xhr.ontimeout = () => finish(reject, new Error('Upload timed out. Check your connection and try again.'));
             xhr.send(formData);
         });
     }

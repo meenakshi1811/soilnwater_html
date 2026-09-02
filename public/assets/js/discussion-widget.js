@@ -353,8 +353,11 @@
 
             return helpers.uploadFormData(url, formData, {
                 csrfToken: csrfToken(),
-                onProgress(percent) {
-                    helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', percent);
+                onProgress(percent, loaded, total, phase) {
+                    const label = phase === 'processing' || percent >= 100
+                        ? 'Sending message…'
+                        : 'Uploading attachments…';
+                    helpers.showUploadProgress?.(progressEl, label, Math.min(percent, 100));
                 },
             });
         }
@@ -2790,8 +2793,15 @@
 
     els.replyBody?.addEventListener('input', () => autoResizeTextarea(els.replyBody));
 
+    let replySubmitting = false;
+
     els.replyForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        if (replySubmitting) {
+            notify('error', 'Please wait for the current message to finish sending.');
+            return;
+        }
 
         if (!currentTopic?.id) {
             notify('error', 'Select a chat before sending a message.');
@@ -2808,6 +2818,14 @@
 
         const submit = els.replyForm.querySelector('[type="submit"]');
         const progressEl = document.getElementById('discussionWidgetUploadProgress');
+        const noticeEl = document.getElementById('discussionWidgetComposerNotice');
+
+        replySubmitting = true;
+
+        if (noticeEl) {
+            noticeEl.hidden = true;
+            noticeEl.textContent = '';
+        }
 
         if (submit) {
             submit.disabled = true;
@@ -2815,6 +2833,10 @@
 
         try {
             const formData = new FormData();
+            const token = csrfToken();
+            if (token) {
+                formData.append('_token', token);
+            }
             if (body) {
                 formData.append('body', body);
             }
@@ -2824,6 +2846,8 @@
 
             if (data.reply) {
                 appendReplyMessage(data.reply);
+            } else {
+                throw new Error('Message sent, but the server returned an unexpected response. Please refresh and try again.');
             }
 
             if (els.replyBody) {
@@ -2841,6 +2865,7 @@
             notify('error', error.message);
         } finally {
             attachmentHelpersRef().hideUploadProgress?.(progressEl);
+            replySubmitting = false;
             if (submit) {
                 submit.disabled = false;
             }

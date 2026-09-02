@@ -15,8 +15,6 @@
   $activeTab = request('tab', 'all');
   $activeView = $cardView ?? (request('view') === 'list' ? 'list' : 'grid');
   $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
-  $marketBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image')
-    ?: data_get($homepageSetting ?? null, 'offers_market_banner_image');
 @endphp
 
 @push('styles')
@@ -25,14 +23,6 @@
 @endpush
 
 @section('content')
-<section class="vendors-market-banner">
-  <img
-    src="{{ $marketBannerImage ? asset($marketBannerImage) : 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80' }}"
-    alt="Vendors marketplace banner"
-    class="vendors-market-banner__image"
-  >
-</section>
-
 <div
   class="vendors-page"
   id="vendorsPageRoot"
@@ -44,7 +34,10 @@
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">
-        <h2>Find the Right Vendor</h2>
+        <div>
+          <h2>Find the Right Vendor</h2>
+          <p class="vendors-sidebar__lead">Filter by category, location, and ratings.</p>
+        </div>
         <button type="button" class="vendors-sidebar__reset" id="vendorsMarketResetFilters">Reset All</button>
       </div>
 
@@ -162,10 +155,12 @@
     </aside>
 
     <main class="vendors-main">
-      @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
-
       <section class="vendors-hero">
         <div class="vendors-hero__copy">
+          <span class="vendors-hero__eyebrow">
+            <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
+            Vendor Marketplace
+          </span>
           <h1>Discover Trusted Vendors Near You</h1>
           <p>Find the best products and services from verified local businesses.</p>
           <div class="vendors-hero__stats">
@@ -211,6 +206,8 @@
           <img src="{{ asset('assets/images/vendors-hero-store.svg') }}" alt="" class="vendors-hero__illustration">
         </div>
       </section>
+
+      @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
 
       @if ($topCategories->isNotEmpty())
         <section class="vendors-section">

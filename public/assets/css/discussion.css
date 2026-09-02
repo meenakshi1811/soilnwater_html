@@ -1896,11 +1896,20 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 }
 
 .discussion-upload-progress__bar {
-    width: 0;
     height: 100%;
+    width: 0;
     border-radius: inherit;
-    background: linear-gradient(90deg, #128c7e, #25d366);
-    transition: width 0.15s ease;
+    background: linear-gradient(90deg, #2e7d32, #43a047);
+    transition: width .2s ease;
+}
+
+.discussion-upload-progress.is-processing .discussion-upload-progress__bar {
+    animation: discussion-upload-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes discussion-upload-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .65; }
 }
 
 .discussion-media-preview__item {
