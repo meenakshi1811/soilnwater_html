@@ -62,11 +62,20 @@ class DiscussionReplyController extends Controller
         $topic->increment('replies_count');
 
         $reply->load('user');
-        $this->readService->markAsRead($request->user(), $topic);
 
         $replyPayload = $reply->toBroadcastArray();
 
-        dispatch(static function () use ($reply): void {
+        $userId = $request->user()->id;
+        $topicId = $topic->id;
+
+        dispatch(static function () use ($userId, $topicId, $reply): void {
+            $topic = DiscussionTopic::query()->find($topicId);
+            $user = \App\Models\User::query()->find($userId);
+
+            if ($topic && $user) {
+                app(DiscussionReadService::class)->markAsRead($user, $topic);
+            }
+
             ReplyCreated::dispatch($reply);
         })->afterResponse();
 

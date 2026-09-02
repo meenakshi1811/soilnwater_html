@@ -343,20 +343,30 @@
         }, type === 'error' ? 8000 : 4000);
     }
 
-    async function sendFormDataWithUpload(url, formData, progressEl) {
+    async function sendFormDataWithUpload(url, formData, progressEl, callbacks = {}) {
         const helpers = attachmentHelpersRef();
         const hasUploadProgress = formData instanceof FormData
             && Array.from(formData.entries()).some(([key, value]) => key.startsWith('attachments') && value instanceof File);
+        const onProgress = callbacks.onProgress;
 
         if (hasUploadProgress && typeof helpers.uploadFormData === 'function') {
-            helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', 0);
+            if (progressEl) {
+                helpers.showUploadProgress?.(progressEl, 'Uploading attachments…', 0);
+            }
 
             return helpers.uploadFormData(url, formData, {
                 csrfToken: csrfToken(),
                 onProgress(percent, loaded, total, phase) {
-                    const label = phase === 'processing' || percent >= 100
+                    if (typeof onProgress === 'function') {
+                        onProgress(percent, loaded, total, phase);
+                        return;
+                    }
+
+                    const label = phase === 'processing'
                         ? 'Sending message…'
-                        : 'Uploading attachments…';
+                        : phase === 'done'
+                            ? 'Sent'
+                            : 'Uploading attachments…';
                     helpers.showUploadProgress?.(progressEl, label, Math.min(percent, 100));
                 },
             });
@@ -2075,6 +2085,105 @@
         }
     }
 
+    function createPendingReplyId() {
+        return `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function appendPendingReplyMessage({ pendingId, body, files }) {
+        if (!els.messages || !pendingId) {
+            return null;
+        }
+
+        const helpers = attachmentHelpersRef();
+        const attachmentsHtml = typeof helpers.buildPendingAttachmentsHtml === 'function'
+            ? helpers.buildPendingAttachmentsHtml(files, { escapeHtml, progress: 0, phase: 'upload' })
+            : '';
+        const bodyBlock = body
+            ? `<p class="discussion-msg__body">${escapeHtml(body)}</p>`
+            : '';
+
+        const empty = document.getElementById('discussionWidgetEmptyReplies');
+        if (empty) {
+            empty.remove();
+        }
+
+        els.messages.insertAdjacentHTML('beforeend', `<article class="discussion-msg discussion-msg--mine discussion-msg--pending discussion-widget-msg discussion-widget-msg--mine"
+                         id="discussion-widget-reply-${pendingId}"
+                         data-pending-reply="1">
+            <div class="discussion-msg__bubble-wrap">
+                <div class="discussion-msg__bubble">
+                    ${bodyBlock}
+                    ${attachmentsHtml}
+                    <span class="discussion-msg__time"><i class="fa-regular fa-clock" aria-hidden="true"></i> Sending…</span>
+                </div>
+            </div>
+        </article>`);
+        els.messages.scrollTop = els.messages.scrollHeight;
+
+        return document.getElementById(`discussion-widget-reply-${pendingId}`);
+    }
+
+    function updatePendingReplyProgress(pendingId, progress, phase) {
+        const pendingEl = document.getElementById(`discussion-widget-reply-${pendingId}`);
+        if (!pendingEl) {
+            return;
+        }
+
+        attachmentHelpersRef().updatePendingAttachmentProgress?.(pendingEl, progress, phase);
+
+        const timeEl = pendingEl.querySelector('.discussion-msg__time');
+        if (timeEl) {
+            if (phase === 'processing') {
+                timeEl.innerHTML = '<i class="fa-regular fa-clock" aria-hidden="true"></i> Sending…';
+            } else if (phase === 'done') {
+                timeEl.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Sent';
+            } else {
+                timeEl.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> Uploading · ${Math.round(progress)}%`;
+            }
+        }
+    }
+
+    function removePendingReplyMessage(pendingId) {
+        const pendingEl = document.getElementById(`discussion-widget-reply-${pendingId}`);
+        if (!pendingEl) {
+            return;
+        }
+
+        attachmentHelpersRef().revokePendingAttachmentUrls?.(pendingEl);
+        pendingEl.remove();
+    }
+
+    function failPendingReplyMessage(pendingId, message) {
+        const pendingEl = document.getElementById(`discussion-widget-reply-${pendingId}`);
+        if (!pendingEl) {
+            return;
+        }
+
+        pendingEl.classList.add('discussion-msg--failed');
+        pendingEl.classList.remove('discussion-msg--pending');
+
+        const overlay = pendingEl.querySelector('.discussion-msg__upload-overlay');
+        if (overlay) {
+            overlay.innerHTML = `<span class="discussion-msg__upload-failed"><i class="fa-solid fa-circle-exclamation"></i> Failed</span>`;
+            overlay.hidden = false;
+        }
+
+        const timeEl = pendingEl.querySelector('.discussion-msg__time');
+        if (timeEl) {
+            timeEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Not sent';
+        }
+
+        pendingEl.setAttribute('title', message || 'Could not send message');
+    }
+
+    function finalizePendingReplyMessage(pendingId, reply) {
+        removePendingReplyMessage(pendingId);
+
+        if (reply) {
+            appendReplyMessage(reply);
+        }
+    }
+
     async function loadTopics(force = false) {
         if (topicsLoaded && !force) {
             return;
@@ -2819,6 +2928,9 @@
         const submit = els.replyForm.querySelector('[type="submit"]');
         const progressEl = document.getElementById('discussionWidgetUploadProgress');
         const noticeEl = document.getElementById('discussionWidgetComposerNotice');
+        const filesSnapshot = Array.from(replyAttachmentPool?.files || []);
+        const hasUpload = filesSnapshot.length > 0;
+        const pendingId = hasUpload ? createPendingReplyId() : null;
 
         replySubmitting = true;
 
@@ -2831,24 +2943,8 @@
             submit.disabled = true;
         }
 
-        try {
-            const formData = new FormData();
-            const token = csrfToken();
-            if (token) {
-                formData.append('_token', token);
-            }
-            if (body) {
-                formData.append('body', body);
-            }
-            attachmentHelpersRef().appendPoolToFormData?.(formData, replyAttachmentPool);
-
-            const data = await sendFormDataWithUpload(repliesUrl(currentTopic.id), formData, progressEl);
-
-            if (data.reply) {
-                appendReplyMessage(data.reply);
-            } else {
-                throw new Error('Message sent, but the server returned an unexpected response. Please refresh and try again.');
-            }
+        if (hasUpload && pendingId) {
+            appendPendingReplyMessage({ pendingId, body, files: filesSnapshot });
 
             if (els.replyBody) {
                 els.replyBody.value = '';
@@ -2859,9 +2955,63 @@
                 replyAttachmentPool,
                 document.getElementById('discussionWidgetReplyPreview')
             );
+            attachmentHelpersRef().hideUploadProgress?.(progressEl);
+        }
 
-            notify('success', data.message || 'Reply posted.');
+        try {
+            const formData = new FormData();
+            const token = csrfToken();
+            if (token) {
+                formData.append('_token', token);
+            }
+            if (body) {
+                formData.append('body', body);
+            }
+
+            if (hasUpload) {
+                filesSnapshot.forEach((file) => {
+                    formData.append('attachments[]', file);
+                });
+            } else {
+                attachmentHelpersRef().appendPoolToFormData?.(formData, replyAttachmentPool);
+            }
+
+            const data = await sendFormDataWithUpload(
+                repliesUrl(currentTopic.id),
+                formData,
+                hasUpload ? null : progressEl,
+                {
+                    onProgress(percent, loaded, total, phase) {
+                        if (pendingId) {
+                            updatePendingReplyProgress(pendingId, percent, phase);
+                        }
+                    },
+                }
+            );
+
+            if (!data.reply) {
+                throw new Error('Message could not be sent. Please try again.');
+            }
+
+            if (pendingId) {
+                finalizePendingReplyMessage(pendingId, data.reply);
+            } else {
+                appendReplyMessage(data.reply);
+
+                if (els.replyBody) {
+                    els.replyBody.value = '';
+                    autoResizeTextarea(els.replyBody);
+                }
+                replyEmojiPicker?.close?.();
+                attachmentHelpersRef().clearAttachmentPool?.(
+                    replyAttachmentPool,
+                    document.getElementById('discussionWidgetReplyPreview')
+                );
+            }
         } catch (error) {
+            if (pendingId) {
+                failPendingReplyMessage(pendingId, error.message);
+            }
             notify('error', error.message);
         } finally {
             attachmentHelpersRef().hideUploadProgress?.(progressEl);

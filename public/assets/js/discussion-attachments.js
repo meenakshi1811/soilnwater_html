@@ -153,13 +153,13 @@
                     return;
                 }
 
-                const percent = Math.round((event.loaded / event.total) * 100);
-                options.onProgress(percent, event.loaded, event.total);
+                const percent = Math.min(95, Math.round((event.loaded / event.total) * 95));
+                options.onProgress(percent, event.loaded, event.total, 'upload');
             });
 
             xhr.upload.addEventListener('load', () => {
                 if (typeof options.onProgress === 'function') {
-                    options.onProgress(100, 0, 0, 'processing');
+                    options.onProgress(96, 0, 0, 'processing');
                 }
             });
 
@@ -172,10 +172,25 @@
                     data = {};
                 }
 
+                const contentType = String(xhr.getResponseHeader('Content-Type') || '').toLowerCase();
+                const looksLikeHtml = String(xhr.responseText || '').trim().startsWith('<');
+
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    if (!data || typeof data !== 'object') {
-                        finish(reject, new Error('Unexpected server response while sending your message.'));
+                    if (looksLikeHtml && !contentType.includes('json')) {
+                        finish(reject, new Error('Server returned an invalid response while sending your message. Please refresh and try again.'));
                         return;
+                    }
+
+                    if (!data || typeof data !== 'object' || !data.reply) {
+                        const fallbackMessage = (data.errors ? Object.values(data.errors).flat().filter(Boolean).join(' ') : '')
+                            || data.message
+                            || 'Message could not be sent. Please try again.';
+                        finish(reject, new Error(fallbackMessage));
+                        return;
+                    }
+
+                    if (typeof options.onProgress === 'function') {
+                        options.onProgress(100, 0, 0, 'done');
                     }
 
                     finish(resolve, data);
@@ -198,8 +213,97 @@
             xhr.onerror = () => finish(reject, new Error('Network error while uploading. Please try again.'));
             xhr.onabort = () => finish(reject, new Error('Upload cancelled.'));
             xhr.ontimeout = () => finish(reject, new Error('Upload timed out. Check your connection and try again.'));
+            xhr.addEventListener('loadend', () => {
+                if (settled || xhr.status !== 0) {
+                    return;
+                }
+
+                finish(reject, new Error('Connection lost while sending your message. Please try again.'));
+            });
             xhr.send(formData);
         });
+    }
+
+    function buildPendingAttachmentsHtml(files, options = {}) {
+        const escape = typeof options.escapeHtml === 'function'
+            ? options.escapeHtml
+            : (value) => String(value ?? '');
+        const progress = Math.max(0, Math.min(100, Number(options.progress) || 0));
+        const phase = options.phase || 'upload';
+        const statusLabel = phase === 'processing'
+            ? 'Sending'
+            : phase === 'done'
+                ? 'Sent'
+                : 'Uploading';
+
+        return `<div class="discussion-attachments">${Array.from(files || []).map((file) => {
+            const kind = detectFileKind(file);
+            const blobUrl = URL.createObjectURL(file);
+            const name = escape(file.name || 'Attachment');
+
+            if (kind === 'video') {
+                return `<div class="discussion-attachments__video-wrap discussion-attachments__media-pending" data-blob-url="${blobUrl}">
+                    <video class="discussion-attachments__video" src="${blobUrl}" muted playsinline preload="metadata"></video>
+                    <div class="discussion-msg__upload-overlay" aria-hidden="true">
+                        <div class="discussion-msg__upload-spinner"></div>
+                        <span class="discussion-msg__upload-label">${statusLabel} · ${progress}%</span>
+                        <div class="discussion-msg__upload-track"><div class="discussion-msg__upload-bar" style="width:${progress}%"></div></div>
+                    </div>
+                </div>`;
+            }
+
+            if (kind === 'image') {
+                return `<div class="discussion-attachments__image-wrap discussion-attachments__media-pending" data-blob-url="${blobUrl}">
+                    <img class="discussion-attachments__image" src="${blobUrl}" alt="${name}">
+                    <div class="discussion-msg__upload-overlay" aria-hidden="true">
+                        <div class="discussion-msg__upload-spinner"></div>
+                        <span class="discussion-msg__upload-label">${statusLabel} · ${progress}%</span>
+                        <div class="discussion-msg__upload-track"><div class="discussion-msg__upload-bar" style="width:${progress}%"></div></div>
+                    </div>
+                </div>`;
+            }
+
+            const ext = String(file.name || '').split('.').pop()?.toLowerCase() || '';
+            return `<div class="discussion-attachments__document discussion-attachments__media-pending" data-blob-url="${blobUrl}">
+                <span class="discussion-attachments__document-icon"><i class="fa-solid ${documentIcon(ext)}"></i></span>
+                <span class="discussion-attachments__document-meta">
+                    <strong>${name}</strong>
+                    <span>${statusLabel} · ${progress}%</span>
+                </span>
+                <div class="discussion-msg__upload-track discussion-msg__upload-track--inline"><div class="discussion-msg__upload-bar" style="width:${progress}%"></div></div>
+            </div>`;
+        }).join('')}</div>`;
+    }
+
+    function revokePendingAttachmentUrls(container) {
+        container?.querySelectorAll('[data-blob-url]').forEach((node) => {
+            const url = node.getAttribute('data-blob-url');
+            if (url) {
+                URL.revokeObjectURL(url);
+            }
+        });
+    }
+
+    function updatePendingAttachmentProgress(container, progress, phase) {
+        if (!container) {
+            return;
+        }
+
+        const safeProgress = Math.max(0, Math.min(100, Number(progress) || 0));
+        const statusLabel = phase === 'processing'
+            ? 'Sending'
+            : phase === 'done'
+                ? 'Sent'
+                : 'Uploading';
+
+        container.querySelectorAll('.discussion-msg__upload-label').forEach((labelEl) => {
+            labelEl.textContent = `${statusLabel} · ${safeProgress}%`;
+        });
+        container.querySelectorAll('.discussion-msg__upload-bar').forEach((barEl) => {
+            barEl.style.width = `${safeProgress}%`;
+        });
+        container.classList.toggle('discussion-msg--upload-processing', phase === 'processing');
+        container.classList.toggle('discussion-msg--upload-done', phase === 'done');
     }
 
     function buildAttachmentsHtml(attachments, escapeHtml) {
@@ -408,5 +512,8 @@
         showUploadProgress,
         hideUploadProgress,
         uploadFormData,
+        buildPendingAttachmentsHtml,
+        updatePendingAttachmentProgress,
+        revokePendingAttachmentUrls,
     };
 })();
