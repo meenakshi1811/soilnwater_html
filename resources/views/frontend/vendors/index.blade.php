@@ -15,6 +15,8 @@
   $activeTab = request('tab', 'all');
   $activeView = $cardView ?? (request('view') === 'list' ? 'list' : 'grid');
   $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
+  $marketBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image')
+    ?: data_get($homepageSetting ?? null, 'offers_market_banner_image');
 @endphp
 
 @push('styles')
@@ -23,6 +25,14 @@
 @endpush
 
 @section('content')
+<section class="vendors-market-banner">
+  <img
+    src="{{ $marketBannerImage ? asset($marketBannerImage) : 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80' }}"
+    alt="Vendors marketplace banner"
+    class="vendors-market-banner__image"
+  >
+</section>
+
 <div
   class="vendors-page"
   id="vendorsPageRoot"
@@ -91,7 +101,7 @@
           <select id="vendorsMarketFilterRadius" class="form-select" @disabled(! $hasLocation)>
             <option value="">Any distance</option>
             <option value="5" @selected(request('radius') == '5')>5 km</option>
-            <option value="10" @selected(request('radius', '10') == '10')>10 km</option>
+            <option value="10" @selected(request('radius') == '10')>10 km</option>
             <option value="25" @selected(request('radius') == '25')>25 km</option>
             <option value="50" @selected(request('radius') == '50')>50 km</option>
             <option value="100" @selected(request('radius') == '100')>100 km</option>
@@ -160,29 +170,37 @@
           <p>Find the best products and services from verified local businesses.</p>
           <div class="vendors-hero__stats">
             <div class="vendors-stat">
-              <span class="vendors-stat__icon vendors-stat__icon--premium"><i class="fa-solid fa-gem" aria-hidden="true"></i></span>
-              <div>
+              <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true">
+                <i class="fa-solid fa-gem"></i>
+              </span>
+              <div class="vendors-stat__text">
                 <strong>{{ $formatStat($vendorStats['premium']) }}</strong>
                 <span>Premium Vendors</span>
               </div>
             </div>
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-store" aria-hidden="true"></i></span>
-              <div>
+              <span class="vendors-stat__icon" aria-hidden="true">
+                <i class="fa-solid fa-store"></i>
+              </span>
+              <div class="vendors-stat__text">
                 <strong>{{ $formatStat($vendorStats['trusted']) }}</strong>
                 <span>Trusted Businesses</span>
               </div>
             </div>
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i></span>
-              <div>
+              <span class="vendors-stat__icon" aria-hidden="true">
+                <i class="fa-solid fa-chart-simple"></i>
+              </span>
+              <div class="vendors-stat__text">
                 <strong>{{ $formatStat($vendorStats['categories']) }}</strong>
                 <span>Categories</span>
               </div>
             </div>
             <div class="vendors-stat">
-              <span class="vendors-stat__icon"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
-              <div>
+              <span class="vendors-stat__icon" aria-hidden="true">
+                <i class="fa-solid fa-star"></i>
+              </span>
+              <div class="vendors-stat__text">
                 <strong>{{ $formatStat($vendorStats['happy_customers']) }}</strong>
                 <span>Happy Customers</span>
               </div>
@@ -219,14 +237,22 @@
       @endif
 
       @if ($premiumVendors->isNotEmpty())
-        <section class="vendors-section">
+        <section class="vendors-section" id="vendorsPremiumSection">
           <div class="vendors-section__head">
             <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
             <a href="#" class="vendors-section__link" id="vendorsViewPremiumLink">View All Premium Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
           </div>
-          <div class="vendors-premium-track">
+          <div class="vendors-premium-track" id="vendorsPremiumTrack">
             @include('frontend.vendors.partials.premium-cards', ['premiumVendors' => $premiumVendors, 'hasLocation' => $hasLocation])
           </div>
+        </section>
+      @else
+        <section class="vendors-section d-none" id="vendorsPremiumSection">
+          <div class="vendors-section__head">
+            <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
+            <a href="#" class="vendors-section__link" id="vendorsViewPremiumLink">View All Premium Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
+          </div>
+          <div class="vendors-premium-track" id="vendorsPremiumTrack"></div>
         </section>
       @endif
 

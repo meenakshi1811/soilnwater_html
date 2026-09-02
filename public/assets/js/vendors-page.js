@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const filterBar = document.getElementById('vendorsFilterBar');
   const vendorsGrid = document.getElementById('vendorsGrid');
+  const premiumSection = document.getElementById('vendorsPremiumSection');
+  const premiumTrack = document.getElementById('vendorsPremiumTrack');
   const searchFilter = document.getElementById('vendorsMarketFilterSearch');
   const categoryFilter = document.getElementById('vendorsMarketFilterCategory');
   const subcategoryFilter = document.getElementById('vendorsMarketFilterSubcategory');
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!selectedCategory || !selectedCategory.children || !selectedCategory.children.length) {
       subcategoryFilter.disabled = true;
+      subcategoryFilter.value = '';
       return;
     }
 
@@ -56,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const option = document.createElement('option');
       option.value = child.id;
       option.textContent = child.name;
-      if (String(new URLSearchParams(window.location.search).get('subcategory_id') || '') === String(child.id)) {
+      if (String(subcategoryFilter.dataset.selected || '') === String(child.id)) {
         option.selected = true;
       }
       subcategoryFilter.appendChild(option);
@@ -104,6 +107,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function syncBrowserUrl() {
+    const nextUrl = buildVendorsUrl(indexUrl);
+    window.history.replaceState({}, '', nextUrl);
+  }
+
   function updateSummary(payload) {
     if (!summaryText) return;
 
@@ -116,7 +124,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  async function reloadVendorsFromStart() {
+  function updatePremiumSection(payload) {
+    if (!premiumTrack || !premiumSection) return;
+
+    if (typeof payload.premium_html === 'string') {
+      premiumTrack.innerHTML = payload.premium_html;
+    }
+
+    const hasPremium = Number(payload.premium_total || 0) > 0;
+    premiumSection.classList.toggle('d-none', !hasPremium);
+  }
+
+  async function reloadVendorsFromStart(options) {
+    const settings = options || {};
+
     if (!vendorsGrid || isLoading) return;
 
     isLoading = true;
@@ -131,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to search vendors');
+        throw new Error('Failed to load vendors');
       }
 
       const payload = await response.json();
@@ -140,6 +161,11 @@ document.addEventListener('DOMContentLoaded', function () {
       vendorsGrid.dataset.nextPageUrl = nextPageUrl;
       syncViewClasses();
       updateSummary(payload);
+      updatePremiumSection(payload);
+
+      if (settings.syncUrl !== false) {
+        syncBrowserUrl();
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -188,12 +214,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function scheduleReload(delay) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      reloadVendorsFromStart();
+    }, delay || 0);
+  }
+
   function resetFilters() {
     if (searchFilter) searchFilter.value = '';
     if (categoryFilter) categoryFilter.value = '';
     if (subcategoryFilter) {
       subcategoryFilter.innerHTML = '<option value="">All subcategories</option>';
       subcategoryFilter.disabled = true;
+      subcategoryFilter.dataset.selected = '';
     }
     if (radiusFilter) radiusFilter.value = '';
     if (premiumFilter) premiumFilter.checked = false;
@@ -204,6 +238,10 @@ document.addEventListener('DOMContentLoaded', function () {
     activeTab = 'all';
     syncTabClasses();
     reloadVendorsFromStart();
+  }
+
+  if (subcategoryFilter) {
+    subcategoryFilter.dataset.selected = new URLSearchParams(window.location.search).get('subcategory_id') || '';
   }
 
   populateSubcategories();
@@ -217,21 +255,59 @@ document.addEventListener('DOMContentLoaded', function () {
 
   ratingFilters.forEach(function (input) {
     input.addEventListener('change', function () {
-      if (!input.checked) return;
-      ratingFilters.forEach(function (other) {
-        if (other !== input) other.checked = false;
-      });
+      if (input.checked) {
+        ratingFilters.forEach(function (other) {
+          if (other !== input) other.checked = false;
+        });
+      }
+      scheduleReload(0);
     });
   });
 
   if (categoryFilter) {
     categoryFilter.addEventListener('change', function () {
+      if (subcategoryFilter) {
+        subcategoryFilter.dataset.selected = '';
+      }
       populateSubcategories();
+      scheduleReload(0);
+    });
+  }
+
+  if (subcategoryFilter) {
+    subcategoryFilter.addEventListener('change', function () {
+      scheduleReload(0);
+    });
+  }
+
+  if (premiumFilter) {
+    premiumFilter.addEventListener('change', function () {
+      scheduleReload(0);
+    });
+  }
+
+  if (verifiedFilter) {
+    verifiedFilter.addEventListener('change', function () {
+      scheduleReload(0);
+    });
+  }
+
+  if (paymentFilter) {
+    paymentFilter.addEventListener('change', function () {
+      scheduleReload(0);
+    });
+  }
+
+  if (radiusFilter) {
+    radiusFilter.addEventListener('change', function () {
+      scheduleReload(0);
     });
   }
 
   if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener('click', reloadVendorsFromStart);
+    applyFiltersBtn.addEventListener('click', function () {
+      reloadVendorsFromStart();
+    });
   }
 
   if (resetFiltersBtn) {
@@ -240,20 +316,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (searchFilter) {
     searchFilter.addEventListener('input', function () {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(reloadVendorsFromStart, 350);
+      scheduleReload(350);
     });
   }
 
   if (sortFilter) {
-    sortFilter.addEventListener('change', reloadVendorsFromStart);
+    sortFilter.addEventListener('change', function () {
+      scheduleReload(0);
+    });
   }
 
   tabButtons.forEach(function (button) {
     button.addEventListener('click', function () {
       activeTab = button.dataset.vendorsTab || 'all';
       syncTabClasses();
-      reloadVendorsFromStart();
+      scheduleReload(0);
     });
   });
 
@@ -261,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
     button.addEventListener('click', function () {
       activeView = button.dataset.vendorsView || 'grid';
       syncViewClasses();
-      reloadVendorsFromStart();
+      scheduleReload(0);
     });
   });
 
@@ -270,8 +347,11 @@ document.addEventListener('DOMContentLoaded', function () {
       event.preventDefault();
       if (!categoryFilter) return;
       categoryFilter.value = card.dataset.vendorsCategoryId || '';
+      if (subcategoryFilter) {
+        subcategoryFilter.dataset.selected = '';
+      }
       populateSubcategories();
-      reloadVendorsFromStart();
+      scheduleReload(0);
       document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
@@ -280,8 +360,10 @@ document.addEventListener('DOMContentLoaded', function () {
     viewPremiumLink.addEventListener('click', function (event) {
       event.preventDefault();
       if (premiumFilter) premiumFilter.checked = true;
+      activeTab = 'all';
+      syncTabClasses();
       document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      reloadVendorsFromStart();
+      scheduleReload(0);
     });
   }
 

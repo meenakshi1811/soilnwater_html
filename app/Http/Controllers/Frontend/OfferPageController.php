@@ -155,23 +155,34 @@ class OfferPageController extends Controller
 
         $cardView = $request->string('view')->toString() === 'list' ? 'list' : 'grid';
 
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->wantsJson()) {
             $cardsPartial = $cardView === 'list'
                 ? 'frontend.vendors.partials.list-cards'
                 : 'frontend.vendors.partials.cards';
+
+            $premiumVendors = $this->topVendorsQuery($lat, $lng, $request)
+                ->where('is_premium', true)
+                ->limit(5)
+                ->get();
+            $premiumVendors->each->usePublishedPage();
 
             return response()->json([
                 'html' => view($cardsPartial, [
                     'vendors' => $vendors,
                     'hasLocation' => $hasLocation,
                 ])->render(),
+                'premium_html' => view('frontend.vendors.partials.premium-cards', [
+                    'premiumVendors' => $premiumVendors,
+                    'hasLocation' => $hasLocation,
+                ])->render(),
+                'premium_total' => $premiumVendors->count(),
                 'next_page_url' => $vendors->nextPageUrl(),
                 'loaded_to' => $vendors->lastItem() ?? 0,
                 'total' => $vendors->total(),
             ]);
         }
 
-        $premiumVendors = $this->topVendorsQuery($lat, $lng)
+        $premiumVendors = $this->topVendorsQuery($lat, $lng, $request)
             ->where('is_premium', true)
             ->limit(5)
             ->get();
@@ -401,7 +412,18 @@ class OfferPageController extends Controller
 
             if ($request?->filled('radius')) {
                 $radius = max(1, (float) $request->input('radius'));
-                $query->havingRaw('nearest_distance_km IS NOT NULL AND nearest_distance_km <= ?', [$radius]);
+                $query->whereExists(function ($subQuery) use ($lat, $lng, $radius): void {
+                    $subQuery->selectRaw('1')
+                        ->from('vendor_products')
+                        ->whereColumn('vendor_products.vendor_id', 'vendors.id')
+                        ->where('vendor_products.status', 'approved')
+                        ->whereNotNull('vendor_products.latitude')
+                        ->whereNotNull('vendor_products.longitude')
+                        ->whereRaw(
+                            '(6371 * acos(cos(radians(?)) * cos(radians(vendor_products.latitude)) * cos(radians(vendor_products.longitude) - radians(?)) + sin(radians(?)) * sin(radians(vendor_products.latitude)))) <= ?',
+                            [$lat, $lng, $lat, $radius]
+                        );
+                });
             }
 
             $this->applyVendorListingOrder($query, $request, true);
@@ -438,10 +460,10 @@ class OfferPageController extends Controller
     private function minProductsForRatingFilter(float $rating): int
     {
         return match (true) {
-            $rating >= 4.5 => 30,
-            $rating >= 4.0 => 15,
-            $rating >= 3.5 => 8,
-            $rating >= 3.0 => 3,
+            $rating >= 4.5 => 10,
+            $rating >= 4.0 => 5,
+            $rating >= 3.5 => 3,
+            $rating >= 3.0 => 2,
             default => 1,
         };
     }
