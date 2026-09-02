@@ -210,23 +210,25 @@
       @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
 
       @if ($topCategories->isNotEmpty())
-        <section class="vendors-section">
-          <div class="vendors-section__head">
+        <section class="vendors-section vendors-section--categories">
+          <div class="vendors-section__head vendors-section__head--compact">
             <h2>Top Categories</h2>
-            <a href="#vendorsAllSection" class="vendors-section__link">View All Categories <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
+            <a href="#vendorsAllSection" class="vendors-section__link">View all <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
           </div>
-          <div class="vendors-categories-grid">
+          <div class="vendors-categories-strip">
             @foreach ($topCategories as $index => $category)
               <a
                 href="#"
-                class="vendors-category-card"
+                class="vendors-category-chip"
                 data-vendors-category-id="{{ $category->id }}"
               >
-                <span class="vendors-category-card__icon">
+                <span class="vendors-category-chip__icon vendors-category-chip__icon--{{ ($index % 6) + 1 }}">
                   <i class="fa-solid {{ $categoryIcons[$index % count($categoryIcons)] }}" aria-hidden="true"></i>
                 </span>
-                <h3>{{ $category->name }}</h3>
-                <p>{{ number_format((int) $category->vendor_count) }}+ Vendors</p>
+                <span class="vendors-category-chip__text">
+                  <strong>{{ $category->name }}</strong>
+                  <small>{{ number_format((int) $category->vendor_count) }}+ vendors</small>
+                </span>
               </a>
             @endforeach
           </div>
