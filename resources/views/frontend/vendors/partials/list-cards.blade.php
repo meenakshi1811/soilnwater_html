@@ -1,5 +1,7 @@
 @forelse ($vendors as $vendor)
-    @include('frontend.vendors.partials.card-data', ['vendor' => $vendor, 'hasLocation' => $hasLocation ?? false])
+    @php
+        extract(\App\Support\VendorListingCard::data($vendor, $hasLocation ?? false));
+    @endphp
     <article class="vendors-list-card{{ $vendor->is_premium ? ' is-premium' : '' }}">
         <a href="{{ $storeUrl }}" class="vendors-list-card__logo-wrap" aria-label="View {{ $vendor->publicDisplayName() }} store">
             <img
@@ -17,8 +19,9 @@
                         <i class="fa-solid fa-crown vendors-list-card__crown" aria-hidden="true" title="Premium vendor"></i>
                     @endif
                 </h3>
-                <span class="vendors-list-card__products">
-                    <i class="fa-solid fa-box-open" aria-hidden="true"></i>{{ $vendor->products_count }} Products
+                <span class="vendors-list-card__rating">
+                    <i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format($ratingScore, 1) }}
+                    <span>({{ number_format($ratingCount) }})</span>
                 </span>
             </div>
             <div class="vendors-list-card__meta">

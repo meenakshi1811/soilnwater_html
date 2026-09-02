@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const premiumFilter = document.getElementById('vendorsMarketFilterPremium');
   const verifiedFilter = document.getElementById('vendorsMarketFilterVerified');
   const paymentFilter = document.getElementById('vendorsMarketFilterPayment');
+  const locationFilter = document.getElementById('vendorsMarketFilterLocation');
+  const ratingFilters = pageRoot.querySelectorAll('.vendors-market-filter-rating');
   const applyFiltersBtn = document.getElementById('vendorsMarketApplyFilters');
   const resetFiltersBtn = document.getElementById('vendorsMarketResetFilters');
   const sortFilter = document.getElementById('vendorsMarketSort');
@@ -75,6 +77,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (premiumFilter && premiumFilter.checked) params.set('premium', '1'); else params.delete('premium');
     if (verifiedFilter && verifiedFilter.checked) params.set('verified', '1'); else params.delete('verified');
     if (paymentFilter && paymentFilter.value) params.set('payment', paymentFilter.value); else params.delete('payment');
+
+    const selectedRating = Array.from(ratingFilters).find(function (input) { return input.checked; });
+    if (selectedRating) params.set('min_rating', selectedRating.value); else params.delete('min_rating');
+
     if (radiusFilter && radiusFilter.value && hasLocation) params.set('radius', radiusFilter.value); else params.delete('radius');
     if (sortFilter && sortFilter.value) params.set('sort', sortFilter.value); else params.delete('sort');
     if (activeTab && activeTab !== 'all') params.set('tab', activeTab); else params.delete('tab');
@@ -193,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (premiumFilter) premiumFilter.checked = false;
     if (verifiedFilter) verifiedFilter.checked = false;
     if (paymentFilter) paymentFilter.value = '';
+    ratingFilters.forEach(function (input) { input.checked = false; });
     if (sortFilter) sortFilter.value = 'recent';
     activeTab = 'all';
     syncTabClasses();
@@ -202,6 +209,20 @@ document.addEventListener('DOMContentLoaded', function () {
   populateSubcategories();
   syncViewClasses();
   syncTabClasses();
+
+  const headerLocationInput = document.getElementById('headerCurrentLocation');
+  if (locationFilter && headerLocationInput && headerLocationInput.value.trim()) {
+    locationFilter.value = headerLocationInput.value.trim();
+  }
+
+  ratingFilters.forEach(function (input) {
+    input.addEventListener('change', function () {
+      if (!input.checked) return;
+      ratingFilters.forEach(function (other) {
+        if (other !== input) other.checked = false;
+      });
+    });
+  });
 
   if (categoryFilter) {
     categoryFilter.addEventListener('change', function () {

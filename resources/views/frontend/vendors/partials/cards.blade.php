@@ -1,33 +1,29 @@
 @forelse ($vendors as $vendor)
-    @include('frontend.vendors.partials.card-data', ['vendor' => $vendor, 'hasLocation' => $hasLocation ?? false])
-    <article class="vendors-grid-card{{ $vendor->is_premium ? ' is-premium' : '' }}">
-        <a href="{{ $storeUrl }}" class="vendors-grid-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
-            <img src="{{ $coverImage }}" alt="{{ $vendor->publicDisplayName() }}" loading="lazy" decoding="async">
-            @if ($vendor->is_premium)
-                <span class="vendors-grid-card__premium"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>
-            @endif
+    @php
+        extract(\App\Support\VendorListingCard::data($vendor, $hasLocation ?? false));
+    @endphp
+    <article class="vendors-compact-card{{ $vendor->is_premium ? ' is-premium' : '' }}">
+        <a href="{{ $storeUrl }}" class="vendors-compact-card__logo" aria-label="View {{ $vendor->publicDisplayName() }} store">
+            <img
+                src="{{ $avatarImage }}"
+                alt="{{ $vendor->publicDisplayName() }}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ asset('assets/images/profile-placeholder.svg') }}';"
+            >
         </a>
-        <div class="vendors-grid-card__body">
-            <div class="vendors-grid-card__logo">
-                <img
-                    src="{{ $avatarImage }}"
-                    alt=""
-                    loading="lazy"
-                    onerror="this.onerror=null;this.src='{{ asset('assets/images/profile-placeholder.svg') }}';"
-                >
-            </div>
-            <h3 class="vendors-grid-card__name">
+        <div class="vendors-compact-card__content">
+            <h3 class="vendors-compact-card__name">
                 <a href="{{ $storeUrl }}">{{ $vendor->publicDisplayName() }}</a>
             </h3>
-            <div class="vendors-grid-card__meta">
-                <span class="vendors-grid-card__products">
-                    <i class="fa-solid fa-box-open" aria-hidden="true"></i>{{ $vendor->products_count }} Products
-                </span>
+            <div class="vendors-compact-card__rating">
+                <span class="vendors-rating"><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format($ratingScore, 1) }}</span>
+                <span class="vendors-rating-count">({{ number_format($ratingCount) }})</span>
+            </div>
+            <div class="vendors-compact-card__meta">
+                <span class="vendors-compact-card__category">{{ $categoryName }}</span>
                 <span class="vendors-verified-badge vendors-verified-badge--sm"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
             </div>
-            <span class="vendors-grid-card__category">{{ $categoryName }}</span>
-            <p class="vendors-grid-card__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $locationLabel }}</p>
-            <a href="{{ $storeUrl }}" class="vendors-grid-card__cta">View Store</a>
+            <p class="vendors-compact-card__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $locationLabel }}</p>
         </div>
     </article>
 @empty

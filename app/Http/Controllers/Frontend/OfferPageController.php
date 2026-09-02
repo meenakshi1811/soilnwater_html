@@ -378,6 +378,13 @@ class OfferPageController extends Controller
                         ->where('status', 'approved')
                         ->where('is_online_sale', false));
                 }
+            })
+            ->when($request?->filled('min_rating'), function (Builder $query) use ($request): void {
+                $minProducts = $this->minProductsForRatingFilter((float) $request->input('min_rating'));
+                $query->whereRaw(
+                    '(SELECT COUNT(*) FROM vendor_products WHERE vendor_products.vendor_id = vendors.id AND vendor_products.status = ?) >= ?',
+                    ['approved', $minProducts]
+                );
             });
 
         if (is_numeric($lat) && is_numeric($lng)) {
@@ -425,6 +432,17 @@ class OfferPageController extends Controller
         } else {
             $query->orderByDesc('is_premium')->latest('created_at')->latest('id');
         }
+    }
+
+    private function minProductsForRatingFilter(float $rating): int
+    {
+        return match (true) {
+            $rating >= 4.5 => 30,
+            $rating >= 4.0 => 15,
+            $rating >= 3.5 => 8,
+            $rating >= 3.0 => 3,
+            default => 1,
+        };
     }
 
     /**

@@ -14,6 +14,7 @@
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
   $activeTab = request('tab', 'all');
   $activeView = $cardView ?? (request('view') === 'list' ? 'list' : 'grid');
+  $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
 @endphp
 
 @push('styles')
@@ -69,7 +70,16 @@
 
         <div class="vendors-filter-group">
           <label for="vendorsMarketFilterLocation">Location</label>
-          <div class="form-control bg-light">{{ $locationDisplay }}</div>
+          <div class="vendors-filter-location-wrap">
+            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+            <input
+              id="vendorsMarketFilterLocation"
+              class="form-control"
+              type="text"
+              value="{{ $locationDisplay }}"
+              readonly
+            >
+          </div>
           @unless ($hasLocation)
             <small class="vendors-location-note">Set your location from the header to enable distance filtering.</small>
           @endunless
@@ -104,18 +114,24 @@
         </div>
 
         <div class="vendors-filter-group">
-          <span class="d-block mb-2 fw-bold small">Sort By Activity</span>
+          <span class="d-block mb-2 fw-bold small">Ratings</span>
           <div class="vendors-filter-ratings">
-            <label class="vendors-filter-rating">
-              <input type="radio" name="vendorsActivityHint" checked disabled>
-              <span class="stars"><i class="fa-solid fa-box-open"></i></span>
-              Most Products
-            </label>
-            <label class="vendors-filter-rating">
-              <input type="radio" name="vendorsActivityHint" disabled>
-              <span class="stars"><i class="fa-solid fa-route"></i></span>
-              Nearest First
-            </label>
+            @foreach ($ratingOptions as $rating)
+              <label class="vendors-filter-rating">
+                <input
+                  type="checkbox"
+                  class="vendors-market-filter-rating"
+                  value="{{ $rating }}"
+                  @checked((string) request('min_rating') === (string) $rating)
+                >
+                <span class="stars" aria-hidden="true">
+                  @for ($star = 1; $star <= 5; $star++)
+                    <i class="fa-solid fa-star"></i>
+                  @endfor
+                </span>
+                <span>{{ number_format($rating, 1) }} &amp; above</span>
+              </label>
+            @endforeach
           </div>
         </div>
 
