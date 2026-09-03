@@ -564,6 +564,35 @@
   line-height: 1.3;
 }
 
+.vendors-premium-card__category {
+  display: inline-flex;
+  width: fit-content;
+  padding: .16rem .48rem;
+  border-radius: 999px;
+  background: #e8f3ff;
+  color: #1f66b4;
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vendors-premium-card__product-heading {
+  margin: 0;
+  font-size: .76rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #3d5268;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.vendors-premium-card__product-label {
+  font-weight: 700;
+  color: var(--vendors-navy);
+}
+
 .vendors-premium-card__meta {
   display: flex;
   flex-wrap: wrap;
