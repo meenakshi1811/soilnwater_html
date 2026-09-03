@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Mail\ConsultantPublicPageApprovedMail;
 use App\Mail\VendorPublicPageApprovedMail;
 use App\Models\Consultant;
+use App\Models\Employee;
 use App\Models\User;
 use App\Models\Vendor;
+use Database\Seeders\ModulePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class VendorConsultantPublicPageApprovalTest extends TestCase
@@ -93,6 +96,43 @@ class VendorConsultantPublicPageApprovalTest extends TestCase
             ->get(route('admin.vendors.store-preview', $vendor))
             ->assertOk()
             ->assertSee('Pending vendor preview');
+    }
+
+    public function test_employee_can_publish_vendor_public_page_without_user_foreign_key_error(): void
+    {
+        $this->seed(ModulePermissionSeeder::class);
+
+        $role = Role::query()->create([
+            'name' => 'Vendor Publisher',
+            'guard_name' => 'web',
+        ]);
+        $role->syncPermissions(['vendors.read', 'vendors.write']);
+
+        $employee = Employee::factory()->create(['is_active' => true]);
+        $employee->syncRoles([$role]);
+
+        $vendor = Vendor::query()->create([
+            'user_id' => User::factory()->create(['role' => 'vendor'])->id,
+            'company_name' => 'Manchanda Electronics',
+            'slug' => 'manchanda-electronics',
+            'status' => 'approved',
+            'public_page_status' => 'draft',
+            'hero_main_heading' => 'MANCHANDA ELECTRONICS',
+        ]);
+
+        $this->actingAs($employee, 'employee')
+            ->putJson(route('admin.vendors.public-page.update', $vendor), [
+                'slug' => $vendor->slug,
+                'hero_main_heading' => 'MANCHANDA ELECTRONICS',
+                'submission_action' => 'publish',
+            ])
+            ->assertOk()
+            ->assertJsonPath('public_page_status', 'approved');
+
+        $vendor->refresh();
+        $this->assertSame('approved', $vendor->public_page_status);
+        $this->assertNull($vendor->public_page_approved_by);
+        $this->assertNotNull($vendor->published_page_data);
     }
 
     public function test_consultant_draft_submission_preview_and_decline_workflow(): void

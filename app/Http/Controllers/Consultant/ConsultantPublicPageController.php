@@ -9,6 +9,7 @@ use App\Models\Consultant;
 use App\Models\ConsultantPageSection;
 use App\Models\ConsultantService;
 use App\Support\ConsultantFileUploader;
+use App\Support\AuthActor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -158,7 +159,7 @@ class ConsultantPublicPageController extends Controller
                     'published_page_data' => $consultant->publicPageSnapshot(),
                     'public_page_submitted_at' => null,
                     'public_page_approved_at' => now(),
-                    'public_page_approved_by' => $request->user()->id,
+                    'public_page_approved_by' => AuthActor::usersTableId(),
                 ]);
                 PortalNotificationService::notifyUser(
                     $consultant->user,

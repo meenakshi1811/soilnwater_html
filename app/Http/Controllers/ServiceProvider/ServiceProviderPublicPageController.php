@@ -9,6 +9,7 @@ use App\Models\ServiceProvider;
 use App\Models\ServiceProviderPageSection;
 use App\Models\ServiceProviderService;
 use App\Support\ServiceProviderFileUploader;
+use App\Support\AuthActor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -158,7 +159,7 @@ class ServiceProviderPublicPageController extends Controller
                     'published_page_data' => $service_provider->publicPageSnapshot(),
                     'public_page_submitted_at' => null,
                     'public_page_approved_at' => now(),
-                    'public_page_approved_by' => $request->user()->id,
+                    'public_page_approved_by' => AuthActor::usersTableId(),
                 ]);
                 PortalNotificationService::notifyUser(
                     $service_provider->user,

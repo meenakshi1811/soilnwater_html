@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Models\VendorPageSection;
 use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
+use App\Support\AuthActor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -159,7 +160,7 @@ class VendorPublicPageController extends Controller
                     'published_page_data' => $vendor->publicPageSnapshot(),
                     'public_page_submitted_at' => null,
                     'public_page_approved_at' => now(),
-                    'public_page_approved_by' => $request->user()->id,
+                    'public_page_approved_by' => AuthActor::usersTableId(),
                 ]);
                 PortalNotificationService::notifyUser(
                     $vendor->user,

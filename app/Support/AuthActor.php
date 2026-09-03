@@ -27,4 +27,15 @@ final class AuthActor
             Auth::shouldUse('web');
         }
     }
+
+    /**
+     * Resolve a users-table id for FK columns constrained to users.id.
+     * Employees authenticate separately, so return null for employee actors.
+     */
+    public static function usersTableId(): ?int
+    {
+        $userId = Auth::guard('web')->id();
+
+        return is_numeric($userId) ? (int) $userId : null;
+    }
 }

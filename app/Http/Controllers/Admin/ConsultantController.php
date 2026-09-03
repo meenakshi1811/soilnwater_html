@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
 use App\Support\ConsultantFileUploader;
+use App\Support\AuthActor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -200,7 +201,7 @@ class ConsultantController extends Controller
 
         if ($validated['status'] === 'approved' && $consultant->status !== 'approved') {
             $validated['approved_at'] = now();
-            $validated['approved_by'] = $request->user()->id;
+            $validated['approved_by'] = AuthActor::usersTableId();
         }
 
         if ($validated['status'] !== 'approved') {
@@ -229,7 +230,7 @@ class ConsultantController extends Controller
         $consultant->update([
             'status' => 'approved',
             'approved_at' => now(),
-            'approved_by' => $request->user()->id,
+            'approved_by' => AuthActor::usersTableId(),
         ]);
 
         $emailSent = $this->sendConsultantStatusMail($consultant, 'approved');
@@ -280,7 +281,7 @@ class ConsultantController extends Controller
             'pending_page_data' => null,
             'public_page_status' => 'approved',
             'public_page_approved_at' => now(),
-            'public_page_approved_by' => $request->user()->id,
+            'public_page_approved_by' => AuthActor::usersTableId(),
         ]);
 
         $recipient = $consultant->user?->email ?: $consultant->email;
