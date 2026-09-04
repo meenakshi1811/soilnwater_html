@@ -462,8 +462,7 @@ class OfferPageController extends Controller
             });
 
         if (is_numeric($lat) && is_numeric($lng)) {
-            $query->select('vendors.*')
-                ->selectRaw('(
+            $query->selectRaw('(
                     SELECT MIN(6371 * acos(cos(radians(?)) * cos(radians(vendor_products.latitude)) * cos(radians(vendor_products.longitude) - radians(?)) + sin(radians(?)) * sin(radians(vendor_products.latitude))))
                     FROM vendor_products
                     WHERE vendor_products.vendor_id = vendors.id
@@ -504,13 +503,16 @@ class OfferPageController extends Controller
         if ($tab === 'recent') {
             $query->orderByDesc('created_at')->orderByDesc('id');
         } elseif ($tab === 'top_rated') {
+            $productsCountSql = $this->approvedVendorProductsCountSql();
             $query->orderByDesc('is_premium')
-                ->orderByRaw('(4 + LEAST(COALESCE(products_count, 0), 40) * 0.025) DESC')
-                ->orderByDesc('products_count')
+                ->orderByRaw('(4 + LEAST(COALESCE('.$productsCountSql.', 0), 40) * 0.025) DESC')
+                ->orderByRaw($productsCountSql.' DESC')
                 ->orderByDesc('id');
         } elseif ($tab === 'most_reviewed') {
-            $query->orderByDesc('inquiries_count')
-                ->orderByDesc('products_count')
+            $productsCountSql = $this->approvedVendorProductsCountSql();
+            $inquiriesCountSql = $this->vendorInquiriesCountSql();
+            $query->orderByRaw($inquiriesCountSql.' DESC')
+                ->orderByRaw($productsCountSql.' DESC')
                 ->orderByDesc('created_at')
                 ->orderByDesc('id');
         } elseif ($sort === 'name') {
@@ -534,6 +536,16 @@ class OfferPageController extends Controller
             $rating >= 3.0 => 2,
             default => 1,
         };
+    }
+
+    private function approvedVendorProductsCountSql(): string
+    {
+        return '(SELECT COUNT(*) FROM vendor_products WHERE vendor_products.vendor_id = vendors.id AND vendor_products.status = \'approved\')';
+    }
+
+    private function vendorInquiriesCountSql(): string
+    {
+        return '(SELECT COUNT(*) FROM vendor_product_inquiries WHERE vendor_product_inquiries.vendor_id = vendors.id)';
     }
 
     /**
