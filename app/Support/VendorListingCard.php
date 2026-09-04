@@ -47,8 +47,9 @@ class VendorListingCard
             ->values()
             ->all();
         $productCount = (int) ($vendor->products_count ?? $vendor->products->count());
+        $inquiryCount = (int) ($vendor->inquiries_count ?? 0);
         $ratingScore = min(5, round(4 + min($productCount, 40) * 0.025, 1));
-        $ratingCount = max($productCount, 1);
+        $ratingCount = max($inquiryCount > 0 ? $inquiryCount : $productCount, 1);
 
         return [
             'coverImage' => $coverImage,

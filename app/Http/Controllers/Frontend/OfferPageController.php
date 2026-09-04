@@ -414,7 +414,10 @@ class OfferPageController extends Controller
                 'branches:id,vendor_id,address,city,state,is_primary',
                 'bannerSlides:id,vendor_id,image_path,sort_order',
             ])
-            ->withCount(['products' => fn (Builder $productQuery) => $productQuery->where('status', 'approved')])
+            ->withCount([
+                'products' => fn (Builder $productQuery) => $productQuery->where('status', 'approved'),
+                'inquiries',
+            ])
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $searchQuery) use ($search): void {
                     $searchQuery
@@ -501,9 +504,15 @@ class OfferPageController extends Controller
         if ($tab === 'recent') {
             $query->orderByDesc('created_at')->orderByDesc('id');
         } elseif ($tab === 'top_rated') {
-            $query->orderByDesc('products_count')->orderByDesc('is_premium')->orderByDesc('id');
+            $query->orderByDesc('is_premium')
+                ->orderByRaw('(4 + LEAST(COALESCE(products_count, 0), 40) * 0.025) DESC')
+                ->orderByDesc('products_count')
+                ->orderByDesc('id');
         } elseif ($tab === 'most_reviewed') {
-            $query->orderByDesc('products_count')->orderByDesc('id');
+            $query->orderByDesc('inquiries_count')
+                ->orderByDesc('products_count')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id');
         } elseif ($sort === 'name') {
             $query->orderByRaw('COALESCE(display_name, company_name) asc');
         } elseif ($hasLocation) {

@@ -95,6 +95,11 @@ class Vendor extends Model
         return $this->hasMany(VendorProduct::class);
     }
 
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(VendorProductInquiry::class);
+    }
+
     public function pageSections(): HasMany
     {
         return $this->hasMany(VendorPageSection::class)->orderBy('sort_order');
