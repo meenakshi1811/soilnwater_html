@@ -3,15 +3,16 @@
         extract(\App\Support\VendorListingCard::data($vendor, $hasLocation ?? false));
     @endphp
     <article class="vendors-compact-card{{ $vendor->is_premium ? ' is-premium' : '' }}">
-        <a href="{{ $storeUrl }}" class="vendors-compact-card__logo" aria-label="View {{ $vendor->publicDisplayName() }} store">
+        <a href="{{ $storeUrl }}" class="vendors-compact-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
             <img
-                src="{{ $avatarImage }}"
+                src="{{ $coverImage }}"
                 alt="{{ $vendor->publicDisplayName() }}"
+                class="vendors-compact-card__cover"
                 loading="lazy"
-                onerror="this.onerror=null;this.src='{{ asset('assets/images/profile-placeholder.svg') }}';"
+                onerror="this.onerror=null;this.src='{{ asset('assets/images/vendor-card-placeholder.svg') }}';"
             >
         </a>
-        <div class="vendors-compact-card__content">
+        <div class="vendors-compact-card__body">
             <h3 class="vendors-compact-card__name">
                 <a href="{{ $storeUrl }}">{{ $vendor->publicDisplayName() }}</a>
             </h3>

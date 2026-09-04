@@ -29,7 +29,7 @@
         </div>
         <div class="discussion-widget__header-actions">
             @if($standalone)
-                <a href="{{ route('home') }}"
+                <a href="{{ route('frontend.index') }}"
                    class="discussion-widget__icon-btn discussion-widget__icon-btn--link"
                    title="Back to SoilnWater"
                    aria-label="Back to SoilnWater">

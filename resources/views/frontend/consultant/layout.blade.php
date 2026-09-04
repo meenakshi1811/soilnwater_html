@@ -28,6 +28,9 @@
     @include('frontend.partials.marketplace-store-quicknav', [
         'storeHomeUrl' => route('consultant.show', $consultant->slug),
         'storeHomeLabel' => 'Consultant Home',
+        'marketListingUrl' => route('frontend.consultants.index'),
+        'marketListingLabel' => 'Consultants',
+        'marketListingIcon' => 'fa-user-tie',
         'activeNav' => $activeNav ?? '',
     ])
 

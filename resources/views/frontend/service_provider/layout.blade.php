@@ -28,6 +28,9 @@
     @include('frontend.partials.marketplace-store-quicknav', [
         'storeHomeUrl' => route('service_provider.show', $service_provider->slug),
         'storeHomeLabel' => 'Service Home',
+        'marketListingUrl' => route('frontend.service_providers.index'),
+        'marketListingLabel' => 'Services',
+        'marketListingIcon' => 'fa-handshake',
         'activeNav' => $activeNav ?? '',
     ])
 

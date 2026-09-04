@@ -123,6 +123,10 @@ class OfferPageController extends Controller
 
     public function vendors(Request $request): View|JsonResponse
     {
+        if (! $request->ajax() && ! $request->wantsJson() && $request->boolean('premium')) {
+            return redirect()->route('frontend.vendors.premium', $request->query());
+        }
+
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
         $hasLocation = is_numeric($lat) && is_numeric($lng);
@@ -198,6 +202,61 @@ class OfferPageController extends Controller
             'hasLocation' => $hasLocation,
             'homepageSetting' => HomepageSetting::query()->find(1),
             'cardView' => $cardView,
+        ]);
+    }
+
+    public function premiumVendors(Request $request): View|JsonResponse
+    {
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+        $hasLocation = is_numeric($lat) && is_numeric($lng);
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->forModule('vendors')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
+
+        $vendors = $this->topVendorsQuery($lat, $lng, $request)
+            ->where('is_premium', true)
+            ->paginate(12)
+            ->appends($request->query());
+        $vendors->getCollection()->each->usePublishedPage();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'html' => view('frontend.vendors.partials.premium-cards', [
+                    'premiumVendors' => $vendors->getCollection(),
+                    'hasLocation' => $hasLocation,
+                ])->render(),
+                'next_page_url' => $vendors->nextPageUrl(),
+                'loaded_to' => $vendors->lastItem() ?? 0,
+                'total' => $vendors->total(),
+            ]);
+        }
+
+        return view('frontend/vendors/premium', [
+            'vendors' => $vendors,
+            'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
+            'vendorStats' => $this->vendorListingStats(),
+            'hasLocation' => $hasLocation,
+            'homepageSetting' => HomepageSetting::query()->find(1),
         ]);
     }
 
@@ -488,6 +547,22 @@ class OfferPageController extends Controller
      */
     private function topVendorCategories(int $limit = 16): Collection
     {
+        return $this->vendorCategoriesQuery()
+            ->limit($limit)
+            ->get()
+            ->values();
+    }
+
+    public function vendorCategories(): View
+    {
+        return view('frontend/vendors/categories', [
+            'categories' => $this->vendorCategoriesQuery()->get(),
+            'vendorStats' => $this->vendorListingStats(),
+        ]);
+    }
+
+    private function vendorCategoriesQuery(): Builder
+    {
         return Category::query()
             ->whereNull('parent_id')
             ->forModule('vendors')
@@ -505,10 +580,7 @@ class OfferPageController extends Controller
                     ->selectRaw('COUNT(DISTINCT vendor_products.vendor_id)');
             }, 'vendor_count')
             ->orderByDesc('vendor_count')
-            ->orderBy('name')
-            ->limit($limit)
-            ->get()
-            ->values();
+            ->orderBy('name');
     }
 
     private function topConsultantsQuery(?float $lat, ?float $lng, string $search = ''): Builder

@@ -28,6 +28,7 @@
   class="vendors-page"
   id="vendorsPageRoot"
   data-index-url="{{ route('frontend.vendors.index') }}"
+  data-premium-url="{{ route('frontend.vendors.premium') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-active-tab="{{ $activeTab }}"
   data-active-view="{{ $activeView }}"
@@ -211,11 +212,14 @@
         <section class="vendors-section vendors-section--categories">
           <div class="vendors-section__head vendors-section__head--compact">
             <h2>Top Categories</h2>
+            <a href="{{ route('frontend.vendors.categories') }}" class="vendors-section__link">
+              All Listing <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+            </a>
           </div>
           <div class="vendors-categories-strip">
             @foreach ($topCategories as $category)
               <a
-                href="#"
+                href="{{ route('frontend.vendors.index', ['category_id' => $category->id]) }}#vendorsAllSection"
                 class="vendors-category-chip"
                 data-vendors-category-id="{{ $category->id }}"
                 title="{{ $category->name }}"
@@ -229,6 +233,19 @@
                 </span>
               </a>
             @endforeach
+            <a
+              href="{{ route('frontend.vendors.index') }}#vendorsAllSection"
+              class="vendors-category-chip vendors-category-chip--all"
+              title="View all vendor listings"
+            >
+              <span class="vendors-category-chip__icon vendors-category-chip__icon--all">
+                <i class="fa-solid fa-border-all" aria-hidden="true"></i>
+              </span>
+              <span class="vendors-category-chip__text">
+                <strong>All Listing</strong>
+                <small>View all vendors</small>
+              </span>
+            </a>
           </div>
         </section>
       @endif
@@ -237,8 +254,8 @@
           <div class="vendors-section__head">
             <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
             <a
-              href="{{ route('frontend.vendors.index', ['premium' => 1]) }}#vendorsAllSection"
-              class="vendors-section__link js-vendors-view-premium-link"
+              href="{{ route('frontend.vendors.premium') }}"
+              class="vendors-section__link"
             >View All Premium Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
           </div>
           <div class="vendors-premium-track" id="vendorsPremiumTrack">

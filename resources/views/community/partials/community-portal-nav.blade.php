@@ -18,7 +18,7 @@
     $typeListingUrl = $typeKey !== ''
         ? route('community.index', array_filter(['type' => $typeKey, 'hub' => $activeHub]))
         : null;
-    $homeUrl = route('home');
+    $homeUrl = route('frontend.index');
     $communityUrl = route('community.index');
     $currentLabel = $currentLabel ?? null;
     $navTheme = $navTheme ?? 'light';

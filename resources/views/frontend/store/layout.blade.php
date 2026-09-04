@@ -27,6 +27,9 @@
     @include('frontend.partials.marketplace-store-quicknav', [
         'storeHomeUrl' => route('store.show', $vendor->slug),
         'storeHomeLabel' => 'Store Home',
+        'marketListingUrl' => route('frontend.vendors.index'),
+        'marketListingLabel' => 'Vendors',
+        'marketListingIcon' => 'fa-shop',
         'activeNav' => $activeNav ?? '',
     ])
 
