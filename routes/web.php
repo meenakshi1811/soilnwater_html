@@ -105,8 +105,15 @@ Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name
 Route::post('/offers-market/{offer}/report', [OfferReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.offers.report');
 Route::get('/vendors/categories', [OfferPageController::class, 'vendorCategories'])->name('frontend.vendors.categories');
 Route::get('/vendors/premium', [OfferPageController::class, 'premiumVendors'])->name('frontend.vendors.premium');
+Route::get('/vendors/listings', [OfferPageController::class, 'vendorListings'])->name('frontend.vendors.listings');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
+Route::get('/consultants/categories', [OfferPageController::class, 'consultantCategories'])->name('frontend.consultants.categories');
+Route::get('/consultants/premium', [OfferPageController::class, 'premiumConsultants'])->name('frontend.consultants.premium');
+Route::get('/consultants/listings', [OfferPageController::class, 'consultantListings'])->name('frontend.consultants.listings');
 Route::get('/consultants', [OfferPageController::class, 'consultants'])->name('frontend.consultants.index');
+Route::get('/services/categories', [OfferPageController::class, 'serviceProviderCategories'])->name('frontend.service_providers.categories');
+Route::get('/services/premium', [OfferPageController::class, 'premiumServiceProviders'])->name('frontend.service_providers.premium');
+Route::get('/services/listings', [OfferPageController::class, 'serviceProviderListings'])->name('frontend.service_providers.listings');
 Route::get('/services', [OfferPageController::class, 'serviceProviders'])->name('frontend.service_providers.index');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');

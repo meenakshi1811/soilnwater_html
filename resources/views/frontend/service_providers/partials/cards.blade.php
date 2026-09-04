@@ -1,15 +1,15 @@
-@forelse ($vendors as $vendor)
+@forelse ($service_providers as $service_provider)
     @php
-        extract(\App\Support\VendorListingCard::data($vendor, $hasLocation ?? false));
+        extract(\App\Support\ServiceProviderListingCard::data($service_provider, $hasLocation ?? false));
     @endphp
-    <article class="vendors-compact-card{{ $vendor->is_premium ? ' is-premium' : '' }}">
-        <a href="{{ $storeUrl }}" class="vendors-compact-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
-            @if ($vendor->is_premium)
+    <article class="vendors-compact-card{{ $service_provider->is_premium ? ' is-premium' : '' }}">
+        <a href="{{ $profileUrl }}" class="vendors-compact-card__media" aria-label="View {{ $service_provider->publicDisplayName() }} profile">
+            @if ($service_provider->is_premium)
                 <span class="vendors-compact-card__badge"><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium</span>
             @endif
             <img
                 src="{{ $coverImage }}"
-                alt="{{ $vendor->publicDisplayName() }}"
+                alt="{{ $service_provider->publicDisplayName() }}"
                 class="vendors-compact-card__cover"
                 loading="lazy"
                 onerror="this.onerror=null;this.src='{{ asset('assets/images/vendor-card-placeholder.svg') }}';"
@@ -17,7 +17,7 @@
         </a>
         <div class="vendors-compact-card__body">
             <h3 class="vendors-compact-card__name">
-                <a href="{{ $storeUrl }}">{{ $vendor->publicDisplayName() }}</a>
+                <a href="{{ $profileUrl }}">{{ $service_provider->publicDisplayName() }}</a>
             </h3>
             <div class="vendors-compact-card__rating">
                 <span class="vendors-rating"><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format($ratingScore, 1) }}</span>
@@ -32,8 +32,8 @@
     </article>
 @empty
     <div class="vendors-empty-state">
-        <div class="vendors-empty-state__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></div>
-        <h3>No vendors found</h3>
+        <div class="vendors-empty-state__icon" aria-hidden="true"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+        <h3>No service providers found</h3>
         <p>Try adjusting your filters or search term.</p>
     </div>
 @endforelse

@@ -16,7 +16,7 @@
         if ($categoryLabel === $sectionLabel) {
             $categoryLabel = null;
         }
-        $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 140);
+        $excerpt = $post->plainTextExcerpt(140);
         $locationLabel = $post->location ?? data_get($post->meta, 'location');
         $promotionLabels = $post->adminPromotionLabels();
         $scoreBadges = $post->articleScoreBadges();

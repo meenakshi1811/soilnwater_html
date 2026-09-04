@@ -6,7 +6,7 @@
     $portalLabel = $types[$itemPortalType]['label'] ?? 'News';
     $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
     $authorDisplayName = $post->authorDisplayName();
-    $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 180);
+    $excerpt = $post->plainTextExcerpt(180);
     $categoryLabel = filled($post->category) ? $post->category : $portalLabel;
     $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
     $viewsLabel = $post->views_count >= 1000

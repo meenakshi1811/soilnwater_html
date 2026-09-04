@@ -170,7 +170,7 @@
                         <div class="community-news-hero__featured-overlay">
                             <span class="community-news-hero__badge">{{ $featuredBadge }}</span>
                             <h2>{{ $featured->title }}</h2>
-                            <p>{{ $featured->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($featured->body), 140) }}</p>
+                            <p>{{ $featured->plainTextExcerpt(140) }}</p>
                             <div class="community-news-hero__meta">
                                 <span>{{ $featured->authorDisplayName() }}</span>
                                 <span>{{ $featured->published_at?->diffForHumans() }}</span>

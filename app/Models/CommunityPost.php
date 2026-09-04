@@ -3973,13 +3973,25 @@ class CommunityPost extends Model
 
     public function seoDescription(): string
     {
-        if (filled($this->excerpt)) {
-            return Str::limit(trim(strip_tags($this->excerpt)), 160, '...');
+        return $this->plainTextExcerpt(160) ?? '';
+    }
+
+    public function plainTextExcerpt(int $limit = 140): ?string
+    {
+        $source = filled($this->excerpt) ? (string) $this->excerpt : (string) $this->body;
+
+        if (! filled(trim($source))) {
+            return null;
         }
 
-        $bodyText = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $this->body)) ?? '');
+        $plainText = html_entity_decode(strip_tags($source), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $plainText = trim((string) preg_replace('/\s+/u', ' ', $plainText));
 
-        return Str::limit($bodyText, 160, '...');
+        if ($plainText === '') {
+            return null;
+        }
+
+        return Str::limit($plainText, $limit);
     }
 
     public function reportStatus(): ?string

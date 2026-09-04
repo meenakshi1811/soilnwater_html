@@ -833,9 +833,44 @@
 
 .vendors-compact-card__media {
   display: block;
+  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #eef3f6;
+}
+
+.vendors-compact-card.is-premium {
+  border-color: #d9c274;
+  background: linear-gradient(180deg, #fffdf5 0%, #fff 38%);
+  box-shadow: 0 4px 14px rgba(201, 162, 39, 0.08);
+}
+
+.vendors-compact-card.is-premium:hover {
+  border-color: #c9a227;
+  box-shadow: 0 6px 18px rgba(201, 162, 39, 0.14);
+}
+
+.vendors-compact-card__badge {
+  position: absolute;
+  top: .45rem;
+  left: .45rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .22rem;
+  padding: .18rem .45rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f6e6a8, #c9a227);
+  color: #4a3600;
+  font-size: .58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  box-shadow: 0 2px 8px rgba(74, 54, 0, 0.12);
+}
+
+.vendors-compact-card__badge i {
+  font-size: .52rem;
 }
 
 .vendors-compact-card__cover {
@@ -910,6 +945,11 @@
 
 .vendors-list-card:hover {
   border-color: #c5d9ea;
+}
+
+.vendors-list-card.is-premium {
+  border-color: #d9c274;
+  background: linear-gradient(90deg, #fffdf5 0%, #fff 14%);
 }
 
 .vendors-list-card__logo-wrap {

@@ -1,41 +1,26 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const pageRoot = document.getElementById('vendorsPageRoot');
+  const pageRoot = document.getElementById('premiumServicesPageRoot');
   if (!pageRoot) return;
 
-  const filterBar = document.getElementById('vendorsFilterBar');
-  const vendorsGrid = document.getElementById('vendorsGrid');
-  const premiumSection = document.getElementById('vendorsPremiumSection');
-  const premiumTrack = document.getElementById('vendorsPremiumTrack');
-  const searchFilter = document.getElementById('vendorsMarketFilterSearch');
-  const categoryFilter = document.getElementById('vendorsMarketFilterCategory');
-  const subcategoryFilter = document.getElementById('vendorsMarketFilterSubcategory');
-  const radiusFilter = document.getElementById('vendorsMarketFilterRadius');
-  const premiumFilter = document.getElementById('vendorsMarketFilterPremium');
-  const verifiedFilter = document.getElementById('vendorsMarketFilterVerified');
-  const paymentFilter = document.getElementById('vendorsMarketFilterPayment');
-  const locationFilter = document.getElementById('vendorsMarketFilterLocation');
-  const ratingFilters = pageRoot.querySelectorAll('.vendors-market-filter-rating');
-  const applyFiltersBtn = document.getElementById('vendorsMarketApplyFilters');
-  const resetFiltersBtn = document.getElementById('vendorsMarketResetFilters');
-  const sortFilter = document.getElementById('vendorsMarketSort');
-  const tabButtons = pageRoot.querySelectorAll('[data-vendors-tab]');
-  const viewButtons = pageRoot.querySelectorAll('[data-vendors-view]');
-  const loadingText = document.getElementById('vendorsLoadingText');
-  const summaryText = document.getElementById('vendorsSummaryText');
-  const scrollSentinel = document.getElementById('vendorsScrollSentinel');
-  const viewAllLink = document.getElementById('vendorsViewAllLink');
-  const categoryCards = pageRoot.querySelectorAll('[data-vendors-category-id]');
+  const filterBar = document.getElementById('premiumServicesFilterBar');
+  const vendorsGrid = document.getElementById('premiumServicesGrid');
+  const searchFilter = document.getElementById('premiumServicesFilterSearch');
+  const categoryFilter = document.getElementById('premiumServicesFilterCategory');
+  const subcategoryFilter = document.getElementById('premiumServicesFilterSubcategory');
+  const radiusFilter = document.getElementById('premiumServicesFilterRadius');
+  const paymentFilter = document.getElementById('premiumServicesFilterPayment');
+  const locationFilter = document.getElementById('premiumServicesFilterLocation');
+  const ratingFilters = pageRoot.querySelectorAll('.premium-services-filter-rating');
+  const applyFiltersBtn = document.getElementById('premiumServicesApplyFilters');
+  const resetFiltersBtn = document.getElementById('premiumServicesResetFilters');
+  const loadingText = document.getElementById('premiumServicesLoadingText');
+  const summaryText = document.getElementById('premiumServicesSummaryText');
+  const scrollSentinel = document.getElementById('premiumServicesScrollSentinel');
 
   const categories = JSON.parse(filterBar?.dataset.categories || '[]');
   const indexUrl = pageRoot.dataset.indexUrl || window.location.pathname;
-  const listingsUrl = pageRoot.dataset.listingsUrl || '';
-  const premiumUrl = pageRoot.dataset.premiumUrl || '/vendors/premium';
   const hasLocation = pageRoot.dataset.hasLocation === '1';
-  const isPreviewListing = pageRoot.dataset.previewListing === '1';
-  const urlParams = new URLSearchParams(window.location.search);
 
-  let activeTab = urlParams.get('tab') || pageRoot.dataset.activeTab || 'all';
-  let activeView = urlParams.get('view') || pageRoot.dataset.activeView || 'grid';
   let nextPageUrl = vendorsGrid?.dataset.nextPageUrl || '';
   let isLoading = false;
   let debounceTimer;
@@ -72,26 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
     subcategoryFilter.disabled = false;
   }
 
-  function buildPremiumVendorsUrl() {
-    const url = new URL(premiumUrl, window.location.origin);
-    const params = url.searchParams;
-
-    const searchValue = searchFilter ? searchFilter.value.trim() : '';
-    if (searchValue) params.set('search', searchValue);
-
-    if (categoryFilter && categoryFilter.value) params.set('category_id', categoryFilter.value);
-    if (subcategoryFilter && subcategoryFilter.value) params.set('subcategory_id', subcategoryFilter.value);
-    if (paymentFilter && paymentFilter.value) params.set('payment', paymentFilter.value);
-
-    const selectedRating = Array.from(ratingFilters).find(function (input) { return input.checked; });
-    if (selectedRating) params.set('min_rating', selectedRating.value);
-
-    if (radiusFilter && radiusFilter.value && hasLocation) params.set('radius', radiusFilter.value);
-
-    url.search = params.toString();
-    return url.toString();
-  }
-
   function buildVendorsUrl(pageUrl) {
     const url = new URL(pageUrl || indexUrl, window.location.origin);
     const params = url.searchParams;
@@ -101,71 +66,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (categoryFilter && categoryFilter.value) params.set('category_id', categoryFilter.value); else params.delete('category_id');
     if (subcategoryFilter && subcategoryFilter.value) params.set('subcategory_id', subcategoryFilter.value); else params.delete('subcategory_id');
-    if (premiumFilter && premiumFilter.checked) params.set('premium', '1'); else params.delete('premium');
-    if (verifiedFilter && verifiedFilter.checked) params.set('verified', '1'); else params.delete('verified');
     if (paymentFilter && paymentFilter.value) params.set('payment', paymentFilter.value); else params.delete('payment');
 
     const selectedRating = Array.from(ratingFilters).find(function (input) { return input.checked; });
     if (selectedRating) params.set('min_rating', selectedRating.value); else params.delete('min_rating');
 
     if (radiusFilter && radiusFilter.value && hasLocation) params.set('radius', radiusFilter.value); else params.delete('radius');
-    if (sortFilter && sortFilter.value) params.set('sort', sortFilter.value); else params.delete('sort');
-    if (activeTab && activeTab !== 'all') params.set('tab', activeTab); else params.delete('tab');
-    if (activeView === 'list') params.set('view', 'list'); else params.delete('view');
 
     url.search = params.toString();
     return url.toString();
   }
 
-  function syncViewClasses() {
-    if (!vendorsGrid) return;
-    vendorsGrid.classList.toggle('is-list-view', activeView === 'list');
-    viewButtons.forEach(function (button) {
-      button.classList.toggle('is-active', button.dataset.vendorsView === activeView);
-    });
-  }
-
-  function syncTabClasses() {
-    tabButtons.forEach(function (button) {
-      button.classList.toggle('is-active', button.dataset.vendorsTab === activeTab);
-    });
-  }
-
   function syncBrowserUrl() {
-    const nextUrl = buildVendorsUrl(indexUrl);
-    window.history.replaceState({}, '', nextUrl);
+    window.history.replaceState({}, '', buildVendorsUrl(indexUrl));
   }
 
   function updateSummary(payload) {
     if (!summaryText) return;
 
     if (payload.total > 0) {
-      if (isPreviewListing) {
-        summaryText.textContent = 'Showing ' + payload.loaded_to + ' of ' + payload.total + ' vendors';
-      } else {
-        summaryText.textContent = 'Showing 1 to ' + payload.loaded_to + ' of ' + payload.total + ' results';
-      }
+      summaryText.textContent = 'Showing 1 to ' + payload.loaded_to + ' of ' + payload.total + ' premium services';
       summaryText.classList.remove('d-none');
     } else {
       summaryText.textContent = '';
       summaryText.classList.add('d-none');
     }
-  }
-
-  function syncViewAllLink() {
-    if (!isPreviewListing || !viewAllLink || !listingsUrl) return;
-    viewAllLink.href = buildVendorsUrl(listingsUrl);
-  }
-
-  function updatePremiumSection(payload) {
-    if (!premiumTrack || !premiumSection) return;
-
-    if (typeof payload.premium_html === 'string') {
-      premiumTrack.innerHTML = payload.premium_html;
-    }
-
-    const hasPremium = Number(payload.premium_total || 0) > 0;
-    premiumSection.classList.toggle('d-none', !hasPremium);
   }
 
   async function reloadVendorsFromStart(options) {
@@ -185,17 +110,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load vendors');
+        throw new Error('Failed to load premium services');
       }
 
       const payload = await response.json();
       vendorsGrid.innerHTML = payload.html || '';
-      nextPageUrl = isPreviewListing ? '' : (payload.next_page_url || '');
+      nextPageUrl = payload.next_page_url || '';
       vendorsGrid.dataset.nextPageUrl = nextPageUrl;
-      syncViewClasses();
       updateSummary(payload);
-      updatePremiumSection(payload);
-      syncViewAllLink();
 
       if (settings.syncUrl !== false) {
         syncBrowserUrl();
@@ -223,11 +145,11 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load more vendors');
+        throw new Error('Failed to load more premium services');
       }
 
       const payload = await response.json();
-      const emptyState = vendorsGrid.querySelector('.vendors-empty-state');
+      const emptyState = vendorsGrid.querySelector('.vendors-empty-inline');
 
       if (emptyState) {
         emptyState.remove();
@@ -264,13 +186,8 @@ document.addEventListener('DOMContentLoaded', function () {
       subcategoryFilter.dataset.selected = '';
     }
     if (radiusFilter) radiusFilter.value = '';
-    if (premiumFilter) premiumFilter.checked = false;
-    if (verifiedFilter) verifiedFilter.checked = false;
     if (paymentFilter) paymentFilter.value = '';
     ratingFilters.forEach(function (input) { input.checked = false; });
-    if (sortFilter) sortFilter.value = 'recent';
-    activeTab = 'all';
-    syncTabClasses();
     reloadVendorsFromStart();
   }
 
@@ -279,12 +196,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   populateSubcategories();
-  syncViewClasses();
-  syncTabClasses();
-
-  if (window.location.hash === '#vendorsAllSection') {
-    document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
 
   const headerLocationInput = document.getElementById('headerCurrentLocation');
   if (locationFilter && headerLocationInput && headerLocationInput.value.trim()) {
@@ -318,22 +229,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (premiumFilter) {
-    premiumFilter.addEventListener('change', function () {
-      if (premiumFilter.checked) {
-        window.location.href = buildPremiumVendorsUrl();
-        return;
-      }
-      scheduleReload(0);
-    });
-  }
-
-  if (verifiedFilter) {
-    verifiedFilter.addEventListener('change', function () {
-      scheduleReload(0);
-    });
-  }
-
   if (paymentFilter) {
     paymentFilter.addEventListener('change', function () {
       scheduleReload(0);
@@ -362,44 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (sortFilter) {
-    sortFilter.addEventListener('change', function () {
-      scheduleReload(0);
-    });
-  }
-
-  tabButtons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      if (isLoading) return;
-      activeTab = button.dataset.vendorsTab || 'all';
-      syncTabClasses();
-      reloadVendorsFromStart();
-    });
-  });
-
-  viewButtons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      activeView = button.dataset.vendorsView || 'grid';
-      syncViewClasses();
-      scheduleReload(0);
-    });
-  });
-
-  categoryCards.forEach(function (card) {
-    card.addEventListener('click', function (event) {
-      event.preventDefault();
-      if (!categoryFilter) return;
-      categoryFilter.value = card.dataset.vendorsCategoryId || '';
-      if (subcategoryFilter) {
-        subcategoryFilter.dataset.selected = '';
-      }
-      populateSubcategories();
-      scheduleReload(0);
-      document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-  if (!isPreviewListing && scrollSentinel && 'IntersectionObserver' in window) {
+  if (scrollSentinel && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -407,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }, { rootMargin: '300px 0px' }).observe(scrollSentinel);
-  } else if (!isPreviewListing) {
+  } else {
     window.addEventListener('scroll', function () {
       if (!nextPageUrl || isLoading || !scrollSentinel) return;
       const sentinelTop = scrollSentinel.getBoundingClientRect().top;
@@ -416,6 +274,4 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }, { passive: true });
   }
-
-  syncViewAllLink();
 });

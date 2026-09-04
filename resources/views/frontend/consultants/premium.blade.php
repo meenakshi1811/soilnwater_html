@@ -8,7 +8,7 @@
 
       return number_format($count).'+';
   };
-  $learnMoreUrl = route('frontend.premium.show', 'vendor');
+  $learnMoreUrl = route('frontend.premium.show', 'consultant');
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
   $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
 @endphp
@@ -21,37 +21,37 @@
 @section('content')
 <div
   class="vendors-page vendors-page--premium"
-  id="premiumVendorsPageRoot"
-  data-index-url="{{ route('frontend.vendors.premium') }}"
+  id="premiumConsultantsPageRoot"
+  data-index-url="{{ route('frontend.consultants.premium') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
 >
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">
         <div>
-          <h2>Find Premium Vendors</h2>
-          <p class="vendors-sidebar__lead">Filter trusted premium businesses by category, location, and ratings.</p>
+          <h2>Find Premium Consultants</h2>
+          <p class="vendors-sidebar__lead">Filter trusted premium consultants by category, location, and ratings.</p>
         </div>
-        <button type="button" class="vendors-sidebar__reset" id="premiumVendorsResetFilters">Reset All</button>
+        <button type="button" class="vendors-sidebar__reset" id="premiumConsultantsResetFilters">Reset All</button>
       </div>
 
-      <div id="premiumVendorsFilterBar" data-categories='@json($categoriesForFilter)'>
+      <div id="premiumConsultantsFilterBar" data-categories='@json($categoriesForFilter)'>
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterSearch">Search</label>
+          <label for="premiumConsultantsFilterSearch">Search</label>
           <div class="vendors-filter-search-wrap">
             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <input
-              id="premiumVendorsFilterSearch"
+              id="premiumConsultantsFilterSearch"
               class="form-control"
-              placeholder="Search premium stores..."
+              placeholder="Search premium consultants..."
               value="{{ request('search') }}"
             >
           </div>
         </div>
 
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterCategory">Category</label>
-          <select id="premiumVendorsFilterCategory" class="form-select">
+          <label for="premiumConsultantsFilterCategory">Category</label>
+          <select id="premiumConsultantsFilterCategory" class="form-select">
             <option value="">All categories</option>
             @foreach ($categories as $category)
               <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
@@ -60,18 +60,18 @@
         </div>
 
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterSubcategory">Sub Category</label>
-          <select id="premiumVendorsFilterSubcategory" class="form-select" disabled>
+          <label for="premiumConsultantsFilterSubcategory">Sub Category</label>
+          <select id="premiumConsultantsFilterSubcategory" class="form-select" disabled>
             <option value="">All subcategories</option>
           </select>
         </div>
 
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterLocation">Location</label>
+          <label for="premiumConsultantsFilterLocation">Location</label>
           <div class="vendors-filter-location-wrap">
             <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
             <input
-              id="premiumVendorsFilterLocation"
+              id="premiumConsultantsFilterLocation"
               class="form-control"
               type="text"
               value="{{ $locationDisplay }}"
@@ -84,8 +84,8 @@
         </div>
 
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterRadius">Within</label>
-          <select id="premiumVendorsFilterRadius" class="form-select" @disabled(! $hasLocation)>
+          <label for="premiumConsultantsFilterRadius">Within</label>
+          <select id="premiumConsultantsFilterRadius" class="form-select" @disabled(! $hasLocation)>
             <option value="">Any distance</option>
             <option value="5" @selected(request('radius') == '5')>5 km</option>
             <option value="10" @selected(request('radius') == '10')>10 km</option>
@@ -102,7 +102,7 @@
               <label class="vendors-filter-rating">
                 <input
                   type="checkbox"
-                  class="premium-vendors-filter-rating"
+                  class="premium-consultants-filter-rating"
                   value="{{ $rating }}"
                   @checked((string) request('min_rating') === (string) $rating)
                 >
@@ -118,15 +118,15 @@
         </div>
 
         <div class="vendors-filter-group">
-          <label for="premiumVendorsFilterPayment">Payment Option</label>
-          <select id="premiumVendorsFilterPayment" class="form-select">
+          <label for="premiumConsultantsFilterPayment">Payment Option</label>
+          <select id="premiumConsultantsFilterPayment" class="form-select">
             <option value="">All payment options</option>
             <option value="online" @selected(request('payment') === 'online')>Online Payment</option>
             <option value="offline" @selected(request('payment') === 'offline')>Offline / Inquiry</option>
           </select>
         </div>
 
-        <button type="button" class="vendors-filter-apply" id="premiumVendorsApplyFilters">
+        <button type="button" class="vendors-filter-apply" id="premiumConsultantsApplyFilters">
           <i class="fa-solid fa-sliders me-1" aria-hidden="true"></i> Apply Filters
         </button>
       </div>
@@ -137,10 +137,10 @@
         <div class="vendors-hero__intro">
           <span class="vendors-hero__eyebrow">
             <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-crown"></i></span>
-            Premium Vendor Marketplace
+            Premium Consultant Marketplace
           </span>
-          <h1>All Premium Vendors</h1>
-          <p>Browse verified premium businesses with priority visibility, trusted badges, and richer store profiles.</p>
+          <h1>All Premium Consultants</h1>
+          <p>Browse verified premium consultants with priority visibility, trusted badges, and richer profiles.</p>
         </div>
         <div class="vendors-hero__stats">
           <div class="vendors-stat">
@@ -148,44 +148,44 @@
               <i class="fa-solid fa-gem"></i>
             </span>
             <div class="vendors-stat__text">
-              <strong>{{ $formatStat($vendorStats['premium']) }}</strong>
-              <span>Premium Vendors</span>
+              <strong>{{ $formatStat($consultantStats['premium']) }}</strong>
+              <span>Premium Consultants</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="vendors-section" id="premiumVendorsSection">
+      <section class="vendors-section" id="premiumConsultantsSection">
         <div class="vendors-section__head">
-          <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
-          <a href="{{ route('frontend.vendors.listings') }}" class="vendors-section__link">
-            View All Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+          <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Consultants</h2>
+          <a href="{{ route('frontend.consultants.listings') }}" class="vendors-section__link">
+            View All Consultants <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
           </a>
         </div>
 
         <div
           class="vendors-premium-track"
-          id="premiumVendorsGrid"
-          data-next-page-url="{{ $vendors->nextPageUrl() }}"
+          id="premiumConsultantsGrid"
+          data-next-page-url="{{ $consultants->nextPageUrl() }}"
         >
-          @include('frontend.vendors.partials.premium-cards', [
-              'premiumVendors' => $vendors,
+          @include('frontend.consultants.partials.premium-cards', [
+              'premiumConsultants' => $consultants,
               'hasLocation' => $hasLocation,
           ])
         </div>
 
-        <div class="vendors-pagination-wrap offer-pagination-wrap" id="premiumVendorsPaginationState">
-          @if ($vendors->total() > 0)
-            <p class="offer-pagination-summary mb-0" id="premiumVendorsSummaryText">
-              Showing {{ $vendors->firstItem() }} to {{ $vendors->lastItem() }} of {{ $vendors->total() }} premium vendors
+        <div class="vendors-pagination-wrap offer-pagination-wrap" id="premiumConsultantsPaginationState">
+          @if ($consultants->total() > 0)
+            <p class="offer-pagination-summary mb-0" id="premiumConsultantsSummaryText">
+              Showing {{ $consultants->firstItem() }} to {{ $consultants->lastItem() }} of {{ $consultants->total() }} premium consultants
             </p>
           @else
-            <p class="offer-pagination-summary mb-0 d-none" id="premiumVendorsSummaryText"></p>
+            <p class="offer-pagination-summary mb-0 d-none" id="premiumConsultantsSummaryText"></p>
           @endif
-          <p class="offer-pagination-loading mb-0 d-none" id="premiumVendorsLoadingText">Loading more premium vendors…</p>
+          <p class="offer-pagination-loading mb-0 d-none" id="premiumConsultantsLoadingText">Loading more premium consultants…</p>
         </div>
 
-        <div id="premiumVendorsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
+        <div id="premiumConsultantsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
       </section>
 
       <section class="vendors-cta">
@@ -198,7 +198,7 @@
         </div>
         <div class="vendors-cta__actions">
           <a href="{{ $learnMoreUrl }}" class="vendors-cta__primary">Learn About Premium</a>
-          <a href="{{ route('frontend.vendors.listings') }}" class="vendors-cta__secondary">Browse All Vendors</a>
+          <a href="{{ route('frontend.consultants.listings') }}" class="vendors-cta__secondary">Browse All Consultants</a>
         </div>
       </section>
     </main>
@@ -207,5 +207,5 @@
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('assets/js/premium-vendors-page.js') }}?v={{ now()->timestamp }}"></script>
+  <script src="{{ asset('assets/js/premium-consultants-page.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

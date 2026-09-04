@@ -24,10 +24,10 @@
         <div class="vendors-hero__intro">
           <span class="vendors-hero__eyebrow">
             <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
-            Vendor Categories
+            Consultant Categories
           </span>
           <h1>All Category Listing</h1>
-          <p>Browse every vendor category on SoilnWater and jump straight to businesses in the area you need.</p>
+          <p>Browse every consultant category on SoilnWater and jump straight to experts in the area you need.</p>
         </div>
         <div class="vendors-hero__stats">
           <div class="vendors-stat">
@@ -44,8 +44,8 @@
               <i class="fa-solid fa-store"></i>
             </span>
             <div class="vendors-stat__text">
-              <strong>{{ $formatStat($vendorStats['trusted']) }}</strong>
-              <span>Trusted Vendors</span>
+              <strong>{{ $formatStat($consultantStats['trusted']) }}</strong>
+              <span>Trusted Consultants</span>
             </div>
           </div>
         </div>
@@ -54,8 +54,8 @@
       <section class="vendors-section vendors-section--categories">
         <div class="vendors-section__head">
           <h2>All Categories</h2>
-          <a href="{{ route('frontend.vendors.listings') }}" class="vendors-section__link">
-            View All Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+          <a href="{{ route('frontend.consultants.listings') }}" class="vendors-section__link">
+            View All Consultants <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
           </a>
         </div>
 
@@ -63,7 +63,7 @@
           <div class="vendors-categories-strip vendors-categories-strip--all">
             @foreach ($categories as $category)
               <a
-                href="{{ route('frontend.vendors.listings', ['category_id' => $category->id]) }}"
+                href="{{ route('frontend.consultants.listings', ['category_id' => $category->id]) }}"
                 class="vendors-category-chip"
                 title="{{ $category->name }}"
               >
@@ -72,7 +72,7 @@
                 </span>
                 <span class="vendors-category-chip__text">
                   <strong>{{ $category->name }}</strong>
-                  <small>{{ number_format((int) $category->vendor_count) }}+ vendors</small>
+                  <small>{{ number_format((int) $category->consultant_count) }}+ consultants</small>
                 </span>
               </a>
             @endforeach

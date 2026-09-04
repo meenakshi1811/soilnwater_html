@@ -1,42 +1,42 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const pageRoot = document.getElementById('vendorsPageRoot');
+  const pageRoot = document.getElementById('servicesPageRoot');
   if (!pageRoot) return;
 
-  const filterBar = document.getElementById('vendorsFilterBar');
-  const vendorsGrid = document.getElementById('vendorsGrid');
-  const premiumSection = document.getElementById('vendorsPremiumSection');
-  const premiumTrack = document.getElementById('vendorsPremiumTrack');
-  const searchFilter = document.getElementById('vendorsMarketFilterSearch');
-  const categoryFilter = document.getElementById('vendorsMarketFilterCategory');
-  const subcategoryFilter = document.getElementById('vendorsMarketFilterSubcategory');
-  const radiusFilter = document.getElementById('vendorsMarketFilterRadius');
-  const premiumFilter = document.getElementById('vendorsMarketFilterPremium');
-  const verifiedFilter = document.getElementById('vendorsMarketFilterVerified');
-  const paymentFilter = document.getElementById('vendorsMarketFilterPayment');
-  const locationFilter = document.getElementById('vendorsMarketFilterLocation');
-  const ratingFilters = pageRoot.querySelectorAll('.vendors-market-filter-rating');
-  const applyFiltersBtn = document.getElementById('vendorsMarketApplyFilters');
-  const resetFiltersBtn = document.getElementById('vendorsMarketResetFilters');
-  const sortFilter = document.getElementById('vendorsMarketSort');
-  const tabButtons = pageRoot.querySelectorAll('[data-vendors-tab]');
-  const viewButtons = pageRoot.querySelectorAll('[data-vendors-view]');
-  const loadingText = document.getElementById('vendorsLoadingText');
-  const summaryText = document.getElementById('vendorsSummaryText');
-  const scrollSentinel = document.getElementById('vendorsScrollSentinel');
-  const viewAllLink = document.getElementById('vendorsViewAllLink');
-  const categoryCards = pageRoot.querySelectorAll('[data-vendors-category-id]');
+  const filterBar = document.getElementById('servicesFilterBar');
+  const servicesGrid = document.getElementById('servicesGrid');
+  const premiumSection = document.getElementById('servicesPremiumSection');
+  const premiumTrack = document.getElementById('servicesPremiumTrack');
+  const searchFilter = document.getElementById('servicesMarketFilterSearch');
+  const categoryFilter = document.getElementById('servicesMarketFilterCategory');
+  const subcategoryFilter = document.getElementById('servicesMarketFilterSubcategory');
+  const radiusFilter = document.getElementById('servicesMarketFilterRadius');
+  const premiumFilter = document.getElementById('servicesMarketFilterPremium');
+  const verifiedFilter = document.getElementById('servicesMarketFilterVerified');
+  const paymentFilter = document.getElementById('servicesMarketFilterPayment');
+  const locationFilter = document.getElementById('servicesMarketFilterLocation');
+  const ratingFilters = pageRoot.querySelectorAll('.services-market-filter-rating');
+  const applyFiltersBtn = document.getElementById('servicesMarketApplyFilters');
+  const resetFiltersBtn = document.getElementById('servicesMarketResetFilters');
+  const sortFilter = document.getElementById('servicesMarketSort');
+  const tabButtons = pageRoot.querySelectorAll('[data-services-tab]');
+  const viewButtons = pageRoot.querySelectorAll('[data-services-view]');
+  const loadingText = document.getElementById('servicesLoadingText');
+  const summaryText = document.getElementById('servicesSummaryText');
+  const scrollSentinel = document.getElementById('servicesScrollSentinel');
+  const viewAllLink = document.getElementById('servicesViewAllLink');
+  const categoryCards = pageRoot.querySelectorAll('[data-services-category-id]');
 
   const categories = JSON.parse(filterBar?.dataset.categories || '[]');
   const indexUrl = pageRoot.dataset.indexUrl || window.location.pathname;
   const listingsUrl = pageRoot.dataset.listingsUrl || '';
-  const premiumUrl = pageRoot.dataset.premiumUrl || '/vendors/premium';
+  const premiumUrl = pageRoot.dataset.premiumUrl || '/services/premium';
   const hasLocation = pageRoot.dataset.hasLocation === '1';
   const isPreviewListing = pageRoot.dataset.previewListing === '1';
   const urlParams = new URLSearchParams(window.location.search);
 
   let activeTab = urlParams.get('tab') || pageRoot.dataset.activeTab || 'all';
   let activeView = urlParams.get('view') || pageRoot.dataset.activeView || 'grid';
-  let nextPageUrl = vendorsGrid?.dataset.nextPageUrl || '';
+  let nextPageUrl = servicesGrid?.dataset.nextPageUrl || '';
   let isLoading = false;
   let debounceTimer;
 
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     subcategoryFilter.disabled = false;
   }
 
-  function buildPremiumVendorsUrl() {
+  function buildPremiumServicesUrl() {
     const url = new URL(premiumUrl, window.location.origin);
     const params = url.searchParams;
 
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return url.toString();
   }
 
-  function buildVendorsUrl(pageUrl) {
+  function buildServicesUrl(pageUrl) {
     const url = new URL(pageUrl || indexUrl, window.location.origin);
     const params = url.searchParams;
 
@@ -118,21 +118,21 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function syncViewClasses() {
-    if (!vendorsGrid) return;
-    vendorsGrid.classList.toggle('is-list-view', activeView === 'list');
+    if (!servicesGrid) return;
+    servicesGrid.classList.toggle('is-list-view', activeView === 'list');
     viewButtons.forEach(function (button) {
-      button.classList.toggle('is-active', button.dataset.vendorsView === activeView);
+      button.classList.toggle('is-active', button.dataset.servicesView === activeView);
     });
   }
 
   function syncTabClasses() {
     tabButtons.forEach(function (button) {
-      button.classList.toggle('is-active', button.dataset.vendorsTab === activeTab);
+      button.classList.toggle('is-active', button.dataset.servicesTab === activeTab);
     });
   }
 
   function syncBrowserUrl() {
-    const nextUrl = buildVendorsUrl(indexUrl);
+    const nextUrl = buildServicesUrl(indexUrl);
     window.history.replaceState({}, '', nextUrl);
   }
 
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (payload.total > 0) {
       if (isPreviewListing) {
-        summaryText.textContent = 'Showing ' + payload.loaded_to + ' of ' + payload.total + ' vendors';
+        summaryText.textContent = 'Showing ' + payload.loaded_to + ' of ' + payload.total + ' services';
       } else {
         summaryText.textContent = 'Showing 1 to ' + payload.loaded_to + ' of ' + payload.total + ' results';
       }
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function syncViewAllLink() {
     if (!isPreviewListing || !viewAllLink || !listingsUrl) return;
-    viewAllLink.href = buildVendorsUrl(listingsUrl);
+    viewAllLink.href = buildServicesUrl(listingsUrl);
   }
 
   function updatePremiumSection(payload) {
@@ -168,16 +168,16 @@ document.addEventListener('DOMContentLoaded', function () {
     premiumSection.classList.toggle('d-none', !hasPremium);
   }
 
-  async function reloadVendorsFromStart(options) {
+  async function reloadServicesFromStart(options) {
     const settings = options || {};
 
-    if (!vendorsGrid || isLoading) return;
+    if (!servicesGrid || isLoading) return;
 
     isLoading = true;
     setLoadingState(true);
 
     try {
-      const response = await fetch(buildVendorsUrl(indexUrl), {
+      const response = await fetch(buildServicesUrl(indexUrl), {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json',
@@ -185,13 +185,13 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load vendors');
+        throw new Error('Failed to load services');
       }
 
       const payload = await response.json();
-      vendorsGrid.innerHTML = payload.html || '';
+      servicesGrid.innerHTML = payload.html || '';
       nextPageUrl = isPreviewListing ? '' : (payload.next_page_url || '');
-      vendorsGrid.dataset.nextPageUrl = nextPageUrl;
+      servicesGrid.dataset.nextPageUrl = nextPageUrl;
       syncViewClasses();
       updateSummary(payload);
       updatePremiumSection(payload);
@@ -208,14 +208,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  async function loadNextVendorsPage() {
-    if (!nextPageUrl || isLoading || !vendorsGrid) return;
+  async function loadNextServicesPage() {
+    if (!nextPageUrl || isLoading || !servicesGrid) return;
 
     isLoading = true;
     setLoadingState(true);
 
     try {
-      const response = await fetch(buildVendorsUrl(nextPageUrl), {
+      const response = await fetch(buildServicesUrl(nextPageUrl), {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json',
@@ -223,22 +223,22 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load more vendors');
+        throw new Error('Failed to load more services');
       }
 
       const payload = await response.json();
-      const emptyState = vendorsGrid.querySelector('.vendors-empty-state');
+      const emptyState = servicesGrid.querySelector('.vendors-empty-state');
 
       if (emptyState) {
         emptyState.remove();
       }
 
       if (payload.html) {
-        vendorsGrid.insertAdjacentHTML('beforeend', payload.html);
+        servicesGrid.insertAdjacentHTML('beforeend', payload.html);
       }
 
       nextPageUrl = payload.next_page_url || '';
-      vendorsGrid.dataset.nextPageUrl = nextPageUrl;
+      servicesGrid.dataset.nextPageUrl = nextPageUrl;
       updateSummary(payload);
     } catch (error) {
       console.error(error);
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function scheduleReload(delay) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
-      reloadVendorsFromStart();
+      reloadServicesFromStart();
     }, delay || 0);
   }
 
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (sortFilter) sortFilter.value = 'recent';
     activeTab = 'all';
     syncTabClasses();
-    reloadVendorsFromStart();
+    reloadServicesFromStart();
   }
 
   if (subcategoryFilter) {
@@ -282,8 +282,8 @@ document.addEventListener('DOMContentLoaded', function () {
   syncViewClasses();
   syncTabClasses();
 
-  if (window.location.hash === '#vendorsAllSection') {
-    document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (window.location.hash === '#servicesAllSection') {
+    document.getElementById('servicesAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   const headerLocationInput = document.getElementById('headerCurrentLocation');
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (premiumFilter) {
     premiumFilter.addEventListener('change', function () {
       if (premiumFilter.checked) {
-        window.location.href = buildPremiumVendorsUrl();
+        window.location.href = buildPremiumServicesUrl();
         return;
       }
       scheduleReload(0);
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', function () {
-      reloadVendorsFromStart();
+      reloadServicesFromStart();
     });
   }
 
@@ -371,15 +371,15 @@ document.addEventListener('DOMContentLoaded', function () {
   tabButtons.forEach(function (button) {
     button.addEventListener('click', function () {
       if (isLoading) return;
-      activeTab = button.dataset.vendorsTab || 'all';
+      activeTab = button.dataset.servicesTab || 'all';
       syncTabClasses();
-      reloadVendorsFromStart();
+      reloadServicesFromStart();
     });
   });
 
   viewButtons.forEach(function (button) {
     button.addEventListener('click', function () {
-      activeView = button.dataset.vendorsView || 'grid';
+      activeView = button.dataset.servicesView || 'grid';
       syncViewClasses();
       scheduleReload(0);
     });
@@ -389,13 +389,13 @@ document.addEventListener('DOMContentLoaded', function () {
     card.addEventListener('click', function (event) {
       event.preventDefault();
       if (!categoryFilter) return;
-      categoryFilter.value = card.dataset.vendorsCategoryId || '';
+      categoryFilter.value = card.dataset.servicesCategoryId || '';
       if (subcategoryFilter) {
         subcategoryFilter.dataset.selected = '';
       }
       populateSubcategories();
       scheduleReload(0);
-      document.getElementById('vendorsAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('servicesAllSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
     new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          loadNextVendorsPage();
+          loadNextServicesPage();
         }
       });
     }, { rootMargin: '300px 0px' }).observe(scrollSentinel);
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!nextPageUrl || isLoading || !scrollSentinel) return;
       const sentinelTop = scrollSentinel.getBoundingClientRect().top;
       if (sentinelTop <= window.innerHeight + 300) {
-        loadNextVendorsPage();
+        loadNextServicesPage();
       }
     }, { passive: true });
   }

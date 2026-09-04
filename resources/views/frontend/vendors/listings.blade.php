@@ -1,8 +1,6 @@
 @extends('frontend.layouts.app')
 
 @php
-  use App\Support\VendorCategoryIcon;
-
   $formatStat = function (int $count): string {
       if ($count >= 1000) {
           return number_format($count / 1000, $count >= 10000 ? 0 : 1).'K+';
@@ -13,6 +11,8 @@
   $listBusinessUrl = auth()->check() ? route('user.profile.edit') : route('login');
   $learnMoreUrl = route('frontend.premium.show', 'vendor');
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
+  $activeTab = request('tab', 'all');
+  $activeView = $cardView ?? (request('view') === 'list' ? 'list' : 'grid');
   $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
 @endphp
 
@@ -23,13 +23,13 @@
 
 @section('content')
 <div
-  class="vendors-page"
+  class="vendors-page vendors-page--listings"
   id="vendorsPageRoot"
-  data-index-url="{{ route('frontend.vendors.index') }}"
-  data-listings-url="{{ route('frontend.vendors.listings') }}"
+  data-index-url="{{ route('frontend.vendors.listings') }}"
   data-premium-url="{{ route('frontend.vendors.premium') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
-  data-preview-listing="1"
+  data-active-tab="{{ $activeTab }}"
+  data-active-view="{{ $activeView }}"
 >
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
@@ -155,139 +155,92 @@
     </aside>
 
     <main class="vendors-main">
-      <section class="vendors-hero">
+      <section class="vendors-hero vendors-hero--compact">
         <div class="vendors-hero__intro">
           <span class="vendors-hero__eyebrow">
             <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
             Vendor Marketplace
           </span>
-          <h1>Discover Trusted Vendors Near You</h1>
-          <p>Find the best products and services from verified local businesses in your area.</p>
+          <h1>All Vendor Listings</h1>
+          <p>Browse every verified vendor on SoilnWater. Premium members appear first with highlighted profiles.</p>
         </div>
         <div class="vendors-hero__stats">
-            <div class="vendors-stat">
-              <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true">
-                <i class="fa-solid fa-gem"></i>
-              </span>
-              <div class="vendors-stat__text">
-                <strong>{{ $formatStat($vendorStats['premium']) }}</strong>
-                <span>Premium Vendors</span>
-              </div>
-            </div>
-            <div class="vendors-stat">
-              <span class="vendors-stat__icon" aria-hidden="true">
-                <i class="fa-solid fa-store"></i>
-              </span>
-              <div class="vendors-stat__text">
-                <strong>{{ $formatStat($vendorStats['trusted']) }}</strong>
-                <span>Trusted Businesses</span>
-              </div>
-            </div>
-            <div class="vendors-stat">
-              <span class="vendors-stat__icon" aria-hidden="true">
-                <i class="fa-solid fa-chart-simple"></i>
-              </span>
-              <div class="vendors-stat__text">
-                <strong>{{ $formatStat($vendorStats['categories']) }}</strong>
-                <span>Categories</span>
-              </div>
-            </div>
-            <div class="vendors-stat">
-              <span class="vendors-stat__icon" aria-hidden="true">
-                <i class="fa-solid fa-star"></i>
-              </span>
-              <div class="vendors-stat__text">
-                <strong>{{ $formatStat($vendorStats['happy_customers']) }}</strong>
-                <span>Happy Customers</span>
-              </div>
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon" aria-hidden="true">
+              <i class="fa-solid fa-store"></i>
+            </span>
+            <div class="vendors-stat__text">
+              <strong>{{ $formatStat($vendorStats['trusted']) }}</strong>
+              <span>Trusted Businesses</span>
             </div>
           </div>
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true">
+              <i class="fa-solid fa-gem"></i>
+            </span>
+            <div class="vendors-stat__text">
+              <strong>{{ $formatStat($vendorStats['premium']) }}</strong>
+              <span>Premium Vendors</span>
+            </div>
+          </div>
+        </div>
       </section>
-
-      @include('frontend.premium.partials.listing-cta', ['type' => 'vendor'])
-
-      @if ($topCategories->isNotEmpty())
-        <section class="vendors-section vendors-section--categories">
-          <div class="vendors-section__head vendors-section__head--compact">
-            <h2>Top Categories</h2>
-            <a href="{{ route('frontend.vendors.categories') }}" class="vendors-section__link">
-              All Listing <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
-            </a>
-          </div>
-          <div class="vendors-categories-strip">
-            @foreach ($topCategories as $category)
-              <a
-                href="{{ route('frontend.vendors.listings', ['category_id' => $category->id]) }}"
-                class="vendors-category-chip"
-                title="{{ $category->name }}"
-              >
-                <span class="vendors-category-chip__icon vendors-category-chip__icon--{{ VendorCategoryIcon::toneIndex($category->name) }}">
-                  <i class="fa-solid {{ VendorCategoryIcon::iconClass($category->name) }}" aria-hidden="true"></i>
-                </span>
-                <span class="vendors-category-chip__text">
-                  <strong>{{ $category->name }}</strong>
-                  <small>{{ number_format((int) $category->vendor_count) }}+ vendors</small>
-                </span>
-              </a>
-            @endforeach
-            <a
-              href="{{ route('frontend.vendors.listings') }}"
-              class="vendors-category-chip vendors-category-chip--all"
-              title="View all vendor listings"
-            >
-              <span class="vendors-category-chip__icon vendors-category-chip__icon--all">
-                <i class="fa-solid fa-border-all" aria-hidden="true"></i>
-              </span>
-              <span class="vendors-category-chip__text">
-                <strong>All Listing</strong>
-                <small>View all vendors</small>
-              </span>
-            </a>
-          </div>
-        </section>
-      @endif
-
-      <section class="vendors-section @if($premiumVendors->isEmpty()) d-none @endif" id="vendorsPremiumSection">
-          <div class="vendors-section__head">
-            <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
-            <a
-              href="{{ route('frontend.vendors.premium') }}"
-              class="vendors-section__link"
-            >View All Premium Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
-          </div>
-          <div class="vendors-premium-track" id="vendorsPremiumTrack">
-            @include('frontend.vendors.partials.premium-cards', ['premiumVendors' => $premiumVendors, 'hasLocation' => $hasLocation])
-          </div>
-        </section>
 
       <section class="vendors-section" id="vendorsAllSection">
         <div class="vendors-section__head">
           <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> All Vendors</h2>
-          <a
-            href="{{ route('frontend.vendors.listings', request()->only(['category_id', 'subcategory_id', 'search', 'verified', 'payment', 'min_rating', 'radius'])) }}"
-            class="vendors-section__link"
-            id="vendorsViewAllLink"
-          >View All Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
+          <a href="{{ route('frontend.vendors.index') }}" class="vendors-section__link">
+            Back to Marketplace <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="vendors-all__toolbar">
+          <div class="vendors-tabs" role="tablist" aria-label="Vendor listing tabs">
+            <button type="button" class="vendors-tab @if($activeTab === 'all') is-active @endif" data-vendors-tab="all">All Vendors</button>
+            <button type="button" class="vendors-tab @if($activeTab === 'recent') is-active @endif" data-vendors-tab="recent">Recently Joined</button>
+            <button type="button" class="vendors-tab @if($activeTab === 'top_rated') is-active @endif" data-vendors-tab="top_rated">Top Rated</button>
+            <button type="button" class="vendors-tab @if($activeTab === 'most_reviewed') is-active @endif" data-vendors-tab="most_reviewed">Most Reviewed</button>
+          </div>
+          <div class="vendors-all__controls">
+            <select id="vendorsMarketSort" class="form-select" aria-label="Sort vendors">
+              <option value="recent" @selected(request('sort', 'recent') === 'recent')>Most Recent</option>
+              <option value="name" @selected(request('sort') === 'name')>Name (A-Z)</option>
+            </select>
+            <div class="vendors-view-toggle" aria-label="Toggle vendor view">
+              <button type="button" class="@if($activeView === 'grid') is-active @endif" data-vendors-view="grid" title="Grid view">
+                <i class="fa-solid fa-grip" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="@if($activeView === 'list') is-active @endif" data-vendors-view="list" title="List view">
+                <i class="fa-solid fa-list" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div
           id="vendorsGrid"
-          class="vendors-results-grid"
-          data-next-page-url=""
+          class="vendors-results-grid @if($activeView === 'list') is-list-view @endif"
+          data-next-page-url="{{ $vendors->nextPageUrl() }}"
         >
-          @include('frontend.vendors.partials.cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
+          @if ($activeView === 'list')
+            @include('frontend.vendors.partials.list-cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
+          @else
+            @include('frontend.vendors.partials.cards', ['vendors' => $vendors, 'hasLocation' => $hasLocation])
+          @endif
         </div>
 
         <div class="vendors-pagination-wrap offer-pagination-wrap" id="vendorsPaginationState">
           @if ($vendors->total() > 0)
             <p class="offer-pagination-summary mb-0" id="vendorsSummaryText">
-              Showing {{ min($vendors->count(), 12) }} of {{ $vendors->total() }} vendors
+              Showing {{ $vendors->firstItem() }} to {{ $vendors->lastItem() }} of {{ $vendors->total() }} results
             </p>
           @else
             <p class="offer-pagination-summary mb-0 d-none" id="vendorsSummaryText"></p>
           @endif
-          <p class="offer-pagination-loading mb-0 d-none" id="vendorsLoadingText">Loading vendors…</p>
+          <p class="offer-pagination-loading mb-0 d-none" id="vendorsLoadingText">Loading more vendors…</p>
         </div>
+
+        <div id="vendorsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
       </section>
 
       <section class="vendors-cta">
@@ -300,7 +253,7 @@
         </div>
         <div class="vendors-cta__actions">
           <a href="{{ $listBusinessUrl }}" class="vendors-cta__primary">List Your Business</a>
-          <a href="{{ $learnMoreUrl }}" class="vendors-cta__secondary">Learn More</a>
+          <a href="{{ $learnMoreUrl }}" class="vendors-cta__secondary">Learn About Premium</a>
         </div>
       </section>
     </main>
