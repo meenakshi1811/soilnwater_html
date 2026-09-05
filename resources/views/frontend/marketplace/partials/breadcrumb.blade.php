@@ -8,6 +8,10 @@
             'label' => 'Services',
             'route' => 'frontend.service_providers.index',
         ],
+        'educators' => [
+            'label' => 'Teachers & Tutors',
+            'route' => 'educator.index',
+        ],
         default => [
             'label' => 'Vendors',
             'route' => 'frontend.vendors.index',

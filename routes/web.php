@@ -187,6 +187,7 @@ Route::post('/service/{slug}/services/{service}/enquiry', [ServiceProviderStoreC
 Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
+Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
 Route::get('/teachers-tutors/{slug}', [FrontendEducatorProfileController::class, 'show'])->name('educator.show');
 Route::post('/teachers-tutors/{slug}/enquiry', [FrontendEducatorProfileController::class, 'enquiry'])->middleware('auth')->name('educator.enquiry');
 Route::post('/teachers-tutors/{slug}/follow', [FrontendEducatorProfileController::class, 'follow'])->middleware('auth')->name('educator.follow');

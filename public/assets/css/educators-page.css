@@ -1,0 +1,87 @@
+.educators-page .educators-card__media {
+  background: linear-gradient(145deg, #e8f5e9 0%, #eef2f6 55%, #dde7f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+}
+
+.educators-page .educators-card__photo {
+  width: 96px !important;
+  height: 96px !important;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 20px rgba(22, 50, 79, 0.12);
+  margin: 1.1rem auto;
+}
+
+.educators-page .educators-card__badge {
+  background: #1b5e20;
+}
+
+.educators-page .educators-card__badge--tuition {
+  background: #16324f;
+}
+
+.educators-page .educators-card.is-verified {
+  border-color: #c8e6c9;
+}
+
+.educators-page .educators-card__headline {
+  margin: .35rem 0 0;
+  color: #66788f;
+  font-size: .78rem;
+  line-height: 1.35;
+  min-height: 2.1em;
+}
+
+.educators-page .educators-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem .85rem;
+  margin-top: .55rem;
+  color: #66788f;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.educators-page .educators-card__stats i {
+  color: #2e7d32;
+  margin-right: .2rem;
+}
+
+.educators-page .educators-subject-chip {
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.educators-page .educators-subject-chip:hover {
+  border-color: #2e7d32;
+}
+
+.educators-page .vendors-premium-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.educators-page .educators-card--featured {
+  min-width: 220px;
+}
+
+@media (max-width: 991px) {
+  .educators-page .vendors-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .educators-page .vendors-sidebar {
+    position: static;
+  }
+}
