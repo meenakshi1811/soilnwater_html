@@ -191,6 +191,7 @@ Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'list
 Route::get('/teachers-tutors/{slug}', [FrontendEducatorProfileController::class, 'show'])->name('educator.show');
 Route::post('/teachers-tutors/{slug}/enquiry', [FrontendEducatorProfileController::class, 'enquiry'])->middleware('auth')->name('educator.enquiry');
 Route::post('/teachers-tutors/{slug}/follow', [FrontendEducatorProfileController::class, 'follow'])->middleware('auth')->name('educator.follow');
+Route::post('/teachers-tutors/{slug}/review', [FrontendEducatorProfileController::class, 'review'])->middleware('auth')->name('educator.review');
 
 Route::get('/study-materials', [StudyMaterialLibraryController::class, 'index'])->name('study-materials.library');
 Route::get('/study-materials/notes', [StudyMaterialLibraryController::class, 'notes'])->name('study-materials.notes');

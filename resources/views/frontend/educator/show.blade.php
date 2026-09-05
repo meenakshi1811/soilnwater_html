@@ -5,6 +5,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/educator-profile.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @section('content')
@@ -44,7 +45,7 @@
             <p class="edu-tagline">{{ $educator->tagline }}</p>
           @endif
           <div class="edu-meta">
-            <span><i class="fa-solid fa-star"></i>{{ number_format((float)$educator->average_rating, 1) }} ({{ number_format($educator->reviews_count) }} reviews)</span>
+            <span><i class="fa-solid fa-star"></i><span class="js-edu-avg-rating">{{ number_format((float)$educator->average_rating, 1) }}</span> (<span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews)</span>
             @if($educator->locationLabel())
               <span><i class="fa-solid fa-location-dot"></i>{{ $educator->locationLabel() }}</span>
             @endif
@@ -175,20 +176,73 @@
         @endforelse
       </section>
 
-      <section class="edu-card">
-        <h3>Reviews</h3>
-        @forelse($educator->reviews as $review)
-          <div class="edu-review">
-            <div class="d-flex justify-content-between gap-2">
-              <strong>{{ $review->student_name ?: 'Student' }}</strong>
-              <span class="edu-stars">@for($i=1;$i<=5;$i++)<i class="fa-{{ $i <= $review->rating ? 'solid' : 'regular' }} fa-star"></i>@endfor</span>
-            </div>
-            @if($review->student_class)<div class="small text-muted">{{ $review->student_class }}</div>@endif
-            <p class="mb-0 mt-1">{{ $review->review }}</p>
+      <section class="edu-card" id="educatorReviewsSection"
+        data-review-url="{{ route('educator.review', $educator->slug) }}"
+      >
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+          <div>
+            <h3 class="mb-1">Reviews</h3>
+            <p class="edu-empty mb-0">
+              <span class="js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</span>
+              average ·
+              <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span>
+              reviews (profile + study materials)
+            </p>
           </div>
-        @empty
-          <p class="edu-empty mb-0">No reviews yet.</p>
-        @endforelse
+        </div>
+
+        @auth
+          <form id="educatorReviewForm" class="edu-review-form mb-4" novalidate>
+            @csrf
+            <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
+            <p class="edu-review-form__hint mb-2">Share your experience with this teacher / tutor.</p>
+
+            @php $selectedRating = (int) old('rating', $userReview?->rating ?: 5); @endphp
+            <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
+              <input type="hidden" name="rating" id="educatorReviewRating" value="{{ $selectedRating }}">
+              @foreach (range(1, 5) as $stars)
+                <button
+                  type="button"
+                  class="edu-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
+                  data-rating="{{ $stars }}"
+                  aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
+                >
+                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                </button>
+              @endforeach
+            </div>
+
+            <div class="row g-2 mt-2">
+              <div class="col-md-4">
+                <label class="form-label" for="educatorStudentClass">Class / Course (optional)</label>
+                <input type="text" id="educatorStudentClass" name="student_class" class="form-control" value="{{ old('student_class', $userReview?->student_class) }}" placeholder="e.g. Class 12">
+              </div>
+              <div class="col-md-8">
+                <label class="form-label" for="educatorReviewText">Your feedback</label>
+                <textarea id="educatorReviewText" name="review" class="form-control" rows="2" maxlength="2000" placeholder="What was helpful about learning with them?">{{ old('review', $userReview?->review) }}</textarea>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+              <button type="submit" class="edu-btn edu-btn-primary" id="educatorReviewSubmitBtn">
+                <span class="btn-text">{{ ($userReview ?? null) ? 'Update review' : 'Submit review' }}</span>
+              </button>
+            </div>
+          </form>
+        @else
+          <div class="edu-review-login mb-4">
+            <p class="mb-2">Sign in to leave a review for this educator.</p>
+            <a href="{{ route('login') }}" class="edu-btn edu-btn-outline">Login to review</a>
+          </div>
+        @endauth
+
+        <div id="educatorReviewsList">
+          @forelse(($profileReviews ?? collect()) as $item)
+            @include('frontend.educator.partials.review-item', ['item' => $item])
+          @empty
+            <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
+          @endforelse
+        </div>
       </section>
     </div>
 
@@ -291,3 +345,107 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+(function () {
+  var section = document.getElementById('educatorReviewsSection');
+  if (!section) return;
+
+  var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  var reviewUrl = section.dataset.reviewUrl;
+  var ratingInput = document.getElementById('educatorReviewRating');
+  var starButtons = document.querySelectorAll('.edu-star-picker__btn');
+
+  function notify(type, message) {
+    if (window.toastr && typeof window.toastr[type] === 'function') {
+      window.toastr.options = { closeButton: true, progressBar: true, positionClass: 'toast-top-right', timeOut: 3500 };
+      window.toastr[type](message);
+      return;
+    }
+    alert(message);
+  }
+
+  function paintStars(value) {
+    starButtons.forEach(function (btn) {
+      btn.classList.toggle('is-active', Number(btn.dataset.rating) <= Number(value));
+    });
+  }
+
+  starButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (ratingInput) ratingInput.value = btn.dataset.rating;
+      paintStars(btn.dataset.rating);
+    });
+    btn.addEventListener('mouseenter', function () {
+      paintStars(btn.dataset.rating);
+    });
+  });
+
+  document.querySelector('.edu-star-picker')?.addEventListener('mouseleave', function () {
+    paintStars(ratingInput?.value || 5);
+  });
+
+  var form = document.getElementById('educatorReviewForm');
+  if (!form || !reviewUrl) return;
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    var submitBtn = document.getElementById('educatorReviewSubmitBtn');
+    var btnText = submitBtn?.querySelector('.btn-text');
+    if (submitBtn) submitBtn.disabled = true;
+    if (btnText) btnText.textContent = 'Saving...';
+
+    try {
+      var response = await fetch(reviewUrl, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          _token: csrf,
+          rating: Number(ratingInput?.value || 5),
+          student_class: document.getElementById('educatorStudentClass')?.value || '',
+          review: document.getElementById('educatorReviewText')?.value || ''
+        })
+      });
+      var data = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        var firstError = data.errors ? Object.values(data.errors).flat()[0] : null;
+        throw new Error(firstError || data.message || 'Unable to save review.');
+      }
+
+      document.querySelectorAll('.js-edu-avg-rating').forEach(function (el) {
+        el.textContent = data.average_rating;
+      });
+      document.querySelectorAll('.js-edu-reviews-count').forEach(function (el) {
+        el.textContent = Number(data.reviews_count || 0).toLocaleString();
+      });
+
+      var list = document.getElementById('educatorReviewsList');
+      document.getElementById('educatorReviewsEmpty')?.remove();
+      if (list && data.review_html) {
+        var existing = data.review_key ? list.querySelector('[data-review-id="' + data.review_key + '"]') : null;
+        if (existing) existing.remove();
+        list.insertAdjacentHTML('afterbegin', data.review_html);
+      }
+
+      if (btnText) btnText.textContent = 'Update review';
+      var title = form.querySelector('.edu-review-form__title');
+      if (title) title.textContent = 'Update your review';
+      notify('success', data.message || 'Review submitted.');
+    } catch (error) {
+      notify('error', error.message || 'Unable to save review.');
+      if (btnText) btnText.textContent = 'Submit review';
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+})();
+</script>
+@endpush

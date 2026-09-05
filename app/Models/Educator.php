@@ -206,14 +206,22 @@ class Educator extends Model
 
     public function recalculateRating(): void
     {
-        $stats = EducatorReview::query()
+        $profile = EducatorReview::query()
             ->where('educator_id', $this->id)
-            ->selectRaw('COUNT(*) as total, COALESCE(AVG(rating), 0) as avg_rating')
+            ->selectRaw('COUNT(*) as total, COALESCE(SUM(rating), 0) as rating_sum')
             ->first();
 
+        $materials = StudyMaterialReview::query()
+            ->whereHas('studyMaterial', fn ($q) => $q->where('educator_id', $this->id))
+            ->selectRaw('COUNT(*) as total, COALESCE(SUM(rating), 0) as rating_sum')
+            ->first();
+
+        $total = (int) ($profile->total ?? 0) + (int) ($materials->total ?? 0);
+        $sum = (float) ($profile->rating_sum ?? 0) + (float) ($materials->rating_sum ?? 0);
+
         $this->forceFill([
-            'reviews_count' => (int) ($stats->total ?? 0),
-            'average_rating' => round((float) ($stats->avg_rating ?? 0), 2),
+            'reviews_count' => $total,
+            'average_rating' => $total > 0 ? round($sum / $total, 2) : 0,
         ])->save();
     }
 

@@ -234,6 +234,7 @@ class StudyMaterialLibraryController extends Controller
         $review->load('user:id,name,profile_image');
         $material->recalculateRating();
         $material->refresh();
+        $material->educator?->recalculateRating();
 
         $owner = $material->educator?->user ?: $material->user;
         if ($owner && (int) $owner->id !== (int) auth()->id() && ! $wasExisting) {

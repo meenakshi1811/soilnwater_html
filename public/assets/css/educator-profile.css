@@ -213,13 +213,71 @@
 }
 
 .edu-review {
-  border-top: 1px solid #eef3fb;
-  padding-top: 0.9rem;
-  margin-top: 0.9rem;
+  border: 1px solid #eef3fb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-top: 0.75rem;
+  background: #fff;
+}
+
+.edu-review:first-child {
+  margin-top: 0;
+}
+
+.edu-review__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .edu-stars {
   color: #f5a524;
+  white-space: nowrap;
+}
+
+.edu-review-form {
+  border: 1px solid #e5edf7;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #f8fbff;
+}
+
+.edu-review-form__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.edu-review-form__hint {
+  color: #6b7c93;
+  font-size: 0.88rem;
+}
+
+.edu-star-picker {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.edu-star-picker__btn {
+  border: 0;
+  background: transparent;
+  color: #c9d3e0;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.1rem;
+  cursor: pointer;
+}
+
+.edu-star-picker__btn.is-active,
+.edu-star-picker__btn:hover {
+  color: #f5a524;
+}
+
+.edu-review-login {
+  border: 1px dashed #d7e3f2;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: #fff;
 }
 
 .edu-sidebar-list {
