@@ -338,7 +338,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [EducatorDashboardController::class, 'dashboard'])->middleware('educator')->name('dashboard');
         Route::get('/profile', [EducatorProfileController::class, 'edit'])->middleware('educator')->name('profile.edit');
         Route::put('/profile', [EducatorProfileController::class, 'update'])->middleware('educator')->name('profile.update');
-        Route::resource('materials', StudyMaterialController::class)->except(['show'])->middleware('educator');
+        Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('educator')->name('materials.data');
+        Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
     });
 
@@ -698,6 +699,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
         Route::prefix('study-materials')->name('study-materials.')->group(function () {
             Route::get('/', [StudyMaterialApprovalController::class, 'index'])->name('index');
             Route::get('/data', [StudyMaterialApprovalController::class, 'data'])->name('data');
+            Route::get('/{study_material}', [StudyMaterialApprovalController::class, 'show'])->name('show');
             Route::post('/{study_material}/approve', [StudyMaterialApprovalController::class, 'approve'])->name('approve');
             Route::post('/{study_material}/reject', [StudyMaterialApprovalController::class, 'reject'])->name('reject');
         });

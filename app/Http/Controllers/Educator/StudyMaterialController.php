@@ -10,17 +10,70 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Yajra\DataTables\Facades\DataTables;
 
 class StudyMaterialController extends Controller
 {
     public function index(): View
     {
-        $materials = StudyMaterial::query()
-            ->where('educator_id', auth()->user()->educator->id)
-            ->latest()
-            ->get();
+        return view('backend.educator.materials.index');
+    }
 
-        return view('backend.educator.materials.index', compact('materials'));
+    public function data(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $educatorId = auth()->user()->educator?->id;
+        abort_unless($educatorId, 403);
+
+        $query = StudyMaterial::query()
+            ->where('educator_id', $educatorId)
+            ->select([
+                'id',
+                'title',
+                'material_type',
+                'subject',
+                'class_course',
+                'status',
+                'downloads_count',
+                'updated_at',
+            ])
+            ->orderByDesc('updated_at');
+
+        $status = $request->string('status')->toString();
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('status', $status);
+        }
+
+        return DataTables::of($query)
+            ->addColumn('title_display', function (StudyMaterial $material): string {
+                $subtitle = e($material->class_course ?: '—');
+
+                return '<div class="fw-semibold">'.e($material->title).'</div><div class="small text-muted">'.$subtitle.'</div>';
+            })
+            ->addColumn('type_label', fn (StudyMaterial $material): string => e($material->materialTypeLabel()))
+            ->addColumn('subject_display', fn (StudyMaterial $material): string => e($material->subject ?: '—'))
+            ->addColumn('status_badge', function (StudyMaterial $material): string {
+                $status = $material->status ?? 'pending';
+                $badge = $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning');
+
+                return '<span class="badge bg-'.$badge.'">'.ucfirst($status).'</span>';
+            })
+            ->addColumn('downloads_display', fn (StudyMaterial $material): string => number_format((int) $material->downloads_count))
+            ->addColumn('actions', function (StudyMaterial $material): string {
+                $view = '<a href="'.route('educator.materials.show', $material).'" class="btn btn-sm btn-outline-secondary">View</a>';
+                $edit = '<a href="'.route('educator.materials.edit', $material).'" class="btn btn-sm btn-outline-primary">Edit</a>';
+                $delete = '<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$material->id.'">Delete</button>';
+
+                return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$edit.$delete.'</div>';
+            })
+            ->editColumn('updated_at', function (StudyMaterial $material): string {
+                return optional($material->updated_at)
+                    ? $material->updated_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
+                    : '—';
+            })
+            ->rawColumns(['title_display', 'status_badge', 'actions'])
+            ->make(true);
     }
 
     public function create(): View
@@ -73,6 +126,13 @@ class StudyMaterialController extends Controller
         return redirect()
             ->route('educator.materials.index')
             ->with('success', $message);
+    }
+
+    public function show(StudyMaterial $material): View
+    {
+        $this->authorizeOwner($material);
+
+        return view('backend.educator.materials.show', compact('material'));
     }
 
     public function edit(StudyMaterial $material): View

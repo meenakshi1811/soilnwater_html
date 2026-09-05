@@ -62,6 +62,7 @@ class StudyMaterialApprovalController extends Controller
             })
             ->addColumn('actions', function (StudyMaterial $material): string {
                 $status = $material->status ?? 'pending';
+                $view = '<a href="'.route('admin.study-materials.show', $material).'" class="btn btn-sm btn-outline-secondary">View</a>';
                 $approve = $status !== 'approved'
                     ? '<button type="button" class="btn btn-sm btn-success js-approve" data-id="'.$material->id.'">Approve</button>'
                     : '';
@@ -69,7 +70,7 @@ class StudyMaterialApprovalController extends Controller
                     ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject" data-id="'.$material->id.'">Reject</button>'
                     : '';
 
-                return '<div class="d-flex gap-2 justify-content-end">'.$approve.$reject.'</div>';
+                return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$approve.$reject.'</div>';
             })
             ->editColumn('updated_at', function (StudyMaterial $material): string {
                 return optional($material->updated_at)
@@ -78,6 +79,15 @@ class StudyMaterialApprovalController extends Controller
             })
             ->rawColumns(['status_badge', 'actions'])
             ->make(true);
+    }
+
+    public function show(StudyMaterial $study_material): View
+    {
+        $study_material->load(['educator.user', 'user', 'approver']);
+
+        return view('backend.study-materials.show', [
+            'material' => $study_material,
+        ]);
     }
 
     public function approve(StudyMaterial $study_material): JsonResponse
