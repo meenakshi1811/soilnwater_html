@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminOnlyAdSizeSeeder::class);
         $this->call(AdTemplateSeeder::class);
         $this->call(FoulWordSeeder::class);
+        $this->call(TeacherDemoSeeder::class);
 
         // User::factory(10)->create();
 
