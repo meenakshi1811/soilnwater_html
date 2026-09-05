@@ -16,8 +16,8 @@
         </div>
         @include('backend.partials.create-account-button', [
             'role' => 'teacher',
-            'label' => 'Add Teacher',
-            'modalTitle' => 'Add Teacher',
+            'label' => 'Add Teacher / Tutor',
+            'modalTitle' => 'Add Teacher / Tutor',
         ])
     </div>
 
@@ -27,7 +27,7 @@
                 <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Type</th>
+                    <th>Role</th>
                     <th>Email</th>
                     <th>Phone</th>
                     <th>City</th>

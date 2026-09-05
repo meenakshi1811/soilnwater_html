@@ -13,9 +13,9 @@ class EducatorListingController extends Controller
     {
         $filters = [
             'q' => trim((string) $request->query('q', '')),
-            'type' => $request->query('type'),
             'city' => trim((string) $request->query('city', '')),
             'subject' => trim((string) $request->query('subject', '')),
+            'takes_tuitions' => $request->query('takes_tuitions'),
         ];
 
         $query = Educator::query()
@@ -31,16 +31,18 @@ class EducatorListingController extends Controller
             });
         }
 
-        if (in_array($filters['type'], ['teacher', 'tutor'], true)) {
-            $query->where('type', $filters['type']);
-        }
-
         if ($filters['city'] !== '') {
             $query->where('city', 'like', '%'.$filters['city'].'%');
         }
 
         if ($filters['subject'] !== '') {
             $query->where('subjects', 'like', '%'.$filters['subject'].'%');
+        }
+
+        if ($filters['takes_tuitions'] === '1') {
+            $query->where('take_tuitions', true);
+        } elseif ($filters['takes_tuitions'] === '0') {
+            $query->where('take_tuitions', false);
         }
 
         $educators = $query->paginate(12)->withQueryString();

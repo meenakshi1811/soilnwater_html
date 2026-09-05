@@ -407,7 +407,7 @@ class LoginController extends Controller
     public function googleRegister(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,tutor'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_same_as_phone' => ['nullable', 'boolean'],
@@ -491,7 +491,7 @@ class LoginController extends Controller
         if (! $user) {
             $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
             $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
-            $validRole = in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider', 'teacher', 'tutor'], true);
+            $validRole = in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider', 'teacher'], true);
             $registrationComplete = $this->googleRegistrationIsComplete($registrationFromRegisterFlow);
 
             if ($intent === 'register' && $validRole && $registrationComplete) {
@@ -616,12 +616,12 @@ class LoginController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,tutor'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher'],
             'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,tutor', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
@@ -632,7 +632,7 @@ class LoginController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
-            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, teacher, and tutor registrations.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, and teacher / tutor registrations.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -1093,7 +1093,7 @@ class LoginController extends Controller
             $fill['longitude'] = $details['longitude'];
         }
 
-        if (in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider', 'teacher', 'tutor'], true)) {
+        if (in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider', 'teacher'], true)) {
             $fill['role'] = $role;
         }
 

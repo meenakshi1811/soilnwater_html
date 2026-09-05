@@ -12,7 +12,7 @@
         },
 
         isEducatorRole: function (role) {
-            return role === 'teacher' || role === 'tutor';
+            return role === 'teacher';
         },
 
         currentRole: function () {

@@ -46,7 +46,9 @@ class EducatorController extends Controller
 
         return DataTables::of($query)
             ->addColumn('name', fn (Educator $educator) => e($educator->display_name ?: $educator->user?->name ?: '—'))
-            ->addColumn('type_label', fn (Educator $educator) => e($educator->roleLabel()))
+            ->addColumn('type_label', function (Educator $educator): string {
+                return e($educator->take_tuitions ? 'Teacher / Tutor · Takes tuitions' : 'Teacher / Tutor');
+            })
             ->addColumn('email_display', fn (Educator $educator) => e($educator->email ?: $educator->user?->email ?: '—'))
             ->addColumn('phone_display', fn (Educator $educator) => e($educator->phone ?: $educator->user?->phone_number ?: '—'))
             ->addColumn('city_display', fn (Educator $educator) => e($educator->city ?: '—'))
@@ -83,14 +85,6 @@ class EducatorController extends Controller
                     $query->where('status', 'rejected');
                 } elseif (str_contains($k, 'pending')) {
                     $query->where('status', 'pending');
-                }
-            })
-            ->filterColumn('type_label', function ($query, $keyword): void {
-                $k = strtolower((string) $keyword);
-                if (str_contains($k, 'tutor')) {
-                    $query->where('type', 'tutor');
-                } elseif (str_contains($k, 'teacher')) {
-                    $query->where('type', 'teacher');
                 }
             })
             ->rawColumns(['status_badge', 'actions'])
@@ -175,7 +169,7 @@ class EducatorController extends Controller
             }
 
             $educator->delete();
-            User::whereKey($userId)->whereIn('role', ['teacher', 'tutor'])->delete();
+            User::whereKey($userId)->where('role', 'teacher')->delete();
         });
 
         if ($recipient && $mail) {

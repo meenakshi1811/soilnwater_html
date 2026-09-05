@@ -12,8 +12,8 @@ class EnsureUserIsEducator
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role, ['teacher', 'tutor'], true)) {
-            abort(403, 'Teacher/Tutor access only.');
+        if (! $user || $user->role !== 'teacher') {
+            abort(403, 'Teacher / Tutor access only.');
         }
 
         $educator = $user->educator;

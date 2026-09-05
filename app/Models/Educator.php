@@ -152,24 +152,22 @@ class Educator extends Model
 
     public function isTeacher(): bool
     {
-        return $this->type === 'teacher';
+        return true;
     }
 
     public function isTutor(): bool
     {
-        return $this->type === 'tutor';
+        return (bool) $this->take_tuitions;
     }
 
     public function roleLabel(): string
     {
-        return $this->isTutor() ? 'Tutor' : 'Teacher';
+        return 'Teacher / Tutor';
     }
 
     public function verifiedBadgeLabel(): string
     {
-        return $this->isVerified()
-            ? ($this->isTutor() ? 'Verified Tutor' : 'Verified Teacher')
-            : $this->roleLabel();
+        return $this->isVerified() ? 'Verified Teacher / Tutor' : $this->roleLabel();
     }
 
     public function isVerified(): bool

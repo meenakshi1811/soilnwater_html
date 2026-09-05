@@ -15,7 +15,7 @@ class EducatorRegistrationService
             return $user->educator;
         }
 
-        $type = in_array($user->role, ['teacher', 'tutor'], true) ? $user->role : 'teacher';
+        $type = 'teacher';
         $displayName = $user->full_name ?: $user->name;
         $slug = Educator::generateUniqueSlug($displayName);
         $profileImage = $registrationData['profile_image'] ?? null;
@@ -30,7 +30,7 @@ class EducatorRegistrationService
             'slug' => $slug,
             'profile_photo' => $profileImagePath,
             'professional_headline' => $registrationData['professional_headline']
-                ?? ($type === 'tutor' ? 'Tutor' : 'Teacher'),
+                ?? 'Teacher / Tutor',
             'associated_institute' => $registrationData['associated_institute'] ?? null,
             'city' => $registrationData['city'] ?? $user->city,
             'pincode' => $registrationData['pincode'] ?? $user->pincode,
@@ -40,10 +40,8 @@ class EducatorRegistrationService
             'phone' => $user->phone_number,
             'whatsapp' => $registrationData['whatsapp_number'] ?? $user->whatsapp_number,
             'email' => $user->email,
-            'take_tuitions' => $type === 'tutor',
-            'teaching_modes' => $type === 'tutor'
-                ? ['Online', 'Home Tuition', 'Offline Tuition']
-                : ['Online', 'At Home', 'At My Center'],
+            'take_tuitions' => (bool) ($registrationData['take_tuitions'] ?? false),
+            'teaching_modes' => ['Online', 'At Home', 'At My Center'],
             'languages' => ['English', 'Hindi'],
             'status' => 'pending',
             'converted_from_user' => (bool) ($registrationData['converted_from_user'] ?? false),

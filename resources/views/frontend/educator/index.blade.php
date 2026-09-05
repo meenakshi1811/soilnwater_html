@@ -23,11 +23,11 @@
           <input type="text" name="q" class="form-control" value="{{ $filters['q'] }}" placeholder="Name, headline, institute">
         </div>
         <div class="col-md-2">
-          <label class="form-label">Type</label>
-          <select name="type" class="form-select">
+          <label class="form-label">Takes tuitions</label>
+          <select name="takes_tuitions" class="form-select">
             <option value="">All</option>
-            <option value="teacher" @selected($filters['type'] === 'teacher')>Teacher</option>
-            <option value="tutor" @selected($filters['type'] === 'tutor')>Tutor</option>
+            <option value="1" @selected(($filters['takes_tuitions'] ?? '') === '1')>Yes</option>
+            <option value="0" @selected(($filters['takes_tuitions'] ?? '') === '0')>No</option>
           </select>
         </div>
         <div class="col-md-2">

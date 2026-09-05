@@ -10,13 +10,13 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE users MODIFY role ENUM('user','vendor','builder','developer','consultant','service_provider','teacher','tutor','admin','employee') NOT NULL DEFAULT 'user'");
+            DB::statement("ALTER TABLE users MODIFY role ENUM('user','vendor','builder','developer','consultant','service_provider','teacher','admin','employee') NOT NULL DEFAULT 'user'");
         }
 
         Schema::create('educators', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->enum('type', ['teacher', 'tutor'])->default('teacher');
+            $table->string('type', 20)->default('teacher'); // kept for compatibility; always teacher
             $table->string('display_name');
             $table->string('slug')->unique();
             $table->string('profile_photo')->nullable();

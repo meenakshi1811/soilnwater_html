@@ -40,7 +40,7 @@
         : ($isVendor ? 'Vendor Dashboard'
             : ($isConsultant ? 'Consultant Dashboard'
                 : ($isServiceProvider ? 'Service Dashboard'
-                    : ($isEducator ? (($user->isTutor() ? 'Tutor' : 'Teacher').' Dashboard')
+                    : ($isEducator ? 'Teacher / Tutor Dashboard'
                         : ($isEmployee ? 'Employee Portal' : 'Admin Control Panel')))));
     $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
         || ($isConsultant && $user->consultant?->is_premium)

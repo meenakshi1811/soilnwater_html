@@ -81,8 +81,7 @@ class UserController extends Controller
                     'vendor' => ['Vendor', 'text-bg-info'],
                     'consultant' => ['Consultant', 'text-bg-purple'],
                     'service_provider' => ['Service Provider', 'text-bg-teal'],
-                    'teacher' => ['Teacher', 'text-bg-success'],
-                    'tutor' => ['Tutor', 'text-bg-info'],
+                    'teacher' => ['Teacher / Tutor', 'text-bg-success'],
                     'admin' => ['Admin', 'text-bg-danger'],
                     'employee' => ['Employee', 'text-bg-dark'],
                     'builder' => ['Builder', 'text-bg-secondary'],
@@ -410,13 +409,13 @@ class UserController extends Controller
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher,tutor'],
+            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher'],
             'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'date_of_birth' => ['nullable', 'required_if:role,user,teacher,tutor', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'date_of_birth' => ['nullable', 'required_if:role,user,teacher', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'date', 'before_or_equal:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
@@ -426,7 +425,7 @@ class UserController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
             'has_gst.required_if' => 'Please select whether the account has a GST number.',
             'gst_number.required_if' => 'GST number is required when GST is set to yes.',
-            'date_of_birth.required_if' => 'Date of birth is required for general user, teacher, and tutor accounts.',
+            'date_of_birth.required_if' => 'Date of birth is required for general user and teacher / tutor accounts.',
             'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',
             'date_of_incorporation.required_if' => 'Date of incorporation is required for vendor, consultant, and service provider accounts.',
             'date_of_incorporation.before_or_equal' => 'Date of incorporation cannot be in the future.',
@@ -482,7 +481,7 @@ class UserController extends Controller
                 'serviceProvider.services.categoryModel',
                 'serviceProvider.services.subcategoryModel',
             ]),
-            'teacher', 'tutor' => $user->loadMissing(['educator.studyMaterials']),
+            'teacher' => $user->loadMissing(['educator.studyMaterials']),
             default => null,
         };
     }
@@ -524,7 +523,7 @@ class UserController extends Controller
             'vendor' => $this->serializeMarketplaceProfile($user->vendor, 'Vendor', 'products'),
             'consultant' => $this->serializeMarketplaceProfile($user->consultant, 'Consultant', 'services'),
             'service_provider' => $this->serializeMarketplaceProfile($user->serviceProvider, 'Service Provider', 'services'),
-            'teacher', 'tutor' => $user->educator ? [
+            'teacher' => $user->educator ? [
                 'label' => $user->educator->roleLabel(),
                 'display_name' => $user->educator->display_name,
                 'slug' => $user->educator->slug,
