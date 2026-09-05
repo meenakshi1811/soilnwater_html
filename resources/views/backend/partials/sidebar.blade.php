@@ -7,9 +7,11 @@
     $isVendor = $user->isVendor();
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
+    $isEducator = $user->isEducator();
     $vendorApproved = $isVendor && $user->vendor?->isApproved();
     $consultantApproved = $isConsultant && $user->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
+    $educatorApproved = $isEducator && $user->educator?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
@@ -29,6 +31,7 @@
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
+    $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
 
     if ($isGeneralUser) {
@@ -43,6 +46,9 @@
     } elseif ($isServiceProvider && $serviceProviderApproved) {
         $dashboardUrl = route('service_provider.dashboard');
         $dashboardActive = request()->routeIs('service_provider.dashboard');
+    } elseif ($isEducator && $educatorApproved) {
+        $dashboardUrl = route('educator.dashboard');
+        $dashboardActive = request()->routeIs('educator.dashboard');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -254,7 +260,7 @@
 
          @foreach($emsModules as $slug => $label)
             @php
-                $sidebarManagedModules = ['users', 'offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers'];
+                $sidebarManagedModules = ['users', 'offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers', 'educators'];
                 $hideSidebarManagedModule = ($isAdmin || $isEmployee) && in_array($slug, $sidebarManagedModules, true);
                 $canReadModule = $isAdmin || $user->canModule($slug, 'read');
                 $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);
@@ -578,6 +584,76 @@
                     </ul>
                 </details>
             </li>
+
+        @elseif($isEducator && $educatorApproved)
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>My Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
+                </a>
+            </li>
+            <li class="admin-sidebar-group">
+                <details {{ $educatorPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $educatorPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                            <span>Educator Pages</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('educator.profile.*') ? 'active' : '' }}" href="{{ route('educator.profile.edit') }}">
+                                <i class="fa-solid fa-id-card"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('educator.materials.*') ? 'active' : '' }}" href="{{ route('educator.materials.index') }}">
+                                <i class="fa-solid fa-book-open"></i>
+                                <span>Study Materials</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('educator.enquiries.*') ? 'active' : '' }}" href="{{ route('educator.enquiries.index') }}">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                                <span>Enquiries</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
         @elseif($isEmployee)
             <li>
                 <a class="{{ request()->routeIs('employee.profile.*') ? 'active' : '' }}" href="{{ route('employee.profile.edit') }}">

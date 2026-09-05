@@ -11,6 +11,10 @@
             return role === 'vendor' || role === 'consultant' || role === 'service_provider';
         },
 
+        isEducatorRole: function (role) {
+            return role === 'teacher' || role === 'tutor';
+        },
+
         currentRole: function () {
             return this.lockedRole || $('#createRole').val() || '';
         },
@@ -35,7 +39,7 @@
         toggleCreateBusinessFields: function () {
             var role = this.currentRole();
             var showBusiness = this.isBusinessRole(role);
-            var showProfileImage = role === 'user' || showBusiness;
+            var showProfileImage = role === 'user' || showBusiness || this.isEducatorRole(role);
             var showGst = showBusiness && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
 
             $('#createBusinessFields').toggleClass('d-none', !showBusiness);
@@ -79,7 +83,7 @@
         },
 
         reloadListingTables: function () {
-            $('#vendorsTable, #consultantsTable, #service_providersTable, #usersTable').each(function () {
+            $('#vendorsTable, #consultantsTable, #service_providersTable, #educatorsTable, #usersTable').each(function () {
                 if ($.fn.DataTable.isDataTable(this)) {
                     $(this).DataTable().ajax.reload(null, false);
                 }

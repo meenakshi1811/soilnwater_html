@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Services\DiscussionGroupInvitationService;
 use App\Services\PortalNotificationService;
 use App\Mail\ConsultantStatusMail;
+use App\Mail\EducatorStatusMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Mail\OtpMail;
 use App\Mail\VendorStatusMail;
 use App\Models\User;
 use App\Services\VendorRegistrationService;
 use App\Services\ConsultantRegistrationService;
+use App\Services\EducatorRegistrationService;
 use App\Services\ServiceProviderRegistrationService;
 use App\Support\UserFileUploader;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -53,12 +55,12 @@ class RegisterController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,tutor'],
             'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,tutor', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
@@ -70,7 +72,7 @@ class RegisterController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
-            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, and service registrations.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, teacher, and tutor registrations.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -161,6 +163,20 @@ class RegisterController extends Controller
             $user->forceFill(['profile_image' => $serviceProvider->logo])->save();
         }
 
+        $educator = null;
+        if ($user->isEducator()) {
+            $educator = EducatorRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'latitude',
+                'longitude',
+                'profile_image',
+            ]));
+            $user->forceFill(['profile_image' => $educator->profile_photo])->save();
+        }
+
         if ($user->isGeneralUser()) {
             $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
@@ -179,7 +195,7 @@ class RegisterController extends Controller
             return redirect()->route('register.contact.verify.form')->with('status', $message);
         }
 
-        if ($vendor || $consultant || $serviceProvider) {
+        if ($vendor || $consultant || $serviceProvider || $educator) {
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
@@ -188,10 +204,14 @@ class RegisterController extends Controller
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Consultant account', $consultant->company_name, route('admin.consultants.show', $consultant));
-            } else {
+            } elseif ($serviceProvider) {
                 Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
                 $message = 'Thank you for registering. Your service profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Service account', $serviceProvider->company_name, route('admin.service_providers.show', $serviceProvider));
+            } else {
+                Mail::to($user->email)->send(EducatorStatusMail::forEducator($educator, 'pending'));
+                $message = 'Thank you for registering. Your '.$educator->roleLabel().' profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest($educator->roleLabel().' account', $educator->display_name, route('admin.educators.show', $educator));
             }
 
             if ($request->expectsJson()) {

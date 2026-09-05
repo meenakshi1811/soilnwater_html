@@ -58,6 +58,14 @@ class HomeController extends Controller
             return redirect()->route('service_provider.pending');
         }
 
+        if ($user?->isEducator()) {
+            if ($user->educator?->isApproved()) {
+                return redirect()->route('educator.dashboard');
+            }
+
+            return redirect()->route('educator.pending');
+        }
+
         return view('home');
     }
 }

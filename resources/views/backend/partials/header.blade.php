@@ -4,23 +4,44 @@
     $isVendor = $user->isVendor();
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
+    $isEducator = $user->isEducator();
     $isEmployee = $user->isEmployee();
     $isAdmin = $user->isAdmin();
     $dashboardUrl = $isGeneralUser
         ? route('user.dashboard')
-        : ($isVendor ? route('vendor.dashboard') : ($isConsultant ? route('consultant.dashboard') : ($isServiceProvider ? route('service_provider.dashboard') : ($isEmployee ? route('employee.dashboard') : route('admin.dashboard')))));
+        : ($isVendor ? route('vendor.dashboard')
+            : ($isConsultant ? route('consultant.dashboard')
+                : ($isServiceProvider ? route('service_provider.dashboard')
+                    : ($isEducator ? route('educator.dashboard')
+                        : ($isEmployee ? route('employee.dashboard') : route('admin.dashboard'))))));
     $dashboardActive = $isGeneralUser
         ? request()->routeIs('user.dashboard')
-        : ($isVendor ? request()->routeIs('vendor.dashboard') : ($isConsultant ? request()->routeIs('consultant.dashboard') : ($isServiceProvider ? request()->routeIs('service_provider.dashboard') : ($isEmployee ? request()->routeIs('employee.dashboard') : request()->routeIs('admin.dashboard')))));
+        : ($isVendor ? request()->routeIs('vendor.dashboard')
+            : ($isConsultant ? request()->routeIs('consultant.dashboard')
+                : ($isServiceProvider ? request()->routeIs('service_provider.dashboard')
+                    : ($isEducator ? request()->routeIs('educator.dashboard')
+                        : ($isEmployee ? request()->routeIs('employee.dashboard') : request()->routeIs('admin.dashboard'))))));
     $profileUrl = $isGeneralUser
         ? route('user.profile.edit')
-        : ($isVendor ? route('vendor.profile.edit') : ($isConsultant ? route('consultant.profile.edit') : ($isServiceProvider ? route('service_provider.profile.edit') : ($isEmployee ? route('employee.profile.edit') : route('admin.profile.edit')))));
+        : ($isVendor ? route('vendor.profile.edit')
+            : ($isConsultant ? route('consultant.profile.edit')
+                : ($isServiceProvider ? route('service_provider.profile.edit')
+                    : ($isEducator ? route('educator.profile.edit')
+                        : ($isEmployee ? route('employee.profile.edit') : route('admin.profile.edit'))))));
     $profileActive = $isGeneralUser
         ? request()->routeIs('user.profile.*')
-        : ($isVendor ? request()->routeIs('vendor.profile.*') : ($isConsultant ? request()->routeIs('consultant.profile.*') : ($isServiceProvider ? request()->routeIs('service_provider.profile.*') : ($isEmployee ? request()->routeIs('employee.profile.*') : request()->routeIs('admin.profile.*')))));
+        : ($isVendor ? request()->routeIs('vendor.profile.*')
+            : ($isConsultant ? request()->routeIs('consultant.profile.*')
+                : ($isServiceProvider ? request()->routeIs('service_provider.profile.*')
+                    : ($isEducator ? request()->routeIs('educator.profile.*')
+                        : ($isEmployee ? request()->routeIs('employee.profile.*') : request()->routeIs('admin.profile.*'))))));
     $panelTitle = $isGeneralUser
         ? 'User Dashboard'
-        : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Dashboard' : ($isEmployee ? 'Employee Portal' : 'Admin Control Panel'))));
+        : ($isVendor ? 'Vendor Dashboard'
+            : ($isConsultant ? 'Consultant Dashboard'
+                : ($isServiceProvider ? 'Service Dashboard'
+                    : ($isEducator ? (($user->isTutor() ? 'Tutor' : 'Teacher').' Dashboard')
+                        : ($isEmployee ? 'Employee Portal' : 'Admin Control Panel')))));
     $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
         || ($isConsultant && $user->consultant?->is_premium)
         || ($isServiceProvider && $user->serviceProvider?->is_premium);

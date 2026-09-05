@@ -108,16 +108,18 @@
                                 <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option> -->
                                 <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                                 <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
+                                <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher</option>
+                                <option value="tutor" {{ old('role') === 'tutor' ? 'selected' : '' }}>Tutor</option>
                             </select>
                             @error('role')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider'], true) ? '' : 'd-none' }}">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'tutor'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
-                            <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, and services, this image will also appear on the public profile and listing card.</small>
+                            <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, services, teachers, and tutors, this image will also appear on the public profile.</small>
                             @error('profile_image')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
@@ -237,6 +239,8 @@
                             <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
                             <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                             <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
+                            <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher</option>
+                            <option value="tutor" {{ old('role') === 'tutor' ? 'selected' : '' }}>Tutor</option>
                         </select>
                         @error('role')
                             <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>

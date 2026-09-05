@@ -24,6 +24,8 @@
           <li><a href="{{ route('frontend.vendors.index') }}"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
           <li><a href="{{ route('frontend.consultants.index') }}"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
           <li><a href="{{ route('frontend.service_providers.index') }}"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
+          <li><a href="{{ route('educator.index') }}"><i class="fa-solid fa-chevron-right"></i> Teachers &amp; Tutors</a></li>
+          <li><a href="{{ route('study-materials.library') }}"><i class="fa-solid fa-chevron-right"></i> Study Materials</a></li>
           <li><a href="{{ route('community.index') }}"><i class="fa-solid fa-chevron-right"></i> Community</a></li>
           {{--
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>

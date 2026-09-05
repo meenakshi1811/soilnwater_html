@@ -80,6 +80,15 @@ final class ModuleSidebar
                     ['label' => 'Report Services', 'route' => 'admin.service_providers.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service_providers.reports.*'],
                 ],
             ],
+            'educators' => [
+                'label' => 'Teachers & Tutors',
+                'icon' => 'fa-solid fa-chalkboard-user',
+                'active_routes' => ['admin.educators.*', 'admin.study-materials.*'],
+                'items' => [
+                    ['label' => 'All Educators', 'route' => 'admin.educators.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'read', 'active' => 'admin.educators.*'],
+                    ['label' => 'Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-book-open', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
+                ],
+            ],
         ];
     }
 

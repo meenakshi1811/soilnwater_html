@@ -16,6 +16,8 @@ final class AccountCreation
             'vendor' => 'vendors',
             'consultant' => 'consultants',
             'service_provider' => 'service_providers',
+            'teacher' => 'educators',
+            'tutor' => 'educators',
         ];
     }
 

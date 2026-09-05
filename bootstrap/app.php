@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureConsultantIsApproved;
+use App\Http\Middleware\EnsureEducatorAccount;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureServiceProviderIsApproved;
 use App\Http\Middleware\EnsureChatNotBlocked;
@@ -10,6 +11,7 @@ use App\Http\Middleware\EnsureEmployeeOrAdmin;
 use App\Http\Middleware\EnsureWebVerifiedOrEmployee;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
+use App\Http\Middleware\EnsureUserIsEducator;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
 use App\Http\Middleware\EnsureUserIsServiceProvider;
 use App\Http\Middleware\EnsureUserIsVendor;
@@ -59,9 +61,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'vendor' => EnsureUserIsVendor::class,
             'consultant' => EnsureUserIsConsultant::class,
             'service_provider' => EnsureUserIsServiceProvider::class,
+            'educator' => EnsureUserIsEducator::class,
             'vendor.account' => EnsureVendorIsApproved::class,
             'consultant.account' => EnsureConsultantIsApproved::class,
             'service_provider.account' => EnsureServiceProviderIsApproved::class,
+            'educator.account' => EnsureEducatorAccount::class,
             'marketplace.approved' => EnsureMarketplacePostingAccountApproved::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

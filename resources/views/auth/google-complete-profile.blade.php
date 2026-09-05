@@ -99,13 +99,15 @@
                                 <option value="vendor" {{ $role === 'vendor' ? 'selected' : '' }}>Vendor</option>
                                 <option value="consultant" {{ $role === 'consultant' ? 'selected' : '' }}>Consultant</option>
                                 <option value="service_provider" {{ $role === 'service_provider' ? 'selected' : '' }}>Service</option>
+                                <option value="teacher" {{ $role === 'teacher' ? 'selected' : '' }}>Teacher</option>
+                                <option value="tutor" {{ $role === 'tutor' ? 'selected' : '' }}>Tutor</option>
                             </select>
                             @error('role')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 {{ in_array($role, ['user', 'vendor', 'consultant', 'service_provider'], true) ? '' : 'd-none' }}">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array($role, ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'tutor'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB.</small>

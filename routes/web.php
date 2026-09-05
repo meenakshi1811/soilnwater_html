@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\ConsultantController;
 use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
+use App\Http\Controllers\Admin\EducatorController;
+use App\Http\Controllers\Admin\StudyMaterialApprovalController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
@@ -56,6 +58,11 @@ use App\Http\Controllers\Consultant\ConsultantPendingController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
+use App\Http\Controllers\Educator\EducatorDashboardController;
+use App\Http\Controllers\Educator\EducatorEnquiryController;
+use App\Http\Controllers\Educator\EducatorPendingController;
+use App\Http\Controllers\Educator\EducatorProfileController;
+use App\Http\Controllers\Educator\StudyMaterialController;
 use App\Http\Controllers\Discussion\DiscussionGroupInvitationController;
 use App\Http\Controllers\Discussion\DiscussionMemberController;
 use App\Http\Controllers\Discussion\DiscussionPresenceController;
@@ -66,7 +73,10 @@ use App\Http\Controllers\Discussion\DiscussionTopicController;
 use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\ConsultantStoreController;
+use App\Http\Controllers\Frontend\EducatorProfileController as FrontendEducatorProfileController;
+use App\Http\Controllers\Frontend\EducatorListingController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
+use App\Http\Controllers\Frontend\StudyMaterialLibraryController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\OfferReportController;
 use App\Http\Controllers\Frontend\PremiumPageController;
@@ -175,6 +185,18 @@ Route::post('/consultant/{slug}/services/{service}/enquiry', [ConsultantStoreCon
 Route::post('/consultant/{slug}/enquiry', [ConsultantStoreController::class, 'sendGeneralInquiry'])->name('consultant.enquiry');
 Route::post('/service/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');
 Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
+
+Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
+Route::get('/teachers-tutors/{slug}', [FrontendEducatorProfileController::class, 'show'])->name('educator.show');
+Route::post('/teachers-tutors/{slug}/enquiry', [FrontendEducatorProfileController::class, 'enquiry'])->middleware('auth')->name('educator.enquiry');
+Route::post('/teachers-tutors/{slug}/follow', [FrontendEducatorProfileController::class, 'follow'])->middleware('auth')->name('educator.follow');
+
+Route::get('/study-materials', [StudyMaterialLibraryController::class, 'index'])->name('study-materials.library');
+Route::get('/study-materials/notes', [StudyMaterialLibraryController::class, 'notes'])->name('study-materials.notes');
+Route::get('/study-materials/{slug}', [StudyMaterialLibraryController::class, 'show'])->name('study-materials.show');
+Route::get('/study-materials/{slug}/download', [StudyMaterialLibraryController::class, 'download'])->middleware('auth')->name('study-materials.download');
+Route::post('/study-materials/{slug}/bookmark', [StudyMaterialLibraryController::class, 'bookmark'])->middleware('auth')->name('study-materials.bookmark');
+Route::post('/study-materials/{slug}/review', [StudyMaterialLibraryController::class, 'review'])->middleware('auth')->name('study-materials.review');
 
 Auth::routes(['verify' => true]);
 
@@ -308,6 +330,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/inquiries', [ConsultantInquiryController::class, 'index'])->middleware('consultant')->name('inquiries.index');
         Route::get('/profile', [ConsultantProfileController::class, 'edit'])->middleware('consultant')->name('profile.edit');
         Route::put('/profile', [ConsultantProfileController::class, 'update'])->middleware('consultant')->name('profile.update');
+    });
+
+    Route::get('/educator/pending', [EducatorPendingController::class, 'show'])->name('educator.pending');
+
+    Route::prefix('educator')->name('educator.')->middleware(['educator.account'])->group(function () {
+        Route::get('/dashboard', [EducatorDashboardController::class, 'dashboard'])->middleware('educator')->name('dashboard');
+        Route::get('/profile', [EducatorProfileController::class, 'edit'])->middleware('educator')->name('profile.edit');
+        Route::put('/profile', [EducatorProfileController::class, 'update'])->middleware('educator')->name('profile.update');
+        Route::resource('materials', StudyMaterialController::class)->except(['show'])->middleware('educator');
+        Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
     });
 
     Route::get('/service/pending', [ServiceProviderPendingController::class, 'show'])->name('service_provider.pending');
@@ -652,6 +684,22 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{consultant}/reject', [ConsultantController::class, 'reject'])->name('reject');
             Route::post('/{consultant}/toggle-premium', [ConsultantController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{consultant}', [ConsultantController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('educators')->name('educators.')->group(function () {
+            Route::get('/', [EducatorController::class, 'index'])->name('index');
+            Route::get('/data', [EducatorController::class, 'data'])->name('data');
+            Route::get('/{educator}', [EducatorController::class, 'show'])->name('show');
+            Route::post('/{educator}/approve', [EducatorController::class, 'approve'])->name('approve');
+            Route::post('/{educator}/reject', [EducatorController::class, 'reject'])->name('reject');
+            Route::delete('/{educator}', [EducatorController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('study-materials')->name('study-materials.')->group(function () {
+            Route::get('/', [StudyMaterialApprovalController::class, 'index'])->name('index');
+            Route::get('/data', [StudyMaterialApprovalController::class, 'data'])->name('data');
+            Route::post('/{study_material}/approve', [StudyMaterialApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{study_material}/reject', [StudyMaterialApprovalController::class, 'reject'])->name('reject');
         });
 
         Route::prefix('service-approvals')->name('service-provider-services.')->group(function () {

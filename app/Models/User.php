@@ -174,6 +174,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(ServiceProvider::class);
     }
 
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    public function isTutor(): bool
+    {
+        return $this->role === 'tutor';
+    }
+
+    public function isEducator(): bool
+    {
+        return $this->isTeacher() || $this->isTutor();
+    }
+
+    public function educator(): HasOne
+    {
+        return $this->hasOne(Educator::class);
+    }
+
     public function isStaff(): bool
     {
         return $this->isAdmin() || $this->isEmployee();
