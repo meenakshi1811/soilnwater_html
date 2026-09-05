@@ -14,6 +14,46 @@
   padding: 16px 20px 32px;
 }
 
+.marketplace-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  margin: 0 0 14px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--vendors-muted);
+}
+
+.marketplace-breadcrumb__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: var(--vendors-navy);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.marketplace-breadcrumb__link:hover {
+  color: var(--vendors-green);
+}
+
+.marketplace-breadcrumb__link i {
+  font-size: .68rem;
+  opacity: .85;
+}
+
+.marketplace-breadcrumb__sep {
+  color: #9aabb8;
+  font-size: .72rem;
+  line-height: 1;
+}
+
+.marketplace-breadcrumb__current {
+  color: var(--vendors-muted);
+  font-weight: 700;
+}
+
 .vendors-page__layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);

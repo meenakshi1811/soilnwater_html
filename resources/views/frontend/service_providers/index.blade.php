@@ -31,6 +31,7 @@
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-preview-listing="1"
 >
+  @include('frontend.marketplace.partials.breadcrumb', ['module' => 'services'])
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">

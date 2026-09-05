@@ -25,6 +25,7 @@
   data-index-url="{{ route('frontend.service_providers.premium') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
 >
+  @include('frontend.marketplace.partials.breadcrumb', ['module' => 'services', 'current' => 'Premium'])
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">

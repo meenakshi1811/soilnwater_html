@@ -31,6 +31,7 @@
   data-active-tab="{{ $activeTab }}"
   data-active-view="{{ $activeView }}"
 >
+  @include('frontend.marketplace.partials.breadcrumb', ['module' => 'vendors', 'current' => 'All Listings'])
   <div class="vendors-page__layout">
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">

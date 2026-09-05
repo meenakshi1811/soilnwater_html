@@ -564,9 +564,11 @@
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
           <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
         </div>
+        @php($recentApprovedAdsList = collect($recentApprovedAds ?? []))
+        @if ($recentApprovedAdsList->isNotEmpty())
         <div class="recent-ads-slider recent-ads-card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
           <div class="recent-ads-track">
-            @forelse(($recentApprovedAds ?? collect()) as $recentAd)
+            @foreach($recentApprovedAdsList as $recentAd)
               @php
                 $selectedCategoryNames = $selectedCategoryNamesByRecentAdId[$recentAd->id] ?? [];
                 if ($selectedCategoryNames === [] && $recentAd->category?->name) {
@@ -595,18 +597,22 @@
                   </span>
                 </div>
               </article>
-            @empty
-              <article class="prod-card recent-ad-card recent-ads-carousel-item">
-                <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
-                <div class="prod-card-body">
-                  <p>No approved ads available yet</p>
-                  <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
-                  <button class="btn btn-sm" type="button">View Ad</button>
-                </div>
-              </article>
-            @endforelse
+            @endforeach
           </div>
         </div>
+        @else
+        <div class="offer-coupon-empty-state w-100">
+          <div class="offer-empty-state-card">
+            <div class="offer-empty-state-icon" aria-hidden="true">
+              <i class="fa-solid fa-rectangle-ad"></i>
+            </div>
+            <div class="offer-empty-state-content">
+              <h3 class="offer-empty-state-title mb-1">No approved ads available yet</h3>
+              <p class="offer-empty-state-text mb-0">New approved ads will appear here.</p>
+            </div>
+          </div>
+        </div>
+        @endif
       </div>
     @endif
 
@@ -634,9 +640,10 @@
                   </div>
                 @endforelse
               </div>
+              @if ($offers->isNotEmpty())
               <div class="offer-coupon-grid-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
                 <div class="card-carousel-track">
-                  @forelse ($offers as $offer)
+                  @foreach ($offers as $offer)
                     @php($offerCardDescription = trim(preg_replace('/\s+/', ' ', $offer->short_description ?: 'Special marketplace offer available now.')))
                     <div class="card-carousel-item">
                       <article
@@ -670,18 +677,22 @@
                         </div>
                       </article>
                     </div>
-                  @empty
-                    <div class="card-carousel-item">
-                      <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                        <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
-                          <h4 class="h6 mb-1">No active offers available</h4>
-                          <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
-                        </div>
-                      </article>
-                    </div>
-                  @endforelse
+                  @endforeach
                 </div>
               </div>
+              @else
+              <div class="offer-coupon-empty-state w-100">
+                <div class="offer-empty-state-card">
+                  <div class="offer-empty-state-icon" aria-hidden="true">
+                    <i class="fa-solid fa-tags"></i>
+                  </div>
+                  <div class="offer-empty-state-content">
+                    <h3 class="offer-empty-state-title mb-1">No active offers available</h3>
+                    <p class="offer-empty-state-text mb-0">Please check back later for fresh deals.</p>
+                  </div>
+                </div>
+              </div>
+              @endif
             </div>
           </div>
         </div>
@@ -1364,53 +1375,39 @@
 
     <!-- Popular Services -->
     @if($showServiceProvidersSection)
-      <div class="sec">
+      <div class="sec promo-slider-section">
         <div class="sec-head">
-          <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
+          <div class="sec-title"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span> Popular Services</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">Enquiry</button>
             <a class="view-all" href="{{ route('frontend.service_providers.index') }}">VIEW ALL ▶</a>
           </div>
         </div>
-        <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured services slider">
-          <div class="card-carousel-track consult-grid-professional">
-            @if($homepageServiceProviders->isNotEmpty())
-              @foreach($homepageServiceProviders as $serviceProvider)
-                @php($primaryBranch = $serviceProvider->branches->first())
-                @php($professionalExperience = $serviceProvider->branches->first(fn ($branch) => filled($branch->professional_experience))?->professional_experience)
-                @php($servicesOffered = $serviceProvider->branches->first(fn ($branch) => filled($branch->services_offered))?->services_offered)
-                @php($profilePlaceholder = asset('assets/images/profile-placeholder.svg'))
-                @php($serviceProviderProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null)
-                @php($serviceProviderCardImage = $serviceProvider->logo ? asset($serviceProvider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder))
-                @php($serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area'))
-                @php($serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km' : '')
-                <a class="con-card card-carousel-item text-decoration-none{{ $serviceProvider->is_premium ? ' is-premium-card' : '' }}" href="{{ route('service_provider.show', $serviceProvider->slug) }}" aria-label="View {{ $serviceProvider->publicDisplayName() }} service page">
-                  <img src="{{ $serviceProviderCardImage }}" alt="{{ $serviceProvider->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
-                  <div class="con-card-body">
-                    <p class="con-name">
-                      {{ $serviceProvider->publicDisplayName() }}
-                      @if($serviceProvider->is_premium)
-                        @include('frontend.premium.partials.badge', ['size' => 'xs'])
-                      @endif
-                    </p>
-                    <span class="con-role">{{ $serviceProviderCity }} • {{ $serviceProvider->services_count }} Services{{ $serviceProviderDistance }}</span>
-                    @if(filled($professionalExperience))
-                      <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
-                    @endif
-                    @if(filled($servicesOffered))
-                      <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
-                    @endif
-                  </div>
-                </a>
-              @endforeach
-            @else
-              <div class="con-card card-carousel-item consultant-empty-card">
-                <div class="con-card-body">
-                  <p class="con-name">No services available</p>
-                  <span class="con-role">Please check back later.</span>
+        <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
+          <div class="col-12 d-flex">
+            <div class="offer-coupon-wrap w-100">
+              <div class="offer-coupon-grid-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured services slider">
+                <div class="card-carousel-track">
+                  @forelse($homepageServiceProviders as $serviceProvider)
+                    <div class="card-carousel-item">
+                      @include('frontend.partials.service-provider-home-card', [
+                          'serviceProvider' => $serviceProvider,
+                          'hasLocation' => $hasLocation,
+                      ])
+                    </div>
+                  @empty
+                    <div class="card-carousel-item">
+                      <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                        <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                          <h4 class="h6 mb-1">No services available</h4>
+                          <p class="small text-muted mb-2">Please check back later.</p>
+                        </div>
+                      </article>
+                    </div>
+                  @endforelse
                 </div>
               </div>
-            @endif
+            </div>
           </div>
         </div>
         @if($showPremiumOptions)
@@ -1434,54 +1431,39 @@
 
     <!-- Consultants & Enquiry -->
     @if($showConsultantsSection)
-      <div class="sec">
+      <div class="sec promo-slider-section">
         <div class="sec-head">
-          <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
+          <div class="sec-title"><span class="icon"><i class="fa-solid fa-user-tie"></i></span> Consultants &amp; Enquiry</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">Enquiry</button>
             <a class="view-all" href="{{ route('frontend.consultants.index') }}">VIEW ALL ▶</a>
           </div>
         </div>
-        <div class="consultants-home-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="5" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
-          <div class="card-carousel-track consult-grid-professional">
-            @if($homepageConsultants->isNotEmpty())
-              @foreach($homepageConsultants as $consultant)
-                @php($primaryBranch = $consultant->branches->first())
-                @php($professionalExperience = $consultant->branches->first(fn ($branch) => filled($branch->professional_experience))?->professional_experience)
-                @php($servicesOffered = $consultant->branches->first(fn ($branch) => filled($branch->services_offered))?->services_offered)
-                @php($profilePlaceholder = asset('assets/images/profile-placeholder.svg'))
-                @php($consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null)
-                @php($consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder))
-                @php($consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder)
-                @php($consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area'))
-                @php($consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null ? ' • '.number_format($consultant->nearest_distance_km, 1).' km' : '')
-                <a class="con-card card-carousel-item text-decoration-none{{ $consultant->is_premium ? ' is-premium-card' : '' }}" href="{{ route('consultant.show', $consultant->slug) }}" aria-label="View {{ $consultant->publicDisplayName() }} consultant page">
-                  <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
-                  <div class="con-card-body">
-                    <p class="con-name">
-                      {{ $consultant->publicDisplayName() }}
-                      @if($consultant->is_premium)
-                        @include('frontend.premium.partials.badge', ['size' => 'xs'])
-                      @endif
-                    </p>
-                    <span class="con-role">{{ $consultantCity }} • {{ $consultant->services_count }} Services{{ $consultantDistance }}</span>
-                    @if(filled($professionalExperience))
-                      <span class="con-professional-detail"><strong>Experience:</strong> {{ \Illuminate\Support\Str::limit($professionalExperience, 72) }}</span>
-                    @endif
-                    @if(filled($servicesOffered))
-                      <span class="con-professional-detail"><strong>Services:</strong> {{ \Illuminate\Support\Str::limit($servicesOffered, 72) }}</span>
-                    @endif
-                  </div>
-                </a>
-              @endforeach
-            @else
-              <div class="con-card card-carousel-item consultant-empty-card">
-                <div class="con-card-body">
-                  <p class="con-name">No consultants available</p>
-                  <span class="con-role">Please check back later.</span>
+        <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
+          <div class="col-12 d-flex">
+            <div class="offer-coupon-wrap w-100">
+              <div class="offer-coupon-grid-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
+                <div class="card-carousel-track">
+                  @forelse($homepageConsultants as $consultant)
+                    <div class="card-carousel-item">
+                      @include('frontend.partials.consultant-home-card', [
+                          'consultant' => $consultant,
+                          'hasLocation' => $hasLocation,
+                      ])
+                    </div>
+                  @empty
+                    <div class="card-carousel-item">
+                      <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                        <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                          <h4 class="h6 mb-1">No consultants available</h4>
+                          <p class="small text-muted mb-2">Please check back later.</p>
+                        </div>
+                      </article>
+                    </div>
+                  @endforelse
                 </div>
               </div>
-            @endif
+            </div>
           </div>
         </div>
 

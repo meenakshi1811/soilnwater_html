@@ -18,6 +18,7 @@
 
 @section('content')
 <div class="vendors-page vendors-page--categories">
+  @include('frontend.marketplace.partials.breadcrumb', ['module' => 'services', 'current' => 'Categories'])
   <div class="vendors-page__layout vendors-page__layout--single">
     <main class="vendors-main">
       <section class="vendors-hero vendors-hero--compact">
