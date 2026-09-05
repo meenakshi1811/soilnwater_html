@@ -113,9 +113,9 @@
               <div class="row g-2">
                 <div class="col-md-3">
                   <select name="rating" class="form-select" required>
-                    @for($i=5;$i>=1;$i--)
-                      <option value="{{ $i }}">{{ $i }} star{{ $i>1?'s':'' }}</option>
-                    @endfor
+                    @foreach ([5, 4, 3, 2, 1] as $stars)
+                      <option value="{{ $stars }}">{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="col-md-7"><input type="text" name="review" class="form-control" placeholder="Share your feedback"></div>
@@ -172,7 +172,12 @@
           <img class="sm-list-thumb" src="{{ $material->educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
           <div>
             <strong>{{ $material->educator->display_name }}</strong>
-            <div class="sm-card__meta">{{ $material->educator->professional_headline ?: $material->educator->roleLabel() }}@if($material->educator->isVerified()) · Verified@endif</div>
+            <div class="sm-card__meta">
+              {{ $material->educator->professional_headline ?: $material->educator->roleLabel() }}
+              @if($material->educator->isVerified())
+                · Verified
+              @endif
+            </div>
           </div>
         </a>
       @endif
