@@ -41,10 +41,11 @@ class StudyMaterialController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $data['file_path'] = EducatorFileUploader::storeDocument($file, 'materials');
+            // Capture metadata before move() — getSize() fails after the temp file is relocated.
             $data['file_name'] = $file->getClientOriginalName();
             $data['file_type'] = strtolower($file->getClientOriginalExtension() ?: 'bin');
             $data['file_size'] = $file->getSize();
+            $data['file_path'] = EducatorFileUploader::storeDocument($file, 'materials');
         }
 
         if ($request->hasFile('thumbnail')) {
@@ -100,10 +101,10 @@ class StudyMaterialController extends Controller
         if ($request->hasFile('file')) {
             EducatorFileUploader::deleteIfExists($material->file_path);
             $file = $request->file('file');
-            $data['file_path'] = EducatorFileUploader::storeDocument($file, 'materials');
             $data['file_name'] = $file->getClientOriginalName();
             $data['file_type'] = strtolower($file->getClientOriginalExtension() ?: 'bin');
             $data['file_size'] = $file->getSize();
+            $data['file_path'] = EducatorFileUploader::storeDocument($file, 'materials');
         }
 
         if ($request->hasFile('thumbnail')) {
@@ -176,7 +177,8 @@ class StudyMaterialController extends Controller
             'pages' => ['nullable', 'integer', 'min:1', 'max:10000'],
             'is_free' => ['nullable', 'boolean'],
             'tags' => ['nullable', 'string', 'max:500'],
-            'contents' => ['nullable', 'string'],
+            'contents' => ['nullable', 'array'],
+            'contents.*' => ['nullable', 'string', 'max:255'],
             'file' => $fileRules,
             'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
@@ -185,17 +187,16 @@ class StudyMaterialController extends Controller
         $validated['tags'] = collect(explode(',', (string) ($validated['tags'] ?? '')))
             ->map(fn ($tag) => trim($tag))
             ->filter()
+            ->unique(fn ($tag) => mb_strtolower($tag))
+            ->take(10)
             ->values()
             ->all();
 
-        $contentsRaw = trim((string) ($validated['contents'] ?? ''));
-        $validated['contents'] = $contentsRaw !== ''
-            ? collect(preg_split('/\r\n|\r|\n/', $contentsRaw) ?: [])
-                ->map(fn ($line) => trim($line))
-                ->filter()
-                ->values()
-                ->all()
-            : null;
+        $validated['contents'] = collect($validated['contents'] ?? [])
+            ->map(fn ($line) => trim((string) $line))
+            ->filter()
+            ->values()
+            ->all() ?: null;
 
         unset($validated['file'], $validated['thumbnail']);
 

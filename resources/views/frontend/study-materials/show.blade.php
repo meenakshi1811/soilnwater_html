@@ -70,7 +70,11 @@
         </div>
 
         <div class="sm-tab-panel is-active" data-panel="description">
-          <p style="white-space:pre-line">{{ $material->description ?: 'No description provided.' }}</p>
+          @if(filled($material->description))
+            <div class="sm-richtext">{!! $material->description !!}</div>
+          @else
+            <p class="mb-0">No description provided.</p>
+          @endif
           @if(is_array($material->tags) && count($material->tags))
             <div class="mt-2">@foreach($material->tags as $tag)<span class="sm-chip">{{ $tag }}</span>@endforeach</div>
           @endif
