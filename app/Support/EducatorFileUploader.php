@@ -28,9 +28,11 @@ class EducatorFileUploader
             File::makeDirectory($directory, 0755, true);
         }
 
-        $extension = $file->getClientOriginalExtension() ?: 'bin';
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
         $filename = Str::uuid()->toString().'.'.$extension;
-        $file->move($directory, $filename);
+
+        // Copy binary bytes as-is (no encoding conversion).
+        File::put($directory.DIRECTORY_SEPARATOR.$filename, file_get_contents($file->getRealPath()));
 
         return 'uploads/educators/'.$folder.'/'.$filename;
     }

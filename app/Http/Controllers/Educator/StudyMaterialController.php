@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudyMaterialController extends Controller
@@ -133,6 +134,18 @@ class StudyMaterialController extends Controller
         $this->authorizeOwner($material);
 
         return view('backend.educator.materials.show', compact('material'));
+    }
+
+    public function download(StudyMaterial $material): BinaryFileResponse
+    {
+        $this->authorizeOwner($material);
+
+        abort_unless(filled($material->file_path) && is_file(public_path($material->file_path)), 404);
+
+        return response()->download(
+            public_path($material->file_path),
+            $material->file_name ?: basename($material->file_path)
+        );
     }
 
     public function edit(StudyMaterial $material): View

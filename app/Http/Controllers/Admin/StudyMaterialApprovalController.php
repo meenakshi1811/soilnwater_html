@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudyMaterialApprovalController extends Controller
@@ -90,6 +91,16 @@ class StudyMaterialApprovalController extends Controller
         return view('backend.study-materials.show', [
             'material' => $study_material,
         ]);
+    }
+
+    public function download(StudyMaterial $study_material): BinaryFileResponse
+    {
+        abort_unless(filled($study_material->file_path) && is_file(public_path($study_material->file_path)), 404);
+
+        return response()->download(
+            public_path($study_material->file_path),
+            $study_material->file_name ?: basename($study_material->file_path)
+        );
     }
 
     public function approve(StudyMaterial $study_material): JsonResponse

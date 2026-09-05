@@ -87,9 +87,9 @@
         <h5 class="mb-2">File</h5>
         <p class="mb-1 fw-semibold">{{ $material->file_name ?: 'Study file' }}</p>
         <p class="small text-muted mb-3">{{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}</p>
-        @if($material->fileUrl())
-          <a href="{{ $material->fileUrl() }}" target="_blank" rel="noopener" class="btn btn-primary w-100">
-            <i class="fa-solid fa-download me-1"></i> Open / Download file
+        @if($material->file_path)
+          <a href="{{ route('admin.study-materials.download', $material) }}" class="btn btn-primary w-100">
+            <i class="fa-solid fa-download me-1"></i> Download file
           </a>
         @else
           <p class="text-secondary mb-0">No file uploaded.</p>

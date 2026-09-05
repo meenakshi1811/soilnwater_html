@@ -339,6 +339,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', [EducatorProfileController::class, 'edit'])->middleware('educator')->name('profile.edit');
         Route::put('/profile', [EducatorProfileController::class, 'update'])->middleware('educator')->name('profile.update');
         Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('educator')->name('materials.data');
+        Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('educator')->name('materials.download');
         Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
     });
@@ -700,6 +701,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/', [StudyMaterialApprovalController::class, 'index'])->name('index');
             Route::get('/data', [StudyMaterialApprovalController::class, 'data'])->name('data');
             Route::get('/{study_material}', [StudyMaterialApprovalController::class, 'show'])->name('show');
+            Route::get('/{study_material}/download', [StudyMaterialApprovalController::class, 'download'])->name('download');
             Route::post('/{study_material}/approve', [StudyMaterialApprovalController::class, 'approve'])->name('approve');
             Route::post('/{study_material}/reject', [StudyMaterialApprovalController::class, 'reject'])->name('reject');
             Route::delete('/{study_material}', [StudyMaterialApprovalController::class, 'destroy'])->name('destroy');
