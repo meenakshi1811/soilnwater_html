@@ -25,7 +25,7 @@ class StudyMaterialController extends Controller
 
     public function create(): View
     {
-        return view('backend.educator.materials.create', [
+        return view('backend.educator.materials.form', [
             'material' => new StudyMaterial(),
         ]);
     }
@@ -55,33 +55,36 @@ class StudyMaterialController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest(
             'Study material',
-            $material->title,
-            route('admin.study-materials.index')
+            $material->title.' (by '.($educator->display_name ?: 'Teacher / Tutor').')',
+            route('admin.approvals.index', ['module' => 'study-materials'])
         );
 
-        if ($request->expectsJson()) {
+        $message = 'Study material submitted for admin approval.';
+
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Study material submitted for admin approval.',
+                'message' => $message,
                 'redirect' => route('educator.materials.index'),
             ]);
         }
 
         return redirect()
             ->route('educator.materials.index')
-            ->with('success', 'Study material submitted for admin approval.');
+            ->with('success', $message);
     }
 
     public function edit(StudyMaterial $material): View
     {
         $this->authorizeOwner($material);
 
-        return view('backend.educator.materials.edit', compact('material'));
+        return view('backend.educator.materials.form', compact('material'));
     }
 
     public function update(Request $request, StudyMaterial $material): RedirectResponse|JsonResponse
     {
         $this->authorizeOwner($material);
+        $educator = auth()->user()->educator;
         $data = $this->validated($request, $material);
 
         if ($data['title'] !== $material->title) {
@@ -91,6 +94,8 @@ class StudyMaterialController extends Controller
         $data['status'] = 'pending';
         $data['approved_at'] = null;
         $data['approved_by'] = null;
+        $data['is_verified'] = false;
+        $data['is_trending'] = false;
 
         if ($request->hasFile('file')) {
             EducatorFileUploader::deleteIfExists($material->file_path);
@@ -107,24 +112,27 @@ class StudyMaterialController extends Controller
         }
 
         $material->update($data);
+        $material->refresh();
 
         PortalNotificationService::notifyAdminsOfApprovalRequest(
             'Updated study material',
-            $material->title,
-            route('admin.study-materials.index')
+            $material->title.' (by '.($educator->display_name ?: 'Teacher / Tutor').')',
+            route('admin.approvals.index', ['module' => 'study-materials'])
         );
 
-        if ($request->expectsJson()) {
+        $message = 'Study material updated and sent for admin approval.';
+
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Study material updated and sent for approval.',
+                'message' => $message,
                 'redirect' => route('educator.materials.index'),
             ]);
         }
 
         return redirect()
             ->route('educator.materials.index')
-            ->with('success', 'Study material updated and sent for approval.');
+            ->with('success', $message);
     }
 
     public function destroy(StudyMaterial $material): JsonResponse

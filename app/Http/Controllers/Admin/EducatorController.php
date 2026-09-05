@@ -12,6 +12,7 @@ use App\Support\EducatorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
@@ -100,6 +101,8 @@ class EducatorController extends Controller
 
     public function approve(Request $request, Educator $educator): JsonResponse
     {
+        $educator->loadMissing('user');
+
         $educator->update([
             'status' => 'approved',
             'approved_at' => now(),
@@ -107,17 +110,17 @@ class EducatorController extends Controller
             'is_verified' => true,
         ]);
 
-        $emailSent = $this->sendEducatorStatusMail($educator, 'approved');
+        $emailSent = $this->sendEducatorStatusMail($educator->fresh('user'), 'approved');
         PortalNotificationService::notifyOwnerOfReview(
             $educator->user,
-            $educator->roleLabel().' account',
+            'Teacher / Tutor account',
             $educator->display_name,
             'approved',
             route('educator.dashboard')
         );
 
         return response()->json([
-            'message' => $educator->roleLabel().' approved. They can now access the educator portal.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => 'Teacher / Tutor approved. They can now access the educator portal.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
         ]);
     }
 
@@ -128,6 +131,7 @@ class EducatorController extends Controller
         ]);
 
         $reason = trim($validated['reason']);
+        $educator->loadMissing('user');
         $owner = $educator->user;
 
         $educator->update([
@@ -137,10 +141,10 @@ class EducatorController extends Controller
             'is_verified' => false,
         ]);
 
-        $emailSent = $this->sendEducatorStatusMail($educator, 'rejected', $reason);
+        $emailSent = $this->sendEducatorStatusMail($educator->fresh('user'), 'rejected', $reason);
         PortalNotificationService::notifyOwnerOfReview(
             $owner,
-            $educator->roleLabel().' account',
+            'Teacher / Tutor account',
             $educator->display_name,
             'rejected',
             route('login'),
@@ -148,14 +152,16 @@ class EducatorController extends Controller
         );
 
         return response()->json([
-            'message' => $educator->roleLabel().' application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => 'Teacher / Tutor application rejected.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
         ]);
     }
 
     public function destroy(Educator $educator): JsonResponse
     {
         $educator->loadMissing('user');
+        $owner = $educator->user;
         $recipient = $this->educatorNotificationRecipient($educator);
+        $displayName = $educator->display_name;
         $mail = $recipient ? EducatorStatusMail::forEducator($educator, 'deleted') : null;
 
         DB::transaction(function () use ($educator): void {
@@ -172,12 +178,31 @@ class EducatorController extends Controller
             User::whereKey($userId)->where('role', 'teacher')->delete();
         });
 
+        $emailSent = false;
         if ($recipient && $mail) {
-            Mail::to($recipient)->send($mail);
+            try {
+                Mail::to($recipient)->send($mail);
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                Log::error('Failed to send educator deleted mail', [
+                    'email' => $recipient,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($owner) {
+            PortalNotificationService::notifyOwnerOfReview(
+                $owner,
+                'Teacher / Tutor account',
+                $displayName,
+                'deleted',
+                route('login')
+            );
         }
 
         return response()->json([
-            'message' => 'Educator deleted successfully.'.($recipient && $mail ? ' Email notification sent.' : ''),
+            'message' => 'Educator deleted successfully.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 
@@ -189,9 +214,20 @@ class EducatorController extends Controller
             return false;
         }
 
-        Mail::to($recipient)->send(EducatorStatusMail::forEducator($educator, $action, $reason));
+        try {
+            Mail::to($recipient)->send(EducatorStatusMail::forEducator($educator, $action, $reason));
 
-        return true;
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Failed to send educator status mail', [
+                'educator_id' => $educator->id,
+                'action' => $action,
+                'email' => $recipient,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     private function educatorNotificationRecipient(Educator $educator): ?string

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StudyMaterialStatusMail;
 use App\Models\StudyMaterial;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -86,16 +89,21 @@ class StudyMaterialApprovalController extends Controller
             'is_verified' => true,
         ]);
 
-        $study_material->loadMissing('educator.user');
+        $study_material->loadMissing(['educator.user', 'user']);
+        $owner = $study_material->educator?->user ?: $study_material->user;
+        $emailSent = $this->sendStatusMail($study_material, 'approved');
+
         PortalNotificationService::notifyOwnerOfReview(
-            $study_material->educator?->user,
+            $owner,
             'Study material',
             $study_material->title,
             'approved',
             route('educator.materials.index')
         );
 
-        return response()->json(['message' => 'Study material approved.']);
+        return response()->json([
+            'message' => 'Study material approved.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
+        ]);
     }
 
     public function reject(StudyMaterial $study_material): JsonResponse
@@ -107,15 +115,48 @@ class StudyMaterialApprovalController extends Controller
             'is_verified' => false,
         ]);
 
-        $study_material->loadMissing('educator.user');
+        $study_material->loadMissing(['educator.user', 'user']);
+        $owner = $study_material->educator?->user ?: $study_material->user;
+        $emailSent = $this->sendStatusMail($study_material, 'rejected', 'Declined by admin.');
+
         PortalNotificationService::notifyOwnerOfReview(
-            $study_material->educator?->user,
+            $owner,
             'Study material',
             $study_material->title,
             'rejected',
-            route('educator.materials.index')
+            route('educator.materials.index'),
+            'Declined by admin.'
         );
 
-        return response()->json(['message' => 'Study material rejected.']);
+        return response()->json([
+            'message' => 'Study material rejected.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
+        ]);
+    }
+
+    private function sendStatusMail(StudyMaterial $material, string $action, ?string $reason = null): bool
+    {
+        $material->loadMissing(['educator.user', 'user']);
+        $recipient = $material->educator?->email
+            ?: $material->educator?->user?->email
+            ?: $material->user?->email;
+
+        if (! $recipient) {
+            return false;
+        }
+
+        try {
+            Mail::to($recipient)->send(StudyMaterialStatusMail::forMaterial($material, $action, $reason));
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Failed to send study material status mail', [
+                'material_id' => $material->id,
+                'action' => $action,
+                'email' => $recipient,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 }

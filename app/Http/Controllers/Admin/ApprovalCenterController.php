@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
+use App\Models\Educator;
 use App\Models\Offer;
 use App\Models\PremiumPaymentSubmission;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderService;
+use App\Models\StudyMaterial;
 use App\Models\UserAd;
 use App\Models\Vendor;
 use App\Models\VendorProduct;
@@ -106,7 +108,49 @@ class ApprovalCenterController extends Controller
             ->merge($this->pendingConsultantPublicPages())
             ->merge($this->pendingServiceProviderPublicPages())
             ->merge($this->pendingCommunityPosts())
-            ->merge($this->pendingPremiumPayments());
+            ->merge($this->pendingPremiumPayments())
+            ->merge($this->pendingEducatorAccounts())
+            ->merge($this->pendingStudyMaterials());
+    }
+
+    private function pendingEducatorAccounts(): Collection
+    {
+        return Educator::query()
+            ->with('user:id,name,full_name')
+            ->where('status', 'pending')
+            ->get()
+            ->map(fn (Educator $educator): array => $this->makeItem(
+                'educator',
+                'educators',
+                'Teacher / Tutor',
+                'fa-chalkboard-user',
+                $educator->id,
+                $educator->display_name,
+                $educator->user?->full_name ?: ($educator->user?->name ?? $educator->display_name),
+                'Teacher / Tutor profile awaiting account approval',
+                $educator->created_at,
+                route('admin.educators.show', $educator)
+            ));
+    }
+
+    private function pendingStudyMaterials(): Collection
+    {
+        return StudyMaterial::query()
+            ->with(['educator:id,display_name', 'user:id,name,full_name'])
+            ->where('status', 'pending')
+            ->get()
+            ->map(fn (StudyMaterial $material): array => $this->makeItem(
+                'study_material',
+                'study-materials',
+                'Study Material',
+                'fa-book-open',
+                $material->id,
+                $material->title,
+                $material->educator?->display_name ?: ($material->user?->full_name ?: ($material->user?->name ?? 'Unknown educator')),
+                'Study material awaiting approval',
+                $material->created_at,
+                route('admin.study-materials.index', ['status' => 'pending'])
+            ));
     }
 
     private function pendingAds(): Collection
@@ -340,6 +384,8 @@ class ApprovalCenterController extends Controller
             'public-pages' => 'Public pages',
             'community-posts' => 'Community posts',
             'premium-payments' => 'Premium payments',
+            'educators' => 'Teachers / Tutors',
+            'study-materials' => 'Study materials',
         ];
     }
 
@@ -376,6 +422,12 @@ class ApprovalCenterController extends Controller
             'premium_payment' => $approved
                 ? app(PremiumPaymentSubmissionController::class)->approve($request, PremiumPaymentSubmission::findOrFail($id))
                 : app(PremiumPaymentSubmissionController::class)->reject($this->withDefaultReviewNote($request), PremiumPaymentSubmission::findOrFail($id)),
+            'educator' => $approved
+                ? app(EducatorController::class)->approve($request, Educator::findOrFail($id))
+                : app(EducatorController::class)->reject($this->withEducatorRejectReason($request), Educator::findOrFail($id)),
+            'study_material' => $approved
+                ? app(StudyMaterialApprovalController::class)->approve(StudyMaterial::findOrFail($id))
+                : app(StudyMaterialApprovalController::class)->reject(StudyMaterial::findOrFail($id)),
         };
     }
 
@@ -384,6 +436,17 @@ class ApprovalCenterController extends Controller
     {
         if (! $request->filled('review_note')) {
             $request->merge(['review_note' => 'Declined from Approval Center.']);
+        }
+
+        return $request;
+    }
+
+    private function withEducatorRejectReason(Request $request): Request
+    {
+        if (! $request->filled('reason')) {
+            $request->merge([
+                'reason' => $request->input('review_note') ?: 'Declined from Approval Center.',
+            ]);
         }
 
         return $request;
@@ -422,6 +485,8 @@ class ApprovalCenterController extends Controller
             'service_provider_public_page',
             'community_post',
             'premium_payment',
+            'educator',
+            'study_material',
         ], true);
     }
 }
