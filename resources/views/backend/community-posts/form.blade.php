@@ -2715,8 +2715,27 @@ The mountains keep.</pre>
         min-height: 320px;
     }
 
+    #bodyEditorMount .ck-editor__editable.ck-content {
+        line-height: 1.55;
+        --ck-spacing-large: 0;
+    }
+
+    #bodyEditorMount .ck-editor__editable.ck-content p {
+        margin: 0;
+    }
+
+    #bodyEditorMount .ck-editor__editable.ck-content h2,
+    #bodyEditorMount .ck-editor__editable.ck-content h3,
+    #bodyEditorMount .ck-editor__editable.ck-content h4 {
+        margin: 0.75em 0 0.35em;
+    }
+
     #bodyEditorMount.is-poetry-mode .ck-editor__editable_inline {
         min-height: 480px;
+    }
+
+    #bodyEditorMount.is-poetry-mode .ck-editor__editable.ck-content {
+        line-height: 1.7;
     }
 
     #bodyEditorMount.is-senior-citizens-forum-mode .ck-editor__editable_inline {
