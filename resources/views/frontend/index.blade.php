@@ -564,7 +564,9 @@
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
           <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
         </div>
-        @php($recentApprovedAdsList = collect($recentApprovedAds ?? []))
+        @php
+          $recentApprovedAdsList = collect($recentApprovedAds ?? []);
+        @endphp
         @if ($recentApprovedAdsList->isNotEmpty())
         <div class="recent-ads-slider recent-ads-card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
           <div class="recent-ads-track">
@@ -644,7 +646,9 @@
               <div class="offer-coupon-grid-slider card-carousel auto-ad-slider" data-slide-by="card" data-carousel-cols="6" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
                 <div class="card-carousel-track">
                   @foreach ($offers as $offer)
-                    @php($offerCardDescription = trim(preg_replace('/\s+/', ' ', $offer->short_description ?: 'Special marketplace offer available now.')))
+                    @php
+                      $offerCardDescription = trim(preg_replace('/\s+/', ' ', $offer->short_description ?: 'Special marketplace offer available now.'));
+                    @endphp
                     <div class="card-carousel-item">
                       <article
                         class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
