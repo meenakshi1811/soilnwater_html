@@ -105,7 +105,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
             Auth::logout();
 
             return $this->contactVerificationRequiredResponse(
@@ -120,7 +120,7 @@ class LoginController extends Controller
             return $approvalResponse;
         }
 
-        if ($this->isMarketplaceUser($user) && ! $user->hasVerifiedContact()) {
+        if ($this->isMarketplaceUser($user) && ! $user->isEducator() && ! $user->hasVerifiedContact()) {
             Auth::logout();
 
             return $this->contactVerificationRequiredResponse(
@@ -186,7 +186,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
@@ -200,7 +200,7 @@ class LoginController extends Controller
             return $approvalResponse;
         }
 
-        if ($this->isMarketplaceUser($user) && ! $user->hasVerifiedContact()) {
+        if ($this->isMarketplaceUser($user) && ! $user->isEducator() && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
@@ -339,16 +339,18 @@ class LoginController extends Controller
             return $approvalResponse;
         }
 
-        if (($user->isGeneralUser() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
+        if (($user->isGeneralUser() || $user->isEducator() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
+
+            $message = ($user->isGeneralUser() || $user->isEducator())
+                ? 'Your email and phone number are not verified yet. Please verify your account first.'
+                : 'Your account is approved. Please verify your email and phone number before signing in.';
 
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                $this->isMarketplaceUser($user)
-                    ? 'Your account is approved. Please verify your email and phone number before signing in.'
-                    : 'Your email and phone number are not verified yet. Please verify your account first.'
+                $message
             );
         }
 
@@ -520,7 +522,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
@@ -538,6 +540,13 @@ class LoginController extends Controller
                     Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($user->consultant, 'pending'));
                 } elseif ($user->isServiceProvider() && $user->serviceProvider) {
                     Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($user->serviceProvider, 'pending'));
+                } elseif ($user->isEducator() && $user->educator) {
+                    Mail::to($user->email)->send(EducatorStatusMail::forEducator($user->educator, 'pending'));
+                    PortalNotificationService::notifyAdminsOfApprovalRequest(
+                        $user->educator->roleLabel().' account',
+                        $user->educator->display_name,
+                        route('admin.educators.show', $user->educator)
+                    );
                 }
             }
 
@@ -546,7 +555,7 @@ class LoginController extends Controller
                 return $approvalResponse;
             }
 
-            if (! $user->hasVerifiedContact()) {
+            if (! $user->isEducator() && ! $user->hasVerifiedContact()) {
                 return $this->contactVerificationRequiredResponse(
                     $request,
                     $user,
@@ -725,6 +734,17 @@ class LoginController extends Controller
                 'profile_image',
             ]));
             $user->forceFill(['profile_image' => $educator->profile_photo])->save();
+
+            Mail::to($user->email)->send(EducatorStatusMail::forEducator($educator, 'pending'));
+            PortalNotificationService::notifyAdminsOfApprovalRequest(
+                $educator->roleLabel().' account',
+                $educator->display_name,
+                route('admin.educators.show', $educator)
+            );
+
+            return redirect()
+                ->route('register.contact.verify.start', ['email' => $user->email])
+                ->with('status', 'Registration successful. Please verify your email and phone number with the OTPs we sent.');
         }
 
         if ($user->isGeneralUser()) {
@@ -735,7 +755,7 @@ class LoginController extends Controller
             return redirect()->intended($this->redirectPath());
         }
 
-        if ($vendor || $consultant || $serviceProvider || $educator) {
+        if ($vendor || $consultant || $serviceProvider) {
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
@@ -744,14 +764,10 @@ class LoginController extends Controller
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Consultant account', $consultant->company_name, route('admin.consultants.show', $consultant));
-            } elseif ($serviceProvider) {
+            } else {
                 Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
                 $message = 'Thank you for registering. Your service profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Service account', $serviceProvider->company_name, route('admin.service_providers.show', $serviceProvider));
-            } else {
-                Mail::to($user->email)->send(EducatorStatusMail::forEducator($educator, 'pending'));
-                $message = 'Thank you for registering. Your '.$educator->roleLabel().' profile is under observation. Admin will check and approve it soon.';
-                PortalNotificationService::notifyAdminsOfApprovalRequest($educator->roleLabel().' account', $educator->display_name, route('admin.educators.show', $educator));
             }
 
             return redirect()->route('login')->with('status', $message);

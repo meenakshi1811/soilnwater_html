@@ -982,6 +982,16 @@
                     if (response.expires_at) {
                         FormHelper.resetOtpTimer('#otp-timer', response.expires_at);
                     }
+
+                    if (response.debug_email_otp) {
+                        $('#stagingEmailOtp').text(response.debug_email_otp);
+                        $('#email_otp').val(response.debug_email_otp);
+                    }
+
+                    if (response.debug_phone_otp) {
+                        $('#stagingPhoneOtp').text(response.debug_phone_otp);
+                        $('#phone_otp').val(response.debug_phone_otp);
+                    }
                 }
             });
         },

@@ -28,16 +28,30 @@
                         <div class="alert alert-danger" role="alert">{{ $errors->first('phone_otp') }}</div>
                     @endif
 
+                    @if (! empty($debugEmailOtp) || ! empty($debugPhoneOtp))
+                        <div id="stagingOtpPreview" class="alert alert-warning" role="alert">
+                            <strong>Staging OTP preview</strong>
+                            <div class="mt-2 small">
+                                @if (! empty($debugEmailOtp))
+                                    <div>Email OTP: <code id="stagingEmailOtp" class="fs-6">{{ $debugEmailOtp }}</code></div>
+                                @endif
+                                @if (! empty($debugPhoneOtp))
+                                    <div>Phone OTP: <code id="stagingPhoneOtp" class="fs-6">{{ $debugPhoneOtp }}</code></div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     <form id="contactVerifyForm" method="POST" action="{{ route('register.contact.verify') }}" novalidate>
                         @csrf
                         <div class="mb-3">
                             <label for="email_otp" class="form-label">Email Verification Code</label>
-                            <input id="email_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="email_otp" required placeholder="Enter 6-digit email code">
+                            <input id="email_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="email_otp" required placeholder="Enter 6-digit email code" value="{{ $debugEmailOtp ?? '' }}">
                         </div>
 
                         <div class="mb-3">
                             <label for="phone_otp" class="form-label">Phone Verification Code</label>
-                            <input id="phone_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="phone_otp" required placeholder="Enter 6-digit phone code">
+                            <input id="phone_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="phone_otp" required placeholder="Enter 6-digit phone code" value="{{ $debugPhoneOtp ?? '' }}">
                         </div>
 
                         <button id="contactVerifyBtn" type="submit" class="btn otp-btn w-100 js-auto-loader">

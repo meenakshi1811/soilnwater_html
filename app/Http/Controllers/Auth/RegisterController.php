@@ -175,6 +175,29 @@ class RegisterController extends Controller
                 'profile_image',
             ]));
             $user->forceFill(['profile_image' => $educator->profile_photo])->save();
+
+            Mail::to($user->email)->send(EducatorStatusMail::forEducator($educator, 'pending'));
+            PortalNotificationService::notifyAdminsOfApprovalRequest(
+                $educator->roleLabel().' account',
+                $educator->display_name,
+                route('admin.educators.show', $educator)
+            );
+
+            $otpPayload = $this->sendContactVerificationOtp($user);
+            $request->session()->put('contact_verification_user_id', $user->id);
+
+            $message = 'Registration successful. We sent separate 6-digit verification codes to your email and phone number. After verification, admin will review your Teacher / Tutor profile.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect' => route('register.contact.verify.form'),
+                    'expires_at' => $otpPayload['expires_at'],
+                    'debug_otp' => $this->shouldRevealContactOtps() ? $otpPayload['debug'] : null,
+                ]);
+            }
+
+            return redirect()->route('register.contact.verify.form')->with('status', $message);
         }
 
         if ($user->isGeneralUser()) {
@@ -188,14 +211,14 @@ class RegisterController extends Controller
                     'message' => $message,
                     'redirect' => route('register.contact.verify.form'),
                     'expires_at' => $otpPayload['expires_at'],
-                    'debug_otp' => app()->isLocal() ? $otpPayload['debug'] : null,
+                    'debug_otp' => $this->shouldRevealContactOtps() ? $otpPayload['debug'] : null,
                 ]);
             }
 
             return redirect()->route('register.contact.verify.form')->with('status', $message);
         }
 
-        if ($vendor || $consultant || $serviceProvider || $educator) {
+        if ($vendor || $consultant || $serviceProvider) {
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
@@ -204,14 +227,10 @@ class RegisterController extends Controller
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Consultant account', $consultant->company_name, route('admin.consultants.show', $consultant));
-            } elseif ($serviceProvider) {
+            } else {
                 Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
                 $message = 'Thank you for registering. Your service profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Service account', $serviceProvider->company_name, route('admin.service_providers.show', $serviceProvider));
-            } else {
-                Mail::to($user->email)->send(EducatorStatusMail::forEducator($educator, 'pending'));
-                $message = 'Thank you for registering. Your '.$educator->roleLabel().' profile is under observation. Admin will check and approve it soon.';
-                PortalNotificationService::notifyAdminsOfApprovalRequest($educator->roleLabel().' account', $educator->display_name, route('admin.educators.show', $educator));
             }
 
             if ($request->expectsJson()) {
@@ -260,6 +279,8 @@ class RegisterController extends Controller
             'email' => $user->email,
             'phoneNumber' => $user->phone_number,
             'expiresAt' => $otpData['expires_at'],
+            'debugEmailOtp' => $this->shouldRevealContactOtps() ? (string) ($otpData['email_otp'] ?? '') : null,
+            'debugPhoneOtp' => $this->shouldRevealContactOtps() ? (string) ($otpData['phone_otp'] ?? '') : null,
         ]);
     }
 
@@ -303,7 +324,9 @@ class RegisterController extends Controller
         Cache::forget($cacheKey);
         $request->session()->forget('contact_verification_user_id');
 
-        $message = 'Your email and phone number are verified successfully. Please login to continue.';
+        $message = $user->isEducator()
+            ? 'Your email and phone number are verified successfully. Your Teacher / Tutor profile is under observation. Admin will approve it soon — then you can log in.'
+            : 'Your email and phone number are verified successfully. Please login to continue.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -331,7 +354,9 @@ class RegisterController extends Controller
             return response()->json([
                 'message' => $message,
                 'expires_at' => $otpPayload['expires_at'],
-                'debug_otp' => app()->isLocal() ? $otpPayload['debug'] : null,
+                'debug_otp' => $this->shouldRevealContactOtps() ? $otpPayload['debug'] : null,
+                'debug_email_otp' => $this->shouldRevealContactOtps() ? $otpPayload['email_otp'] : null,
+                'debug_phone_otp' => $this->shouldRevealContactOtps() ? $otpPayload['phone_otp'] : null,
             ]);
         }
 
@@ -530,6 +555,8 @@ class RegisterController extends Controller
 
         return [
             'expires_at' => $expiresAt->toIso8601String(),
+            'email_otp' => $emailOtpCode,
+            'phone_otp' => $phoneOtpCode,
             'debug' => "email:{$emailOtpCode}|phone:{$phoneOtpCode}",
         ];
     }
@@ -628,6 +655,14 @@ class RegisterController extends Controller
     private function phoneOtpCacheKey(int $userId): string
     {
         return 'phone_verification_otp_'.$userId;
+    }
+
+    /**
+     * Reveal OTPs on the verification UI for non-production environments (local/staging).
+     */
+    private function shouldRevealContactOtps(): bool
+    {
+        return ! app()->environment('production');
     }
 
     private function normalizeRegistrationContact(array $data): array
