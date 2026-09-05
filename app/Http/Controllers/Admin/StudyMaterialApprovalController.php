@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\StudyMaterialStatusMail;
 use App\Models\StudyMaterial;
+use App\Services\EducatorFollowerNotifier;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use App\Support\EducatorFileUploader;
@@ -123,6 +124,8 @@ class StudyMaterialApprovalController extends Controller
             'approved',
             route('educator.materials.index')
         );
+
+        EducatorFollowerNotifier::notifyFollowersOfNewMaterial($study_material->fresh(['educator.followers', 'educator.user']));
 
         return response()->json([
             'message' => 'Study material approved.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),

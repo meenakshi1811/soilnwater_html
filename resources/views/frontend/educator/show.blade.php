@@ -62,13 +62,16 @@
           <div class="edu-cta">
             <button type="button" class="edu-btn edu-btn-primary" data-bs-toggle="modal" data-bs-target="#enquiryModal"><i class="fa-solid fa-envelope"></i> Send enquiry</button>
             @auth
-              <form method="POST" action="{{ route('educator.follow', $educator->slug) }}">
-                @csrf
-                <button type="submit" class="edu-btn edu-btn-outline">
-                  <i class="fa-solid {{ $isFollowing ? 'fa-user-minus' : 'fa-user-plus' }}"></i>
-                  {{ $isFollowing ? 'Unfollow' : 'Follow' }}
-                </button>
-              </form>
+              <button
+                type="button"
+                class="edu-btn edu-btn-outline js-edu-follow {{ $isFollowing ? 'is-following' : '' }}"
+                data-url="{{ route('educator.follow', $educator->slug) }}"
+                data-label-follow="Follow"
+                data-label-following="Unfollow"
+              >
+                <i class="fa-solid {{ $isFollowing ? 'fa-user-minus' : 'fa-user-plus' }}" aria-hidden="true"></i>
+                <span class="js-edu-follow-label">{{ $isFollowing ? 'Unfollow' : 'Follow' }}</span>
+              </button>
             @else
               <a href="{{ route('login') }}" class="edu-btn edu-btn-outline"><i class="fa-solid fa-user-plus"></i> Follow</a>
             @endauth
@@ -81,7 +84,7 @@
           <div class="edu-stat"><strong>{{ $educator->years_experience }}+</strong><span>Years exp.</span></div>
           <div class="edu-stat"><strong>{{ number_format($educator->students_taught) }}</strong><span>Students</span></div>
           <div class="edu-stat"><strong>{{ number_format($educator->approved_materials_count) }}</strong><span>Materials</span></div>
-          <div class="edu-stat"><strong>{{ number_format($educator->followers_count) }}</strong><span>Followers</span></div>
+          <div class="edu-stat"><strong class="js-edu-followers-count">{{ number_format($educator->followers_count) }}</strong><span>Followers</span></div>
         </div>
       </div>
     </div>
@@ -319,7 +322,7 @@
 <div class="modal fade" id="enquiryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <form method="POST" action="{{ route('educator.enquiry', $educator->slug) }}">
+      <form id="educatorEnquiryForm" method="POST" action="{{ route('educator.enquiry', $educator->slug) }}" novalidate>
         @csrf
         <div class="modal-header">
           <h5 class="modal-title">Send enquiry</h5>
@@ -329,6 +332,7 @@
           @guest
             <p class="text-muted">Please <a href="{{ route('login') }}">log in</a> to send an enquiry.</p>
           @else
+            <div id="educatorEnquiryAlert" class="alert d-none" role="alert"></div>
             <div class="mb-3"><label class="form-label">Name</label><input type="text" name="name" class="form-control" value="{{ auth()->user()->name }}" required></div>
             <div class="mb-3"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ auth()->user()->email }}"></div>
             <div class="mb-3"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ auth()->user()->phone_number }}"></div>
@@ -338,7 +342,11 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-          @auth<button type="submit" class="btn btn-primary">Send</button>@endauth
+          @auth
+            <button type="submit" class="btn btn-primary" id="educatorEnquirySubmitBtn">
+              <span class="btn-text">Send</span>
+            </button>
+          @endauth
         </div>
       </form>
     </div>
@@ -351,13 +359,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 (function () {
-  var section = document.getElementById('educatorReviewsSection');
-  if (!section) return;
-
   var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
-  var reviewUrl = section.dataset.reviewUrl;
-  var ratingInput = document.getElementById('educatorReviewRating');
-  var starButtons = document.querySelectorAll('.edu-star-picker__btn');
 
   function notify(type, message) {
     if (window.toastr && typeof window.toastr[type] === 'function') {
@@ -367,6 +369,102 @@
     }
     alert(message);
   }
+
+  document.querySelectorAll('.js-edu-follow').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      var url = btn.dataset.url;
+      if (!url) return;
+      btn.disabled = true;
+      try {
+        var response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrf
+          },
+          body: new URLSearchParams({ _token: csrf })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(data.message || 'Unable to update follow.');
+
+        var following = Boolean(data.following);
+        btn.classList.toggle('is-following', following);
+        var icon = btn.querySelector('i');
+        if (icon) icon.className = 'fa-solid ' + (following ? 'fa-user-minus' : 'fa-user-plus');
+        var label = btn.querySelector('.js-edu-follow-label');
+        if (label) label.textContent = following ? (btn.dataset.labelFollowing || 'Unfollow') : (btn.dataset.labelFollow || 'Follow');
+        if (typeof data.followers_count !== 'undefined') {
+          document.querySelectorAll('.js-edu-followers-count').forEach(function (el) {
+            el.textContent = Number(data.followers_count).toLocaleString();
+          });
+        }
+        notify('success', data.message || 'Updated.');
+      } catch (error) {
+        notify('error', error.message || 'Unable to update follow.');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  var enquiryForm = document.getElementById('educatorEnquiryForm');
+  if (enquiryForm && document.getElementById('educatorEnquirySubmitBtn')) {
+    enquiryForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var submitBtn = document.getElementById('educatorEnquirySubmitBtn');
+      var btnText = submitBtn?.querySelector('.btn-text');
+      var alertBox = document.getElementById('educatorEnquiryAlert');
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = 'Sending...';
+      if (alertBox) {
+        alertBox.className = 'alert d-none';
+        alertBox.textContent = '';
+      }
+
+      try {
+        var formData = new FormData(enquiryForm);
+        var response = await fetch(enquiryForm.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrf
+          },
+          body: formData
+        });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) {
+          var firstError = data.errors ? Object.values(data.errors).flat()[0] : null;
+          throw new Error(firstError || data.message || 'Unable to send enquiry.');
+        }
+
+        notify('success', data.message || 'Enquiry sent successfully.');
+        enquiryForm.querySelector('[name="subject"]') && (enquiryForm.querySelector('[name="subject"]').value = '');
+        enquiryForm.querySelector('[name="message"]') && (enquiryForm.querySelector('[name="message"]').value = '');
+        var modalEl = document.getElementById('enquiryModal');
+        if (modalEl && window.bootstrap?.Modal) {
+          window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+        }
+      } catch (error) {
+        notify('error', error.message || 'Unable to send enquiry.');
+        if (alertBox) {
+          alertBox.className = 'alert alert-danger';
+          alertBox.textContent = error.message || 'Unable to send enquiry.';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = 'Send';
+      }
+    });
+  }
+
+  var section = document.getElementById('educatorReviewsSection');
+  if (!section) return;
+
+  var reviewUrl = section.dataset.reviewUrl;
+  var ratingInput = document.getElementById('educatorReviewRating');
+  var starButtons = document.querySelectorAll('.edu-star-picker__btn');
 
   function paintStars(value) {
     starButtons.forEach(function (btn) {

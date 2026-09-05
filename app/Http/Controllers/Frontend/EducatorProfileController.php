@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EducatorEnquiryReceivedMail;
 use App\Models\Educator;
 use App\Models\EducatorEnquiry;
 use App\Models\EducatorReview;
@@ -12,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class EducatorProfileController extends Controller
@@ -57,7 +60,11 @@ class EducatorProfileController extends Controller
 
     public function enquiry(Request $request, string $slug): RedirectResponse|JsonResponse
     {
-        $educator = Educator::query()->approved()->where('slug', $slug)->firstOrFail();
+        $educator = Educator::query()
+            ->approved()
+            ->with('user')
+            ->where('slug', $slug)
+            ->firstOrFail();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -67,7 +74,7 @@ class EducatorProfileController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        EducatorEnquiry::create([
+        $enquiry = EducatorEnquiry::create([
             'educator_id' => $educator->id,
             'user_id' => auth()->id(),
             'name' => $validated['name'],
@@ -78,17 +85,51 @@ class EducatorProfileController extends Controller
             'status' => 'new',
         ]);
 
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json(['message' => 'Enquiry sent successfully.']);
+        $owner = $educator->user;
+        $fromName = $enquiry->name ?: 'Someone';
+
+        PortalNotificationService::notifyUser(
+            $owner,
+            'New enquiry received',
+            $fromName.' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.'),
+            route('educator.enquiries.index'),
+            'engagement'
+        );
+
+        $emailSent = false;
+        $recipient = $educator->email ?: $owner?->email;
+        if ($recipient) {
+            try {
+                Mail::to($recipient)->send(EducatorEnquiryReceivedMail::forEnquiry($enquiry));
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                Log::error('Failed to send educator enquiry mail', [
+                    'enquiry_id' => $enquiry->id,
+                    'email' => $recipient,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
-        return back()->with('status', 'Enquiry sent successfully.');
+        $message = 'Enquiry sent successfully.'
+            .($emailSent ? ' The educator has been notified by email and portal.' : ' The educator has been notified in the portal.');
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
     public function follow(Request $request, string $slug): RedirectResponse|JsonResponse
     {
         $educator = Educator::query()->approved()->where('slug', $slug)->firstOrFail();
         $userId = auth()->id();
+
+        abort_if((int) $educator->user_id === (int) $userId, 422, 'You cannot follow your own profile.');
 
         $attached = $educator->followers()->where('user_id', $userId)->exists();
         if ($attached) {
@@ -98,11 +139,22 @@ class EducatorProfileController extends Controller
         } else {
             $educator->followers()->attach($userId);
             $following = true;
-            $message = 'You are now following '.$educator->display_name.'.';
+            $message = 'You are now following '.$educator->display_name.'. You will get email and portal updates when they post new notes.';
+
+            if ($educator->user && (int) $educator->user_id !== (int) $userId) {
+                PortalNotificationService::notifyUser(
+                    $educator->user,
+                    'New follower',
+                    (auth()->user()?->name ?: 'Someone').' started following your Teacher / Tutor profile.',
+                    route('educator.show', $educator->slug),
+                    'engagement'
+                );
+            }
         }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
+                'ok' => true,
                 'message' => $message,
                 'following' => $following,
                 'followers_count' => $educator->followers()->count(),
