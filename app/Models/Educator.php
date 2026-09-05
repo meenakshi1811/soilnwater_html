@@ -206,7 +206,8 @@ class Educator extends Model
 
     public function recalculateRating(): void
     {
-        $stats = $this->reviews()
+        $stats = EducatorReview::query()
+            ->where('educator_id', $this->id)
             ->selectRaw('COUNT(*) as total, COALESCE(AVG(rating), 0) as avg_rating')
             ->first();
 

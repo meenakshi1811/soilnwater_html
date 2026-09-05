@@ -142,7 +142,8 @@ class StudyMaterial extends Model
 
     public function recalculateRating(): void
     {
-        $stats = $this->reviews()
+        $stats = StudyMaterialReview::query()
+            ->where('study_material_id', $this->id)
             ->selectRaw('COUNT(*) as total, COALESCE(AVG(rating), 0) as avg_rating')
             ->first();
 
