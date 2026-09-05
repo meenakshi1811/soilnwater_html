@@ -26,6 +26,7 @@
       @if($status !== 'rejected')
         <button type="button" class="btn btn-outline-warning js-reject" data-id="{{ $material->id }}">Reject</button>
       @endif
+      <button type="button" class="btn btn-outline-danger js-delete" data-id="{{ $material->id }}">Delete</button>
       <a href="{{ route('admin.study-materials.index') }}" class="btn btn-light">Back to list</a>
     </div>
   </div>
@@ -117,6 +118,7 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function () {
   function notify(type, message) {
@@ -151,6 +153,40 @@
   });
   document.querySelectorAll('.js-reject').forEach(function (btn) {
     btn.addEventListener('click', function () { postAction(this.dataset.id, 'reject'); });
+  });
+  document.querySelectorAll('.js-delete').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = this.dataset.id;
+      Swal.fire({
+        title: 'Delete this material?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete',
+        cancelButtonText: 'Cancel'
+      }).then(function (result) {
+        if (!result.isConfirmed) return;
+        fetch(@json(url('/admin/study-materials')) + '/' + id, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        }).then(function (r) {
+          if (!r.ok) throw new Error();
+          return r.json().catch(function () { return {}; });
+        }).then(function (data) {
+          notify('success', data.message || 'Study material deleted.');
+          setTimeout(function () {
+            window.location.href = @json(route('admin.study-materials.index'));
+          }, 700);
+        }).catch(function () {
+          notify('error', 'Unable to delete study material.');
+        });
+      });
+    });
   });
 })();
 </script>

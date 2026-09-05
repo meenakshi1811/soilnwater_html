@@ -7,6 +7,7 @@ use App\Mail\StudyMaterialStatusMail;
 use App\Models\StudyMaterial;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
+use App\Support\EducatorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -69,8 +70,9 @@ class StudyMaterialApprovalController extends Controller
                 $reject = $status !== 'rejected'
                     ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject" data-id="'.$material->id.'">Reject</button>'
                     : '';
+                $delete = '<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$material->id.'">Delete</button>';
 
-                return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$approve.$reject.'</div>';
+                return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$approve.$reject.$delete.'</div>';
             })
             ->editColumn('updated_at', function (StudyMaterial $material): string {
                 return optional($material->updated_at)
@@ -140,6 +142,18 @@ class StudyMaterialApprovalController extends Controller
 
         return response()->json([
             'message' => 'Study material rejected.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
+        ]);
+    }
+
+    public function destroy(StudyMaterial $study_material): JsonResponse
+    {
+        EducatorFileUploader::deleteIfExists($study_material->thumbnail);
+        EducatorFileUploader::deleteIfExists($study_material->file_path);
+        $study_material->delete();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Study material deleted.',
         ]);
     }
 

@@ -98,7 +98,17 @@
 
   $(document).on('click', '.js-delete', function () {
     var id = this.dataset.id;
-    var doDelete = function () {
+    Swal.fire({
+      title: 'Delete this material?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
+    }).then(function (result) {
+      if (!result.isConfirmed) return;
+
       fetch(@json(url('/educator/materials')) + '/' + id, {
         method: 'DELETE',
         headers: {
@@ -115,23 +125,7 @@
       }).catch(function () {
         notify('error', 'Unable to delete study material.');
       });
-    };
-
-    if (window.Swal) {
-      Swal.fire({
-        title: 'Delete this material?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete',
-        cancelButtonText: 'Cancel'
-      }).then(function (result) {
-        if (result.isConfirmed) doDelete();
-      });
-      return;
-    }
-
-    if (confirm('Delete this material?')) doDelete();
+    });
   });
 })(window.jQuery);
 </script>

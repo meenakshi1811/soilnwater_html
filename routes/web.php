@@ -702,6 +702,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/{study_material}', [StudyMaterialApprovalController::class, 'show'])->name('show');
             Route::post('/{study_material}/approve', [StudyMaterialApprovalController::class, 'approve'])->name('approve');
             Route::post('/{study_material}/reject', [StudyMaterialApprovalController::class, 'reject'])->name('reject');
+            Route::delete('/{study_material}', [StudyMaterialApprovalController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('service-approvals')->name('service-provider-services.')->group(function () {

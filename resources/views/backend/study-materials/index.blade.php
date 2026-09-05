@@ -48,6 +48,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function ($) {
   if (!$) return;
@@ -79,6 +80,7 @@
 
   function notify(type, message) {
     if (window.toastr) window.toastr[type](message);
+    else alert(message);
   }
 
   function postAction(id, action) {
@@ -104,11 +106,44 @@
     });
   }
 
+  function deleteMaterial(id) {
+    fetch(@json(url('/admin/study-materials')) + '/' + id, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(function (r) {
+      if (!r.ok) throw new Error();
+      return r.json().catch(function () { return {}; });
+    }).then(function (data) {
+      table.ajax.reload(null, false);
+      notify('success', data.message || 'Study material deleted.');
+    }).catch(function () {
+      notify('error', 'Unable to delete study material.');
+    });
+  }
+
   $(document).on('click', '.js-approve', function () {
     postAction(this.dataset.id, 'approve');
   });
   $(document).on('click', '.js-reject', function () {
     postAction(this.dataset.id, 'reject');
+  });
+  $(document).on('click', '.js-delete', function () {
+    var id = this.dataset.id;
+    Swal.fire({
+      title: 'Delete this material?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
+    }).then(function (result) {
+      if (result.isConfirmed) deleteMaterial(id);
+    });
   });
 })(window.jQuery);
 </script>
