@@ -287,6 +287,132 @@
   font-size: 0.92rem;
 }
 
+.sm-btn.is-saved {
+  background: var(--sm-soft);
+  border-color: #b7e3c7;
+  color: var(--sm-primary-dark);
+}
+
+.sm-review-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--sm-border);
+  border-radius: 14px;
+  background: var(--sm-soft);
+}
+
+.sm-review-summary__score strong {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--sm-ink);
+}
+
+.sm-review-summary__count {
+  display: block;
+  margin-top: .25rem;
+  color: var(--sm-muted);
+  font-size: .85rem;
+}
+
+.sm-review-form {
+  border: 1px solid var(--sm-border);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: #fff;
+}
+
+.sm-review-form__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: .2rem;
+}
+
+.sm-review-form__hint {
+  color: var(--sm-muted);
+  font-size: .88rem;
+  margin-bottom: .85rem;
+}
+
+.sm-star-picker {
+  display: inline-flex;
+  gap: .2rem;
+}
+
+.sm-star-picker__btn {
+  border: 0;
+  background: transparent;
+  color: #cfd8d3;
+  font-size: 1.45rem;
+  line-height: 1;
+  padding: .1rem;
+  cursor: pointer;
+  transition: color .15s ease, transform .15s ease;
+}
+
+.sm-star-picker__btn.is-active,
+.sm-star-picker__btn:hover {
+  color: #f5b301;
+}
+
+.sm-star-picker__btn:hover {
+  transform: translateY(-1px);
+}
+
+.sm-review-item {
+  border: 1px solid var(--sm-border);
+  border-radius: 12px;
+  padding: .85rem .95rem;
+  margin-bottom: .75rem;
+  background: #fff;
+}
+
+.sm-review-item__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: .7rem;
+  align-items: start;
+  margin-bottom: .45rem;
+}
+
+.sm-review-item__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sm-soft);
+  color: var(--sm-primary-dark);
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.sm-review-item__stars {
+  color: #f5b301;
+  font-size: .78rem;
+  letter-spacing: .02em;
+}
+
+.sm-review-item__date {
+  color: var(--sm-muted);
+  font-size: .75rem;
+}
+
+.sm-review-item__body {
+  color: var(--sm-ink);
+  font-size: .92rem;
+  line-height: 1.45;
+}
+
+.sm-review-login {
+  border: 1px dashed var(--sm-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fbfefc;
+}
+
 @media (max-width: 1100px) {
   .sm-detail {
     grid-template-columns: 1fr;

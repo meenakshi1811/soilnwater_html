@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\StudyMaterial;
 use App\Models\StudyMaterialReview;
+use App\Services\PortalNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -146,7 +147,14 @@ class StudyMaterialLibraryController extends Controller
         $isBookmarked = auth()->check()
             && $material->bookmarkedBy()->where('user_id', auth()->id())->exists();
 
-        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked'));
+        $userReview = auth()->check()
+            ? StudyMaterialReview::query()
+                ->where('study_material_id', $material->id)
+                ->where('user_id', auth()->id())
+                ->first()
+            : null;
+
+        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked', 'userReview'));
     }
 
     public function download(string $slug): BinaryFileResponse|RedirectResponse
@@ -173,19 +181,21 @@ class StudyMaterialLibraryController extends Controller
             $material->bookmarkedBy()->detach($userId);
             $material->decrement('saves_count');
             $bookmarked = false;
-            $message = 'Bookmark removed.';
+            $message = 'Removed from saved.';
         } else {
             $material->bookmarkedBy()->attach($userId);
             $material->increment('saves_count');
             $bookmarked = true;
-            $message = 'Material bookmarked.';
+            $message = 'Saved successfully.';
         }
 
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
+                'ok' => true,
                 'message' => $message,
+                'saved' => $bookmarked,
                 'bookmarked' => $bookmarked,
-                'saves_count' => $material->fresh()->saves_count,
+                'saves_count' => (int) $material->fresh()->saves_count,
             ]);
         }
 
@@ -194,14 +204,23 @@ class StudyMaterialLibraryController extends Controller
 
     public function review(Request $request, string $slug): RedirectResponse|JsonResponse
     {
-        $material = StudyMaterial::query()->approved()->where('slug', $slug)->firstOrFail();
+        $material = StudyMaterial::query()
+            ->approved()
+            ->with(['educator.user', 'user'])
+            ->where('slug', $slug)
+            ->firstOrFail();
 
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'review' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        StudyMaterialReview::updateOrCreate(
+        $wasExisting = StudyMaterialReview::query()
+            ->where('study_material_id', $material->id)
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        $review = StudyMaterialReview::updateOrCreate(
             [
                 'study_material_id' => $material->id,
                 'user_id' => auth()->id(),
@@ -212,13 +231,38 @@ class StudyMaterialLibraryController extends Controller
             ]
         );
 
+        $review->load('user:id,name,profile_image');
         $material->recalculateRating();
+        $material->refresh();
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Review submitted.']);
+        $owner = $material->educator?->user ?: $material->user;
+        if ($owner && (int) $owner->id !== (int) auth()->id() && ! $wasExisting) {
+            $reviewerName = auth()->user()?->name ?: 'Someone';
+            PortalNotificationService::notifyUser(
+                $owner,
+                'New review on your study material',
+                $reviewerName.' left a '.$validated['rating'].'-star review on "'.$material->title.'".',
+                route('educator.materials.show', $material),
+                'engagement'
+            );
         }
 
-        return back()->with('status', 'Review submitted.');
+        $message = $wasExisting ? 'Review updated.' : 'Review submitted.';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => $message,
+                'average_rating' => number_format((float) $material->average_rating, 1),
+                'reviews_count' => (int) $material->reviews_count,
+                'review_html' => view('frontend.study-materials.partials.review-item', [
+                    'review' => $review,
+                ])->render(),
+                'review_id' => $review->id,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
     /**

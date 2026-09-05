@@ -17,11 +17,20 @@
 }
 
 .educators-page .educators-card__badge {
-  background: #1b5e20;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.28);
+}
+
+.educators-page .educators-card__badge i {
+  color: #fff;
 }
 
 .educators-page .educators-card__badge--tuition {
-  background: #16324f;
+  background: linear-gradient(135deg, #2a4a6b, #16324f);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(22, 50, 79, 0.28);
 }
 
 .educators-page .educators-card.is-verified {
