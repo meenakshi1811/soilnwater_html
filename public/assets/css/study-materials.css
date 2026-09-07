@@ -557,6 +557,10 @@
   align-items: start;
 }
 
+.sm-notes-main {
+  min-width: 0;
+}
+
 .sm-filter-sidebar,
 .sm-side-card,
 .sm-help-box {
@@ -795,7 +799,6 @@
 
 .sm-notes-results {
   width: 100%;
-  margin-top: 0.25rem;
 }
 
 .sm-note-list {
@@ -805,10 +808,10 @@
 
 .sm-note-card {
   display: grid;
-  grid-template-columns: 88px minmax(280px, 1fr) minmax(210px, 240px) minmax(112px, 130px);
+  grid-template-columns: 88px minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 1.25rem;
-  padding: 1.15rem 1.35rem;
+  gap: 1.15rem;
+  padding: 1.15rem 1.25rem;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   background: #fff;
@@ -985,8 +988,10 @@
 
 .sm-note-card__author-col {
   border-left: 1px solid #f1f5f9;
-  padding-left: 1.15rem;
+  padding-left: 1rem;
   align-self: center;
+  min-width: 190px;
+  max-width: 230px;
 }
 
 .sm-note-card__author {
@@ -1073,9 +1078,9 @@
   justify-content: center;
   gap: 0.5rem;
   border-left: 1px solid #f1f5f9;
-  padding-left: 1rem;
+  padding-left: 0.85rem;
   align-self: center;
-  height: auto;
+  white-space: nowrap;
 }
 
 .sm-note-card__save {
