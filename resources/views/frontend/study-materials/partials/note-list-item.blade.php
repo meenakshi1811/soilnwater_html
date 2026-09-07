@@ -4,6 +4,8 @@
     if ($tags->isEmpty()) {
         $tags = collect(array_filter([$item->class_course, $item->board_university, $item->subject]));
     }
+    $rating = (float) $item->average_rating;
+    $filledStars = (int) round($rating);
 @endphp
 
 <article class="sm-note-card">
@@ -31,7 +33,7 @@
         </div>
 
         @if($item->description)
-            <p class="sm-note-card__desc">{{ \Illuminate\Support\Str::limit(strip_tags($item->description), 160) }}</p>
+            <p class="sm-note-card__desc">{{ \Illuminate\Support\Str::limit(strip_tags($item->description), 180) }}</p>
         @endif
 
         @if($tags->isNotEmpty())
@@ -55,8 +57,13 @@
                 @if($item->educator?->isVerified())
                     <span class="sm-note-card__verified"><i class="fa-solid fa-circle-check"></i> Verified Teacher</span>
                 @endif
+                <div class="sm-note-card__stars" aria-label="Rating {{ number_format($rating, 1) }} out of 5">
+                    @for($star = 1; $star <= 5; $star++)
+                        <i class="fa-solid fa-star{{ $star <= $filledStars ? '' : ' is-empty' }}"></i>
+                    @endfor
+                    <span>{{ number_format($rating, 1) }} ({{ number_format($item->reviews_count) }})</span>
+                </div>
                 <div class="sm-note-card__stats">
-                    <span class="sm-note-card__rating"><i class="fa-solid fa-star"></i> {{ number_format((float) $item->average_rating, 1) }} ({{ number_format($item->reviews_count) }})</span>
                     <span><i class="fa-solid fa-download"></i> {{ \App\Models\StudyMaterial::formatCompactCount($item->downloads_count) }}</span>
                     <span><i class="fa-solid fa-eye"></i> {{ \App\Models\StudyMaterial::formatCompactCount($item->views_count) }}</span>
                 </div>

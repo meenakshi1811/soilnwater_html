@@ -74,6 +74,37 @@
             </div>
         </div>
 
+        <div class="sm-stats-row">
+            <div class="sm-stat-card sm-stat-card--blue">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-book"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['total']) }}</strong>
+                    <span>Total Notes</span>
+                </div>
+            </div>
+            <div class="sm-stat-card sm-stat-card--green">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-folder-tree"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['subjects']) }}</strong>
+                    <span>Subjects</span>
+                </div>
+            </div>
+            <div class="sm-stat-card sm-stat-card--purple">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-user-group"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['contributors']) }}</strong>
+                    <span>Contributors</span>
+                </div>
+            </div>
+            <div class="sm-stat-card sm-stat-card--orange">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-download"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['downloads']) }}</strong>
+                    <span>Total Downloads</span>
+                </div>
+            </div>
+        </div>
+
         <div class="sm-layout-3col">
             <aside class="sm-filter-sidebar">
                 <div class="sm-filter-sidebar__head">
@@ -163,37 +194,6 @@
             </aside>
 
             <section class="sm-notes-main">
-                <div class="sm-stats-row">
-                    <div class="sm-stat-card sm-stat-card--blue">
-                        <span class="sm-stat-card__icon"><i class="fa-solid fa-book"></i></span>
-                        <div>
-                            <strong>{{ number_format($stats['total']) }}</strong>
-                            <span>Total Notes</span>
-                        </div>
-                    </div>
-                    <div class="sm-stat-card sm-stat-card--green">
-                        <span class="sm-stat-card__icon"><i class="fa-solid fa-folder-tree"></i></span>
-                        <div>
-                            <strong>{{ number_format($stats['subjects']) }}</strong>
-                            <span>Subjects</span>
-                        </div>
-                    </div>
-                    <div class="sm-stat-card sm-stat-card--purple">
-                        <span class="sm-stat-card__icon"><i class="fa-solid fa-user-group"></i></span>
-                        <div>
-                            <strong>{{ number_format($stats['contributors']) }}</strong>
-                            <span>Contributors</span>
-                        </div>
-                    </div>
-                    <div class="sm-stat-card sm-stat-card--orange">
-                        <span class="sm-stat-card__icon"><i class="fa-solid fa-download"></i></span>
-                        <div>
-                            <strong>{{ \App\Models\StudyMaterial::formatCompactCount($stats['downloads'], true) }}</strong>
-                            <span>Total Downloads</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="sm-toolbar sm-toolbar--top">
                     <div></div>
                     <div class="sm-toolbar__controls">
@@ -237,35 +237,6 @@
                     @endforeach
                 </div>
 
-                <p class="sm-results-count">
-                    Showing {{ $materials->firstItem() ?: 0 }} to {{ $materials->lastItem() ?: 0 }} of {{ number_format($materials->total()) }} notes
-                </p>
-
-                <div class="sm-results-panel">
-                    @if($viewMode === 'grid')
-                        <div class="sm-grid-cards">
-                            @forelse($materials as $item)
-                                @include('frontend.study-materials.partials.note-grid-item', ['item' => $item])
-                            @empty
-                                <p class="sm-empty">No notes found for the selected filters.</p>
-                            @endforelse
-                        </div>
-                    @else
-                        <div class="sm-note-list">
-                            @forelse($materials as $item)
-                                @include('frontend.study-materials.partials.note-list-item', ['item' => $item])
-                            @empty
-                                <p class="sm-empty">No notes found for the selected filters.</p>
-                            @endforelse
-                        </div>
-                    @endif
-                </div>
-
-                @if($materials->hasPages())
-                    <div class="sm-pagination-wrap">
-                        {{ $materials->onEachSide(1)->links('frontend.study-materials.partials.pagination') }}
-                    </div>
-                @endif
             </section>
 
             <aside class="sm-right-sidebar">
@@ -329,6 +300,36 @@
                     </div>
                 </div>
             </aside>
+        </div>
+
+        <div class="sm-notes-results">
+            <p class="sm-results-count">
+                Showing {{ $materials->firstItem() ?: 0 }} to {{ $materials->lastItem() ?: 0 }} of {{ number_format($materials->total()) }} notes
+            </p>
+
+            @if($viewMode === 'grid')
+                <div class="sm-grid-cards">
+                    @forelse($materials as $item)
+                        @include('frontend.study-materials.partials.note-grid-item', ['item' => $item])
+                    @empty
+                        <p class="sm-empty">No notes found for the selected filters.</p>
+                    @endforelse
+                </div>
+            @else
+                <div class="sm-note-list">
+                    @forelse($materials as $item)
+                        @include('frontend.study-materials.partials.note-list-item', ['item' => $item])
+                    @empty
+                        <p class="sm-empty">No notes found for the selected filters.</p>
+                    @endforelse
+                </div>
+            @endif
+
+            @if($materials->hasPages())
+                <div class="sm-pagination-wrap">
+                    {{ $materials->onEachSide(1)->links('frontend.study-materials.partials.pagination') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
