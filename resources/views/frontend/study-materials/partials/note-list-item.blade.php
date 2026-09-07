@@ -73,20 +73,30 @@
 
     <div class="sm-note-card__actions-col">
         <time class="sm-note-card__date" datetime="{{ $item->created_at?->toDateString() }}">{{ $item->created_at?->format('j M Y') }}</time>
-        @auth
-            <button
-                type="button"
-                class="sm-note-card__save js-sm-bookmark {{ !empty($item->is_bookmarked) ? 'is-saved' : '' }}"
-                data-url="{{ route('study-materials.bookmark', $item->slug) }}"
-                title="{{ !empty($item->is_bookmarked) ? 'Saved' : 'Save' }}"
+        <div class="sm-note-card__actions">
+            @auth
+                <button
+                    type="button"
+                    class="sm-note-card__action sm-note-card__save js-sm-bookmark {{ !empty($item->is_bookmarked) ? 'is-saved' : '' }}"
+                    data-url="{{ route('study-materials.bookmark', $item->slug) }}"
+                    title="{{ !empty($item->is_bookmarked) ? 'Saved' : 'Save' }}"
+                    aria-label="{{ !empty($item->is_bookmarked) ? 'Saved' : 'Save note' }}"
+                >
+                    <i class="fa-{{ !empty($item->is_bookmarked) ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
+                </button>
+            @else
+                <a href="{{ route('login') }}" class="sm-note-card__action sm-note-card__save" title="Save" aria-label="Save note">
+                    <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+                </a>
+            @endauth
+            <a
+                href="{{ auth()->check() ? route('study-materials.download', $item->slug) : route('login') }}"
+                class="sm-note-card__action sm-note-card__download"
+                title="Download"
+                aria-label="Download note"
             >
-                <i class="fa-{{ !empty($item->is_bookmarked) ? 'solid' : 'regular' }} fa-bookmark"></i> Save
-            </button>
-        @else
-            <a href="{{ route('login') }}" class="sm-note-card__save"><i class="fa-regular fa-bookmark"></i> Save</a>
-        @endauth
-        <a href="{{ auth()->check() ? route('study-materials.download', $item->slug) : route('login') }}" class="sm-btn sm-btn-primary sm-note-card__download">
-            <i class="fa-solid fa-download"></i> Download
-        </a>
+                <i class="fa-solid fa-download" aria-hidden="true"></i>
+            </a>
+        </div>
     </div>
 </article>

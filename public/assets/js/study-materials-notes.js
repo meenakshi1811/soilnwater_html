@@ -218,6 +218,10 @@ document.addEventListener('DOMContentLoaded', function () {
             icon.classList.toggle('fa-solid', saved);
             icon.classList.toggle('fa-regular', !saved);
         }
+
+        const label = saved ? 'Saved' : 'Save note';
+        button.title = saved ? 'Saved' : 'Save';
+        button.setAttribute('aria-label', label);
     }
 
     async function toggleBookmark(button) {
