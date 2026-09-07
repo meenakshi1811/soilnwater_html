@@ -1503,3 +1503,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+#toast-container {
+  z-index: 99999 !important;
+}
