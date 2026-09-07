@@ -552,8 +552,8 @@
 
 .sm-layout-3col {
   display: grid;
-  grid-template-columns: 272px minmax(0, 1fr) 292px;
-  gap: 1.35rem;
+  grid-template-columns: 250px minmax(0, 1fr) 255px;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -808,10 +808,14 @@
 
 .sm-note-card {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) auto auto;
+  grid-template-columns: 76px minmax(0, 1fr) 112px;
+  grid-template-areas:
+    "file content actions"
+    "file author actions";
   align-items: center;
-  gap: 1.15rem;
-  padding: 1.15rem 1.25rem;
+  column-gap: 1rem;
+  row-gap: 0.6rem;
+  padding: 1rem 1.15rem;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   background: #fff;
@@ -819,23 +823,23 @@
 }
 
 .sm-note-card__file {
+  grid-area: file;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  width: 88px;
-  height: 88px;
+  gap: 0.25rem;
+  width: 76px;
+  height: 76px;
   border-radius: 12px;
   text-decoration: none;
-  font-size: 0.74rem;
-  font-weight: 700;
-  justify-self: center;
+  font-size: 0.72rem;
+  font-weight: 600;
   align-self: center;
 }
 
 .sm-note-card__file i {
-  font-size: 2rem;
+  font-size: 1.85rem;
 }
 
 .sm-toolbar__count {
@@ -915,15 +919,15 @@
 }
 
 .sm-note-card__content {
+  grid-area: content;
   min-width: 0;
-  align-self: center;
 }
 
 .sm-note-card__title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-  line-height: 1.35;
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0 0 0.2rem;
+  line-height: 1.4;
 }
 
 .sm-note-card__title a {
@@ -936,16 +940,15 @@
 }
 
 .sm-note-card__crumbs {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-weight: 400;
   color: #64748b;
-  margin-bottom: 0.35rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-bottom: 0.3rem;
+  line-height: 1.35;
 }
 
 .sm-note-card__crumbs a {
-  color: #2563eb;
+  color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
 }
@@ -955,18 +958,20 @@
 }
 
 .sm-note-card__date {
-  font-size: 0.76rem;
+  font-size: 0.75rem;
+  font-weight: 400;
   color: #94a3b8;
   white-space: nowrap;
 }
 
 .sm-note-card__desc {
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.45rem;
   color: #64748b;
-  font-size: 0.84rem;
-  line-height: 1.45;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -974,50 +979,49 @@
 .sm-note-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .sm-note-card__tag {
   background: #e8f2ff;
   color: #1e40af;
   border-radius: 999px;
-  padding: 0.18rem 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .sm-note-card__author-col {
-  border-left: 1px solid #f1f5f9;
-  padding-left: 1rem;
+  grid-area: author;
+  min-width: 0;
   align-self: center;
-  min-width: 190px;
-  max-width: 230px;
 }
 
 .sm-note-card__author {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .sm-note-card__avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .sm-note-card__author-name {
-  font-size: 0.8rem;
-  color: #334155;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #475569;
   line-height: 1.3;
 }
 
 .sm-note-card__author-name a {
-  color: var(--sm-navy);
+  color: #1e3a8a;
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .sm-note-card__verified {
@@ -1026,7 +1030,7 @@
   gap: 0.2rem;
   margin-top: 0.1rem;
   color: #64748b;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
@@ -1038,15 +1042,16 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.15rem;
-  margin-top: 0.35rem;
-  font-size: 0.74rem;
+  gap: 0.12rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 400;
   color: #64748b;
 }
 
 .sm-note-card__stars .fa-star {
   color: #f59e0b;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
 }
 
 .sm-note-card__stars .fa-star.is-empty {
@@ -1054,44 +1059,47 @@
 }
 
 .sm-note-card__stars span {
-  margin-left: 0.15rem;
+  margin-left: 0.1rem;
 }
 
 .sm-note-card__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem;
-  margin-top: 0.3rem;
-  font-size: 0.74rem;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 400;
   color: #64748b;
 }
 
 .sm-note-card__stats i {
-  margin-right: 0.2rem;
+  margin-right: 0.15rem;
   color: #94a3b8;
 }
 
 .sm-note-card__actions-col {
+  grid-area: actions;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   border-left: 1px solid #f1f5f9;
   padding-left: 0.85rem;
-  align-self: center;
+  align-self: stretch;
+  justify-self: end;
   white-space: nowrap;
 }
 
 .sm-note-card__save {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.28rem;
   border: 0;
   background: transparent;
   color: #1e40af;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   padding: 0;
@@ -1103,8 +1111,9 @@
 }
 
 .sm-note-card__download {
-  padding: 0.58rem 1rem;
-  font-size: 0.82rem;
+  padding: 0.52rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   border-radius: 10px;
   white-space: nowrap;
   background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
@@ -1114,6 +1123,28 @@
 .sm-note-card__download:hover {
   background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
   color: #fff;
+}
+
+@media (min-width: 1500px) {
+  .sm-note-card {
+    grid-template-columns: 84px minmax(0, 1fr) minmax(210px, 240px) 118px;
+    grid-template-areas: "file content author actions";
+    row-gap: 0;
+  }
+
+  .sm-note-card__author-col {
+    border-left: 1px solid #f1f5f9;
+    padding-left: 1rem;
+  }
+
+  .sm-note-card__actions-col {
+    align-self: center;
+  }
+
+  .sm-note-card__avatar {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .sm-grid-cards {
@@ -1357,38 +1388,24 @@
 
 @media (max-width: 1100px) {
   .sm-note-card {
-    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-areas:
+      "file content"
+      "file author"
+      "actions actions";
     align-items: start;
   }
 
-  .sm-note-card__file {
-    align-self: start;
-  }
-
-  .sm-note-card__content {
-    align-self: start;
-  }
-
-  .sm-note-card__author-col {
-    grid-column: 2;
-    align-self: start;
+  .sm-note-card__actions-col {
     border-left: 0;
     padding-left: 0;
-    padding-top: 0.75rem;
-    margin-top: 0.25rem;
+    padding-top: 0.65rem;
     border-top: 1px solid #f1f5f9;
-  }
-
-  .sm-note-card__actions-col {
-    grid-column: 2;
-    align-self: start;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    border-left: 0;
-    padding-left: 0;
-    padding-top: 0.75rem;
-    border-top: 1px solid #f1f5f9;
+    width: 100%;
+    justify-self: stretch;
   }
 }
 
@@ -1422,29 +1439,21 @@
 @media (max-width: 767px) {
   .sm-note-card {
     grid-template-columns: 1fr;
-    gap: 0.85rem;
+    grid-template-areas:
+      "file"
+      "content"
+      "author"
+      "actions";
+    gap: 0.75rem;
   }
 
   .sm-note-card__file {
     width: 100%;
     height: auto;
-    min-height: 72px;
+    min-height: 68px;
     flex-direction: row;
     justify-content: flex-start;
-    padding: 0.75rem 1rem;
-    justify-self: stretch;
-  }
-
-  .sm-note-card__author-col,
-  .sm-note-card__actions-col {
-    grid-column: auto;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 0.75rem;
-    margin-top: 0;
-  }
-
-  .sm-note-card__crumbs {
-    white-space: normal;
+    padding: 0.65rem 0.85rem;
   }
 
   .sm-note-card__actions-col {
@@ -1452,6 +1461,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.65rem;
   }
 
   .sm-toolbar--top {
