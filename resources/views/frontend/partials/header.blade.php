@@ -117,6 +117,10 @@
           $dashboardUrl = route('consultant.dashboard');
         } elseif ($user->isServiceProvider()) {
           $dashboardUrl = route('service_provider.dashboard');
+        } elseif ($user->isEducator()) {
+          $dashboardUrl = $user->educator?->isApproved()
+            ? route('educator.dashboard')
+            : route('educator.pending');
         } elseif ($user->isStaff()) {
           $dashboardUrl = route('admin.dashboard');
         } else {

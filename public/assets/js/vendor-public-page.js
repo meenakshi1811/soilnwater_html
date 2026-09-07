@@ -1,5 +1,5 @@
 (function () {
-    var sectionIndex = document.querySelectorAll('.vendor-section-block').length;
+    var sectionIndex = document.getElementById('sectionsContainer')?.querySelectorAll('.vendor-section-block').length || 0;
     var container = document.getElementById('sectionsContainer');
     var template = document.getElementById('sectionTemplate');
     var sectionTypeSelect = document.getElementById('sectionTypeSelect');
@@ -12,6 +12,7 @@
     var activeSectionEditable = null;
     var activeHeroEditable = null;
     var heroSubHeadingEditorInstance = null;
+    var isSavingPublicPage = false;
     var IMAGE_TEXT_CARD_COUNT = 6;
     var HERO_TEXT_WORD_LIMIT = 500;
 
@@ -621,9 +622,54 @@
     renderBannerThumbs();
     }
 
-    function getVisibleSectionBlocks() {
+    function getSectionBlocks() {
         if (!container) return [];
-        return Array.from(container.querySelectorAll('.vendor-section-block')).filter(function (block) {
+        return Array.from(container.querySelectorAll('.vendor-section-block'));
+    }
+
+    function reindexSectionBlocks() {
+        if (!container) return;
+
+        getSectionBlocks().forEach(function (block, idx) {
+            block.dataset.sectionIndex = String(idx);
+
+            block.querySelectorAll('[name^="sections["]').forEach(function (input) {
+                input.name = input.name.replace(/^sections\[[^\]]+\]/, 'sections[' + idx + ']');
+            });
+
+            block.querySelectorAll('[data-section-field="title"][contenteditable="true"]').forEach(function (editable) {
+                editable.dataset.syncTarget = 'section-title-' + idx;
+            });
+
+            block.querySelectorAll('[data-section-field="content"][contenteditable="true"]').forEach(function (editable) {
+                editable.dataset.syncTarget = 'section-content-' + idx;
+            });
+
+            block.querySelectorAll('[data-sync-input^="section-title-"]').forEach(function (input) {
+                input.dataset.syncInput = 'section-title-' + idx;
+            });
+
+            block.querySelectorAll('[data-sync-input^="section-content-"]').forEach(function (input) {
+                input.dataset.syncInput = 'section-content-' + idx;
+            });
+        });
+
+        sectionIndex = getSectionBlocks().length;
+    }
+
+    function clearSectionUploadFields() {
+        getSectionBlocks().forEach(function (block) {
+            block.querySelectorAll('.js-video-fields input[type="file"], .js-video-fields input[type="url"]').forEach(function (input) {
+                input.value = '';
+            });
+            block.querySelectorAll('.js-card-image-input, .js-grid-image-input, .js-brochure-image-input, .js-brochure-pdf-input').forEach(function (input) {
+                input.value = '';
+            });
+        });
+    }
+
+    function getVisibleSectionBlocks() {
+        return getSectionBlocks().filter(function (block) {
             return block.style.display !== 'none' && block.querySelector('.section-delete-flag')?.value !== '1';
         });
     }
@@ -640,14 +686,15 @@
             if (!idInput) {
                 idInput = document.createElement('input');
                 idInput.type = 'hidden';
-                var index = block.dataset.sectionIndex;
-                idInput.name = 'sections[' + index + '][id]';
+                idInput.name = 'sections[' + idx + '][id]';
                 var anchor = block.querySelector('.section-delete-flag');
                 if (anchor) {
                     anchor.insertAdjacentElement('afterend', idInput);
                 } else {
                     block.prepend(idInput);
                 }
+            } else {
+                idInput.name = 'sections[' + idx + '][id]';
             }
             idInput.value = data.id;
 
@@ -673,6 +720,8 @@
                 if (previewImg) previewImg.src = data.image_url;
             }
         });
+
+        reindexSectionBlocks();
     }
 
     function refreshBannerSlides(slides) {
@@ -1249,7 +1298,7 @@
     }
 
     function appendSanitizedSectionContent(formData) {
-        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        getSectionBlocks().forEach(function (block) {
             var deleteFlag = block.querySelector('.section-delete-flag');
             var contentInput = block.querySelector('textarea[data-sync-input]');
             if (!contentInput) return;
@@ -1284,6 +1333,7 @@
     }
 
     function buildPublicPageFormData() {
+        reindexSectionBlocks();
         var formData = new FormData(publicPageForm);
         appendSanitizedSectionContent(formData);
         encodeRichInput(formData, 'hero_sub_heading', 'hero_sub_heading_encoded');
@@ -1856,6 +1906,10 @@
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
 
+        if (isSavingPublicPage) {
+            return;
+        }
+
         syncHeroSubHeadingEditor();
 
         document.querySelectorAll('.vendor-live-editable[data-sync-target]').forEach(function (el) {
@@ -1872,6 +1926,8 @@
             
             saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
         }
+
+        isSavingPublicPage = true;
 
         fetch(publicPageForm.action, {
             method: 'POST',
@@ -1897,6 +1953,7 @@
                     if (Object.prototype.hasOwnProperty.call(result.data, 'logo_url')) {
                         updateLogoPreview(result.data.logo_url);
                     }
+                    clearSectionUploadFields();
                     showToast('success', result.data.message || 'Saved successfully. Open Live Preview to see your store.');
                 } else {
                     var message = result.data?.message || 'Unable to save changes.';
@@ -1911,6 +1968,7 @@
                 showToast('error', 'Network error while saving. Please try again.');
             })
             .finally(function () {
+                isSavingPublicPage = false;
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = oldHtml;

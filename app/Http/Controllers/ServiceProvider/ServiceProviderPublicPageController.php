@@ -251,6 +251,8 @@ class ServiceProviderPublicPageController extends Controller
     protected function syncSections($service_provider, array $sections, Request $request): void
     {
         $sort = 0;
+        $retainedSectionIds = [];
+
         foreach ($sections as $index => $sectionData) {
             if (! empty($sectionData['_delete']) && ! empty($sectionData['id'])) {
                 $section = ServiceProviderPageSection::where('service_provider_id', $service_provider->id)->find($sectionData['id']);
@@ -281,19 +283,12 @@ class ServiceProviderPublicPageController extends Controller
                 $section->image_path = ServiceProviderFileUploader::storeImage($imageFile, 'sections');
             }
 
-            $videoFile = $request->file("sections.{$index}.video_file");
-            if ($videoFile) {
-                $directory = public_path('uploads/service_providers/sections/videos');
-                if (! File::isDirectory($directory)) {
-                    File::makeDirectory($directory, 0755, true);
-                }
-                $filename = uniqid('section-video-', true).'.'.$videoFile->getClientOriginalExtension();
-                $videoFile->move($directory, $filename);
-                $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata"><source src="'.asset('uploads/service_providers/sections/videos/'.$filename).'"></video></div>';
-            } elseif (! empty($sectionData['youtube_url'])) {
-                $youtubeUrl = e((string) $sectionData['youtube_url']);
-                $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
-            }
+            $content = $this->appendSectionVideoContent(
+                (string) $content,
+                $request->file("sections.{$index}.video_file"),
+                (string) ($sectionData['youtube_url'] ?? ''),
+                'uploads/service_providers/sections/videos'
+            );
 
             $content = $this->replaceUploadedContentImages(
                 (string) $content,
@@ -308,7 +303,38 @@ class ServiceProviderPublicPageController extends Controller
             ]);
             $section->service_provider_id = $service_provider->id;
             $section->save();
+
+            if ($section->id) {
+                $retainedSectionIds[] = (int) $section->id;
+            }
         }
+
+        $orphanQuery = ServiceProviderPageSection::query()->where('service_provider_id', $service_provider->id);
+        if ($retainedSectionIds !== []) {
+            $orphanQuery->whereNotIn('id', $retainedSectionIds);
+        }
+        $orphanQuery->delete();
+    }
+
+    protected function appendSectionVideoContent(string $content, mixed $videoFile, string $youtubeUrl, string $videoDirectory): string
+    {
+        if (str_contains($content, 'vendor-section-video')) {
+            return $content;
+        }
+
+        if ($videoFile) {
+            $directory = public_path($videoDirectory);
+            if (! File::isDirectory($directory)) {
+                File::makeDirectory($directory, 0755, true);
+            }
+            $filename = uniqid('section-video-', true).'.'.$videoFile->getClientOriginalExtension();
+            $videoFile->move($directory, $filename);
+            $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata"><source src="'.asset($videoDirectory.'/'.$filename).'"></video></div>';
+        } elseif ($youtubeUrl !== '') {
+            $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.e($youtubeUrl).'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
+        }
+
+        return $content;
     }
 
 

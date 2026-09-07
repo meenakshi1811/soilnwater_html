@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesConsultantServiceRequest;
 use App\Http\Controllers\Controller;
+use App\Support\AuthActor;
 use App\Services\PortalNotificationService;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
@@ -44,7 +45,7 @@ class ConsultantServiceApprovalController extends Controller
         $data['slug'] = $this->uniqueConsultantServiceSlug($data['consultant_id'], $data['name']);
         $data['status'] = 'approved';
         $data['approved_at'] = now();
-        $data['approved_by'] = $request->user()->id;
+        $data['approved_by'] = AuthActor::usersTableId();
 
         $service = ConsultantService::create($data);
 
@@ -119,7 +120,7 @@ class ConsultantServiceApprovalController extends Controller
 
     public function approve(ConsultantService $service, Request $request): JsonResponse
     {
-        $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
+        $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => AuthActor::usersTableId()]);
         $service->loadMissing('consultant.user');
 
         PortalNotificationService::notifyOwnerOfReview($service->consultant?->user, 'Consultation service', $service->name, 'approved', route('consultant.services.show', $service));

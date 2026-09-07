@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesVendorProductRequest;
 use App\Http\Controllers\Controller;
+use App\Support\AuthActor;
 use App\Services\PortalNotificationService;
 use App\Models\Vendor;
 use App\Models\VendorProduct;
@@ -45,7 +46,7 @@ class VendorProductApprovalController extends Controller
         $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
         $data['status'] = 'approved';
         $data['approved_at'] = now();
-        $data['approved_by'] = $request->user()->id;
+        $data['approved_by'] = AuthActor::usersTableId();
         $product = VendorProduct::create($data);
 
         $product->loadMissing('vendor.user');
@@ -175,7 +176,7 @@ class VendorProductApprovalController extends Controller
     public function approve(VendorProduct $product, Request $request): JsonResponse
     {
         // echo'<pre>';print_r($product);echo'</pre>';exit();
-        $product->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
+        $product->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => AuthActor::usersTableId()]);
         $product->loadMissing('vendor.user');
 
         PortalNotificationService::notifyOwnerOfReview($product->vendor?->user, 'Product', $product->name, 'approved', route('vendor.products.show', $product));

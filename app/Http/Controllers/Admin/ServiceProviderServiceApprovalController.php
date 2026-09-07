@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesServiceProviderServiceRequest;
 use App\Http\Controllers\Controller;
+use App\Support\AuthActor;
 use App\Services\PortalNotificationService;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderService;
@@ -44,7 +45,7 @@ class ServiceProviderServiceApprovalController extends Controller
         $data['slug'] = $this->uniqueServiceProviderServiceSlug($data['service_provider_id'], $data['name']);
         $data['status'] = 'approved';
         $data['approved_at'] = now();
-        $data['approved_by'] = $request->user()->id;
+        $data['approved_by'] = AuthActor::usersTableId();
 
         $service = ServiceProviderService::create($data);
 
@@ -119,7 +120,7 @@ class ServiceProviderServiceApprovalController extends Controller
 
     public function approve(ServiceProviderService $service, Request $request): JsonResponse
     {
-        $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
+        $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => AuthActor::usersTableId()]);
         $service->loadMissing('service_provider.user');
 
         PortalNotificationService::notifyOwnerOfReview($service->service_provider?->user, 'Service', $service->name, 'approved', route('service_provider.services.show', $service));
