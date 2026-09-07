@@ -15,20 +15,34 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class StudyMaterialLibraryController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
     {
-        $base = StudyMaterial::query()->approved()->with(['educator:id,display_name,slug,profile_photo,is_verified']);
+        return redirect()->route('study-materials.notes', $request->query());
+    }
+
+    public function notes(Request $request): View
+    {
+        $base = StudyMaterial::query()->approved()->with([
+            'educator:id,display_name,slug,profile_photo,is_verified,type,professional_headline',
+        ]);
 
         $filters = $this->filtersFromRequest($request);
         $filtered = (clone $base);
         $this->applyFilters($filtered, $filters);
+        $this->applySort($filtered, $request->string('sort')->toString() ?: 'recent');
 
-        $trending = (clone $base)->where('is_trending', true)->latest('downloads_count')->limit(8)->get();
-        if ($trending->isEmpty()) {
-            $trending = (clone $base)->orderByDesc('downloads_count')->limit(8)->get();
+        if (auth()->check()) {
+            $filtered->withExists([
+                'bookmarkedBy as is_bookmarked' => fn ($query) => $query->where('user_id', auth()->id()),
+            ]);
         }
 
-        $recent = (clone $base)->latest()->limit(8)->get();
+        $stats = [
+            'total' => (clone $base)->count(),
+            'subjects' => (int) StudyMaterial::query()->approved()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->count('subject'),
+            'downloads' => (int) (clone $base)->sum('downloads_count'),
+            'contributors' => (int) StudyMaterial::query()->approved()->distinct()->count('educator_id'),
+        ];
 
         $categories = StudyMaterial::query()
             ->approved()
@@ -47,75 +61,83 @@ class StudyMaterialLibraryController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        $topContributors = StudyMaterial::query()
+        $fileTypes = StudyMaterial::query()
             ->approved()
-            ->select('educator_id', DB::raw('COUNT(*) as materials_count'), DB::raw('SUM(downloads_count) as downloads_sum'))
-            ->groupBy('educator_id')
-            ->orderByDesc('materials_count')
-            ->limit(6)
-            ->with('educator:id,display_name,slug,profile_photo,is_verified,type')
+            ->whereNotNull('file_type')
+            ->where('file_type', '!=', '')
+            ->select('file_type', DB::raw('COUNT(*) as total'))
+            ->groupBy('file_type')
+            ->orderByDesc('total')
             ->get();
-
-        $materials = $filtered->latest()->paginate(12)->withQueryString();
-
-        return view('frontend.study-materials.library', compact(
-            'materials',
-            'trending',
-            'recent',
-            'categories',
-            'materialTypes',
-            'topContributors',
-            'filters'
-        ));
-    }
-
-    public function notes(Request $request): View
-    {
-        $base = StudyMaterial::query()->approved()->notes()->with(['educator:id,display_name,slug,profile_photo,is_verified']);
-
-        $filters = $this->filtersFromRequest($request);
-        $filtered = (clone $base);
-        $this->applyFilters($filtered, $filters);
-
-        $stats = [
-            'total' => (clone $base)->count(),
-            'subjects' => (int) StudyMaterial::query()->approved()->notes()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->count('subject'),
-            'downloads' => (int) (clone $base)->sum('downloads_count'),
-            'contributors' => (int) StudyMaterial::query()->approved()->notes()->distinct()->count('educator_id'),
-        ];
 
         $popularSubjects = StudyMaterial::query()
             ->approved()
-            ->notes()
             ->whereNotNull('subject')
             ->where('subject', '!=', '')
             ->select('subject', DB::raw('COUNT(*) as total'))
             ->groupBy('subject')
             ->orderByDesc('total')
-            ->limit(10)
+            ->limit(8)
             ->get();
 
         $topContributors = StudyMaterial::query()
             ->approved()
-            ->notes()
-            ->select('educator_id', DB::raw('COUNT(*) as materials_count'), DB::raw('SUM(downloads_count) as downloads_sum'))
+            ->select(
+                'educator_id',
+                DB::raw('COUNT(*) as materials_count'),
+                DB::raw('SUM(downloads_count) as downloads_sum'),
+                DB::raw('SUM(views_count) as views_sum')
+            )
             ->groupBy('educator_id')
             ->orderByDesc('materials_count')
-            ->limit(6)
-            ->with('educator:id,display_name,slug,profile_photo,is_verified,type')
+            ->limit(5)
+            ->with('educator:id,display_name,slug,profile_photo,is_verified,type,professional_headline')
             ->get();
 
         $viewMode = $request->string('view')->toString() === 'grid' ? 'grid' : 'list';
-        $materials = $filtered->latest()->paginate(12)->withQueryString();
+        $sort = $request->string('sort')->toString() ?: 'recent';
+        $materials = $filtered->paginate(12)->withQueryString();
+
+        $categoryTabs = collect([
+            ['label' => 'All Notes', 'value' => null],
+            ['label' => 'School Education', 'value' => 'School Education'],
+            ['label' => 'Engineering', 'value' => 'Engineering'],
+            ['label' => 'Medical', 'value' => 'Medical'],
+            ['label' => 'Commerce', 'value' => 'Commerce'],
+            ['label' => 'Arts & Humanities', 'value' => 'Arts & Humanities'],
+            ['label' => 'Competitive Exams', 'value' => 'Competitive Exams'],
+            ['label' => 'Skill Development', 'value' => 'Skill Development'],
+        ]);
+
+        foreach ($categories as $category) {
+            if ($categoryTabs->contains(fn ($tab) => $tab['value'] === $category->category)) {
+                continue;
+            }
+
+            $categoryTabs->push([
+                'label' => $category->category,
+                'value' => $category->category,
+            ]);
+        }
 
         return view('frontend.study-materials.notes', compact(
             'materials',
             'stats',
+            'categories',
+            'materialTypes',
+            'fileTypes',
             'popularSubjects',
             'topContributors',
             'filters',
-            'viewMode'
-        ));
+            'viewMode',
+            'sort',
+            'categoryTabs'
+        ))->with([
+            'classOptions' => $this->distinctFilterOptions('class_course'),
+            'boardOptions' => $this->distinctFilterOptions('board_university'),
+            'subjectOptions' => $this->distinctFilterOptions('subject'),
+            'topicOptions' => $this->distinctFilterOptions('topic_chapter'),
+        ]);
     }
 
     public function show(string $slug): View
@@ -275,16 +297,19 @@ class StudyMaterialLibraryController extends Controller
             'q' => $request->string('q')->toString() ?: null,
             'category' => $request->string('category')->toString() ?: null,
             'material_type' => $request->string('material_type')->toString() ?: null,
+            'material_types' => array_values(array_filter((array) $request->input('material_types', []))),
+            'file_types' => array_values(array_filter((array) $request->input('file_types', []))),
             'subject' => $request->string('subject')->toString() ?: null,
             'class_course' => $request->string('class_course')->toString() ?: null,
             'board_university' => $request->string('board_university')->toString() ?: null,
+            'topic_chapter' => $request->string('topic_chapter')->toString() ?: null,
             'language' => $request->string('language')->toString() ?: null,
             'difficulty' => $request->string('difficulty')->toString() ?: null,
         ];
     }
 
     /**
-     * @param  array<string, string|null>  $filters
+     * @param  array<string, mixed>  $filters
      */
     private function applyFilters($query, array $filters): void
     {
@@ -298,10 +323,58 @@ class StudyMaterialLibraryController extends Controller
             });
         }
 
-        foreach (['category', 'material_type', 'subject', 'class_course', 'board_university', 'language', 'difficulty'] as $field) {
+        foreach (['category', 'material_type', 'subject', 'class_course', 'board_university', 'topic_chapter', 'language', 'difficulty'] as $field) {
             if (! empty($filters[$field])) {
                 $query->where($field, $filters[$field]);
             }
         }
+
+        if (! empty($filters['material_types'])) {
+            $query->whereIn('material_type', $filters['material_types']);
+        }
+
+        if (! empty($filters['file_types'])) {
+            $query->where(function ($builder) use ($filters) {
+                foreach ($filters['file_types'] as $group) {
+                    $builder->orWhere(function ($sub) use ($group) {
+                        match ($group) {
+                            'pdf' => $sub->where('file_type', 'like', '%pdf%'),
+                            'doc' => $sub->where('file_type', 'like', '%doc%'),
+                            'ppt' => $sub->where('file_type', 'like', '%ppt%'),
+                            'xls' => $sub->where('file_type', 'like', '%xls%'),
+                            'image' => $sub->where(function ($imageQuery) {
+                                $imageQuery->where('file_type', 'like', '%jpg%')
+                                    ->orWhere('file_type', 'like', '%jpeg%')
+                                    ->orWhere('file_type', 'like', '%png%')
+                                    ->orWhere('file_type', 'like', '%webp%')
+                                    ->orWhere('file_type', 'like', '%gif%');
+                            }),
+                            default => $sub->where('file_type', $group),
+                        };
+                    });
+                }
+            });
+        }
+    }
+
+    private function applySort($query, string $sort): void
+    {
+        match ($sort) {
+            'downloads' => $query->orderByDesc('downloads_count')->orderByDesc('id'),
+            'rating' => $query->orderByDesc('average_rating')->orderByDesc('reviews_count')->orderByDesc('id'),
+            'title' => $query->orderBy('title')->orderByDesc('id'),
+            default => $query->latest()->orderByDesc('id'),
+        };
+    }
+
+    private function distinctFilterOptions(string $column): \Illuminate\Support\Collection
+    {
+        return StudyMaterial::query()
+            ->approved()
+            ->whereNotNull($column)
+            ->where($column, '!=', '')
+            ->distinct()
+            ->orderBy($column)
+            ->pluck($column);
     }
 }

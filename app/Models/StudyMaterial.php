@@ -140,6 +140,72 @@ class StudyMaterial extends Model
         };
     }
 
+    /**
+     * @return array{label: string, icon: string, tone: string}
+     */
+    public function fileTypeMeta(): array
+    {
+        $type = strtolower((string) $this->file_type);
+
+        return match (true) {
+            str_contains($type, 'pdf') => ['label' => 'PDF', 'icon' => 'fa-file-pdf', 'tone' => 'pdf'],
+            str_contains($type, 'doc') => ['label' => 'DOC', 'icon' => 'fa-file-word', 'tone' => 'doc'],
+            str_contains($type, 'ppt') => ['label' => 'PPT', 'icon' => 'fa-file-powerpoint', 'tone' => 'ppt'],
+            str_contains($type, 'xls') => ['label' => 'XLS', 'icon' => 'fa-file-excel', 'tone' => 'xls'],
+            str_contains($type, 'jpg'), str_contains($type, 'jpeg'), str_contains($type, 'png'), str_contains($type, 'webp'), str_contains($type, 'gif') => ['label' => 'IMG', 'icon' => 'fa-file-image', 'tone' => 'img'],
+            default => ['label' => strtoupper($type ?: 'FILE'), 'icon' => 'fa-file-lines', 'tone' => 'file'],
+        };
+    }
+
+    public static function formatCompactCount(int|float|null $value, bool $millionPlus = false): string
+    {
+        $value = (int) ($value ?? 0);
+
+        if ($value >= 1000000) {
+            $formatted = rtrim(rtrim(number_format($value / 1000000, 1), '0'), '.').'M';
+
+            return $millionPlus ? $formatted.'+' : $formatted;
+        }
+
+        if ($value >= 1000) {
+            return rtrim(rtrim(number_format($value / 1000, 1), '0'), '.').'K';
+        }
+
+        return (string) $value;
+    }
+
+    public static function fileTypeGroup(?string $fileType): string
+    {
+        $type = strtolower((string) $fileType);
+
+        return match (true) {
+            str_contains($type, 'pdf') => 'pdf',
+            str_contains($type, 'doc') => 'doc',
+            str_contains($type, 'ppt') => 'ppt',
+            str_contains($type, 'xls') => 'xls',
+            str_contains($type, 'jpg'), str_contains($type, 'jpeg'), str_contains($type, 'png'), str_contains($type, 'webp'), str_contains($type, 'gif') => 'image',
+            default => 'other',
+        };
+    }
+
+    /**
+     * @return array{label: string, icon: string, tone: string}
+     */
+    public static function materialTypeMeta(?string $materialType): array
+    {
+        return match ($materialType) {
+            'notes' => ['label' => 'Notes', 'icon' => 'fa-note-sticky', 'tone' => 'notes'],
+            'question_papers' => ['label' => 'Question Papers', 'icon' => 'fa-file-circle-question', 'tone' => 'question'],
+            'sample_papers' => ['label' => 'Sample Papers', 'icon' => 'fa-file-lines', 'tone' => 'sample'],
+            'worksheets' => ['label' => 'Worksheets', 'icon' => 'fa-file-pen', 'tone' => 'worksheet'],
+            'assignments' => ['label' => 'Assignments', 'icon' => 'fa-clipboard-list', 'tone' => 'assignment'],
+            'reference_books' => ['label' => 'Reference Books', 'icon' => 'fa-book', 'tone' => 'reference'],
+            'study_guides' => ['label' => 'Study Guides', 'icon' => 'fa-book-open-reader', 'tone' => 'guide'],
+            'videos' => ['label' => 'Videos', 'icon' => 'fa-circle-play', 'tone' => 'video'],
+            default => ['label' => ucfirst(str_replace('_', ' ', (string) $materialType ?: 'Other')), 'icon' => 'fa-folder-open', 'tone' => 'other'],
+        };
+    }
+
     public function recalculateRating(): void
     {
         $stats = StudyMaterialReview::query()

@@ -1,105 +1,331 @@
 @extends('frontend.layouts.app')
 @section('meta_title', 'All Posted Notes | SoilnWater')
-@section('meta_description', 'Browse all approved study notes with filters by subject, class, board and contributor.')
+@section('meta_description', 'Explore thousands of quality notes shared by students, teachers and experts.')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/study-materials.css') }}?v={{ now()->timestamp }}">
 @endpush
 
+@php
+    $selectedMaterialTypes = (array) ($filters['material_types'] ?? []);
+    $selectedFileTypes = (array) ($filters['file_types'] ?? []);
+
+    $fileTypeGroups = [
+        'pdf' => ['label' => 'PDF', 'icon' => 'fa-file-pdf', 'tone' => 'pdf', 'count' => 0],
+        'doc' => ['label' => 'DOC/DOCX', 'icon' => 'fa-file-word', 'tone' => 'doc', 'count' => 0],
+        'ppt' => ['label' => 'PPT', 'icon' => 'fa-file-powerpoint', 'tone' => 'ppt', 'count' => 0],
+        'xls' => ['label' => 'XLS/XLSX', 'icon' => 'fa-file-excel', 'tone' => 'xls', 'count' => 0],
+        'image' => ['label' => 'Image', 'icon' => 'fa-file-image', 'tone' => 'img', 'count' => 0],
+    ];
+
+    foreach ($fileTypes as $fileTypeRow) {
+        $group = \App\Models\StudyMaterial::fileTypeGroup($fileTypeRow->file_type);
+        if (isset($fileTypeGroups[$group])) {
+            $fileTypeGroups[$group]['count'] += (int) $fileTypeRow->total;
+        }
+    }
+
+    $subjectIcons = [
+        'Mathematics' => 'fa-square-root-variable',
+        'Physics' => 'fa-atom',
+        'Chemistry' => 'fa-flask',
+        'Biology' => 'fa-dna',
+        'English' => 'fa-book-open',
+        'History' => 'fa-landmark',
+        'Geography' => 'fa-earth-americas',
+        'Computer Science' => 'fa-laptop-code',
+    ];
+
+    $uploadUrl = auth()->check() && auth()->user()->isEducator()
+        ? route('educator.materials.create')
+        : route('login');
+    $myNotesUrl = auth()->check() && auth()->user()->isEducator()
+        ? route('educator.materials.index')
+        : route('login');
+
+    $queryWithoutPage = request()->except('page');
+@endphp
+
 @section('content')
-<div class="sm-page">
-  <section class="sm-hero">
-    <div class="container d-flex justify-content-between align-items-end flex-wrap gap-3">
-      <div>
-        <h1>All Posted Notes</h1>
-        <p>Filter and explore classroom notes shared by educators.</p>
-      </div>
-      <div class="d-flex gap-2">
-        <a href="{{ route('study-materials.notes', array_merge(request()->query(), ['view' => 'list'])) }}" class="sm-btn {{ $viewMode === 'list' ? 'sm-btn-primary' : 'sm-btn-outline' }}"><i class="fa-solid fa-list"></i> List</a>
-        <a href="{{ route('study-materials.notes', array_merge(request()->query(), ['view' => 'grid'])) }}" class="sm-btn {{ $viewMode === 'grid' ? 'sm-btn-primary' : 'sm-btn-outline' }}"><i class="fa-solid fa-grid-2"></i> Grid</a>
-      </div>
-    </div>
-  </section>
+<div class="sm-page sm-notes-page">
+    <div class="container">
+        <nav class="sm-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ route('frontend.index') }}">Home</a>
+            <span aria-hidden="true">›</span>
+            <a href="{{ route('study-materials.library') }}">Study Materials Library</a>
+            <span aria-hidden="true">›</span>
+            <span aria-current="page">All Posted Notes</span>
+        </nav>
 
-  <div class="container">
-    <div class="sm-stats">
-      <div class="sm-stat-card"><strong>{{ number_format($stats['total']) }}</strong><span>Total notes</span></div>
-      <div class="sm-stat-card"><strong>{{ number_format($stats['subjects']) }}</strong><span>Subjects</span></div>
-      <div class="sm-stat-card"><strong>{{ number_format($stats['downloads']) }}</strong><span>Downloads</span></div>
-      <div class="sm-stat-card"><strong>{{ number_format($stats['contributors']) }}</strong><span>Contributors</span></div>
-    </div>
-
-    <div class="sm-layout">
-      <aside class="sm-sidebar">
-        <h3>Filters</h3>
-        <form method="GET" action="{{ route('study-materials.notes') }}">
-          <input type="hidden" name="view" value="{{ $viewMode }}">
-          <div class="sm-filter-group"><label>Search</label><input type="text" name="q" class="form-control" value="{{ $filters['q'] }}"></div>
-          <div class="sm-filter-group"><label>Subject</label><input type="text" name="subject" class="form-control" value="{{ $filters['subject'] }}"></div>
-          <div class="sm-filter-group"><label>Class</label><input type="text" name="class_course" class="form-control" value="{{ $filters['class_course'] }}"></div>
-          <div class="sm-filter-group"><label>Board</label><input type="text" name="board_university" class="form-control" value="{{ $filters['board_university'] }}"></div>
-          <div class="sm-filter-group"><label>Language</label><input type="text" name="language" class="form-control" value="{{ $filters['language'] }}"></div>
-          <button class="sm-btn sm-btn-primary w-100" type="submit">Apply</button>
-        </form>
-
-        <h3 class="mt-4">Popular subjects</h3>
-        @forelse($popularSubjects as $subject)
-          <a class="sm-chip" href="{{ route('study-materials.notes', ['subject' => $subject->subject, 'view' => $viewMode]) }}">{{ $subject->subject }} ({{ $subject->total }})</a>
-        @empty
-          <p class="sm-empty mb-0">No subjects yet.</p>
-        @endforelse
-
-        <h3 class="mt-4">Top contributors</h3>
-        @forelse($topContributors as $row)
-          <a class="sm-list-item" href="{{ $row->educator?->publicUrl() }}">
-            <img class="sm-list-thumb" src="{{ $row->educator?->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
+        <div class="sm-page-header">
             <div>
-              <strong>{{ $row->educator?->display_name }}</strong>
-              <div class="sm-card__meta">{{ $row->materials_count }} notes</div>
+                <h1>All Posted Notes</h1>
+                <p>Explore thousands of quality notes shared by students, teachers and experts.</p>
             </div>
-          </a>
-        @empty
-          <p class="sm-empty mb-0">No contributors yet.</p>
-        @endforelse
-      </aside>
+            <div class="sm-page-header__actions">
+                <a href="{{ $uploadUrl }}" class="sm-btn sm-btn-outline sm-btn-lg">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Notes
+                </a>
+                <a href="{{ $myNotesUrl }}" class="sm-btn sm-btn-primary sm-btn-lg">
+                    <i class="fa-solid fa-folder-open"></i> My Notes
+                </a>
+            </div>
+        </div>
 
-      <section class="sm-panel">
-        @if($viewMode === 'grid')
-          <div class="sm-grid">
-            @forelse($materials as $item)
-              <a href="{{ $item->publicUrl() }}" class="sm-card">
-                <img class="sm-card__thumb" src="{{ $item->thumbnailUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
-                <div class="sm-card__body">
-                  <h4>{{ $item->title }}</h4>
-                  <div class="sm-card__meta">{{ $item->subject ?: 'Notes' }} · {{ number_format($item->downloads_count) }} downloads</div>
+        <div class="sm-layout-3col">
+            <aside class="sm-filter-sidebar">
+                <div class="sm-filter-sidebar__head">
+                    <h2>Filter &amp; Refine</h2>
+                    <a href="{{ route('study-materials.notes') }}" class="sm-filter-reset">Reset All</a>
                 </div>
-              </a>
-            @empty
-              <p class="sm-empty">No notes found.</p>
-            @endforelse
-          </div>
-        @else
-          @forelse($materials as $item)
-            <a href="{{ $item->publicUrl() }}" class="sm-list-item">
-              <img class="sm-list-thumb" src="{{ $item->thumbnailUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
-              <div>
-                <strong>{{ $item->title }}</strong>
-                <div class="sm-card__meta">
-                  {{ $item->educator?->display_name }} · {{ $item->class_course ?: 'All classes' }} · {{ $item->subject ?: 'General' }}
+
+                <form method="GET" action="{{ route('study-materials.notes') }}" id="smNotesFilterForm">
+                    <input type="hidden" name="view" value="{{ $viewMode }}">
+                    <input type="hidden" name="sort" value="{{ $sort }}">
+                    @if($filters['category'])
+                        <input type="hidden" name="category" value="{{ $filters['category'] }}">
+                    @endif
+
+                    <div class="sm-filter-group">
+                        <label for="sm-class-course">Class / Course</label>
+                        <select id="sm-class-course" name="class_course" class="form-select">
+                            <option value="">Select class / course</option>
+                            @foreach($classOptions as $option)
+                                <option value="{{ $option }}" @selected($filters['class_course'] === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-group">
+                        <label for="sm-board">Board / University</label>
+                        <select id="sm-board" name="board_university" class="form-select">
+                            <option value="">Select board / university</option>
+                            @foreach($boardOptions as $option)
+                                <option value="{{ $option }}" @selected($filters['board_university'] === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-group">
+                        <label for="sm-subject">Subject</label>
+                        <select id="sm-subject" name="subject" class="form-select">
+                            <option value="">Select subject</option>
+                            @foreach($subjectOptions as $option)
+                                <option value="{{ $option }}" @selected($filters['subject'] === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-group">
+                        <label for="sm-topic">Topic / Chapter</label>
+                        <select id="sm-topic" name="topic_chapter" class="form-select">
+                            <option value="">Select topic / chapter</option>
+                            @foreach($topicOptions as $option)
+                                <option value="{{ $option }}" @selected($filters['topic_chapter'] === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-section">
+                        <h3>Material Type</h3>
+                        <div class="sm-filter-checks">
+                            @foreach($materialTypes as $type)
+                                @php $meta = \App\Models\StudyMaterial::materialTypeMeta($type->material_type); @endphp
+                                <label class="sm-filter-check">
+                                    <input type="checkbox" name="material_types[]" value="{{ $type->material_type }}" @checked(in_array($type->material_type, $selectedMaterialTypes, true))>
+                                    <span class="sm-filter-check__icon sm-filter-check__icon--{{ $meta['tone'] }}"><i class="fa-solid {{ $meta['icon'] }}"></i></span>
+                                    <span class="sm-filter-check__label">{{ $meta['label'] }} ({{ number_format($type->total) }})</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="sm-filter-section">
+                        <h3>File Type</h3>
+                        <div class="sm-filter-checks">
+                            @foreach($fileTypeGroups as $groupKey => $group)
+                                @if($group['count'] > 0)
+                                    <label class="sm-filter-check">
+                                        <input type="checkbox" name="file_types[]" value="{{ $groupKey }}" @checked(in_array($groupKey, $selectedFileTypes, true))>
+                                        <span class="sm-filter-check__icon sm-filter-check__icon--{{ $group['tone'] }}"><i class="fa-solid {{ $group['icon'] }}"></i></span>
+                                        <span class="sm-filter-check__label">{{ $group['label'] }} ({{ number_format($group['count']) }})</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <button type="submit" class="sm-btn sm-btn-primary sm-btn-block">Apply Filters</button>
+                </form>
+            </aside>
+
+            <section class="sm-notes-main">
+                <div class="sm-stats-row">
+                    <div class="sm-stat-card sm-stat-card--blue">
+                        <span class="sm-stat-card__icon"><i class="fa-solid fa-book"></i></span>
+                        <div>
+                            <strong>{{ number_format($stats['total']) }}</strong>
+                            <span>Total Notes</span>
+                        </div>
+                    </div>
+                    <div class="sm-stat-card sm-stat-card--green">
+                        <span class="sm-stat-card__icon"><i class="fa-solid fa-folder-tree"></i></span>
+                        <div>
+                            <strong>{{ number_format($stats['subjects']) }}</strong>
+                            <span>Subjects</span>
+                        </div>
+                    </div>
+                    <div class="sm-stat-card sm-stat-card--purple">
+                        <span class="sm-stat-card__icon"><i class="fa-solid fa-user-group"></i></span>
+                        <div>
+                            <strong>{{ number_format($stats['contributors']) }}</strong>
+                            <span>Contributors</span>
+                        </div>
+                    </div>
+                    <div class="sm-stat-card sm-stat-card--orange">
+                        <span class="sm-stat-card__icon"><i class="fa-solid fa-download"></i></span>
+                        <div>
+                            <strong>{{ \App\Models\StudyMaterial::formatCompactCount($stats['downloads'], true) }}</strong>
+                            <span>Total Downloads</span>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div class="text-end small text-muted">
-                <div>{{ number_format($item->downloads_count) }} downloads</div>
-                <div>{{ number_format((float)$item->average_rating, 1) }} ★</div>
-              </div>
-            </a>
-          @empty
-            <p class="sm-empty mb-0">No notes found.</p>
-          @endforelse
-        @endif
-        <div class="mt-3">{{ $materials->links() }}</div>
-      </section>
+
+                <div class="sm-category-tabs" role="tablist" aria-label="Categories">
+                    @foreach($categoryTabs as $tab)
+                        @php
+                            $tabQuery = $queryWithoutPage;
+                            if ($tab['value']) {
+                                $tabQuery['category'] = $tab['value'];
+                            } else {
+                                unset($tabQuery['category']);
+                            }
+                            $isActive = ($tab['value'] === null && empty($filters['category'])) || ($filters['category'] ?? null) === $tab['value'];
+                        @endphp
+                        <a href="{{ route('study-materials.notes', $tabQuery) }}" class="sm-category-tab {{ $isActive ? 'is-active' : '' }}">{{ $tab['label'] }}</a>
+                    @endforeach
+                </div>
+
+                <div class="sm-toolbar">
+                    <p class="sm-toolbar__count">
+                        Showing {{ $materials->firstItem() ?: 0 }} to {{ $materials->lastItem() ?: 0 }} of {{ number_format($materials->total()) }} notes
+                    </p>
+                    <div class="sm-toolbar__controls">
+                        <form method="GET" action="{{ route('study-materials.notes') }}" class="sm-sort-form">
+                            @foreach($queryWithoutPage as $key => $value)
+                                @if(is_array($value))
+                                    @foreach($value as $item)
+                                        <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                    @endforeach
+                                @elseif($key !== 'sort')
+                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                @endif
+                            @endforeach
+                            <label for="sm-sort" class="sm-sort-label">Sort by:</label>
+                            <select id="sm-sort" name="sort" class="form-select form-select-sm js-sm-sort">
+                                <option value="recent" @selected($sort === 'recent')>Most Recent</option>
+                                <option value="downloads" @selected($sort === 'downloads')>Most Downloaded</option>
+                                <option value="rating" @selected($sort === 'rating')>Top Rated</option>
+                                <option value="title" @selected($sort === 'title')>Title A–Z</option>
+                            </select>
+                        </form>
+                        <div class="sm-view-toggle" aria-label="View mode">
+                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['view' => 'grid'])) }}" class="sm-view-toggle__btn {{ $viewMode === 'grid' ? 'is-active' : '' }}" title="Grid view"><i class="fa-solid fa-grip"></i></a>
+                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['view' => 'list'])) }}" class="sm-view-toggle__btn {{ $viewMode === 'list' ? 'is-active' : '' }}" title="List view"><i class="fa-solid fa-list"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sm-results-panel">
+                    @if($viewMode === 'grid')
+                        <div class="sm-grid-cards">
+                            @forelse($materials as $item)
+                                @include('frontend.study-materials.partials.note-grid-item', ['item' => $item])
+                            @empty
+                                <p class="sm-empty">No notes found for the selected filters.</p>
+                            @endforelse
+                        </div>
+                    @else
+                        <div class="sm-note-list">
+                            @forelse($materials as $item)
+                                @include('frontend.study-materials.partials.note-list-item', ['item' => $item])
+                            @empty
+                                <p class="sm-empty">No notes found for the selected filters.</p>
+                            @endforelse
+                        </div>
+                    @endif
+                </div>
+
+                @if($materials->hasPages())
+                    <div class="sm-pagination-wrap">
+                        {{ $materials->onEachSide(1)->links('frontend.study-materials.partials.pagination') }}
+                    </div>
+                @endif
+            </section>
+
+            <aside class="sm-right-sidebar">
+                <div class="sm-side-card">
+                    <div class="sm-side-card__head">
+                        <h3>Popular Subjects</h3>
+                        <a href="{{ route('study-materials.notes') }}">View All</a>
+                    </div>
+                    <div class="sm-subject-list">
+                        @forelse($popularSubjects as $subject)
+                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['subject' => $subject->subject])) }}" class="sm-subject-item">
+                                <span class="sm-subject-item__icon"><i class="fa-solid {{ $subjectIcons[$subject->subject] ?? 'fa-book' }}"></i></span>
+                                <span class="sm-subject-item__label">{{ $subject->subject }}</span>
+                                <span class="sm-subject-item__count">{{ number_format($subject->total) }} notes</span>
+                            </a>
+                        @empty
+                            <p class="sm-empty mb-0">No subjects yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="sm-side-card">
+                    <div class="sm-side-card__head">
+                        <h3>Top Contributors</h3>
+                        <a href="{{ route('educator.listings') }}">View All</a>
+                    </div>
+                    <div class="sm-contributor-list">
+                        @forelse($topContributors as $row)
+                            <div class="sm-contributor-item">
+                                <img src="{{ $row->educator?->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="{{ $row->educator?->display_name }}" class="sm-contributor-item__avatar">
+                                <div class="sm-contributor-item__body">
+                                    <strong>{{ $row->educator?->display_name }}</strong>
+                                    <span>{{ $row->educator?->professional_headline ?: $row->educator?->roleLabel() }}</span>
+                                    <small>{{ number_format($row->materials_count) }} Notes · {{ \App\Models\StudyMaterial::formatCompactCount($row->views_sum) }} Views</small>
+                                </div>
+                                @auth
+                                    @if($row->educator?->slug)
+                                        <form method="POST" action="{{ route('educator.follow', $row->educator->slug) }}">
+                                            @csrf
+                                            <button type="submit" class="sm-contributor-item__follow">Follow</button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <a href="{{ route('login') }}" class="sm-contributor-item__follow">Follow</a>
+                                @endauth
+                            </div>
+                        @empty
+                            <p class="sm-empty mb-0">No contributors yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="sm-help-box">
+                    <h4>Need Help?</h4>
+                    <p>Can't find the notes you are looking for?</p>
+                    <a href="{{ auth()->check() ? route('discussions.index') : route('login') }}" class="sm-btn sm-btn-outline sm-btn-block">
+                        <i class="fa-regular fa-comments"></i> Ask in Discussion Forum
+                    </a>
+                </div>
+            </aside>
+        </div>
     </div>
-  </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('assets/js/study-materials-notes.js') }}?v={{ now()->timestamp }}" defer></script>
+@endpush
