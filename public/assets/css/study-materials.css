@@ -804,7 +804,8 @@
 }
 
 .sm-note-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: 88px minmax(280px, 1fr) minmax(210px, 240px) minmax(112px, 130px);
   align-items: center;
   gap: 1.25rem;
   padding: 1.15rem 1.35rem;
@@ -822,11 +823,12 @@
   gap: 0.3rem;
   width: 88px;
   height: 88px;
-  flex: 0 0 88px;
   border-radius: 12px;
   text-decoration: none;
   font-size: 0.74rem;
   font-weight: 700;
+  justify-self: center;
+  align-self: center;
 }
 
 .sm-note-card__file i {
@@ -910,8 +912,8 @@
 }
 
 .sm-note-card__content {
-  flex: 1 1 360px;
   min-width: 0;
+  align-self: center;
 }
 
 .sm-note-card__title {
@@ -982,14 +984,14 @@
 }
 
 .sm-note-card__author-col {
-  flex: 0 0 230px;
   border-left: 1px solid #f1f5f9;
   padding-left: 1.15rem;
+  align-self: center;
 }
 
 .sm-note-card__author {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.6rem;
 }
 
@@ -1069,11 +1071,11 @@
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.55rem;
-  flex: 0 0 118px;
+  gap: 0.5rem;
   border-left: 1px solid #f1f5f9;
   padding-left: 1rem;
-  align-self: stretch;
+  align-self: center;
+  height: auto;
 }
 
 .sm-note-card__save {
@@ -1350,16 +1352,21 @@
 
 @media (max-width: 1100px) {
   .sm-note-card {
-    flex-wrap: wrap;
-    align-items: flex-start;
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .sm-note-card__file {
+    align-self: start;
   }
 
   .sm-note-card__content {
-    flex: 1 1 calc(100% - 112px);
+    align-self: start;
   }
 
   .sm-note-card__author-col {
-    flex: 1 1 100%;
+    grid-column: 2;
+    align-self: start;
     border-left: 0;
     padding-left: 0;
     padding-top: 0.75rem;
@@ -1368,7 +1375,8 @@
   }
 
   .sm-note-card__actions-col {
-    flex: 1 1 100%;
+    grid-column: 2;
+    align-self: start;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -1376,7 +1384,6 @@
     padding-left: 0;
     padding-top: 0.75rem;
     border-top: 1px solid #f1f5f9;
-    align-self: auto;
   }
 }
 
@@ -1409,8 +1416,7 @@
 
 @media (max-width: 767px) {
   .sm-note-card {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
     gap: 0.85rem;
   }
 
@@ -1421,21 +1427,19 @@
     flex-direction: row;
     justify-content: flex-start;
     padding: 0.75rem 1rem;
-  }
-
-  .sm-note-card__content {
-    flex: 1 1 auto;
-  }
-
-  .sm-note-card__crumbs {
-    white-space: normal;
+    justify-self: stretch;
   }
 
   .sm-note-card__author-col,
   .sm-note-card__actions-col {
+    grid-column: auto;
     border-top: 1px solid #f1f5f9;
     padding-top: 0.75rem;
     margin-top: 0;
+  }
+
+  .sm-note-card__crumbs {
+    white-space: normal;
   }
 
   .sm-note-card__actions-col {
