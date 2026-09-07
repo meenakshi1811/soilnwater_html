@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/study-materials.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @php
@@ -49,7 +50,13 @@
 @endphp
 
 @section('content')
-<div class="sm-page sm-notes-page">
+<div
+    class="sm-page sm-notes-page"
+    id="smNotesPage"
+    data-notes-url="{{ route('study-materials.notes') }}"
+    data-login-url="{{ route('login') }}"
+    data-is-auth="{{ auth()->check() ? '1' : '0' }}"
+>
     <div class="container-fluid sm-notes-container">
         <nav class="sm-breadcrumb" aria-label="Breadcrumb">
             <a href="{{ route('frontend.index') }}">Home</a>
@@ -109,15 +116,13 @@
             <aside class="sm-filter-sidebar">
                 <div class="sm-filter-sidebar__head">
                     <h2>Filter &amp; Refine</h2>
-                    <a href="{{ route('study-materials.notes') }}" class="sm-filter-reset">Reset All</a>
+                    <a href="{{ route('study-materials.notes') }}" class="sm-filter-reset js-sm-notes-reset">Reset All</a>
                 </div>
 
-                <form method="GET" action="{{ route('study-materials.notes') }}" id="smNotesFilterForm">
-                    <input type="hidden" name="view" value="{{ $viewMode }}">
-                    <input type="hidden" name="sort" value="{{ $sort }}">
-                    @if($filters['category'])
-                        <input type="hidden" name="category" value="{{ $filters['category'] }}">
-                    @endif
+                <form method="GET" action="{{ route('study-materials.notes') }}" id="smNotesFilterForm" class="js-sm-notes-filter-form">
+                    <input type="hidden" name="view" value="{{ $viewMode }}" id="sm-filter-view">
+                    <input type="hidden" name="sort" value="{{ $sort }}" id="sm-filter-sort">
+                    <input type="hidden" name="category" value="{{ $filters['category'] ?? '' }}" id="sm-filter-category">
 
                     <div class="sm-filter-group">
                         <label for="sm-class-course">Class / Course</label>
@@ -197,84 +202,38 @@
                 <div class="sm-toolbar sm-toolbar--top">
                     <div></div>
                     <div class="sm-toolbar__controls">
-                        <form method="GET" action="{{ route('study-materials.notes') }}" class="sm-sort-form">
-                            @foreach($queryWithoutPage as $key => $value)
-                                @if(is_array($value))
-                                    @foreach($value as $item)
-                                        <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
-                                    @endforeach
-                                @elseif($key !== 'sort')
-                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                                @endif
-                            @endforeach
                             <label for="sm-sort" class="sm-sort-label">Sort by:</label>
-                            <select id="sm-sort" name="sort" class="form-select form-select-sm js-sm-sort">
+                            <select id="sm-sort" class="form-select form-select-sm js-sm-notes-sort">
                                 <option value="recent" @selected($sort === 'recent')>Most Recent</option>
                                 <option value="downloads" @selected($sort === 'downloads')>Most Downloaded</option>
                                 <option value="rating" @selected($sort === 'rating')>Top Rated</option>
                                 <option value="title" @selected($sort === 'title')>Title A–Z</option>
                             </select>
-                        </form>
                         <div class="sm-view-toggle" aria-label="View mode">
-                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['view' => 'grid'])) }}" class="sm-view-toggle__btn {{ $viewMode === 'grid' ? 'is-active' : '' }}" title="Grid view"><i class="fa-solid fa-grip"></i></a>
-                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['view' => 'list'])) }}" class="sm-view-toggle__btn {{ $viewMode === 'list' ? 'is-active' : '' }}" title="List view"><i class="fa-solid fa-list"></i></a>
+                            <button type="button" class="sm-view-toggle__btn js-sm-notes-view {{ $viewMode === 'grid' ? 'is-active' : '' }}" data-view="grid" title="Grid view"><i class="fa-solid fa-grip"></i></button>
+                            <button type="button" class="sm-view-toggle__btn js-sm-notes-view {{ $viewMode === 'list' ? 'is-active' : '' }}" data-view="list" title="List view"><i class="fa-solid fa-list"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <div class="sm-category-tabs" role="tablist" aria-label="Categories">
-                    @foreach($categoryTabs as $tab)
-                        @php
-                            $tabQuery = $queryWithoutPage;
-                            if ($tab['value']) {
-                                $tabQuery['category'] = $tab['value'];
-                            } else {
-                                unset($tabQuery['category']);
-                            }
-                            $isActive = ($tab['value'] === null && empty($filters['category'])) || ($filters['category'] ?? null) === $tab['value'];
-                        @endphp
-                        <a href="{{ route('study-materials.notes', $tabQuery) }}" class="sm-category-tab {{ $isActive ? 'is-active' : '' }}">{{ $tab['label'] }}</a>
-                    @endforeach
+                <div class="sm-category-tabs" id="smNotesCategoryTabs" role="tablist" aria-label="Categories">
+                    @include('frontend.study-materials.partials.category-tabs')
                 </div>
 
-                <p class="sm-results-count">
-                    Showing {{ $materials->firstItem() ?: 0 }} to {{ $materials->lastItem() ?: 0 }} of {{ number_format($materials->total()) }} notes
-                </p>
-
-                @if($viewMode === 'grid')
-                    <div class="sm-grid-cards">
-                        @forelse($materials as $item)
-                            @include('frontend.study-materials.partials.note-grid-item', ['item' => $item])
-                        @empty
-                            <p class="sm-empty">No notes found for the selected filters.</p>
-                        @endforelse
-                    </div>
-                @else
-                    <div class="sm-note-list">
-                        @forelse($materials as $item)
-                            @include('frontend.study-materials.partials.note-list-item', ['item' => $item])
-                        @empty
-                            <p class="sm-empty">No notes found for the selected filters.</p>
-                        @endforelse
-                    </div>
-                @endif
-
-                @if($materials->hasPages())
-                    <div class="sm-pagination-wrap">
-                        {{ $materials->onEachSide(1)->links('frontend.study-materials.partials.pagination') }}
-                    </div>
-                @endif
+                <div id="smNotesResults" class="sm-notes-results">
+                    @include('frontend.study-materials.partials.notes-results')
+                </div>
             </section>
 
             <aside class="sm-right-sidebar">
                 <div class="sm-side-card">
                     <div class="sm-side-card__head">
                         <h3>Popular Subjects</h3>
-                        <a href="{{ route('study-materials.notes') }}">View All</a>
+                        <a href="{{ route('study-materials.notes') }}" class="js-sm-notes-view-all">View All</a>
                     </div>
                     <div class="sm-subject-list">
                         @forelse($popularSubjects as $subject)
-                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['subject' => $subject->subject])) }}" class="sm-subject-item">
+                            <a href="{{ route('study-materials.notes', array_merge($queryWithoutPage, ['subject' => $subject->subject])) }}" class="sm-subject-item js-sm-notes-filter-link" data-filter-subject="{{ $subject->subject }}">
                                 <span class="sm-subject-item__icon"><i class="fa-solid {{ $subjectIcons[$subject->subject] ?? 'fa-book' }}"></i></span>
                                 <span class="sm-subject-item__label">{{ $subject->subject }}</span>
                                 <span class="sm-subject-item__count">{{ number_format($subject->total) }} Notes</span>
@@ -301,7 +260,7 @@
                                 </div>
                                 @auth
                                     @if($row->educator?->slug)
-                                        <form method="POST" action="{{ route('educator.follow', $row->educator->slug) }}">
+                                        <form method="POST" action="{{ route('educator.follow', $row->educator->slug) }}" class="js-sm-educator-follow-form">
                                             @csrf
                                             <button type="submit" class="sm-contributor-item__follow">Follow</button>
                                         </form>
@@ -333,5 +292,6 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="{{ asset('assets/js/study-materials-notes.js') }}?v={{ now()->timestamp }}" defer></script>
 @endpush

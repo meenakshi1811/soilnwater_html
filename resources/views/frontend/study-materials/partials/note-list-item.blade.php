@@ -20,15 +20,15 @@
         </h3>
         <div class="sm-note-card__crumbs">
             @if($item->class_course)
-                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['class_course' => $item->class_course])) }}">{{ $item->class_course }}</a>
+                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['class_course' => $item->class_course])) }}" class="js-sm-notes-filter-link" data-filter-class="{{ $item->class_course }}">{{ $item->class_course }}</a>
             @endif
             @if($item->subject)
                 <span aria-hidden="true">·</span>
-                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['subject' => $item->subject])) }}">{{ $item->subject }}</a>
+                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['subject' => $item->subject])) }}" class="js-sm-notes-filter-link" data-filter-subject="{{ $item->subject }}">{{ $item->subject }}</a>
             @endif
             @if($item->topic_chapter)
                 <span aria-hidden="true">·</span>
-                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['topic_chapter' => $item->topic_chapter])) }}">{{ $item->topic_chapter }}</a>
+                <a href="{{ route('study-materials.notes', array_merge(request()->except('page'), ['topic_chapter' => $item->topic_chapter])) }}" class="js-sm-notes-filter-link" data-filter-topic="{{ $item->topic_chapter }}">{{ $item->topic_chapter }}</a>
             @endif
         </div>
 

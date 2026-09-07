@@ -20,7 +20,26 @@ class StudyMaterialLibraryController extends Controller
         return redirect()->route('study-materials.notes', $request->query());
     }
 
-    public function notes(Request $request): View
+    public function notes(Request $request): View|JsonResponse
+    {
+        $data = $this->buildNotesPageData($request);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'results_html' => view('frontend.study-materials.partials.notes-results', $data)->render(),
+                'category_tabs_html' => view('frontend.study-materials.partials.category-tabs', $data)->render(),
+                'url' => route('study-materials.notes', $request->query()),
+            ]);
+        }
+
+        return view('frontend.study-materials.notes', $data);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildNotesPageData(Request $request): array
     {
         $base = StudyMaterial::query()->approved()->with([
             'educator:id,display_name,slug,profile_photo,is_verified,type,professional_headline',
@@ -120,7 +139,7 @@ class StudyMaterialLibraryController extends Controller
             ]);
         }
 
-        return view('frontend.study-materials.notes', compact(
+        return array_merge(compact(
             'materials',
             'stats',
             'categories',
@@ -132,11 +151,12 @@ class StudyMaterialLibraryController extends Controller
             'viewMode',
             'sort',
             'categoryTabs'
-        ))->with([
+        ), [
             'classOptions' => $this->distinctFilterOptions('class_course'),
             'boardOptions' => $this->distinctFilterOptions('board_university'),
             'subjectOptions' => $this->distinctFilterOptions('subject'),
             'topicOptions' => $this->distinctFilterOptions('topic_chapter'),
+            'queryWithoutPage' => $request->except('page'),
         ]);
     }
 
