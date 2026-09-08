@@ -1,7 +1,7 @@
 @extends('frontend.layouts.app')
 
 @section('meta_title', $educator->display_name.' · '.$educator->roleLabel().' | SoilnWater')
-@section('meta_description', $educator->tagline ?: ($educator->professional_headline ?: 'Teacher and tutor profile on SoilnWater'))
+@section('meta_description', $educator->publicProfileMetaDescription())
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/educator-profile.css') }}?v={{ now()->timestamp }}">
@@ -26,8 +26,9 @@
   $testimonials = collect($profileReviews ?? [])->filter(fn ($item) => filled(trim((string) ($item->body ?? ''))))->take(6);
   $aboutText = trim((string) $educator->about);
   $aboutNeedsToggle = strlen($aboutText) > 280;
+  $isTutorProfile = $educator->isTutor();
 
-  $navItems = [
+  $navItems = collect([
     ['id' => 'edu-overview', 'label' => 'Profile Overview', 'icon' => 'fa-user'],
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
@@ -40,15 +41,15 @@
     ['id' => 'edu-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy'],
     ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper'],
     ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
-    ['id' => 'edu-availability', 'label' => 'Availability & Locations', 'icon' => 'fa-calendar-check'],
-    ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign'],
+    ['id' => 'edu-availability', 'label' => $isTutorProfile ? 'Availability & Tuition' : 'Availability & Locations', 'icon' => 'fa-calendar-check'],
+    ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'tutor_only' => true],
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
     ['id' => 'edu-contact', 'label' => 'Contact & Enquiry', 'icon' => 'fa-envelope'],
-  ];
+  ])->filter(fn ($item) => empty($item['tutor_only']) || $isTutorProfile)->values()->all();
 @endphp
 
 <div
-  class="edu-page"
+  class="edu-page {{ $isTutorProfile ? 'edu-page--tutor' : 'edu-page--teacher' }}"
   id="educatorProfilePage"
   data-share-url="{{ $shareUrl }}"
   data-share-title="{{ $educator->display_name }} · {{ $educator->roleLabel() }}"
@@ -67,7 +68,7 @@
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
       <a href="{{ route('educator.index') }}">Teachers &amp; Tutors</a>
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
-      <a href="{{ route('educator.listings', ['subject' => $primarySubject]) }}">{{ $primarySubject }} Teachers</a>
+      <a href="{{ route('educator.listings', array_filter(['subject' => $primarySubject, 'takes_tuitions' => $isTutorProfile ? '1' : '0'])) }}">{{ $primarySubject }} {{ $educator->publicListingLabel() }}</a>
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
       <span class="edu-breadcrumb__current" aria-current="page">{{ $educator->display_name }}</span>
     </nav>
@@ -118,9 +119,9 @@
 
             <div>
               @if($educator->isVerified())
-                <span class="edu-overview__badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $educator->verifiedBadgeLabel() }}</span>
+                <span class="edu-overview__badge {{ $isTutorProfile ? 'edu-overview__badge--tutor' : 'edu-overview__badge--teacher' }}"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $educator->verifiedBadgeLabel() }}</span>
               @else
-                <span class="edu-overview__badge edu-overview__badge--muted">{{ $educator->roleLabel() }}</span>
+                <span class="edu-overview__badge edu-overview__badge--muted {{ $isTutorProfile ? 'edu-overview__badge--tutor' : 'edu-overview__badge--teacher' }}">{{ $educator->roleLabel() }}</span>
               @endif
 
               <h1 class="edu-overview__name">
@@ -130,9 +131,14 @@
                 @endif
               </h1>
 
-              <p class="edu-overview__headline">{{ $educator->professional_headline ?: 'Educator' }}</p>
-              @if($educator->tagline)
-                <p class="edu-overview__tagline">{{ $educator->tagline }}</p>
+              <p class="edu-overview__headline">{{ $educator->professional_headline ?: $educator->publicHeadlineFallback() }}</p>
+              @if($isTutorProfile)
+                <p class="edu-overview__profile-type"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Tuition profile · private and batch classes</p>
+              @else
+                <p class="edu-overview__profile-type"><i class="fa-solid fa-school" aria-hidden="true"></i> Experienced teacher profile · school and institute teaching</p>
+              @endif
+              @if($educator->publicTagline())
+                <p class="edu-overview__tagline">{{ $educator->publicTagline() }}</p>
               @endif
 
               <div class="edu-overview__rating">
@@ -186,9 +192,11 @@
               <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
                 <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
               </button>
-              <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry">
-                <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Book a Session
-              </button>
+              @if($isTutorProfile)
+                <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry">
+                  <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Book a Session
+                </button>
+              @endif
               @auth
                 <button
                   type="button"
@@ -307,7 +315,7 @@
               @forelse($experiences as $exp)
                 <div class="edu-timeline-item">
                   <strong>{{ $exp['title'] ?? 'Experience' }}</strong>
-                  <span class="text-muted">{{ collect([$exp['organization'] ?? null, $exp['duration'] ?? null])->filter()->implode(' · ') }}</span>
+                  <span class="text-muted">{{ collect([$exp['organization'] ?? null, \App\Models\Educator::experienceDurationLabel($exp) ?: null])->filter()->implode(' · ') }}</span>
                   @if(!empty($exp['description']))
                     <p class="mb-0 mt-1">{{ $exp['description'] }}</p>
                   @endif
@@ -481,7 +489,7 @@
               <form id="educatorReviewForm" class="edu-review-form mb-4" novalidate>
                 @csrf
                 <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
-                <p class="edu-review-form__hint mb-2">Share your experience with this teacher / tutor.</p>
+                <p class="edu-review-form__hint mb-2">Share your experience with this {{ strtolower($educator->roleLabel()) }}.</p>
 
                 @php $selectedRating = (int) old('rating', $userReview?->rating ?: 5); @endphp
                 <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
@@ -560,7 +568,7 @@
 
         {{-- 13. Availability & Locations --}}
         <section class="edu-section" id="edu-availability">
-          <h2 class="edu-section__title"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Availability &amp; Locations</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> {{ $isTutorProfile ? 'Availability & Tuition' : 'Availability & Locations' }}</h2>
 
           @if($educator->is_available_now)
             <span class="edu-available-now"><i class="fa-solid fa-circle" aria-hidden="true"></i> Available now</span>
@@ -602,26 +610,68 @@
             <p class="edu-classes-label mt-3">Institute</p>
             <p class="mb-0"><i class="fa-solid fa-school text-primary me-1" aria-hidden="true"></i> {{ $educator->associated_institute }}</p>
           @endif
+
+          @if($isTutorProfile)
+            @if($educator->tuition_location)
+              <p class="edu-classes-label mt-3">Tuition location</p>
+              <p class="mb-0"><i class="fa-solid fa-location-dot text-primary me-1" aria-hidden="true"></i> {{ $educator->tuition_location }}</p>
+            @endif
+            @if($educator->tuition_timings)
+              <p class="edu-classes-label mt-3">Tuition timings</p>
+              <p class="mb-0"><i class="fa-solid fa-clock text-primary me-1" aria-hidden="true"></i> {{ $educator->tuition_timings }}</p>
+            @endif
+          @endif
         </section>
 
+        @if($isTutorProfile)
         {{-- 14. Fees & Packages --}}
         <section class="edu-section" id="edu-fees">
           <h2 class="edu-section__title"><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> Fees &amp; Packages</h2>
+          @php
+            $tuitionBatches = $educator->normalizedTuitionBatches();
+          @endphp
+          @if($tuitionBatches !== [])
+            <div class="edu-fees-table-wrap">
+              <table class="edu-fees-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Batch</th>
+                    <th>Students</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($tuitionBatches as $batch)
+                    <tr>
+                      <td>{{ $batch['class'] ?: '—' }}</td>
+                      <td>{{ $batch['subject'] ?: '—' }}</td>
+                      <td>{{ $batch['batch_type'] ?: '—' }}</td>
+                      <td>{{ $batch['student_count'] ?: '—' }}</td>
+                      <td><strong>{{ $batch['cost'] ?: '—' }}</strong></td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @endif
           @if($educator->tuition_charges)
-            <div class="edu-fees-box">
-              <p class="mb-1 text-muted small">Tuition charges</p>
+            <div class="edu-fees-box {{ $tuitionBatches !== [] ? 'mt-3' : '' }}">
+              <p class="mb-1 text-muted small">Additional fee notes</p>
               <strong>{{ $educator->tuition_charges }}</strong>
             </div>
-          @else
+          @elseif($tuitionBatches === [])
             <p class="edu-empty">Fee details not published. Send an enquiry to discuss packages.</p>
           @endif
         </section>
+        @endif
 
         {{-- 15. Ask a Question --}}
         <section class="edu-section" id="edu-question">
           <h2 class="edu-section__title"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Ask a Question</h2>
           <div class="edu-ask-cta">
-            <p>Have a question about classes, subjects or availability? Send a message directly to {{ $educator->display_name }}.</p>
+            <p>{{ $isTutorProfile ? 'Have a question about tuition batches, fees, or availability?' : 'Have a question about classes, subjects, or teaching experience?' }} Send a message directly to {{ $educator->display_name }}.</p>
             @auth
               <form id="eduQuickQuestionForm" class="edu-quick-form" method="POST" action="{{ route('educator.enquiry', $educator->slug) }}" novalidate>
                 @csrf
@@ -630,7 +680,7 @@
                 <input type="hidden" name="phone" value="{{ auth()->user()->phone_number }}">
                 <div class="mb-2">
                   <label class="form-label" for="eduQuickSubject">Subject (optional)</label>
-                  <input type="text" id="eduQuickSubject" name="subject" class="form-control" placeholder="e.g. Class 10 Maths tuition">
+                  <input type="text" id="eduQuickSubject" name="subject" class="form-control" placeholder="{{ $isTutorProfile ? 'e.g. Class 10 Maths tuition batch' : 'e.g. Class 10 Science teaching experience' }}">
                 </div>
                 <div class="mb-3">
                   <label class="form-label" for="eduQuickMessage">Your question</label>

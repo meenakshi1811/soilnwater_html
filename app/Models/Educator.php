@@ -52,6 +52,7 @@ class Educator extends Model
         'tuition_classes',
         'tuition_subjects',
         'tuition_types',
+        'tuition_batches',
         'tuition_location',
         'tuition_timings',
         'tuition_charges',
@@ -91,6 +92,7 @@ class Educator extends Model
             'tuition_classes' => 'array',
             'tuition_subjects' => 'array',
             'tuition_types' => 'array',
+            'tuition_batches' => 'array',
             'take_tuitions' => 'boolean',
             'is_verified' => 'boolean',
             'is_available_now' => 'boolean',
@@ -162,12 +164,35 @@ class Educator extends Model
 
     public function roleLabel(): string
     {
-        return 'Teacher / Tutor';
+        return $this->isTutor() ? 'Tutor' : 'Experienced Teacher';
     }
 
     public function verifiedBadgeLabel(): string
     {
-        return $this->isVerified() ? 'Verified Teacher / Tutor' : $this->roleLabel();
+        if (! $this->isVerified()) {
+            return $this->roleLabel();
+        }
+
+        return $this->isTutor() ? 'Verified Tutor' : 'Verified Experienced Teacher';
+    }
+
+    public function publicProfileMetaDescription(): string
+    {
+        $fallback = $this->isTutor()
+            ? 'Tutor profile on SoilnWater'
+            : 'Experienced teacher profile on SoilnWater';
+
+        return $this->publicTagline() ?: ($this->professional_headline ?: $fallback);
+    }
+
+    public function publicListingLabel(): string
+    {
+        return $this->isTutor() ? 'Tutors' : 'Teachers';
+    }
+
+    public function publicHeadlineFallback(): string
+    {
+        return $this->isTutor() ? 'Tutor' : 'Experienced Teacher';
     }
 
     public function isVerified(): bool
@@ -188,6 +213,165 @@ class Educator extends Model
     public function locationLabel(): string
     {
         return collect([$this->city, $this->state])->filter()->implode(', ');
+    }
+
+    public function publicTagline(): ?string
+    {
+        $tagline = trim((string) $this->tagline);
+        if ($tagline !== '') {
+            return $tagline;
+        }
+
+        return static::excerptFromAbout($this->about);
+    }
+
+    /**
+     * @return list<array{class: string, subject: string, batch_type: string, student_count: string, cost: string}>
+     */
+    public function normalizedTuitionBatches(): array
+    {
+        $stored = collect($this->tuition_batches ?? [])
+            ->filter(fn ($item) => is_array($item))
+            ->map(fn ($item) => $this->formatTuitionBatchRow($item))
+            ->filter(fn ($item) => collect($item)->filter()->isNotEmpty())
+            ->values();
+
+        if ($stored->isNotEmpty()) {
+            return $stored->all();
+        }
+
+        $classes = collect($this->tuition_classes ?? [])->values();
+        $subjects = collect($this->tuition_subjects ?? [])->values();
+        $types = collect($this->tuition_types ?? [])->values();
+        $max = max($classes->count(), $subjects->count(), $types->count());
+
+        if ($max === 0) {
+            return [];
+        }
+
+        $legacy = [];
+        for ($i = 0; $i < $max; $i++) {
+            $legacy[] = $this->formatTuitionBatchRow([
+                'class' => $classes->get($i),
+                'subject' => $subjects->get($i),
+                'batch_type' => $types->get($i),
+            ]);
+        }
+
+        return $legacy;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array{class: string, subject: string, batch_type: string, student_count: string, cost: string}
+     */
+    private function formatTuitionBatchRow(array $item): array
+    {
+        return [
+            'class' => trim((string) ($item['class'] ?? '')),
+            'subject' => trim((string) ($item['subject'] ?? '')),
+            'batch_type' => trim((string) ($item['batch_type'] ?? '')),
+            'student_count' => trim((string) ($item['student_count'] ?? '')),
+            'cost' => trim((string) ($item['cost'] ?? '')),
+        ];
+    }
+
+    public static function excerptFromAbout(?string $about, int $max = 255): ?string
+    {
+        $text = trim((string) $about);
+        if ($text === '') {
+            return null;
+        }
+
+        $firstLine = trim(explode("\n", str_replace(["\r\n", "\r"], "\n", $text), 2)[0]);
+        if ($firstLine === '') {
+            return null;
+        }
+
+        if (mb_strlen($firstLine) <= $max) {
+            return $firstLine;
+        }
+
+        return rtrim(mb_substr($firstLine, 0, $max - 1)).'…';
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array{title: string, organization: string, start_year: string, end_year: string, is_current: bool, description: string}
+     */
+    public static function formatExperienceForForm(array $item): array
+    {
+        $startYear = trim((string) ($item['start_year'] ?? ''));
+        $endYear = trim((string) ($item['end_year'] ?? ''));
+        $isCurrent = filter_var($item['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if ($startYear === '' && ! empty($item['duration'])) {
+            [$parsedStart, $parsedEnd, $parsedCurrent] = static::parseExperienceDuration((string) $item['duration']);
+            $startYear = $parsedStart;
+            $endYear = $parsedEnd;
+            $isCurrent = $parsedCurrent;
+        }
+
+        return [
+            'title' => trim((string) ($item['title'] ?? '')),
+            'organization' => trim((string) ($item['organization'] ?? '')),
+            'start_year' => $startYear,
+            'end_year' => $isCurrent ? '' : $endYear,
+            'is_current' => $isCurrent,
+            'description' => trim((string) ($item['description'] ?? '')),
+        ];
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: bool}
+     */
+    public static function parseExperienceDuration(string $duration): array
+    {
+        $duration = trim($duration);
+
+        if (preg_match('/^(\d{4})\s*[–-]\s*Present$/i', $duration, $matches)) {
+            return [$matches[1], '', true];
+        }
+
+        if (preg_match('/^(\d{4})\s*[–-]\s*(\d{4})$/', $duration, $matches)) {
+            return [$matches[1], $matches[2], false];
+        }
+
+        return ['', '', false];
+    }
+
+    public static function formatExperienceDuration(string $startYear, string $endYear, bool $isCurrent): string
+    {
+        if ($startYear === '') {
+            return '';
+        }
+
+        if ($isCurrent) {
+            return $startYear.' – Present';
+        }
+
+        if ($endYear !== '') {
+            return $startYear.' – '.$endYear;
+        }
+
+        return $startYear;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    public static function experienceDurationLabel(array $item): string
+    {
+        $duration = trim((string) ($item['duration'] ?? ''));
+        if ($duration !== '') {
+            return $duration;
+        }
+
+        $startYear = trim((string) ($item['start_year'] ?? ''));
+        $endYear = trim((string) ($item['end_year'] ?? ''));
+        $isCurrent = filter_var($item['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        return static::formatExperienceDuration($startYear, $endYear, $isCurrent);
     }
 
     public function primarySubject(): ?string

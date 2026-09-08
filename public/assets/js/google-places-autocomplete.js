@@ -70,7 +70,19 @@
             };
         }
 
+        if (options.types) {
+            autocompleteOptions.types = options.types;
+        }
+
         return autocompleteOptions;
+    }
+
+    function getPlaceName(place) {
+        if (!place) {
+            return '';
+        }
+
+        return place.name || getSelectedAddress(place);
     }
 
     function bindAutocomplete(input, options) {
@@ -103,6 +115,7 @@
     window.SoilnWaterGooglePlaces = {
         getComponent: getComponent,
         getSelectedAddress: getSelectedAddress,
+        getPlaceName: getPlaceName,
         getCity: getCity,
         getState: getState,
         getPincode: getPincode,

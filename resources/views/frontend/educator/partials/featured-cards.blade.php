@@ -1,7 +1,7 @@
 @forelse ($featuredEducators as $educator)
   @php
     $photo = $educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp');
-    $subject = $educator->primarySubject() ?: 'Teacher / Tutor';
+    $subject = $educator->primarySubject() ?: $educator->roleLabel();
   @endphp
   <article class="vendors-compact-card educators-card educators-card--featured is-verified">
     <a href="{{ $educator->publicUrl() }}" class="vendors-compact-card__media educators-card__media" aria-label="View {{ $educator->display_name }} profile">

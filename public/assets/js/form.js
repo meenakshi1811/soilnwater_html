@@ -573,6 +573,47 @@
             });
         },
 
+        bindExperienceOrganizationAutocomplete: function (input) {
+            if (!input || input.dataset.googlePlacesReady === 'true') {
+                return;
+            }
+
+            if (!window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
+                var attempts = Number(input.dataset.googlePlacesAttempts || 0);
+                if (attempts >= 20) {
+                    return;
+                }
+
+                input.dataset.googlePlacesAttempts = String(attempts + 1);
+                var self = this;
+                window.setTimeout(function () {
+                    self.bindExperienceOrganizationAutocomplete(input);
+                }, 500);
+                return;
+            }
+
+            window.SoilnWaterGooglePlaces.bindAutocomplete(input, {
+                types: ['establishment'],
+                addressComponents: false,
+                onPlaceChanged: function (place) {
+                    var placeName = window.SoilnWaterGooglePlaces.getPlaceName(place);
+                    if (placeName) {
+                        input.value = placeName;
+                    }
+
+                    $(input).trigger('input').trigger('change');
+                },
+            });
+        },
+
+        initEducatorExperienceOrganizationAutocomplete: function () {
+            document.querySelectorAll('.js-experience-organization').forEach(function (input) {
+                if (window.FormHelper) {
+                    window.FormHelper.bindExperienceOrganizationAutocomplete(input);
+                }
+            });
+        },
+
         initRegisterWhatsappSync: function (options) {
             options = options || {};
             var phoneSelector = options.phoneSelector || '#phone_number';
@@ -1252,6 +1293,24 @@
                 messages: this.profileValidationMessages(includeMarketplaceFields),
                 fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
                 beforeSubmit: function (ctx) {
+                    ctx.form.find('.js-lines').each(function () {
+                        var el = this;
+                        var name = el.getAttribute('data-name');
+                        if (!name) {
+                            return;
+                        }
+                        $(el).parent().find('input[type=hidden][data-generated="' + name + '"]').remove();
+                        String(el.value || '').split(/\r?\n/).map(function (value) {
+                            return $.trim(value);
+                        }).filter(Boolean).forEach(function (line) {
+                            var input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name + '[]';
+                            input.value = line;
+                            input.setAttribute('data-generated', name);
+                            el.parentElement.appendChild(input);
+                        });
+                    });
                     ctx.form.find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
                         $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
                     });
@@ -1289,6 +1348,7 @@
 
             this.attachProfileUpdateForm('#vendorProfileForm', '#vendorProfileSubmitBtn', '#vendorProfileAlert', true);
             this.attachProfileUpdateForm('#consultantProfileForm', '#consultantProfileSubmitBtn', '#consultantProfileAlert', true);
+            this.attachProfileUpdateForm('#educatorProfileForm', '#educatorProfileSubmitBtn', '#educatorProfileAlert', false);
         },
 
         init: function () {

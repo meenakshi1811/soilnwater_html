@@ -1,7 +1,7 @@
 @forelse ($educators as $educator)
   @php
     $photo = $educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp');
-    $subject = $educator->primarySubject() ?: ($educator->take_tuitions ? 'Tuition' : 'Teacher / Tutor');
+    $subject = $educator->primarySubject() ?: $educator->roleLabel();
     $location = $educator->locationLabel() ?: 'India';
     $distance = isset($educator->distance_km) && ($hasLocation ?? false)
       ? number_format((float) $educator->distance_km, 1).' km'
