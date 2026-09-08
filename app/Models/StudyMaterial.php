@@ -157,6 +157,95 @@ class StudyMaterial extends Model
         };
     }
 
+    /**
+     * @return list<array{index: int, title: string, page_label: string, page_start: int, page_end: int}>
+     */
+    public function contentPages(): array
+    {
+        $sections = collect($this->contents ?? [])->filter()->values();
+        $totalPages = max((int) $this->pages, $sections->count(), 1);
+
+        if ($sections->isEmpty()) {
+            return [[
+                'index' => 0,
+                'title' => $this->topic_chapter ?: 'Full Document',
+                'page_label' => $totalPages > 1 ? 'Page 1-'.$totalPages : 'Page 1',
+                'page_start' => 1,
+                'page_end' => $totalPages,
+            ]];
+        }
+
+        $pagesPerSection = max(1, (int) floor($totalPages / $sections->count()));
+        $pageStart = 1;
+
+        return $sections->values()->map(function ($title, $index) use ($sections, $totalPages, $pagesPerSection, &$pageStart) {
+            $isLast = $index === ($sections->count() - 1);
+            $pageEnd = $isLast ? $totalPages : min($pageStart + $pagesPerSection - 1, $totalPages);
+            $pageLabel = $pageStart === $pageEnd
+                ? 'Page '.$pageStart
+                : 'Page '.$pageStart.'-'.$pageEnd;
+
+            $item = [
+                'index' => $index,
+                'title' => (string) $title,
+                'page_label' => $pageLabel,
+                'page_start' => $pageStart,
+                'page_end' => $pageEnd,
+            ];
+
+            $pageStart = $pageEnd + 1;
+
+            return $item;
+        })->all();
+    }
+
+    /**
+     * @return list<array{label: string, url: string|null}>
+     */
+    public function breadcrumbTrail(): array
+    {
+        $items = [
+            ['label' => 'Home', 'url' => route('frontend.index')],
+            ['label' => 'Study Materials Library', 'url' => route('study-materials.library')],
+        ];
+
+        if (filled($this->category)) {
+            $items[] = [
+                'label' => $this->category,
+                'url' => route('study-materials.notes', ['category' => $this->category]),
+            ];
+        }
+
+        if (filled($this->class_course)) {
+            $items[] = [
+                'label' => $this->class_course,
+                'url' => route('study-materials.notes', ['class_course' => $this->class_course]),
+            ];
+        }
+
+        if (filled($this->subject)) {
+            $items[] = [
+                'label' => $this->subject,
+                'url' => route('study-materials.notes', ['subject' => $this->subject]),
+            ];
+        }
+
+        $items[] = ['label' => $this->title, 'url' => null];
+
+        return $items;
+    }
+
+    public function canPreviewInline(): bool
+    {
+        $type = strtolower((string) $this->file_type);
+
+        return str_contains($type, 'pdf')
+            || str_contains($type, 'jpg')
+            || str_contains($type, 'jpeg')
+            || str_contains($type, 'png')
+            || str_contains($type, 'webp');
+    }
+
     public static function formatCompactCount(int|float|null $value, bool $millionPlus = false): string
     {
         $value = (int) ($value ?? 0);
