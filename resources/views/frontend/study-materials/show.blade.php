@@ -126,6 +126,7 @@
                         </button>
 
                         <div class="sm-show-viewer-canvas js-sm-viewer-canvas">
+                            <div class="sm-show-viewer-content js-sm-viewer-content">
                             @if($material->canPreviewInline() && $material->fileUrl())
                                 @if(str_contains(strtolower((string) $material->file_type), 'pdf'))
                                     <iframe
@@ -153,11 +154,12 @@
                                     </div>
                                     <h3 class="js-sm-viewer-section-title">{{ $contentPages[0]['title'] ?? $material->title }}</h3>
                                     <p>{{ $material->topic_chapter ?: $material->subject ?: 'Study material preview' }}</p>
-                                    <p class="sm-show-viewer-placeholder__file">
-                                        {{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}
+                                    <p class="sm-show-viewer-placeholder__file js-sm-viewer-page-meta">
+                                        Page 1 of {{ $totalPages }} · {{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}
                                     </p>
                                 </div>
                             @endif
+                            </div>
                         </div>
 
                         <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--next js-sm-viewer-next" aria-label="Next page">

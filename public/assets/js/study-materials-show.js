@@ -149,9 +149,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const pageLabel = document.querySelector('.js-sm-viewer-page-label');
     const canvas = document.querySelector('.js-sm-viewer-canvas');
+    const content = document.querySelector('.js-sm-viewer-content');
     const frame = document.querySelector('.js-sm-viewer-frame');
+    const previewImage = document.querySelector('.js-sm-viewer-image');
     const placeholderTitle = document.querySelector('.js-sm-viewer-section-title');
+    const pageMeta = document.querySelector('.js-sm-viewer-page-meta');
     const contentItems = document.querySelectorAll('.js-sm-content-item');
+    const viewerCard = document.querySelector('.sm-show-viewer-card');
+    const fitSelect = document.querySelector('.js-sm-viewer-fit-select');
+    const prevBtn = document.querySelector('.js-sm-viewer-prev');
+    const nextBtn = document.querySelector('.js-sm-viewer-next');
+    const fullscreenBtn = document.querySelector('.js-sm-viewer-fullscreen');
+    let pageMetaSuffix = '';
+
+    if (pageMeta) {
+        const metaMatch = pageMeta.textContent.match(/Page \d+ of \d+ · (.+)/);
+        pageMetaSuffix = metaMatch ? metaMatch[1] : '';
+    }
+
+    let fitMode = fitSelect?.value || 'width';
+
+    function getPreviewElement() {
+        return frame || previewImage || document.querySelector('.js-sm-viewer-placeholder');
+    }
 
     function setActiveContentItem(index) {
         contentItems.forEach(function (item) {
@@ -164,6 +184,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updatePageMeta() {
+        if (pageMeta) {
+            pageMeta.textContent = 'Page ' + currentPage + ' of ' + totalPages + (pageMetaSuffix ? ' · ' + pageMetaSuffix : '');
+        }
+    }
+
+    function updateNavButtons() {
+        const atStart = currentPage <= 1;
+        const atEnd = currentPage >= totalPages;
+
+        [prevBtn, nextBtn].forEach(function (button) {
+            if (!button) {
+                return;
+            }
+            button.disabled = button.classList.contains('js-sm-viewer-prev') ? atStart : atEnd;
+            button.classList.toggle('is-disabled', button.disabled);
+        });
+    }
+
     function updatePageLabel() {
         if (pageLabel) {
             pageLabel.textContent = currentPage + ' / ' + totalPages;
@@ -171,8 +210,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (frame && canPreview && fileUrl) {
             const base = fileUrl.split('#')[0];
-            frame.src = base + '#page=' + currentPage;
+            frame.src = base + '#page=' + currentPage + '&zoom=' + Math.round(zoomLevel * 100);
         }
+
+        updatePageMeta();
+        updateNavButtons();
     }
 
     function goToPage(pageNumber) {
@@ -184,15 +226,78 @@ document.addEventListener('DOMContentLoaded', function () {
             const end = parseInt(item.dataset.pageEnd || String(start), 10);
             if (currentPage >= start && currentPage <= end) {
                 setActiveContentItem(index);
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
         });
     }
 
-    document.querySelector('.js-sm-viewer-prev')?.addEventListener('click', function () {
+    function applyFit() {
+        if (!canvas || !content) {
+            return;
+        }
+
+        const preview = getPreviewElement();
+        if (!preview) {
+            return;
+        }
+
+        content.style.transform = 'scale(1)';
+
+        const padding = 24;
+        const availW = Math.max(canvas.clientWidth - padding, 120);
+        const availH = Math.max(canvas.clientHeight - padding, 120);
+
+        let naturalW = preview.offsetWidth;
+        let naturalH = preview.offsetHeight;
+
+        if (preview.tagName === 'IFRAME') {
+            naturalW = Math.min(parseInt(getComputedStyle(preview).maxWidth, 10) || 760, availW);
+            naturalH = Math.max(parseInt(getComputedStyle(preview).minHeight, 10) || 420, 320);
+        }
+
+        if (!naturalW || !naturalH) {
+            naturalW = 640;
+            naturalH = 420;
+        }
+
+        let baseScale = 1;
+        if (fitMode === 'page') {
+            baseScale = Math.min(availW / naturalW, availH / naturalH);
+        } else {
+            baseScale = availW / naturalW;
+        }
+
+        const scale = Math.min(2.5, Math.max(0.45, baseScale * zoomLevel));
+        content.style.transform = 'scale(' + scale + ')';
+    }
+
+    function changeZoom(delta) {
+        zoomLevel = Math.min(2.5, Math.max(0.5, Math.round((zoomLevel + delta) * 10) / 10));
+        applyFit();
+    }
+
+    function resetZoom() {
+        zoomLevel = 1;
+        applyFit();
+    }
+
+    function updateFullscreenButton() {
+        if (!fullscreenBtn) {
+            return;
+        }
+
+        const isFullscreen = document.fullscreenElement === viewerCard;
+        fullscreenBtn.innerHTML = isFullscreen
+            ? '<i class="fa-solid fa-compress" aria-hidden="true"></i> Exit Full Screen'
+            : '<i class="fa-solid fa-expand" aria-hidden="true"></i> Full Screen';
+        viewerCard?.classList.toggle('is-fullscreen', isFullscreen);
+    }
+
+    prevBtn?.addEventListener('click', function () {
         goToPage(currentPage - 1);
     });
 
-    document.querySelector('.js-sm-viewer-next')?.addEventListener('click', function () {
+    nextBtn?.addEventListener('click', function () {
         goToPage(currentPage + 1);
     });
 
@@ -205,29 +310,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.querySelector('.js-sm-viewer-zoom-in')?.addEventListener('click', function () {
-        zoomLevel = Math.min(2, Math.round((zoomLevel + 0.1) * 10) / 10);
-        if (canvas) {
-            canvas.style.transform = 'scale(' + zoomLevel + ')';
-        }
+        changeZoom(0.1);
     });
 
     document.querySelector('.js-sm-viewer-zoom-out')?.addEventListener('click', function () {
-        zoomLevel = Math.max(0.6, Math.round((zoomLevel - 0.1) * 10) / 10);
-        if (canvas) {
-            canvas.style.transform = 'scale(' + zoomLevel + ')';
-        }
+        changeZoom(-0.1);
     });
 
     document.querySelector('.js-sm-viewer-fit')?.addEventListener('click', function () {
-        zoomLevel = 1;
-        if (canvas) {
-            canvas.style.transform = 'scale(1)';
-        }
+        resetZoom();
     });
 
-    document.querySelector('.js-sm-viewer-fullscreen')?.addEventListener('click', function () {
-        const stage = document.getElementById('smViewerStage');
-        if (!stage) {
+    fitSelect?.addEventListener('change', function () {
+        fitMode = fitSelect.value || 'width';
+        applyFit();
+    });
+
+    fullscreenBtn?.addEventListener('click', function () {
+        if (!viewerCard) {
             return;
         }
 
@@ -236,8 +336,64 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        stage.requestFullscreen?.();
+        viewerCard.requestFullscreen?.().catch(function () {
+            notify('error', 'Full screen is not supported in this browser.');
+        });
     });
+
+    document.addEventListener('fullscreenchange', function () {
+        updateFullscreenButton();
+        window.requestAnimationFrame(applyFit);
+    });
+
+    window.addEventListener('resize', function () {
+        window.requestAnimationFrame(applyFit);
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (!viewerCard || !document.body.contains(viewerCard)) {
+            return;
+        }
+
+        if (event.target.closest('input, textarea, select, [contenteditable="true"]')) {
+            return;
+        }
+
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            goToPage(currentPage - 1);
+        }
+
+        if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            goToPage(currentPage + 1);
+        }
+
+        if (event.key === '+' || event.key === '=') {
+            event.preventDefault();
+            changeZoom(0.1);
+        }
+
+        if (event.key === '-') {
+            event.preventDefault();
+            changeZoom(-0.1);
+        }
+    });
+
+    if (previewImage) {
+        if (previewImage.complete) {
+            applyFit();
+        } else {
+            previewImage.addEventListener('load', applyFit);
+        }
+    }
+
+    if (frame) {
+        frame.addEventListener('load', applyFit);
+    }
+
+    goToPage(1);
+    applyFit();
 
     const ratingInput = document.getElementById('smReviewRating');
     const starButtons = document.querySelectorAll('.sm-star-picker__btn');
@@ -349,6 +505,4 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-
-    updatePageLabel();
 });
