@@ -1,0 +1,665 @@
+/* Educator portal — profile edit page */
+.edu-profile-page {
+  --edu-pro-primary: #1d4ed8;
+  --edu-pro-primary-soft: #eff6ff;
+  --edu-pro-accent: #059669;
+  --edu-pro-accent-soft: #ecfdf5;
+  --edu-pro-border: #e2e8f0;
+  --edu-pro-muted: #64748b;
+  --edu-pro-surface: #ffffff;
+  --edu-pro-bg: #f8fafc;
+  --edu-pro-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --edu-pro-radius: 16px;
+}
+
+.edu-profile-page .edu-profile-hero {
+  margin-bottom: 1.5rem;
+}
+
+.edu-profile-page .edu-profile-hero__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.edu-profile-page .edu-profile-hero__identity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.edu-profile-page .edu-profile-hero__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+.edu-profile-page .edu-profile-hero__avatar--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dbeafe, #dcfce7);
+  color: var(--edu-pro-primary);
+  font-size: 1.5rem;
+}
+
+.edu-profile-page .edu-profile-hero__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.edu-profile-page .edu-profile-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edu-profile-page .edu-profile-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.edu-profile-page .edu-profile-type-badge--tutor {
+  background: rgba(29, 78, 216, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(29, 78, 216, 0.18);
+}
+
+.edu-profile-page .edu-profile-type-badge--teacher {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.18);
+}
+
+.edu-profile-page .edu-profile-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.edu-profile-page .edu-profile-nav {
+  position: sticky;
+  top: 1rem;
+  background: var(--edu-pro-surface);
+  border: 1px solid var(--edu-pro-border);
+  border-radius: var(--edu-pro-radius);
+  padding: 0.85rem;
+  box-shadow: var(--edu-pro-shadow);
+}
+
+.edu-profile-page .edu-profile-nav__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--edu-pro-muted);
+  margin: 0 0 0.65rem 0.35rem;
+}
+
+.edu-profile-page .edu-profile-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.62rem 0.75rem;
+  border-radius: 10px;
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.edu-profile-page .edu-profile-nav__link i {
+  width: 1rem;
+  text-align: center;
+  color: var(--edu-pro-muted);
+}
+
+.edu-profile-page .edu-profile-nav__link:hover,
+.edu-profile-page .edu-profile-nav__link.is-active {
+  background: var(--edu-pro-primary-soft);
+  color: var(--edu-pro-primary);
+}
+
+.edu-profile-page .edu-profile-nav__link:hover i,
+.edu-profile-page .edu-profile-nav__link.is-active i {
+  color: var(--edu-pro-primary);
+}
+
+.edu-profile-page .edu-profile-section {
+  border: 1px solid var(--edu-pro-border);
+  border-radius: var(--edu-pro-radius);
+  background: var(--edu-pro-surface);
+  box-shadow: var(--edu-pro-shadow);
+  padding: 1.35rem 1.4rem;
+  margin-bottom: 1.25rem;
+  scroll-margin-top: 1rem;
+}
+
+.edu-profile-page .edu-profile-section__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.edu-profile-page .edu-profile-section__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  color: var(--edu-pro-primary);
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.edu-profile-page .edu-profile-section__icon--green {
+  background: linear-gradient(135deg, #bbf7d0, #ecfdf5);
+  color: var(--edu-pro-accent);
+}
+
+.edu-profile-page .edu-profile-section__icon--amber {
+  background: linear-gradient(135deg, #fde68a, #fffbeb);
+  color: #d97706;
+}
+
+.edu-profile-page .edu-profile-section__icon--violet {
+  background: linear-gradient(135deg, #ddd6fe, #f5f3ff);
+  color: #7c3aed;
+}
+
+.edu-profile-page .edu-profile-section__title {
+  margin: 0 0 0.2rem;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.edu-profile-page .edu-profile-section__desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--edu-pro-muted);
+  line-height: 1.45;
+}
+
+.edu-profile-page .form-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.edu-profile-page .form-control,
+.edu-profile-page .form-select {
+  border-color: #cbd5e1;
+  border-radius: 10px;
+  min-height: 42px;
+  font-size: 0.92rem;
+}
+
+.edu-profile-page .form-control:focus,
+.edu-profile-page .form-select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 0.2rem rgba(29, 78, 216, 0.12);
+}
+
+.edu-profile-page .form-text,
+.edu-profile-page small.text-muted {
+  font-size: 0.78rem;
+  color: var(--edu-pro-muted) !important;
+}
+
+/* Photo upload */
+.edu-profile-page .edu-photo-upload {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fafbfc, #f8fafc);
+}
+
+.edu-profile-page .edu-photo-upload__preview {
+  width: 88px;
+  height: 88px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+}
+
+.edu-profile-page .edu-photo-upload__placeholder {
+  width: 88px;
+  height: 88px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 1.75rem;
+}
+
+.edu-profile-page .edu-photo-upload__input .form-control {
+  background: #fff;
+}
+
+/* Sub-sections inside cards */
+.edu-profile-page .edu-profile-subsection {
+  margin-top: 1.35rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.edu-profile-page .edu-profile-subsection__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.edu-profile-page .edu-profile-subsection__title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.edu-profile-page .edu-profile-subsection__hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--edu-pro-muted);
+}
+
+/* Stats grid */
+.edu-profile-page .edu-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.edu-profile-page .edu-stat-field {
+  padding: 0.85rem;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+  background: var(--edu-pro-bg);
+}
+
+.edu-profile-page .edu-stat-field__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--edu-pro-muted);
+  margin-bottom: 0.45rem;
+}
+
+.edu-profile-page .edu-stat-field .form-control {
+  background: #fff;
+  min-height: 38px;
+}
+
+/* Tag-style line inputs */
+.edu-profile-page .edu-tag-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.edu-profile-page .edu-tag-field {
+  padding: 0.85rem;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.edu-profile-page .edu-tag-field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* Toggle card */
+.edu-profile-page .edu-toggle-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(236, 253, 245, 0.7));
+}
+
+.edu-profile-page .edu-toggle-card .form-check-input {
+  width: 2.5rem;
+  height: 1.35rem;
+  margin-top: 0.15rem;
+  cursor: pointer;
+}
+
+.edu-profile-page .edu-toggle-card__title {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+}
+
+.edu-profile-page .edu-toggle-card__desc {
+  font-size: 0.82rem;
+  color: var(--edu-pro-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Repeatable rows */
+.edu-profile-page .edu-repeat-table-head {
+  display: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 42px;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+  background: var(--edu-pro-bg);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--edu-pro-muted);
+}
+
+.edu-profile-page .edu-repeat-table-head--subjects {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) 42px;
+}
+
+.edu-profile-page .edu-repeat-table-head--availability {
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.5fr) 42px;
+}
+
+.edu-profile-page .edu-repeat-row {
+  display: grid;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 0.85rem;
+  margin-bottom: 0.65rem;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.edu-profile-page .edu-repeat-row--qualification {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 42px;
+}
+
+.edu-profile-page .edu-repeat-row--subject {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) 42px;
+}
+
+.edu-profile-page .edu-repeat-row--availability {
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.5fr) 42px;
+}
+
+.edu-profile-page .edu-repeat-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.edu-profile-page .edu-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.42rem 0.9rem;
+}
+
+.edu-profile-page .edu-btn-remove {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* Experience cards */
+.edu-profile-page .experience-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.edu-profile-page .experience-card {
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #fafbfc);
+  padding: 1rem 1.05rem;
+  position: relative;
+}
+
+.edu-profile-page .experience-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--edu-pro-primary);
+  background: var(--edu-pro-primary-soft);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.edu-profile-page .experience-current-check {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  background: var(--edu-pro-bg);
+  border: 1px solid var(--edu-pro-border);
+}
+
+/* Tuition batches */
+.edu-profile-page .tuition-batches-table {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1fr) 42px;
+  gap: 0.75rem;
+  background: var(--edu-pro-bg);
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+}
+
+.edu-profile-page .tuition-batches-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.edu-profile-page .tuition-batch-card {
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.edu-profile-page .tuition-batch-card__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1fr) 42px;
+  align-items: end;
+}
+
+.edu-profile-page .tuition-batch-card__actions {
+  display: flex;
+  align-items: end;
+}
+
+/* Social inputs */
+.edu-profile-page .edu-social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.edu-profile-page .edu-social-input {
+  position: relative;
+}
+
+.edu-profile-page .edu-social-input__icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--edu-pro-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.edu-profile-page .edu-social-input .form-control {
+  padding-left: 2.35rem;
+}
+
+/* Availability pill */
+.edu-profile-page .edu-availability-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--edu-pro-border);
+  background: var(--edu-pro-bg);
+}
+
+/* Sticky save bar */
+.edu-profile-page .edu-profile-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.edu-profile-page .edu-profile-savebar__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--edu-pro-muted);
+}
+
+.edu-profile-page .pac-container {
+  z-index: 2000;
+}
+
+@media (min-width: 768px) {
+  .edu-profile-page .edu-repeat-table-head {
+    display: grid;
+  }
+
+  .edu-profile-page .edu-repeat-table-head--subjects {
+    display: grid;
+  }
+
+  .edu-profile-page .edu-repeat-table-head--availability {
+    display: grid;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .edu-profile-page .edu-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .edu-profile-page .edu-profile-nav {
+    position: static;
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding: 0.65rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .edu-profile-page .edu-profile-nav__label {
+    display: none;
+  }
+
+  .edu-profile-page .edu-profile-nav__link {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .edu-profile-page .edu-stats-grid,
+  .edu-profile-page .edu-tag-fields,
+  .edu-profile-page .edu-social-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edu-profile-page .edu-photo-upload {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+  }
+
+  .edu-profile-page .edu-repeat-row--qualification,
+  .edu-profile-page .edu-repeat-row--subject,
+  .edu-profile-page .edu-repeat-row--availability {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .edu-profile-page .edu-repeat-row .edu-btn-remove {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .edu-profile-page .tuition-batch-card__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .edu-profile-page .tuition-batch-card__actions {
+    grid-column: 1 / -1;
+  }
+
+  .edu-profile-page .tuition-batch-card__actions .edu-btn-remove {
+    width: 100%;
+  }
+}
