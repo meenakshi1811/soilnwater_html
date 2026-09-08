@@ -26,7 +26,7 @@ class EducatorProfileController extends Controller
             ->where('slug', $slug)
             ->with([
                 'user:id,name,profile_image',
-                'studyMaterials' => fn ($q) => $q->approved()->latest()->limit(8),
+                'studyMaterials' => fn ($q) => $q->approved()->latest()->limit(12),
             ])
             ->withCount(['followers', 'studyMaterials as approved_materials_count' => fn ($q) => $q->where('status', 'approved')])
             ->firstOrFail();
@@ -34,8 +34,14 @@ class EducatorProfileController extends Controller
         $isFollowing = auth()->check()
             && $educator->followers()->where('user_id', auth()->id())->exists();
 
-        $notes = $educator->studyMaterials->where('material_type', 'notes')->values();
-        $courses = $educator->studyMaterials->where('material_type', '!=', 'notes')->values();
+        $materials = $educator->studyMaterials;
+        $notes = $materials->where('material_type', 'notes')->values();
+        $courses = $materials->whereIn('material_type', ['study_guides', 'videos', 'reference_books', 'sample_papers', 'worksheets', 'question_papers'])->values();
+        if ($courses->isEmpty()) {
+            $courses = $materials->where('material_type', '!=', 'notes')->values();
+        }
+        $videos = $materials->where('material_type', 'videos')->values();
+        $questionPapers = $materials->where('material_type', 'question_papers')->values();
 
         $profileReviews = $this->profileReviewsFor($educator);
         $educator->recalculateRating();
@@ -53,6 +59,8 @@ class EducatorProfileController extends Controller
             'isFollowing',
             'notes',
             'courses',
+            'videos',
+            'questionPapers',
             'profileReviews',
             'userReview'
         ));
