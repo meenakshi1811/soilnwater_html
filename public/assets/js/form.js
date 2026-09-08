@@ -1282,7 +1282,55 @@
             }
         },
 
+        profileFormBeforeSubmit: function (ctx) {
+            ctx.form.find('.js-lines').each(function () {
+                var el = this;
+                var name = el.getAttribute('data-name');
+                if (!name) {
+                    return;
+                }
+                $(el).parent().find('input[type=hidden][data-generated="' + name + '"]').remove();
+                String(el.value || '').split(/\r?\n/).map(function (value) {
+                    return $.trim(value);
+                }).filter(Boolean).forEach(function (line) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name + '[]';
+                    input.value = line;
+                    input.setAttribute('data-generated', name);
+                    el.parentElement.appendChild(input);
+                });
+            });
+            ctx.form.find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
+                $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
+            });
+        },
+
+        profileFormOnSuccess: function (response, ctx, alertSelector, onSaved) {
+            var message = response.message || 'Profile updated successfully.';
+
+            if (ctx && ctx.form && ctx.form.length) {
+                ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
+            }
+
+            if (response.redirect) {
+                FormHelper.showToast('warning', message);
+                window.setTimeout(function () {
+                    window.location.href = response.redirect;
+                }, 1500);
+                return;
+            }
+
+            FormHelper.showToast('success', message);
+            FormHelper.showAlert($(alertSelector), 'success', message);
+
+            if (typeof onSaved === 'function') {
+                onSaved(response, ctx);
+            }
+        },
+
         attachProfileUpdateForm: function (formSelector, buttonSelector, alertSelector, includeMarketplaceFields) {
+            var self = this;
             this.attachAjaxForm({
                 formSelector: formSelector,
                 buttonSelector: buttonSelector,
@@ -1292,46 +1340,104 @@
                 rules: this.profileValidationRules(includeMarketplaceFields),
                 messages: this.profileValidationMessages(includeMarketplaceFields),
                 fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                validationMessage: 'Please fix the highlighted fields and try again.',
                 beforeSubmit: function (ctx) {
-                    ctx.form.find('.js-lines').each(function () {
-                        var el = this;
-                        var name = el.getAttribute('data-name');
-                        if (!name) {
-                            return;
-                        }
-                        $(el).parent().find('input[type=hidden][data-generated="' + name + '"]').remove();
-                        String(el.value || '').split(/\r?\n/).map(function (value) {
-                            return $.trim(value);
-                        }).filter(Boolean).forEach(function (line) {
-                            var input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = name + '[]';
-                            input.value = line;
-                            input.setAttribute('data-generated', name);
-                            el.parentElement.appendChild(input);
-                        });
-                    });
-                    ctx.form.find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
-                        $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
-                    });
+                    self.profileFormBeforeSubmit(ctx);
+                },
+                onInvalid: function () {
+                    self.showToast('warning', 'Please fix the highlighted fields and try again.');
+                },
+                onValidationError: function (xhr, message) {
+                    self.showToast('warning', message);
+                    self.showAlert($(alertSelector), 'warning', message);
+                },
+                onError: function (xhr, message) {
+                    self.showToast('error', message);
+                    self.showAlert($(alertSelector), 'danger', message);
                 },
                 onSuccess: function (response, ctx) {
-                    var message = response.message || 'Profile updated successfully.';
+                    self.profileFormOnSuccess(response, ctx, alertSelector);
+                }
+            });
+        },
 
-                    if (ctx && ctx.form && ctx.form.length) {
-                        ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
-                    }
+        initEducatorProfileForm: function () {
+            var self = this;
+            if (!$('#educatorProfileForm').length) {
+                return;
+            }
 
-                    if (response.redirect) {
-                        FormHelper.showToast('warning', message);
-                        window.setTimeout(function () {
-                            window.location.href = response.redirect;
-                        }, 1500);
-                        return;
-                    }
+            this.attachAjaxForm({
+                formSelector: '#educatorProfileForm',
+                buttonSelector: '#educatorProfileSubmitBtn',
+                alertSelector: '#educatorProfileAlert',
+                defaultText: 'Save changes',
+                loadingText: 'Saving...',
+                rules: this.profileValidationRules(false),
+                messages: this.profileValidationMessages(false),
+                fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                validationMessage: 'Please fix the highlighted fields and try again.',
+                beforeSubmit: function (ctx) {
+                    self.profileFormBeforeSubmit(ctx);
+                },
+                onInvalid: function () {
+                    self.showToast('warning', 'Please fix the highlighted fields and try again.');
+                },
+                onValidationError: function (xhr, message) {
+                    self.showToast('warning', message);
+                    self.showAlert($('#educatorProfileAlert'), 'warning', message);
+                },
+                onError: function (xhr, message) {
+                    self.showToast('error', message);
+                    self.showAlert($('#educatorProfileAlert'), 'danger', message);
+                },
+                onSuccess: function (response, ctx) {
+                    self.profileFormOnSuccess(response, ctx, '#educatorProfileAlert', function (payload) {
+                        if (payload.display_name) {
+                            $('.edu-profile-hero__title').text(payload.display_name);
+                        }
 
-                    FormHelper.showToast('success', message);
-                    FormHelper.showAlert($(alertSelector), 'success', message);
+                        if (payload.photo_url) {
+                            var cacheBustedUrl = payload.photo_url + (payload.photo_url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+                            var $preview = $('#eduProfilePhotoPreview');
+                            if ($preview.length) {
+                                if ($preview.is('img')) {
+                                    $preview.attr('src', cacheBustedUrl);
+                                } else {
+                                    var $img = $('<img>', {
+                                        src: cacheBustedUrl,
+                                        alt: '',
+                                        class: 'edu-photo-upload__preview',
+                                        id: 'eduProfilePhotoPreview'
+                                    });
+                                    $preview.replaceWith($img);
+                                }
+                            }
+
+                            var $heroAvatar = $('.edu-profile-hero__avatar');
+                            if ($heroAvatar.length && $heroAvatar.is('img')) {
+                                $heroAvatar.attr('src', cacheBustedUrl);
+                            } else if ($heroAvatar.length) {
+                                var $heroImg = $('<img>', {
+                                    src: cacheBustedUrl,
+                                    alt: '',
+                                    class: 'edu-profile-hero__avatar'
+                                });
+                                $heroAvatar.replaceWith($heroImg);
+                            }
+                        }
+
+                        if (typeof payload.take_tuitions === 'boolean') {
+                            var $badge = $('.edu-profile-type-badge');
+                            $badge.toggleClass('edu-profile-type-badge--tutor', payload.take_tuitions);
+                            $badge.toggleClass('edu-profile-type-badge--teacher', !payload.take_tuitions);
+                            $badge.html(payload.take_tuitions
+                                ? '<i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Tutor profile'
+                                : '<i class="fa-solid fa-school" aria-hidden="true"></i> Experienced teacher profile');
+                        }
+
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
                 }
             });
         },
@@ -1348,7 +1454,6 @@
 
             this.attachProfileUpdateForm('#vendorProfileForm', '#vendorProfileSubmitBtn', '#vendorProfileAlert', true);
             this.attachProfileUpdateForm('#consultantProfileForm', '#consultantProfileSubmitBtn', '#consultantProfileAlert', true);
-            this.attachProfileUpdateForm('#educatorProfileForm', '#educatorProfileSubmitBtn', '#educatorProfileAlert', false);
         },
 
         init: function () {
@@ -1361,6 +1466,7 @@
             this.initAdminProfileForm();
             this.initUserProfileForm();
             this.initMarketplaceProfileForms();
+            this.initEducatorProfileForm();
             this.initOtpTimer('#otp-timer');
         }
     };

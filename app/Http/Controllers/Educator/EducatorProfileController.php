@@ -180,8 +180,13 @@ class EducatorProfileController extends Controller
         }
 
         if ($request->expectsJson()) {
+            $educator->refresh();
+
             return response()->json([
                 'message' => 'Profile updated successfully.',
+                'display_name' => $educator->display_name,
+                'photo_url' => $educator->photoUrl(),
+                'take_tuitions' => (bool) $educator->take_tuitions,
             ]);
         }
 

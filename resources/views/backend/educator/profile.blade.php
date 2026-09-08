@@ -76,7 +76,7 @@
     </nav>
 
     <div class="edu-profile-content">
-      <form id="educatorProfileForm" method="POST" action="{{ route('educator.profile.update') }}" enctype="multipart/form-data">
+      <form id="educatorProfileForm" method="POST" action="{{ route('educator.profile.update') }}" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
 
@@ -584,21 +584,6 @@
         if (wrap.id === 'experiencesWrap') renumberExperienceBadges();
       }
     }
-  });
-
-  document.getElementById('educatorProfileForm').addEventListener('submit', function () {
-    document.querySelectorAll('#educatorProfileForm .js-lines').forEach(function (el) {
-      const name = el.dataset.name;
-      el.parentElement.querySelectorAll('input[type=hidden][data-generated="' + name + '"]').forEach(n => n.remove());
-      el.value.split(/\r?\n/).map(v => v.trim()).filter(Boolean).forEach(function (line) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name + '[]';
-        input.value = line;
-        input.setAttribute('data-generated', name);
-        el.parentElement.appendChild(input);
-      });
-    });
   });
 
   const profilePhotoInput = document.getElementById('profile_photo');
