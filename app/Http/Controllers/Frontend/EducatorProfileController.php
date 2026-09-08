@@ -221,25 +221,30 @@ class EducatorProfileController extends Controller
         $message = $wasExisting ? 'Review updated.' : 'Review submitted.';
 
         if ($request->expectsJson() || $request->ajax()) {
+            $reviewItem = (object) [
+                'id' => 'profile-'.$review->id,
+                'source' => 'profile',
+                'author' => $review->student_name ?: ($review->user?->name ?: 'Student'),
+                'rating' => (int) $review->rating,
+                'body' => $review->review,
+                'meta' => $review->student_class,
+                'date' => $review->updated_at,
+                'material_title' => null,
+                'material_url' => null,
+            ];
+
             return response()->json([
                 'ok' => true,
                 'message' => $message,
                 'average_rating' => number_format((float) $educator->average_rating, 1),
                 'reviews_count' => (int) $educator->reviews_count,
                 'review_html' => view('frontend.educator.partials.review-item', [
-                    'item' => (object) [
-                        'id' => 'profile-'.$review->id,
-                        'source' => 'profile',
-                        'author' => $review->student_name ?: ($review->user?->name ?: 'Student'),
-                        'rating' => (int) $review->rating,
-                        'body' => $review->review,
-                        'meta' => $review->student_class,
-                        'date' => $review->updated_at,
-                        'material_title' => null,
-                        'material_url' => null,
-                    ],
+                    'item' => $reviewItem,
                 ])->render(),
                 'review_key' => 'profile-'.$review->id,
+                'testimonial_html' => filled(trim((string) $review->review))
+                    ? view('frontend.educator.partials.testimonial-item', ['item' => $reviewItem])->render()
+                    : null,
             ]);
         }
 

@@ -752,6 +752,22 @@
   margin-bottom: 1.5rem;
 }
 
+.edu-testimonials.is-empty {
+  display: none;
+}
+
+.edu-quick-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edu-border);
+}
+
+.edu-quick-form .form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--edu-ink);
+}
+
 .edu-testimonials__head {
   display: flex;
   justify-content: space-between;

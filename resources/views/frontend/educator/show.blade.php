@@ -53,6 +53,9 @@
   data-share-url="{{ $shareUrl }}"
   data-share-title="{{ $educator->display_name }} · {{ $educator->roleLabel() }}"
   data-share-text="Check out {{ $educator->display_name }} on SoilnWater"
+  data-login-url="{{ route('login') }}"
+  data-is-auth="{{ auth()->check() ? '1' : '0' }}"
+  data-enquiry-url="{{ route('educator.enquiry', $educator->slug) }}"
 >
   <div class="container-fluid edu-container">
     @if(session('status'))
@@ -180,10 +183,10 @@
                 </div>
               @endif
 
-              <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry" data-bs-toggle="modal" data-bs-target="#enquiryModal">
+              <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
                 <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
               </button>
-              <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry" data-bs-toggle="modal" data-bs-target="#enquiryModal">
+              <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry">
                 <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Book a Session
               </button>
               @auth
@@ -198,9 +201,9 @@
                   <span class="js-edu-follow-label">{{ $isFollowing ? 'Following' : 'Follow' }}</span>
                 </button>
               @else
-                <a href="{{ route('login') }}" class="edu-btn edu-btn-outline">
+                <button type="button" class="edu-btn edu-btn-outline js-edu-guest-action" data-action="follow">
                   <i class="fa-solid fa-heart" aria-hidden="true"></i> Follow
-                </a>
+                </button>
               @endauth
             </div>
           </div>
@@ -446,39 +449,24 @@
         <section class="edu-section" id="edu-reviews" data-review-url="{{ route('educator.review', $educator->slug) }}">
           <h2 class="edu-section__title"><i class="fa-solid fa-star" aria-hidden="true"></i> Students &amp; Reviews</h2>
 
-          @if($testimonials->isNotEmpty())
-            <div class="edu-testimonials js-edu-testimonial-carousel">
-              <div class="edu-testimonials__head">
-                <h3 class="h6 mb-0">What Students Say</h3>
-                <div class="edu-testimonials__nav">
-                  <button type="button" class="edu-testimonials__btn js-edu-testimonial-prev" aria-label="Previous testimonial">
-                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                  </button>
-                  <button type="button" class="edu-testimonials__btn js-edu-testimonial-next" aria-label="Next testimonial">
-                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="edu-testimonials__track js-edu-testimonial-track">
-                @foreach($testimonials as $item)
-                  <blockquote class="edu-testimonial">
-                    <div class="edu-testimonial__stars" aria-label="{{ $item->rating }} out of 5">
-                      @for($s = 1; $s <= 5; $s++)
-                        <i class="fa-{{ $s <= (int) $item->rating ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
-                      @endfor
-                    </div>
-                    <p class="edu-testimonial__text">&ldquo;{{ $item->body }}&rdquo;</p>
-                    <footer>
-                      <div class="edu-testimonial__author">{{ $item->author }}</div>
-                      @if(!empty($item->meta))
-                        <div class="edu-testimonial__meta">{{ $item->meta }}</div>
-                      @endif
-                    </footer>
-                  </blockquote>
-                @endforeach
+          <div class="edu-testimonials js-edu-testimonial-carousel {{ $testimonials->isEmpty() ? 'is-empty' : '' }}" id="eduTestimonialCarousel">
+            <div class="edu-testimonials__head">
+              <h3 class="h6 mb-0">What Students Say</h3>
+              <div class="edu-testimonials__nav">
+                <button type="button" class="edu-testimonials__btn js-edu-testimonial-prev" aria-label="Previous testimonial">
+                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="edu-testimonials__btn js-edu-testimonial-next" aria-label="Next testimonial">
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
               </div>
             </div>
-          @endif
+            <div class="edu-testimonials__track js-edu-testimonial-track" id="eduTestimonialTrack">
+              @foreach($testimonials as $item)
+                @include('frontend.educator.partials.testimonial-item', ['item' => $item])
+              @endforeach
+            </div>
+          </div>
 
           <div id="educatorReviewsSection" data-review-url="{{ route('educator.review', $educator->slug) }}">
             <h3 class="h6 mb-3">All Reviews</h3>
@@ -530,7 +518,7 @@
             @else
               <div class="edu-review-login mb-4">
                 <p class="mb-2">Sign in to leave a review for this educator.</p>
-                <a href="{{ route('login') }}" class="edu-btn edu-btn-outline">Login to review</a>
+                <button type="button" class="edu-btn edu-btn-outline js-edu-guest-action" data-action="review">Login to review</button>
               </div>
             @endauth
 
@@ -634,9 +622,29 @@
           <h2 class="edu-section__title"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Ask a Question</h2>
           <div class="edu-ask-cta">
             <p>Have a question about classes, subjects or availability? Send a message directly to {{ $educator->display_name }}.</p>
-            <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry" data-bs-toggle="modal" data-bs-target="#enquiryModal">
-              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Ask a Question
-            </button>
+            @auth
+              <form id="eduQuickQuestionForm" class="edu-quick-form" method="POST" action="{{ route('educator.enquiry', $educator->slug) }}" novalidate>
+                @csrf
+                <input type="hidden" name="name" value="{{ auth()->user()->name }}">
+                <input type="hidden" name="email" value="{{ auth()->user()->email }}">
+                <input type="hidden" name="phone" value="{{ auth()->user()->phone_number }}">
+                <div class="mb-2">
+                  <label class="form-label" for="eduQuickSubject">Subject (optional)</label>
+                  <input type="text" id="eduQuickSubject" name="subject" class="form-control" placeholder="e.g. Class 10 Maths tuition">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="eduQuickMessage">Your question</label>
+                  <textarea id="eduQuickMessage" name="message" class="form-control" rows="3" required placeholder="Write your question here..."></textarea>
+                </div>
+                <button type="submit" class="edu-btn edu-btn-primary" id="eduQuickQuestionSubmit">
+                  <span class="btn-text"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Question</span>
+                </button>
+              </form>
+            @else
+              <button type="button" class="edu-btn edu-btn-primary js-edu-guest-action" data-action="question">
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Ask a Question
+              </button>
+            @endauth
           </div>
         </section>
 
@@ -678,7 +686,7 @@
             @endforeach
           </div>
 
-          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry" data-bs-toggle="modal" data-bs-target="#enquiryModal">
+          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
             <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
           </button>
         </section>
