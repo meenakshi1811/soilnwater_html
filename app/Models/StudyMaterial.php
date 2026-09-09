@@ -39,6 +39,7 @@ class StudyMaterial extends Model
         'is_verified',
         'tags',
         'contents',
+        'meta',
         'average_rating',
         'reviews_count',
         'views_count',
@@ -54,6 +55,7 @@ class StudyMaterial extends Model
         return [
             'tags' => 'array',
             'contents' => 'array',
+            'meta' => 'array',
             'is_free' => 'boolean',
             'is_trending' => 'boolean',
             'is_verified' => 'boolean',

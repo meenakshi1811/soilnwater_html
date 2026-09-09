@@ -77,10 +77,16 @@ class StudyMaterialController extends Controller
             ->make(true);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $type = $request->string('type')->toString();
+        if (! in_array($type, \App\Support\StudyMaterialUploadConfig::typeKeys(), true)) {
+            $type = 'notes';
+        }
+
         return view('backend.educator.materials.form', [
-            'material' => new StudyMaterial(),
+            'material' => new StudyMaterial(['material_type' => $type]),
+            'uploadType' => $type,
         ]);
     }
 
@@ -152,7 +158,10 @@ class StudyMaterialController extends Controller
     {
         $this->authorizeOwner($material);
 
-        return view('backend.educator.materials.form', compact('material'));
+        return view('backend.educator.materials.form', [
+            'material' => $material,
+            'uploadType' => $material->material_type ?: 'notes',
+        ]);
     }
 
     public function update(Request $request, StudyMaterial $material): RedirectResponse|JsonResponse
@@ -229,14 +238,20 @@ class StudyMaterialController extends Controller
      */
     private function validated(Request $request, ?StudyMaterial $material = null): array
     {
+        $materialType = $request->string('material_type')->toString();
+        $maxFileKb = $materialType === 'videos' ? 512000 : 51200;
+        $hasExternalLink = filled($request->input('meta.external_url'));
+
         $fileRules = $material?->exists
-            ? ['nullable', 'file', 'max:20480']
-            : ['required', 'file', 'max:20480'];
+            ? ['nullable', 'file', 'max:'.$maxFileKb]
+            : ($hasExternalLink && $materialType === 'videos'
+                ? ['nullable', 'file', 'max:'.$maxFileKb]
+                : ['required', 'file', 'max:'.$maxFileKb]);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'material_type' => ['required', 'string', 'max:50'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'material_type' => ['required', 'string', 'in:'.implode(',', \App\Support\StudyMaterialUploadConfig::typeKeys())],
             'category' => ['nullable', 'string', 'max:80'],
             'class_course' => ['nullable', 'string', 'max:120'],
             'board_university' => ['nullable', 'string', 'max:120'],
@@ -244,7 +259,7 @@ class StudyMaterialController extends Controller
             'topic_chapter' => ['nullable', 'string', 'max:255'],
             'exam_test' => ['nullable', 'string', 'max:120'],
             'language' => ['nullable', 'string', 'max:50'],
-            'difficulty' => ['nullable', 'string', 'max:30'],
+            'difficulty' => ['nullable', 'string', 'in:Beginner,Intermediate,Advanced,Easy,Medium,Hard'],
             'academic_year' => ['nullable', 'string', 'max:20'],
             'medium' => ['nullable', 'string', 'max:50'],
             'pages' => ['nullable', 'integer', 'min:1', 'max:10000'],
@@ -252,11 +267,48 @@ class StudyMaterialController extends Controller
             'tags' => ['nullable', 'string', 'max:500'],
             'contents' => ['nullable', 'array'],
             'contents.*' => ['nullable', 'string', 'max:255'],
+            'terms_accepted' => ['accepted'],
+            'meta' => ['nullable', 'array'],
+            'meta.uploader_role' => ['nullable', 'string', 'max:40'],
+            'meta.author' => ['nullable', 'string', 'max:255'],
+            'meta.publisher' => ['nullable', 'string', 'max:255'],
+            'meta.edition' => ['nullable', 'string', 'max:80'],
+            'meta.isbn' => ['nullable', 'string', 'max:40'],
+            'meta.book_type' => ['nullable', 'string', 'max:80'],
+            'meta.assignment_type' => ['nullable', 'string', 'max:80'],
+            'meta.due_date' => ['nullable', 'date'],
+            'meta.marks' => ['nullable', 'string', 'max:20'],
+            'meta.instructions' => ['nullable', 'string', 'max:5000'],
+            'meta.worksheet_type' => ['nullable', 'string', 'max:80'],
+            'meta.learning_objective' => ['nullable', 'string', 'max:500'],
+            'meta.estimated_time' => ['nullable', 'string', 'max:80'],
+            'meta.guide_type' => ['nullable', 'string', 'max:80'],
+            'meta.exam_focus' => ['nullable', 'string', 'max:120'],
+            'meta.solution_type' => ['nullable', 'string', 'max:80'],
+            'meta.solution_format' => ['nullable', 'string', 'max:80'],
+            'meta.term' => ['nullable', 'string', 'max:80'],
+            'meta.month' => ['nullable', 'string', 'max:40'],
+            'meta.set_code' => ['nullable', 'string', 'max:40'],
+            'meta.content_type' => ['nullable', 'string', 'max:30'],
+            'meta.lesson_type' => ['nullable', 'string', 'max:80'],
+            'meta.duration' => ['nullable', 'string', 'max:40'],
+            'meta.is_series' => ['nullable', 'boolean'],
+            'meta.part_number' => ['nullable', 'string', 'max:20'],
+            'meta.external_url' => ['nullable', 'url', 'max:500'],
+            'meta.link_type' => ['nullable', 'string', 'max:30'],
+            'meta.cover_url' => ['nullable', 'url', 'max:500'],
+            'meta.generate_preview' => ['nullable', 'boolean'],
+            'meta.options' => ['nullable', 'array'],
+            'meta.options.*' => ['nullable', 'string', 'max:80'],
             'file' => $fileRules,
-            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'terms_accepted.accepted' => 'You must agree to the Terms & Conditions before submitting.',
+            'file.required' => 'Please upload a file or provide a valid link.',
         ]);
 
-        $validated['is_free'] = $request->boolean('is_free', true);
+        $validated['is_free'] = $request->boolean('is_free', true)
+            || collect($request->input('meta.options', []))->contains('allow_download');
         $validated['tags'] = collect(explode(',', (string) ($validated['tags'] ?? '')))
             ->map(fn ($tag) => trim($tag))
             ->filter()
@@ -271,7 +323,30 @@ class StudyMaterialController extends Controller
             ->values()
             ->all() ?: null;
 
-        unset($validated['file'], $validated['thumbnail']);
+        $meta = collect($validated['meta'] ?? [])
+            ->map(fn ($value) => is_string($value) ? trim($value) : $value)
+            ->filter(fn ($value) => $value !== null && $value !== '')
+            ->all();
+
+        $meta['options'] = collect($request->input('meta.options', []))
+            ->map(fn ($option) => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($request->filled('meta.is_series')) {
+            $meta['is_series'] = $request->input('meta.is_series') === '1'
+                || $request->boolean('meta.is_series');
+        }
+
+        if ($request->has('meta.generate_preview')) {
+            $meta['generate_preview'] = $request->boolean('meta.generate_preview');
+        }
+
+        $validated['meta'] = $meta ?: null;
+
+        unset($validated['file'], $validated['thumbnail'], $validated['terms_accepted']);
 
         return $validated;
     }
