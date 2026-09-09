@@ -186,6 +186,13 @@
   text-align: center;
   background: #fff;
   transition: all 0.15s ease;
+  cursor: pointer;
+  width: 100%;
+}
+
+.sm-upload-type-card.is-loading {
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .sm-upload-type-card i {

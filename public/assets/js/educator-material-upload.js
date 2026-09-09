@@ -23,8 +23,202 @@
         var $progress = $('#materialWizardProgress');
         var currentStepIndex = 0;
         var steps = [];
+        var typeConfigCache = {};
+        var typeConfigUrl = config.typeConfigUrl || '';
 
         $page.attr('data-active-type', activeType);
+
+        function buildTypeConfigUrl(type) {
+            return typeConfigUrl.replace('__TYPE__', encodeURIComponent(type));
+        }
+
+        function escapeHtml(text) {
+            return $('<div>').text(text || '').html();
+        }
+
+        function renderSidebarList($list, items, iconClass) {
+            $list.empty();
+            (items || []).forEach(function (item) {
+                $list.append(
+                    '<li><i class="fa-solid ' + iconClass + '"></i><span>' + escapeHtml(item) + '</span></li>'
+                );
+            });
+        }
+
+        function renderOptionsGrid(options) {
+            var $grid = $('#smUploadOptionsGrid');
+            var checked = {};
+
+            $grid.find('input:checked').each(function () {
+                checked[$(this).val()] = true;
+            });
+
+            $grid.empty();
+            $.each(options || {}, function (key, label) {
+                var isChecked = !!checked[key] || (key === 'allow_download' && $.isEmptyObject(checked));
+                $grid.append(
+                    '<label class="sm-upload-option">' +
+                        '<input class="form-check-input" type="checkbox" name="meta[options][]" value="' + escapeHtml(key) + '"' +
+                        (isChecked ? ' checked' : '') + '>' +
+                        '<span>' + escapeHtml(label) + '</span>' +
+                    '</label>'
+                );
+            });
+        }
+
+        function applyTypeVisibility(type) {
+            $form.find('[data-types]').each(function () {
+                var types = String($(this).attr('data-types') || '').split(/\s+/).filter(Boolean);
+                var show = types.indexOf('all') !== -1 || types.indexOf(type) !== -1;
+                $(this).toggleClass('d-none', !show);
+            });
+
+            $form.find('[data-type-panel="videos"]').toggleClass('d-none', type !== 'videos');
+
+            if (type !== 'videos') {
+                $('.js-file-dropzone').removeClass('d-none');
+            }
+        }
+
+        function applyMaterialType(type, cfg, isInitial) {
+            activeType = type;
+            $page.attr('data-active-type', type);
+            $('input[name="material_type"]').val(type);
+
+            $('.sm-upload-type-card').removeClass('is-active');
+            $('.sm-upload-type-card[data-type="' + type + '"]').addClass('is-active');
+
+            $('.js-type-icon').attr('class', 'fa-solid ' + cfg.icon + ' js-type-icon');
+            $('.js-type-title').text(isEdit ? ('Edit: ' + cfg.title) : cfg.title);
+            $('.js-type-subtitle').text(cfg.subtitle);
+            $('.js-type-quote').text(cfg.quote);
+            $('.js-section-details-title').text(cfg.details_title);
+            $('.js-upload-section-title').html(
+                escapeHtml(cfg.upload_title) + ' <span class="sm-upload-section__req">*</span>'
+            );
+
+            renderSidebarList($('.js-type-tips'), cfg.tips, 'fa-check');
+            $('.js-type-guidelines-title').text(cfg.guidelines_title);
+            renderSidebarList($('.js-type-guidelines'), cfg.guidelines, 'fa-check');
+            renderSidebarList($('.js-type-not-allowed'), cfg.not_allowed, 'fa-xmark');
+            $('.js-type-preview-label').text(cfg.preview_label);
+            $('.js-type-preview-caption').text(cfg.preview_caption);
+            $('.js-type-footer').text(cfg.footer);
+
+            $('#materialFileInput').attr('accept', cfg.accept);
+            $('.js-file-hint').text(cfg.file_hint);
+
+            if (type === 'videos') {
+                $('.js-dropzone-text').text('Drag & drop your lesson file here or click to browse');
+                $('.js-dropzone-btn-label').text('Choose File');
+                $('input[name="meta[link_type]"]').val('upload');
+                $('.sm-upload-link-tab').removeClass('is-active')
+                    .filter('[data-link-tab="upload"]').addClass('is-active');
+                $('.js-link-panel[data-link-panel="link"]').addClass('d-none');
+                $('.js-link-panel[data-link-panel="upload"]').removeClass('d-none');
+                $('.js-file-dropzone').removeClass('d-none');
+            } else {
+                $('.js-dropzone-text').text('Drag & drop your file here or click to browse');
+                $('.js-dropzone-btn-label').text('Choose File(s)');
+                $('input[name="meta[link_type]"]').val('upload');
+                $('.sm-upload-link-tab').removeClass('is-active')
+                    .filter('[data-link-tab="upload"]').addClass('is-active');
+                $('.js-link-panel[data-link-panel="link"]').addClass('d-none');
+            }
+
+            renderOptionsGrid(cfg.options);
+            applyTypeVisibility(type);
+
+            if (!isInitial) {
+                var $file = $('#materialFileInput');
+                $file.val('');
+                $('#fileDropzone .sm-upload-dropzone__file-name').text('');
+            }
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+        }
+
+        function switchMaterialType(type, silent) {
+            if (!type || type === activeType) {
+                return $.Deferred().resolve().promise();
+            }
+
+            if (typeConfigCache[type]) {
+                applyMaterialType(type, typeConfigCache[type], false);
+                if (!silent) {
+                    toast('success', 'Switched to ' + typeConfigCache[type].short_title + '.');
+                }
+                return $.Deferred().resolve().promise();
+            }
+
+            var $card = $('.sm-upload-type-card[data-type="' + type + '"]');
+            $card.addClass('is-loading');
+
+            return $.ajax({
+                url: buildTypeConfigUrl(type),
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            }).done(function (response) {
+                if (!response.ok || !response.config) {
+                    toast('error', 'Unable to load material type settings.');
+                    return;
+                }
+
+                typeConfigCache[type] = response.config;
+                applyMaterialType(type, response.config, false);
+                if (!silent) {
+                    toast('success', 'Switched to ' + response.config.short_title + '.');
+                }
+            }).fail(function () {
+                toast('error', 'Unable to load material type. Please try again.');
+                $('.sm-upload-type-card').removeClass('is-active');
+                $('.sm-upload-type-card[data-type="' + activeType + '"]').addClass('is-active');
+            }).always(function () {
+                $card.removeClass('is-loading');
+            });
+        }
+
+        function loadInitialTypeConfig() {
+            var initialType = activeType;
+
+            if (!isEdit) {
+                var urlParams = new URLSearchParams(window.location.search);
+                var urlType = urlParams.get('type');
+                if (urlType) {
+                    initialType = urlType;
+                }
+            }
+
+            applyTypeVisibility(initialType);
+
+            if (isEdit || !typeConfigUrl) {
+                return;
+            }
+
+            $.ajax({
+                url: buildTypeConfigUrl(initialType),
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            }).done(function (response) {
+                if (response.ok && response.config) {
+                    typeConfigCache[initialType] = response.config;
+                    applyMaterialType(initialType, response.config, true);
+                }
+            }).fail(function () {
+                if (initialType !== activeType) {
+                    toast('warning', 'Could not load the requested material type. Using default.');
+                    applyTypeVisibility(activeType);
+                }
+            });
+        }
 
         function toast(type, message) {
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
@@ -57,7 +251,7 @@
 
         function collectSteps() {
             steps = $form.find('.sm-upload-step').filter(function () {
-                return $(this).find(':input, textarea, select, .sm-upload-dropzone').length > 0;
+                return $(this).find(':input, textarea, select, .sm-upload-dropzone, .sm-upload-type-grid').length > 0;
             }).toArray();
 
             $progress.empty();
@@ -143,6 +337,13 @@
             var valid = true;
             var stepId = $step.data('step-id');
 
+            if (stepId === 'type') {
+                if (!activeType || !$step.find('.sm-upload-type-card.is-active').length) {
+                    valid = false;
+                    toast('warning', 'Please select a material type.');
+                }
+            }
+
             if (stepId === 'role') {
                 if (!$step.find('input[name="meta[uploader_role]"]:checked').length) {
                     valid = false;
@@ -153,7 +354,11 @@
             if (stepId === 'details') {
                 $step.find('input[required], textarea[required], select[required]').each(function () {
                     var $field = $(this);
-                    if (!$field.is(':visible') || $field.closest('[data-types]').length && !$field.closest('[data-types]').is(':visible')) {
+                    var $typeGroup = $field.closest('[data-types]');
+                    if ($typeGroup.length && $typeGroup.hasClass('d-none')) {
+                        return;
+                    }
+                    if (!$field.is(':visible')) {
                         return;
                     }
 
@@ -340,8 +545,10 @@
             $('.js-link-panel').addClass('d-none');
             if (tab === 'upload') {
                 $('.js-link-panel[data-link-panel="upload"]').removeClass('d-none');
+                $('.js-file-dropzone').removeClass('d-none');
             } else {
                 $('.js-link-panel[data-link-panel="link"]').removeClass('d-none');
+                $('.js-file-dropzone').addClass('d-none');
             }
             $('input[name="meta[link_type]"]').val(tab);
         });
@@ -351,16 +558,13 @@
         }).trigger('change');
 
         if (!isEdit) {
-            $('.sm-upload-type-card').on('click', function (e) {
-                e.preventDefault();
+            $('.sm-upload-type-card').on('click', function () {
                 var type = $(this).data('type');
                 if (!type || type === activeType) {
                     return;
                 }
 
-                var url = new URL(window.location.href);
-                url.searchParams.set('type', type);
-                window.location.href = url.toString();
+                switchMaterialType(type);
             });
         }
 
@@ -411,6 +615,7 @@
         }
 
         collectSteps();
+        loadInitialTypeConfig();
         showStep(0, false);
     }
 

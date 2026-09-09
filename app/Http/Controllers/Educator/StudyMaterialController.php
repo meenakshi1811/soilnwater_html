@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\StudyMaterial;
 use App\Services\PortalNotificationService;
 use App\Support\EducatorFileUploader;
+use App\Support\StudyMaterialUploadConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,14 +80,47 @@ class StudyMaterialController extends Controller
 
     public function create(Request $request): View
     {
-        $type = $request->string('type')->toString();
-        if (! in_array($type, \App\Support\StudyMaterialUploadConfig::typeKeys(), true)) {
+        $type = old('material_type', 'notes');
+        if (! in_array($type, StudyMaterialUploadConfig::typeKeys(), true)) {
             $type = 'notes';
         }
 
         return view('backend.educator.materials.form', [
             'material' => new StudyMaterial(['material_type' => $type]),
             'uploadType' => $type,
+        ]);
+    }
+
+    public function typeConfig(string $type): JsonResponse
+    {
+        abort_unless(in_array($type, StudyMaterialUploadConfig::typeKeys(), true), 404);
+
+        $config = StudyMaterialUploadConfig::type($type);
+        $config['short_title'] = str_replace('Upload ', '', $config['title']);
+        $config['details_title'] = match ($type) {
+            'reference_books' => 'Book Details',
+            'assignments' => 'Assignment Details',
+            'study_guides' => 'Study Guide Details',
+            'videos' => 'Lesson Details',
+            'sample_papers' => 'Solved Paper Details',
+            'worksheets' => 'Worksheet Details',
+            'question_papers' => 'Question Paper Details',
+            default => 'Material Details',
+        };
+        $config['guidelines_title'] = match ($type) {
+            'question_papers' => 'Types of Question Papers',
+            'sample_papers' => 'Types of Solved Papers',
+            'videos' => 'Types of Educational Videos & Audio',
+            default => 'Content Guidelines',
+        };
+        $config['upload_title'] = $type === 'videos'
+            ? 'Upload File or Provide Link'
+            : 'Upload File(s)';
+
+        return response()->json([
+            'ok' => true,
+            'type' => $type,
+            'config' => $config,
         ]);
     }
 

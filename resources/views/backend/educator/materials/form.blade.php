@@ -34,15 +34,15 @@
 
   <div class="sm-upload-layout">
     <div class="sm-upload-main">
-      <header class="sm-upload-header">
+      <header class="sm-upload-header" id="smUploadHeader">
         <div class="sm-upload-header__title-wrap">
-          <span class="sm-upload-header__icon"><i class="fa-solid {{ $typeConfig['icon'] }}" aria-hidden="true"></i></span>
+          <span class="sm-upload-header__icon"><i class="fa-solid {{ $typeConfig['icon'] }} js-type-icon" aria-hidden="true"></i></span>
           <div>
-            <h1 class="sm-upload-header__title">{{ $isEdit ? 'Edit: '.$typeConfig['title'] : $typeConfig['title'] }}</h1>
-            <p class="sm-upload-header__subtitle">{{ $typeConfig['subtitle'] }}</p>
+            <h1 class="sm-upload-header__title js-type-title">{{ $isEdit ? 'Edit: '.$typeConfig['title'] : $typeConfig['title'] }}</h1>
+            <p class="sm-upload-header__subtitle js-type-subtitle">{{ $typeConfig['subtitle'] }}</p>
           </div>
         </div>
-        <div class="sm-upload-quote">{{ $typeConfig['quote'] }}</div>
+        <div class="sm-upload-quote js-type-quote">{{ $typeConfig['quote'] }}</div>
       </header>
 
       <div id="studyMaterialAlert" class="alert d-none" role="alert"></div>
@@ -61,20 +61,22 @@
         <input type="hidden" name="material_type" value="{{ $uploadType }}">
 
         @if(! $isEdit)
+        <div class="sm-upload-step" data-step-id="type" data-step-label="Material Type">
           <section class="sm-upload-section">
             <div class="sm-upload-section__head">
-              <span class="sm-upload-section__num">0</span>
-              <h2 class="sm-upload-section__title">Choose material type</h2>
+              <span class="sm-upload-section__num">1</span>
+              <h2 class="sm-upload-section__title">Choose material type <span class="sm-upload-section__req">*</span></h2>
             </div>
-            <div class="sm-upload-type-grid">
+            <div class="sm-upload-type-grid" id="smUploadTypeGrid">
               @foreach($allTypes as $key => $config)
-                <a href="{{ route('educator.materials.create', ['type' => $key]) }}" class="sm-upload-type-card {{ $uploadType === $key ? 'is-active' : '' }}" data-type="{{ $key }}">
+                <button type="button" class="sm-upload-type-card {{ $uploadType === $key ? 'is-active' : '' }}" data-type="{{ $key }}">
                   <i class="fa-solid {{ $config['icon'] }}" aria-hidden="true"></i>
                   <span>{{ str_replace('Upload ', '', $config['title']) }}</span>
-                </a>
+                </button>
               @endforeach
             </div>
           </section>
+        </div>
         @endif
 
         <div class="sm-upload-step" data-step-id="role" data-step-label="Your Role">
@@ -99,18 +101,7 @@
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">2</span>
-            <h2 class="sm-upload-section__title js-section-details-title">
-              @switch($uploadType)
-                @case('reference_books') Book Details @break
-                @case('assignments') Assignment Details @break
-                @case('study_guides') Study Guide Details @break
-                @case('videos') Lesson Details @break
-                @case('sample_papers') Solved Paper Details @break
-                @case('worksheets') Worksheet Details @break
-                @case('question_papers') Question Paper Details @break
-                @default Material Details
-              @endswitch
-            </h2>
+            <h2 class="sm-upload-section__title js-section-details-title">Material Details</h2>
           </div>
 
           <div class="sm-upload-field-group" data-types="all">
@@ -374,51 +365,35 @@
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">3</span>
-            <h2 class="sm-upload-section__title">
-              @if($uploadType === 'videos')
-                Upload File or Provide Link <span class="sm-upload-section__req">*</span>
-              @else
-                Upload File(s) <span class="sm-upload-section__req">*</span>
-              @endif
-            </h2>
+            <h2 class="sm-upload-section__title js-upload-section-title">Upload File(s) <span class="sm-upload-section__req">*</span></h2>
           </div>
 
-          @if($uploadType === 'videos')
+          <div class="js-video-upload-tools d-none" data-type-panel="videos">
             <input type="hidden" name="meta[link_type]" value="{{ old('meta.link_type', data_get($meta, 'link_type', 'upload')) }}">
             <div class="sm-upload-link-tabs mb-2">
               @foreach(['upload' => 'Upload File', 'youtube' => 'YouTube Link', 'vimeo' => 'Vimeo Link', 'other' => 'Other Link'] as $tabKey => $tabLabel)
                 <button type="button" class="sm-upload-link-tab {{ old('meta.link_type', data_get($meta, 'link_type', 'upload')) === $tabKey ? 'is-active' : '' }}" data-link-tab="{{ $tabKey }}">{{ $tabLabel }}</button>
               @endforeach
             </div>
-            <div class="js-link-panel {{ old('meta.link_type', data_get($meta, 'link_type', 'upload')) === 'upload' ? '' : 'd-none' }}" data-link-panel="upload">
-              <div class="sm-upload-dropzone" id="fileDropzone">
-                <div class="sm-upload-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                <p class="sm-upload-dropzone__text">Drag & drop your lesson file here or click to browse</p>
-                <button type="button" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Choose File</button>
-                <input type="file" id="materialFileInput" name="file" class="d-none" accept="{{ $typeConfig['accept'] }}">
-                <p class="sm-upload-dropzone__hint">{{ $typeConfig['file_hint'] }}</p>
-                <div class="sm-upload-dropzone__file-name">{{ $material->file_name }}</div>
-              </div>
-            </div>
+            <div class="js-link-panel {{ old('meta.link_type', data_get($meta, 'link_type', 'upload')) === 'upload' ? '' : 'd-none' }}" data-link-panel="upload"></div>
             <div class="js-link-panel {{ old('meta.link_type', data_get($meta, 'link_type', 'upload')) !== 'upload' ? '' : 'd-none' }}" data-link-panel="link">
               <label class="form-label">Lesson URL</label>
               <input type="url" name="meta[external_url]" class="form-control" value="{{ old('meta.external_url', data_get($meta, 'external_url')) }}" placeholder="https://">
               <small class="text-muted">Paste a YouTube, Vimeo or other lesson link if you are not uploading a file.</small>
             </div>
-          @else
-            <div class="sm-upload-dropzone" id="fileDropzone">
-              <div class="sm-upload-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-              <p class="sm-upload-dropzone__text">Drag & drop your file here or click to browse</p>
-              <button type="button" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Choose File(s)</button>
-              <input type="file" id="materialFileInput" name="file" class="d-none" accept="{{ $typeConfig['accept'] }}" {{ $isEdit ? '' : 'required' }}>
-              <p class="sm-upload-dropzone__hint">{{ $typeConfig['file_hint'] }}</p>
-              <div class="sm-upload-dropzone__file-name">{{ $material->file_name }}</div>
-            </div>
-          @endif
+          </div>
+
+          <div class="sm-upload-dropzone js-file-dropzone" id="fileDropzone">
+            <div class="sm-upload-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <p class="sm-upload-dropzone__text js-dropzone-text">Drag & drop your file here or click to browse</p>
+            <button type="button" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> <span class="js-dropzone-btn-label">Choose File(s)</span></button>
+            <input type="file" id="materialFileInput" name="file" class="d-none" accept="{{ $typeConfig['accept'] }}">
+            <p class="sm-upload-dropzone__hint js-file-hint">{{ $typeConfig['file_hint'] }}</p>
+            <div class="sm-upload-dropzone__file-name">{{ $material->file_name }}</div>
+          </div>
         </section>
 
-        @if(in_array($uploadType, ['reference_books', 'study_guides', 'videos'], true))
-          <section class="sm-upload-section sm-upload-field-group" data-types="reference_books study_guides videos">
+          <section class="sm-upload-section sm-upload-field-group d-none" data-types="reference_books study_guides videos">
             <div class="sm-upload-section__head">
               <span class="sm-upload-section__num">4</span>
               <h2 class="sm-upload-section__title">Cover Image / Thumbnail (Optional)</h2>
@@ -440,10 +415,8 @@
               </div>
             </div>
           </section>
-        @endif
 
-        @if($uploadType === 'notes')
-          <section class="sm-upload-section sm-upload-field-group" data-types="notes">
+          <section class="sm-upload-section sm-upload-field-group d-none" data-types="notes">
             <div class="sm-upload-section__head">
               <span class="sm-upload-section__num">4</span>
               <h2 class="sm-upload-section__title">Preview</h2>
@@ -453,7 +426,6 @@
               <span>Generate thumbnail/preview (for PDF, Images and PPT)</span>
             </label>
           </section>
-        @endif
         </div>
 
         <div class="sm-upload-step" data-step-id="extras" data-step-label="Tags & Options">
@@ -471,7 +443,7 @@
             <span class="sm-upload-section__num">{{ in_array($uploadType, ['notes', 'reference_books', 'study_guides', 'videos'], true) ? '6' : '5' }}</span>
             <h2 class="sm-upload-section__title">Additional Options</h2>
           </div>
-          <div class="sm-upload-options-grid">
+          <div class="sm-upload-options-grid" id="smUploadOptionsGrid">
             @foreach($typeConfig['options'] as $optionKey => $optionLabel)
               <label class="sm-upload-option">
                 <input class="form-check-input" type="checkbox" name="meta[options][]" value="{{ $optionKey }}" @checked(in_array($optionKey, $selectedOptions, true) || ($optionKey === 'allow_download' && old('is_free', $material->is_free ?? true) && empty($selectedOptions)))>
@@ -514,10 +486,10 @@
       </form>
     </div>
 
-    <aside class="sm-upload-sidebar">
+    <aside class="sm-upload-sidebar" id="smUploadSidebar">
       <div class="sm-upload-side-card sm-upload-side-card--tips">
         <div class="sm-upload-side-card__title"><i class="fa-solid fa-lightbulb text-primary"></i> Helpful Tips</div>
-        <ul class="sm-upload-side-list">
+        <ul class="sm-upload-side-list js-type-tips">
           @foreach($typeConfig['tips'] as $tip)
             <li><i class="fa-solid fa-check"></i><span>{{ $tip }}</span></li>
           @endforeach
@@ -525,16 +497,8 @@
       </div>
 
       <div class="sm-upload-side-card sm-upload-side-card--guide">
-        <div class="sm-upload-side-card__title"><i class="fa-solid fa-list-check text-warning"></i>
-          @if(in_array($uploadType, ['question_papers', 'sample_papers'], true))
-            Types of {{ $uploadType === 'sample_papers' ? 'Solved Papers' : 'Question Papers' }}
-          @elseif($uploadType === 'videos')
-            Types of Educational Videos & Audio
-          @else
-            Content Guidelines
-          @endif
-        </div>
-        <ul class="sm-upload-side-list">
+        <div class="sm-upload-side-card__title"><i class="fa-solid fa-list-check text-warning"></i> <span class="js-type-guidelines-title">Content Guidelines</span></div>
+        <ul class="sm-upload-side-list js-type-guidelines">
           @foreach($typeConfig['guidelines'] as $item)
             <li><i class="fa-solid fa-check"></i><span>{{ $item }}</span></li>
           @endforeach
@@ -543,7 +507,7 @@
 
       <div class="sm-upload-side-card sm-upload-side-card--blocked">
         <div class="sm-upload-side-card__title"><i class="fa-solid fa-ban text-danger"></i> Not Allowed</div>
-        <ul class="sm-upload-side-list">
+        <ul class="sm-upload-side-list js-type-not-allowed">
           @foreach($typeConfig['not_allowed'] as $item)
             <li><i class="fa-solid fa-xmark"></i><span>{{ $item }}</span></li>
           @endforeach
@@ -551,18 +515,18 @@
       </div>
 
       <div class="sm-upload-side-card sm-upload-side-card--preview">
-        <div class="sm-upload-side-card__title"><i class="fa-solid fa-eye text-primary"></i> {{ $typeConfig['preview_label'] }}</div>
+        <div class="sm-upload-side-card__title"><i class="fa-solid fa-eye text-primary"></i> <span class="js-type-preview-label">{{ $typeConfig['preview_label'] }}</span></div>
         <div class="sm-upload-preview-thumb">
           <div>
             <i class="fa-solid fa-file-pdf fa-2x text-danger mb-2"></i>
-            <div>{{ $typeConfig['preview_caption'] }}</div>
+            <div class="js-type-preview-caption">{{ $typeConfig['preview_caption'] }}</div>
           </div>
         </div>
       </div>
 
       <div class="sm-upload-side-card sm-upload-side-card--footer">
         <i class="fa-solid fa-graduation-cap fa-lg text-success mb-2"></i>
-        <div class="fw-bold text-success">{{ $typeConfig['footer'] }}</div>
+        <div class="fw-bold text-success js-type-footer">{{ $typeConfig['footer'] }}</div>
       </div>
     </aside>
   </div>
@@ -590,6 +554,7 @@
         activeType: @json($uploadType),
         isEdit: @json($isEdit),
         indexUrl: @json(route('educator.materials.index')),
+        typeConfigUrl: @json(route('educator.materials.type-config', ['type' => '__TYPE__'])),
         submitText: @json($isEdit ? 'Update & submit for review' : 'Submit for Review')
       });
     }

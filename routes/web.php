@@ -341,6 +341,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', [EducatorProfileController::class, 'edit'])->middleware('educator')->name('profile.edit');
         Route::put('/profile', [EducatorProfileController::class, 'update'])->middleware('educator')->name('profile.update');
         Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('educator')->name('materials.data');
+        Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('educator')->name('materials.type-config');
         Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('educator')->name('materials.download');
         Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
