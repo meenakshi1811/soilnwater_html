@@ -336,14 +336,98 @@
   align-items: center;
 }
 
+.sm-upload-wizard__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.sm-upload-wizard__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #64748b;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sm-upload-wizard__pill-num {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.sm-upload-wizard__pill.is-active {
+  border-color: #93c5fd;
+  background: var(--sm-blue-soft);
+  color: var(--sm-blue);
+}
+
+.sm-upload-wizard__pill.is-active .sm-upload-wizard__pill-num {
+  background: var(--sm-blue);
+  color: #fff;
+}
+
+.sm-upload-wizard__pill.is-complete {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #047857;
+}
+
+.sm-upload-wizard__pill.is-complete .sm-upload-wizard__pill-num {
+  background: var(--sm-green);
+  color: #fff;
+}
+
+.sm-upload-step {
+  display: none;
+  animation: smUploadStepIn 0.22s ease;
+}
+
+.sm-upload-step.is-active {
+  display: block;
+}
+
+@keyframes smUploadStepIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .sm-upload-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
   margin-top: 1.25rem;
   padding-top: 1rem;
   border-top: 1px solid #eef2f7;
+}
+
+.sm-upload-footer__actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .sm-upload-btn-submit {

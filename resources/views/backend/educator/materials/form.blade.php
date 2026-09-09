@@ -47,6 +47,8 @@
 
       <div id="studyMaterialAlert" class="alert d-none" role="alert"></div>
 
+      <nav id="materialWizardProgress" class="sm-upload-wizard__progress" aria-label="Form progress"></nav>
+
       <form
         id="studyMaterialForm"
         method="POST"
@@ -75,6 +77,7 @@
           </section>
         @endif
 
+        <div class="sm-upload-step" data-step-id="role" data-step-label="Your Role">
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">1</span>
@@ -90,7 +93,9 @@
             @endforeach
           </div>
         </section>
+        </div>
 
+        <div class="sm-upload-step" data-step-id="details" data-step-label="Details">
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">2</span>
@@ -363,7 +368,9 @@
             </div>
           </div>
         </section>
+        </div>
 
+        <div class="sm-upload-step" data-step-id="upload" data-step-label="Upload">
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">3</span>
@@ -447,7 +454,9 @@
             </label>
           </section>
         @endif
+        </div>
 
+        <div class="sm-upload-step" data-step-id="extras" data-step-label="Tags & Options">
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">{{ in_array($uploadType, ['notes', 'reference_books', 'study_guides', 'videos'], true) ? '5' : '4' }}</span>
@@ -472,7 +481,9 @@
           </div>
           <input type="hidden" name="is_free" value="1">
         </section>
+        </div>
 
+        <div class="sm-upload-step" data-step-id="terms" data-step-label="Review">
         <section class="sm-upload-section">
           <div class="sm-upload-section__head">
             <span class="sm-upload-section__num">{{ in_array($uploadType, ['notes', 'reference_books', 'study_guides', 'videos'], true) ? '7' : '6' }}</span>
@@ -483,13 +494,22 @@
             <span>I agree to the Terms & Conditions and confirm that this content does not violate any copyright and is either my own work or shared with proper permission.</span>
           </label>
         </section>
+        </div>
 
         <div class="sm-upload-footer">
           <a href="{{ route('educator.materials.index') }}" class="btn btn-light">Cancel</a>
-          <button id="studyMaterialSubmitBtn" type="submit" class="btn sm-upload-btn-submit text-white">
-            <span class="btn-text"><i class="fa-solid fa-paper-plane me-1"></i> {{ $isEdit ? 'Update & submit for review' : 'Submit for Review' }}</span>
-            <span class="btn-loader d-none" aria-hidden="true"></span>
-          </button>
+          <div class="sm-upload-footer__actions">
+            <button type="button" id="studyMaterialPrevBtn" class="btn btn-outline-secondary d-none">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </button>
+            <button type="button" id="studyMaterialNextBtn" class="btn btn-primary">
+              Next <i class="fa-solid fa-arrow-right ms-1"></i>
+            </button>
+            <button id="studyMaterialSubmitBtn" type="button" class="btn sm-upload-btn-submit text-white d-none">
+              <span class="btn-text"><i class="fa-solid fa-paper-plane me-1"></i> {{ $isEdit ? 'Update & submit for review' : 'Submit for Review' }}</span>
+              <span class="btn-loader d-none" aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
       </form>
     </div>

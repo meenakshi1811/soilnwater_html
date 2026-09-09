@@ -201,14 +201,64 @@
             $form.find('span.ajax-error').remove();
         },
 
+        resolveFormField: function ($form, field) {
+            var candidates = [field];
+
+            if (field.indexOf('.') !== -1) {
+                var parts = field.split('.');
+                var bracketName = parts[0];
+                for (var i = 1; i < parts.length; i++) {
+                    bracketName += '[' + parts[i] + ']';
+                }
+                candidates.push(bracketName);
+            }
+
+            var match = field.match(/^(.+)\.(\d+)$/);
+            if (match) {
+                candidates.push(match[1] + '[' + match[2] + ']');
+            }
+
+            for (var c = 0; c < candidates.length; c++) {
+                var $input = $form.find('[name="' + candidates[c] + '"]');
+                if ($input.length) {
+                    return $input.first();
+                }
+            }
+
+            return $();
+        },
+
         renderFieldErrors: function ($form, errors) {
+            var self = this;
+            var firstField = null;
+
             $.each(errors, function (field, messages) {
-                var $input = $form.find('[name="' + field + '"]');
+                var $input = self.resolveFormField($form, field);
+                if (!$input.length) {
+                    return;
+                }
+
+                if (!firstField) {
+                    firstField = $input;
+                }
+
                 $input.addClass('is-invalid');
+                var $target = $input.closest('.sm-upload-cover-box, .sm-upload-dropzone, .form-check, .mb-3, .col-md-6, .col-md-4, .col-md-3, .col-12').first();
+                if (!$target.length || $target.is('input, textarea, select')) {
+                    $target = $input;
+                }
+
+                if ($target.next('.ajax-error').length) {
+                    $target.next('.ajax-error').text(messages[0]);
+                    return;
+                }
+
                 $('<span class="invalid-feedback d-block ajax-error"></span>')
                     .text(messages[0])
-                    .insertAfter($input);
+                    .insertAfter($target);
             });
+
+            return firstField;
         },
 
         attachAjaxForm: function (config) {
