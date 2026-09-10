@@ -4,6 +4,17 @@
     --parent-green: #16a34a;
     --parent-border: #e5e7eb;
     --parent-muted: #6b7280;
+    overflow: hidden;
+}
+
+.parent-dashboard .row {
+    align-items: flex-start;
+}
+
+.parent-dashboard .parent-dashboard-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .parent-dashboard .parent-hero-card {
@@ -89,6 +100,9 @@
     border: 1px solid var(--parent-border);
     border-radius: 14px;
     padding: 1.25rem;
+}
+
+.parent-dashboard .parent-section-card.parent-section-card--fill {
     height: 100%;
 }
 

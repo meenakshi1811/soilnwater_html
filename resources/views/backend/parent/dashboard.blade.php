@@ -167,7 +167,8 @@
 
         {{-- Quick Overview --}}
         <div class="col-xl-4">
-            <div class="parent-section-card mb-4">
+            <div class="parent-dashboard-stack">
+            <div class="parent-section-card">
                 <div class="parent-section-head">
                     <h3>Quick Overview</h3>
                 </div>
@@ -236,6 +237,7 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
@@ -258,13 +260,13 @@
 
             <div class="row g-4">
                 <div class="col-md-6">
-                    <div class="parent-section-card">
+                    <div class="parent-section-card parent-section-card--fill">
                         <div class="parent-section-head"><h3>My Enquiries</h3></div>
                         <div class="text-secondary small">No enquiries yet.</div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="parent-section-card">
+                    <div class="parent-section-card parent-section-card--fill">
                         <div class="parent-section-head"><h3>Recent Questions</h3></div>
                         <div class="text-secondary small">No questions asked yet.</div>
                     </div>
@@ -273,46 +275,47 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="parent-section-card mb-4">
-                <div class="parent-section-head"><h3>Upcoming Deadlines</h3></div>
-                <div class="text-secondary small">No upcoming deadlines.</div>
-            </div>
+            <div class="parent-dashboard-stack">
+                <div class="parent-section-card">
+                    <div class="parent-section-head"><h3>Upcoming Deadlines</h3></div>
+                    <div class="text-secondary small">No upcoming deadlines.</div>
+                </div>
 
-            <div class="parent-section-card mb-4">
-                <div class="parent-section-head"><h3>Recent Enquiries</h3></div>
-                @forelse($children->where('status', 'pending') as $pendingChild)
-                    <div class="list-row">
-                        <span class="quick-action-icon bg-warning-subtle text-warning"><i class="fa-solid fa-hourglass-half"></i></span>
-                        <div class="flex-grow-1">
-                            <strong>{{ $pendingChild->full_name }}</strong>
-                            <div class="small text-muted">Child profile awaiting admin approval</div>
+                <div class="parent-section-card">
+                    <div class="parent-section-head"><h3>Recent Enquiries</h3></div>
+                    @forelse($children->where('status', 'pending') as $pendingChild)
+                        <div class="list-row">
+                            <span class="quick-action-icon bg-warning-subtle text-warning"><i class="fa-solid fa-hourglass-half"></i></span>
+                            <div class="flex-grow-1">
+                                <strong>{{ $pendingChild->full_name }}</strong>
+                                <div class="small text-muted">Child profile awaiting admin approval</div>
+                            </div>
+                            <span class="status-pill pending">Pending</span>
                         </div>
-                        <span class="status-pill pending">Pending</span>
-                    </div>
-                @empty
-                    <div class="text-secondary small">No pending child requests.</div>
-                @endforelse
-            </div>
+                    @empty
+                        <div class="text-secondary small">No pending child requests.</div>
+                    @endforelse
+                </div>
 
-            <div class="parent-section-card">
-                <div class="parent-section-head"><h3>Recent Activity</h3></div>
-                @forelse($children->take(3) as $activityChild)
-                    <div class="list-row">
-                        <span class="quick-action-icon bg-primary-subtle text-primary"><i class="fa-solid fa-user-graduate"></i></span>
-                        <div>
-                            <div><strong>{{ $activityChild->full_name }}</strong> profile {{ $activityChild->status }}</div>
-                            <div class="small text-muted">{{ $activityChild->created_at?->diffForHumans() }}</div>
+                <div class="parent-section-card">
+                    <div class="parent-section-head"><h3>Recent Activity</h3></div>
+                    @forelse($children->take(3) as $activityChild)
+                        <div class="list-row">
+                            <span class="quick-action-icon bg-primary-subtle text-primary"><i class="fa-solid fa-user-graduate"></i></span>
+                            <div>
+                                <div><strong>{{ $activityChild->full_name }}</strong> profile {{ $activityChild->status }}</div>
+                                <div class="small text-muted">{{ $activityChild->created_at?->diffForHumans() }}</div>
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="text-secondary small">Activity will appear here once you add children.</div>
-                @endforelse
+                    @empty
+                        <div class="text-secondary small">Activity will appear here once you add children.</div>
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Edit parent profile modal --}}
 <div class="modal fade" id="editParentProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
