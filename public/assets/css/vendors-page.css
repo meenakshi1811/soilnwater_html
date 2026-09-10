@@ -561,7 +561,32 @@
 }
 
 .vendors-premium-card.is-premium {
-  border-color: #d9c274;
+  position: relative;
+  border: 2px solid #c9a227;
+  background: linear-gradient(180deg, #fffdf5 0%, #fff 42%);
+  box-shadow:
+    0 10px 28px rgba(201, 162, 39, 0.24),
+    0 0 0 1px rgba(246, 230, 168, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.vendors-premium-card.is-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f6e6a8 0%, #c9a227 50%, #f6e6a8 100%);
+  z-index: 3;
+}
+
+.vendors-premium-card.is-premium:hover {
+  border-color: #b8911f;
+  box-shadow:
+    0 14px 34px rgba(201, 162, 39, 0.32),
+    0 0 0 1px rgba(246, 230, 168, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .vendors-premium-card__media {
@@ -880,14 +905,32 @@
 }
 
 .vendors-compact-card.is-premium {
-  border-color: #d9c274;
+  position: relative;
+  border: 2px solid #c9a227;
   background: linear-gradient(180deg, #fffdf5 0%, #fff 38%);
-  box-shadow: 0 4px 14px rgba(201, 162, 39, 0.08);
+  box-shadow:
+    0 8px 22px rgba(201, 162, 39, 0.2),
+    0 0 0 1px rgba(246, 230, 168, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.vendors-compact-card.is-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f6e6a8 0%, #c9a227 50%, #f6e6a8 100%);
+  z-index: 3;
 }
 
 .vendors-compact-card.is-premium:hover {
-  border-color: #c9a227;
-  box-shadow: 0 6px 18px rgba(201, 162, 39, 0.14);
+  border-color: #b8911f;
+  box-shadow:
+    0 12px 28px rgba(201, 162, 39, 0.28),
+    0 0 0 1px rgba(246, 230, 168, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .vendors-compact-card__badge {
@@ -988,8 +1031,33 @@
 }
 
 .vendors-list-card.is-premium {
-  border-color: #d9c274;
-  background: linear-gradient(90deg, #fffdf5 0%, #fff 14%);
+  position: relative;
+  border: 2px solid #c9a227;
+  background: linear-gradient(90deg, #fffdf5 0%, #fff 18%);
+  box-shadow:
+    0 6px 18px rgba(201, 162, 39, 0.18),
+    0 0 0 1px rgba(246, 230, 168, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+}
+
+.vendors-list-card.is-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #f6e6a8 0%, #c9a227 50%, #f6e6a8 100%);
+  z-index: 1;
+}
+
+.vendors-list-card.is-premium:hover {
+  border-color: #b8911f;
+  box-shadow:
+    0 10px 24px rgba(201, 162, 39, 0.26),
+    0 0 0 1px rgba(246, 230, 168, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .vendors-list-card__logo-wrap {

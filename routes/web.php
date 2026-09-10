@@ -11,7 +11,9 @@ use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\ConsultantController;
 use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
+use App\Http\Controllers\Admin\ChildProfileController as AdminChildProfileController;
 use App\Http\Controllers\Admin\EducatorController;
+use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
 use App\Http\Controllers\Admin\StudyMaterialApprovalController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
@@ -59,6 +61,7 @@ use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
 use App\Http\Controllers\Educator\EducatorDashboardController;
+use App\Http\Controllers\Parent\ParentProfileController;
 use App\Http\Controllers\Educator\EducatorEnquiryController;
 use App\Http\Controllers\Educator\EducatorPendingController;
 use App\Http\Controllers\Educator\EducatorProfileController;
@@ -293,6 +296,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('marketplace.approved')
         ->name('offers.categories.subcategories');
     Route::get('/post-offer', [PostOfferController::class, 'index'])->middleware('marketplace.approved')->name('post-offer');
+
+    Route::prefix('parent')->name('parent.')->group(function () {
+        Route::get('/dashboard', [ParentProfileController::class, 'dashboard'])->name('dashboard');
+        Route::post('/profile/toggle', [ParentProfileController::class, 'toggle'])->name('profile.toggle');
+        Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
+        Route::post('/children', [ParentProfileController::class, 'storeChild'])->name('children.store');
+        Route::delete('/children/{childProfile}', [ParentProfileController::class, 'destroyChild'])->name('children.destroy');
+    });
 
     Route::get('/vendor/pending', [VendorPendingController::class, 'show'])->name('vendor.pending');
 
@@ -698,6 +709,21 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{educator}/approve', [EducatorController::class, 'approve'])->name('approve');
             Route::post('/{educator}/reject', [EducatorController::class, 'reject'])->name('reject');
             Route::delete('/{educator}', [EducatorController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('parent-profiles')->name('parent-profiles.')->group(function () {
+            Route::get('/', [AdminParentProfileController::class, 'index'])->name('index');
+            Route::get('/data', [AdminParentProfileController::class, 'data'])->name('data');
+            Route::delete('/{parentProfile}', [AdminParentProfileController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('child-profiles')->name('child-profiles.')->group(function () {
+            Route::get('/', [AdminChildProfileController::class, 'index'])->name('index');
+            Route::get('/data', [AdminChildProfileController::class, 'data'])->name('data');
+            Route::get('/{childProfile}', [AdminChildProfileController::class, 'show'])->name('show');
+            Route::post('/{childProfile}/approve', [AdminChildProfileController::class, 'approve'])->name('approve');
+            Route::post('/{childProfile}/reject', [AdminChildProfileController::class, 'reject'])->name('reject');
+            Route::delete('/{childProfile}', [AdminChildProfileController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('study-materials')->name('study-materials.')->group(function () {

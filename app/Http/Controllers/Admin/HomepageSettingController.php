@@ -116,6 +116,7 @@ class HomepageSettingController extends Controller
             'builders_developers' => 'Builders & Developers',
             'popular_services' => 'Popular Services',
             'consultants_enquiry' => 'Consultants & Enquiry',
+            'community_hub' => 'Community Hub',
             'vendor_enquiry' => 'Vendor Enquiry',
             'premium_options' => 'Premium Vendor / Consultant / Service Options',
         ];

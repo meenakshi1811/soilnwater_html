@@ -33,6 +33,10 @@
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
+    $parentDashboardActive = request()->routeIs('parent.*');
+    $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
+    $childProfilesMenuActive = request()->routeIs('admin.child-profiles.*');
+    $hasParentProfileEnabled = (bool) $user?->parentProfile?->is_enabled;
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -103,6 +107,14 @@
                 <span>Dashboard</span>
             </a>
         </li>
+        @if($hasParentProfileEnabled)
+            <li>
+                <a class="{{ $parentDashboardActive ? 'active' : '' }}" href="{{ route('parent.dashboard') }}">
+                    <i class="fa-solid fa-children"></i>
+                    <span>Parent Dashboard</span>
+                </a>
+            </li>
+        @endif
         @if($isEmployee)
             @include('backend.partials.sidebar-module-menus', ['sidebarUser' => $user, 'sidebarIsAdmin' => false])
         @endif
@@ -124,6 +136,18 @@
                 <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $parentProfilesMenuActive ? 'active' : '' }}" href="{{ route('admin.parent-profiles.index') }}">
+                    <i class="fa-solid fa-people-roof"></i>
+                    <span>Parent Profiles</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $childProfilesMenuActive ? 'active' : '' }}" href="{{ route('admin.child-profiles.index') }}">
+                    <i class="fa-solid fa-child"></i>
+                    <span>Child Profiles</span>
                 </a>
             </li>
             <li>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Models\Category;
+use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\HomepageSetting;
 use App\Models\Offer;
@@ -118,7 +120,29 @@ class OfferPageController extends Controller
                 ->get(['id', 'name']),
             'hasLocation' => is_numeric($lat) && is_numeric($lng),
             'homepageSetting' => $homepageSetting,
+            'homepageCommunityPosts' => $this->homepageCommunityPosts(),
+            'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
+            'communityEngagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
         ]);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, CommunityPost>
+     */
+    private function homepageCommunityPosts(int $limit = 6): Collection
+    {
+        return CommunityPost::query()
+            ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
+            ->with('user')
+            ->withCount(['reactions', 'comments', 'starRatings'])
+            ->withAvg('starRatings', 'rating')
+            ->orderByDesc('is_featured')
+            ->orderByDesc('is_highlighted')
+            ->orderByDesc('is_sponsored')
+            ->latest('published_at')
+            ->limit($limit)
+            ->get();
     }
 
     public function vendors(Request $request): View|JsonResponse

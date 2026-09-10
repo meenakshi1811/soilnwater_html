@@ -189,6 +189,31 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Educator::class);
     }
 
+    public function isStudent(): bool
+    {
+        return $this->role === 'student';
+    }
+
+    public function parentProfile(): HasOne
+    {
+        return $this->hasOne(ParentProfile::class);
+    }
+
+    public function childProfiles(): HasMany
+    {
+        return $this->hasMany(ChildProfile::class, 'parent_user_id');
+    }
+
+    public function childProfile(): HasOne
+    {
+        return $this->hasOne(ChildProfile::class, 'child_user_id');
+    }
+
+    public function hasParentProfileEnabled(): bool
+    {
+        return (bool) $this->parentProfile?->is_enabled;
+    }
+
     public function isStaff(): bool
     {
         return $this->isAdmin() || $this->isEmployee();

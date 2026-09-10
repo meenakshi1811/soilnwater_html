@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChildProfile;
 use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
@@ -110,7 +111,28 @@ class ApprovalCenterController extends Controller
             ->merge($this->pendingCommunityPosts())
             ->merge($this->pendingPremiumPayments())
             ->merge($this->pendingEducatorAccounts())
-            ->merge($this->pendingStudyMaterials());
+            ->merge($this->pendingStudyMaterials())
+            ->merge($this->pendingChildProfiles());
+    }
+
+    private function pendingChildProfiles(): Collection
+    {
+        return ChildProfile::query()
+            ->with(['parentUser:id,name,full_name', 'childUser:id,name,full_name'])
+            ->where('status', 'pending')
+            ->get()
+            ->map(fn (ChildProfile $child): array => $this->makeItem(
+                'child_profile',
+                'child-profiles',
+                'Child Profile',
+                'fa-child',
+                $child->id,
+                $child->full_name,
+                $child->parentUser?->full_name ?: ($child->parentUser?->name ?? 'Unknown parent'),
+                'Child profile awaiting admin approval',
+                $child->created_at,
+                route('admin.child-profiles.show', $child)
+            ));
     }
 
     private function pendingEducatorAccounts(): Collection
@@ -386,6 +408,7 @@ class ApprovalCenterController extends Controller
             'premium-payments' => 'Premium payments',
             'educators' => 'Teachers / Tutors',
             'study-materials' => 'Study materials',
+            'child-profiles' => 'Child profiles',
         ];
     }
 
@@ -428,6 +451,9 @@ class ApprovalCenterController extends Controller
             'study_material' => $approved
                 ? app(StudyMaterialApprovalController::class)->approve(StudyMaterial::findOrFail($id))
                 : app(StudyMaterialApprovalController::class)->reject(StudyMaterial::findOrFail($id)),
+            'child_profile' => $approved
+                ? app(ChildProfileController::class)->approve(ChildProfile::findOrFail($id))
+                : app(ChildProfileController::class)->reject($this->withDefaultReviewNote($request), ChildProfile::findOrFail($id)),
         };
     }
 
@@ -487,6 +513,7 @@ class ApprovalCenterController extends Controller
             'premium_payment',
             'educator',
             'study_material',
+            'child_profile',
         ], true);
     }
 }

@@ -9,7 +9,12 @@
 
 @section('content')
 @php
+  use App\Models\PremiumPrice;
+
   $colorClass = 'type-' . $config['color'];
+  $totalAmount = (float) $config['amount'];
+  $baseAmount = round($totalAmount / 1.18, 2);
+  $gstAmount = round($totalAmount - $baseAmount, 2);
 @endphp
 
 <div class="premium-page">
@@ -207,9 +212,22 @@
                 <span>Scan &amp; Pay via UPI</span>
               </div>
               <div class="premium-amount-banner">
-                <span class="premium-amount-banner-label">Amount to pay</span>
-                <strong class="premium-amount-banner-value">{{ $config['formatted_amount'] }}</strong>
+                <span class="premium-amount-banner-label">Payment summary</span>
                 <span class="premium-amount-banner-note">{{ $config['singular'] }} premium membership</span>
+                <div class="premium-amount-breakdown">
+                  <div class="premium-amount-row">
+                    <span>Base amount</span>
+                    <span>{{ PremiumPrice::formatAmount($baseAmount) }}</span>
+                  </div>
+                  <div class="premium-amount-row">
+                    <span>GST (18%)</span>
+                    <span>{{ PremiumPrice::formatAmount($gstAmount) }}</span>
+                  </div>
+                  <div class="premium-amount-row premium-amount-row-total">
+                    <span>Total to pay</span>
+                    <strong class="premium-amount-banner-value">{{ $config['formatted_amount'] }}</strong>
+                  </div>
+                </div>
               </div>
               <div class="premium-qr-image-wrap">
                 <img

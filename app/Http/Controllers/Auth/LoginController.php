@@ -92,6 +92,10 @@ class LoginController extends Controller
             return route('educator.pending');
         }
 
+        if ($user && $user->isStudent()) {
+            return route('user.dashboard');
+        }
+
         return '/home';
     }
 
@@ -118,6 +122,11 @@ class LoginController extends Controller
         $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user, true);
         if ($approvalResponse) {
             return $approvalResponse;
+        }
+
+        $childApprovalResponse = $this->ensureApprovedChildAccount($request, $user, true);
+        if ($childApprovalResponse) {
+            return $childApprovalResponse;
         }
 
         if ($this->isMarketplaceUser($user) && ! $user->isEducator() && ! $user->hasVerifiedContact()) {
@@ -198,6 +207,11 @@ class LoginController extends Controller
         $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user);
         if ($approvalResponse) {
             return $approvalResponse;
+        }
+
+        $childApprovalResponse = $this->ensureApprovedChildAccount($request, $user);
+        if ($childApprovalResponse) {
+            return $childApprovalResponse;
         }
 
         if ($this->isMarketplaceUser($user) && ! $user->isEducator() && ! $user->hasVerifiedContact()) {
@@ -337,6 +351,14 @@ class LoginController extends Controller
             $request->session()->forget('otp_login_user_id');
 
             return $approvalResponse;
+        }
+
+        $childApprovalResponse = $this->ensureApprovedChildAccount($request, $user);
+        if ($childApprovalResponse) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+
+            return $childApprovalResponse;
         }
 
         if (($user->isGeneralUser() || $user->isEducator() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
@@ -553,6 +575,11 @@ class LoginController extends Controller
             $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user, true);
             if ($approvalResponse) {
                 return $approvalResponse;
+            }
+
+            $childApprovalResponse = $this->ensureApprovedChildAccount($request, $user, true);
+            if ($childApprovalResponse) {
+                return $childApprovalResponse;
             }
 
             if (! $user->isEducator() && ! $user->hasVerifiedContact()) {
@@ -921,6 +948,40 @@ class LoginController extends Controller
         }
 
         $message = 'Your account has been blocked by the admin. Please contact support for assistance.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 403);
+        }
+
+        return redirect()->route('login')->withErrors(['email' => $message]);
+    }
+
+    private function ensureApprovedChildAccount(Request $request, User $user, bool $logout = false): RedirectResponse|JsonResponse|null
+    {
+        if (! $user->isStudent()) {
+            return null;
+        }
+
+        $user->loadMissing('childProfile');
+        $childProfile = $user->childProfile;
+
+        if (! $childProfile) {
+            return null;
+        }
+
+        $message = match ($childProfile->status) {
+            'approved' => null,
+            'rejected' => 'Your child profile has been declined by the admin. Please contact your parent/guardian or support for assistance.',
+            default => 'Your child profile is pending admin approval. You will be able to sign in once approved.',
+        };
+
+        if (! $message) {
+            return null;
+        }
+
+        if ($logout) {
+            Auth::logout();
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => $message], 403);

@@ -75,6 +75,8 @@
   $homepageServiceProviders = collect($topServiceProviders ?? []);
   $showConsultantsSection = !empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'];
   $homepageConsultants = collect($topConsultants ?? []);
+  $showCommunityHubSection = data_get($sectionToggles, 'community_hub', true);
+  $homepageCommunityPosts = collect($homepageCommunityPosts ?? []);
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -1493,6 +1495,14 @@
       </div>
     @endif -->
 
+    @if($showCommunityHubSection)
+      @include('frontend.partials.community-hub-home-section', [
+          'homepageCommunityPosts' => $homepageCommunityPosts,
+          'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+          'communityEngagement' => $communityEngagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
+      ])
+    @endif
+
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card">
@@ -1549,8 +1559,89 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
+  .homepage-community-hub-section {
+    margin-top: 8px;
+  }
+
+  .homepage-community-hub__subtitle {
+    margin: -4px 0 16px;
+    color: #4a6077;
+    font-size: 14px;
+  }
+
+  .homepage-community-hub-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .homepage-community-hub-section-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid #dbe5ef;
+    border-radius: 12px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .homepage-community-hub-section-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--hub-accent) 35%, #dbe5ef);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    color: inherit;
+  }
+
+  .homepage-community-hub-section-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--hub-accent) 12%, #fff);
+    color: var(--hub-accent);
+    flex: 0 0 36px;
+  }
+
+  .homepage-community-hub-section-card__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .homepage-community-hub-section-card__label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+  }
+
+  .homepage-community-hub-section-card__tagline {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.35;
+  }
+
+  .homepage-community-posts-wrap .community-post-card {
+    height: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .homepage-community-hub-sections {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .offer-details-modal .modal-content {
     border: 0;
     border-radius: 14px;

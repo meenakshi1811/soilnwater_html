@@ -10,6 +10,8 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
+    @include('backend.partials.parent-profile-toggle', ['user' => $user])
+
     <div class="card admin-table-card">
         <div class="card-body">
             <div id="vendorProfileAlert" class="alert d-none" role="alert"></div>
@@ -39,4 +41,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+<script src="{{ asset('assets/js/parent-profile.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

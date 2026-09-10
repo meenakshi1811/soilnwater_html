@@ -10,7 +10,9 @@ class EnsureUserIsGeneralUser
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()?->isGeneralUser()) {
+        $user = $request->user();
+
+        if (! $user?->isGeneralUser() && ! $user?->isStudent()) {
             abort(403, 'This area is only available to user accounts.');
         }
 

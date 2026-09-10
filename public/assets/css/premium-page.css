@@ -320,7 +320,7 @@
 
 .premium-amount-banner-value {
   display: block;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 800;
   color: #78350f;
   line-height: 1.1;
@@ -332,6 +332,38 @@
   font-size: 12px;
   color: #a16207;
   font-weight: 600;
+}
+
+.premium-amount-breakdown {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.premium-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #92400e;
+  padding: 3px 0;
+}
+
+.premium-amount-row span:last-child {
+  font-weight: 600;
+}
+
+.premium-amount-row-total {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #f3d9a4;
+  font-size: 14px;
+  font-weight: 700;
+  color: #78350f;
+}
+
+.premium-amount-row-total .premium-amount-banner-value {
+  font-size: 24px;
 }
 
 .premium-compare-head h2 {
