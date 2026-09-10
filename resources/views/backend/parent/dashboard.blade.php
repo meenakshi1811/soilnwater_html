@@ -10,322 +10,193 @@
 @section('content')
 @php
     $displayName = $user->full_name ?: $user->name;
-    $location = $parentProfile->location ?: trim(($user->city ?? '').(($user->city && $user->pincode) ? ', ' : '').($user->pincode ?? ''));
+    $location = $parentProfile->location ?: trim(collect([$user->city, $user->pincode])->filter()->implode(', '));
     $languages = is_array($parentProfile->languages) ? $parentProfile->languages : [];
     $memberSince = $user->created_at?->format('M Y');
     $avatarUrl = filled($user->profile_image) ? asset($user->profile_image) : null;
+
+    $quickActions = [
+        ['icon' => 'fa-chalkboard-user', 'tone' => 'orange', 'title' => 'Find Teachers / Tutors', 'subtitle' => 'Find the best teachers for your child', 'url' => route('educator.index')],
+        ['icon' => 'fa-school', 'tone' => 'purple', 'title' => 'Find Schools & Institutes', 'subtitle' => 'Discover schools and learning centres', 'url' => route('frontend.index')],
+        ['icon' => 'fa-book-open', 'tone' => 'blue', 'title' => 'Explore Study Materials', 'subtitle' => 'Notes, papers, videos and more', 'url' => route('study-materials.library')],
+        ['icon' => 'fa-circle-question', 'tone' => 'green', 'title' => 'Ask a Question', 'subtitle' => 'Get answers from educators & community', 'url' => route('community.posts.create')],
+        ['icon' => 'fa-graduation-cap', 'tone' => 'violet', 'title' => 'Find Courses', 'subtitle' => 'Browse courses for your child', 'url' => route('frontend.index')],
+        ['icon' => 'fa-compass', 'tone' => 'teal', 'title' => 'Career Guidance', 'subtitle' => 'Plan your child\'s future path', 'url' => route('frontend.index')],
+    ];
 @endphp
 
-<div class="admin-panel parent-dashboard">
-    {{-- Header profile summary --}}
-    <div class="parent-hero-card mb-4">
-        <div class="row g-4 align-items-center position-relative">
-            <div class="col-lg-8">
-                <div class="d-flex flex-wrap align-items-start gap-3">
+<div class="parent-dashboard">
+    {{-- Profile header --}}
+    <section class="parent-hero">
+        <div class="parent-hero__content">
+            <div class="parent-hero__profile">
+                <div class="parent-avatar-wrap">
                     @if($avatarUrl)
                         <img src="{{ $avatarUrl }}" alt="{{ $displayName }}" class="parent-avatar">
                     @else
-                        <div class="parent-avatar d-flex align-items-center justify-content-center bg-primary-subtle text-primary fw-bold">{{ $user->authorInitials() }}</div>
+                        <div class="parent-avatar parent-avatar--placeholder">{{ $user->authorInitials() }}</div>
                     @endif
-                    <div>
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                            <h2 class="admin-title mb-0">{{ $displayName }}</h2>
-                            <span class="parent-badge"><i class="fa-solid fa-circle-check"></i> Verified Parent</span>
-                            <span class="parent-role-badge">Parent / Guardian</span>
-                        </div>
-                        <div class="text-secondary small d-flex flex-wrap gap-3 mb-2">
-                            @if($location)
-                                <span><i class="fa-solid fa-location-dot me-1"></i>{{ $location }}</span>
-                            @endif
-                            @if(count($languages))
-                                <span><i class="fa-solid fa-language me-1"></i>{{ implode(', ', $languages) }}</span>
-                            @endif
-                            <span><i class="fa-solid fa-children me-1"></i>{{ $stats['children'] }} {{ Str::plural('Child', $stats['children']) }}</span>
-                        </div>
-                        <div class="small text-muted mb-2">
-                            @if($memberSince)
-                                Member since {{ $memberSince }}
-                            @endif
-                            · Profile completion {{ $parentProfile->profile_completion ?? 0 }}%
-                        </div>
-                        @if(filled($parentProfile->bio))
-                            <p class="mb-0 text-secondary">{{ $parentProfile->bio }}</p>
-                        @else
-                            <p class="mb-0 text-secondary">Manage your children's learning journey, track progress, and connect with teachers and study resources.</p>
-                        @endif
-                    </div>
+                    <button type="button" class="parent-avatar-camera" data-bs-toggle="modal" data-bs-target="#editParentProfileModal" aria-label="Edit profile photo">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
                 </div>
 
-                <div class="parent-stat-bar">
-                    <div class="parent-stat-item">
-                        <div class="parent-stat-value">{{ $stats['children'] }}</div>
-                        <div class="parent-stat-label">Children</div>
+                <div class="parent-hero__info">
+                    <div class="parent-hero__name-row">
+                        <h1 class="parent-hero__name">{{ $displayName }}</h1>
+                        <span class="parent-verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Parent</span>
                     </div>
-                    <div class="parent-stat-item">
-                        <div class="parent-stat-value">{{ $stats['materials_saved'] }}</div>
-                        <div class="parent-stat-label">Materials Saved</div>
-                    </div>
-                    <div class="parent-stat-item">
-                        <div class="parent-stat-value">{{ $stats['enquiries'] }}</div>
-                        <div class="parent-stat-label">Enquiries</div>
-                    </div>
-                    <div class="parent-stat-item">
-                        <div class="parent-stat-value">{{ $stats['discussions'] }}</div>
-                        <div class="parent-stat-label">Discussions</div>
-                    </div>
-                    <div class="parent-stat-item">
-                        <div class="parent-stat-value">{{ $stats['following'] }}</div>
-                        <div class="parent-stat-label">Following</div>
+
+                    <p class="parent-hero__meta">
+                        @if($location){{ $location }}@else Location not set @endif
+                        @if($memberSince)<span class="parent-hero__dot">&bull;</span> Member since {{ $memberSince }}@endif
+                    </p>
+
+                    @if(count($languages))
+                        <p class="parent-hero__languages"><i class="fa-solid fa-globe"></i> {{ implode(', ', $languages) }}</p>
+                    @endif
+
+                    <div class="parent-stats-row">
+                        <div class="parent-stat"><strong>{{ $stats['children'] }}</strong> Children</div>
+                        <div class="parent-stat"><strong>{{ $stats['materials_saved'] }}</strong> Materials Saved</div>
+                        <div class="parent-stat"><strong>{{ $stats['enquiries'] }}</strong> Enquiries</div>
+                        <div class="parent-stat"><strong>{{ $stats['discussions'] }}</strong> Discussions</div>
+                        <div class="parent-stat"><strong>{{ $stats['following'] }}</strong> Following</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end">
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editParentProfileModal">
-                        <i class="fa-solid fa-pen me-1"></i>Edit Profile
-                    </button>
-                    <button type="button" class="btn btn-primary js-open-add-child">
-                        <i class="fa-solid fa-plus me-1"></i>Add Child
-                    </button>
-                </div>
+
+            <div class="parent-hero__actions">
+                <button type="button" class="parent-btn parent-btn--outline" data-bs-toggle="modal" data-bs-target="#editParentProfileModal">
+                    <i class="fa-solid fa-pen"></i> Edit Profile
+                </button>
             </div>
         </div>
-    </div>
 
-    <div class="row g-4 mb-4">
-        {{-- My Children --}}
-        <div class="col-xl-8">
-            <div class="parent-section-card">
-                <div class="parent-section-head">
-                    <h3>My Children</h3>
-                    @if($children->isNotEmpty())
-                        <button type="button" class="btn btn-sm btn-link text-decoration-none js-open-add-child">+ Add Child</button>
-                    @endif
-                </div>
+        <div class="parent-hero__illustration" aria-hidden="true">
+            <svg viewBox="0 0 280 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="140" cy="165" rx="90" ry="12" fill="#BFDBFE" opacity="0.45"/>
+                <rect x="95" y="95" width="90" height="55" rx="8" fill="#93C5FD"/>
+                <rect x="100" y="100" width="80" height="40" rx="4" fill="#EFF6FF"/>
+                <circle cx="70" cy="75" r="22" fill="#FDE68A"/>
+                <circle cx="210" cy="80" r="18" fill="#FCA5A5"/>
+                <path d="M55 115 Q70 90 85 115" stroke="#64748B" stroke-width="3" fill="none"/>
+                <path d="M195 112 Q210 88 225 112" stroke="#64748B" stroke-width="3" fill="none"/>
+                <rect x="118" y="128" width="44" height="6" rx="3" fill="#2563EB" opacity="0.35"/>
+            </svg>
+        </div>
+    </section>
 
-                @if($children->isEmpty())
-                    <div class="children-empty-state js-open-add-child" role="button" tabindex="0" aria-label="Add your first child profile">
-                        <span class="children-empty-state__icon">
-                            <i class="fa-solid fa-user-graduate"></i>
-                        </span>
-                        <h4 class="children-empty-state__title">No child profiles yet</h4>
-                        <p class="children-empty-state__text">Add your first child with email, phone number, and login credentials. Admin approval is required before they can sign in.</p>
-                        <span class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-plus me-1"></i>Add Child
-                        </span>
+    {{-- Lower section: children + quick actions --}}
+    <div class="parent-lower">
+        <section class="parent-children-panel">
+            <div class="parent-panel-head">
+                <h2>My Children</h2>
+                <button type="button" class="parent-link-btn js-open-add-child">Manage Children</button>
+            </div>
+
+            @if($children->isEmpty())
+                <div class="parent-child-grid parent-child-grid--single">
+                    <div class="parent-add-child-card js-open-add-child" role="button" tabindex="0">
+                        <span class="parent-add-child-card__icon"><i class="fa-solid fa-user-plus"></i></span>
+                        <h3>Add Another Child</h3>
+                        <p>Add your child to get personalized recommendations and tracking.</p>
+                        <span class="parent-btn parent-btn--outline parent-btn--sm"><i class="fa-solid fa-plus"></i> Add Child</span>
                     </div>
-                @else
-                    <div class="child-card-grid">
-                        @foreach($children as $child)
-                            @php
-                                $childAvatar = filled($child->profile_image) ? asset($child->profile_image) : null;
-                                $childInitials = collect(preg_split('/\s+/', trim($child->full_name)) ?: [])->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('') ?: 'CH';
-                            @endphp
-                            <div class="child-card {{ $child->is_primary ? 'is-primary' : '' }}" data-child-id="{{ $child->id }}">
-                                <div class="child-card-head">
-                                    @if($childAvatar)
-                                        <img src="{{ $childAvatar }}" alt="{{ $child->full_name }}" class="child-avatar">
-                                    @else
-                                        <div class="child-avatar d-flex align-items-center justify-content-center bg-light text-secondary fw-semibold small">{{ $childInitials }}</div>
-                                    @endif
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <strong>{{ $child->full_name }}</strong>
-                                            <i class="fa-solid {{ $child->genderIcon() }}"></i>
-                                            @if($child->is_primary)
-                                                <span class="badge text-bg-success">Primary Child</span>
-                                            @endif
-                                        </div>
-                                        <div class="small text-muted">
-                                            {{ trim(($child->class_grade ?: '').($child->board ? ' - '.$child->board : '')) ?: 'Class details pending' }}
-                                        </div>
-                                        @if($child->school_name)
-                                            <div class="small text-secondary">{{ $child->school_name }}</div>
-                                        @endif
-                                    </div>
-                                    <span class="status-pill {{ $child->status }}">{{ ucfirst($child->status) }}</span>
-                                </div>
-
-                                @if(count($child->displaySubjects()))
-                                    <div>
-                                        @foreach($child->displaySubjects() as $subject)
-                                            <span class="child-subject-tag">{{ $subject }}</span>
-                                        @endforeach
-                                    </div>
+                </div>
+            @else
+                <div class="parent-child-grid">
+                    @foreach($children as $child)
+                        @php
+                            $childAvatar = filled($child->profile_image) ? asset($child->profile_image) : null;
+                            $childInitials = collect(preg_split('/\s+/', trim($child->full_name)) ?: [])->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('') ?: 'CH';
+                            $genderClass = match ($child->gender) {
+                                'female' => 'parent-child-card--female',
+                                'male' => 'parent-child-card--male',
+                                default => 'parent-child-card--male',
+                            };
+                            $subjects = $child->displaySubjects();
+                            $visibleSubjects = array_slice($subjects, 0, 3);
+                            $extraSubjects = max(count($subjects) - 3, 0);
+                            $classBoard = collect([$child->class_grade, $child->board])->filter()->implode(' • ');
+                        @endphp
+                        <article class="parent-child-card {{ $genderClass }}" data-child-id="{{ $child->id }}">
+                            <div class="parent-child-card__top">
+                                @if($childAvatar)
+                                    <img src="{{ $childAvatar }}" alt="{{ $child->full_name }}" class="parent-child-card__avatar">
+                                @else
+                                    <div class="parent-child-card__avatar parent-child-card__avatar--placeholder">{{ $childInitials }}</div>
                                 @endif
-
-                                <div class="d-flex gap-2 mt-auto pt-2">
-                                    @if($child->isApproved())
-                                        <button type="button" class="btn btn-sm btn-outline-primary flex-grow-1" disabled>View Profile</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Education Dashboard</button>
-                                    @else
-                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Awaiting approval</button>
+                                <div class="parent-child-card__info">
+                                    <div class="parent-child-card__name">
+                                        {{ $child->full_name }}
+                                        <i class="fa-solid {{ $child->gender === 'female' ? 'fa-venus' : ($child->gender === 'male' ? 'fa-mars' : 'fa-user') }}"></i>
+                                    </div>
+                                    <div class="parent-child-card__class">{{ $classBoard ?: 'Class details pending' }}</div>
+                                    @if($child->school_name)
+                                        <div class="parent-child-card__school">{{ $child->school_name }}</div>
                                     @endif
-                                    <button type="button" class="btn btn-sm btn-outline-danger js-delete-child" data-id="{{ $child->id }}" data-name="{{ $child->full_name }}" title="Delete">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
                                 </div>
+                                @if($child->isPending())
+                                    <span class="parent-status-pill parent-status-pill--pending">Pending</span>
+                                @elseif($child->isRejected())
+                                    <span class="parent-status-pill parent-status-pill--rejected">Declined</span>
+                                @endif
                             </div>
-                        @endforeach
 
-                        <div class="child-add-card js-open-add-child" role="button" tabindex="0" aria-label="Add another child profile">
-                            <i class="fa-solid fa-circle-plus fa-2x"></i>
-                            <strong>Add Child</strong>
-                            <span class="small">Create a child profile with email, phone & login</span>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
+                            @if(count($visibleSubjects))
+                                <div class="parent-child-card__tags">
+                                    @foreach($visibleSubjects as $subject)
+                                        <span class="parent-tag">{{ $subject }}</span>
+                                    @endforeach
+                                    @if($extraSubjects > 0)
+                                        <span class="parent-tag parent-tag--more">+{{ $extraSubjects }}</span>
+                                    @endif
+                                </div>
+                            @endif
 
-        {{-- Quick Overview --}}
-        <div class="col-xl-4">
-            <div class="parent-dashboard-stack">
-            <div class="parent-section-card">
-                <div class="parent-section-head">
-                    <h3>Quick Overview</h3>
-                </div>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="overview-tile blue">
-                            <i class="fa-solid fa-book mb-2"></i>
-                            <div class="fs-4 fw-bold">{{ $stats['materials_saved'] }}</div>
-                            <div class="small">Study Materials</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="overview-tile green">
-                            <i class="fa-solid fa-circle-question mb-2"></i>
-                            <div class="fs-4 fw-bold">0</div>
-                            <div class="small">Questions Asked</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="overview-tile purple">
-                            <i class="fa-solid fa-graduation-cap mb-2"></i>
-                            <div class="fs-4 fw-bold">0</div>
-                            <div class="small">Courses Enrolled</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="overview-tile amber">
-                            <i class="fa-solid fa-medal mb-2"></i>
-                            <div class="fs-4 fw-bold">0</div>
-                            <div class="small">Achievements</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="parent-section-card">
-                <div class="parent-section-head">
-                    <h3>Quick Actions</h3>
-                </div>
-                <div class="quick-action-item">
-                    <span class="quick-action-icon bg-primary-subtle text-primary"><i class="fa-solid fa-chalkboard-user"></i></span>
-                    <div>
-                        <strong>Find Teachers / Tutors</strong>
-                        <div class="small text-muted">Browse verified educators for your child</div>
-                    </div>
-                </div>
-                <div class="quick-action-item">
-                    <span class="quick-action-icon bg-success-subtle text-success"><i class="fa-solid fa-book-open"></i></span>
-                    <div>
-                        <strong>Explore Study Materials</strong>
-                        <div class="small text-muted">Notes, papers, videos and more</div>
-                    </div>
-                </div>
-                <div class="quick-action-item">
-                    <span class="quick-action-icon bg-warning-subtle text-warning"><i class="fa-solid fa-calendar-days"></i></span>
-                    <div>
-                        <strong>Upcoming Events</strong>
-                        <div class="small text-muted">Scholarships, workshops and deadlines</div>
-                    </div>
-                </div>
-                <div class="quick-action-item">
-                    <span class="quick-action-icon bg-info-subtle text-info"><i class="fa-solid fa-comments"></i></span>
-                    <div>
-                        <strong>Community Discussions</strong>
-                        <div class="small text-muted">Ask questions and join conversations</div>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Bottom grid --}}
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="parent-section-card mb-4">
-                <div class="parent-section-head">
-                    <h3>Recommended for {{ $primaryChild?->full_name ?? 'your child' }}</h3>
-                    <a href="{{ route('study-materials.library') }}" target="_blank" class="small">View All</a>
-                </div>
-                <div class="material-scroll">
-                    <div class="material-card">
-                        <div class="small text-muted mb-1"><span class="badge text-bg-light">Notes</span></div>
-                        <div class="fw-semibold">Explore study library</div>
-                        <div class="small text-secondary">Browse free materials by class & subject</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="parent-section-card parent-section-card--fill">
-                        <div class="parent-section-head"><h3>My Enquiries</h3></div>
-                        <div class="text-secondary small">No enquiries yet.</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="parent-section-card parent-section-card--fill">
-                        <div class="parent-section-head"><h3>Recent Questions</h3></div>
-                        <div class="text-secondary small">No questions asked yet.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="parent-dashboard-stack">
-                <div class="parent-section-card">
-                    <div class="parent-section-head"><h3>Upcoming Deadlines</h3></div>
-                    <div class="text-secondary small">No upcoming deadlines.</div>
-                </div>
-
-                <div class="parent-section-card">
-                    <div class="parent-section-head"><h3>Recent Enquiries</h3></div>
-                    @forelse($children->where('status', 'pending') as $pendingChild)
-                        <div class="list-row">
-                            <span class="quick-action-icon bg-warning-subtle text-warning"><i class="fa-solid fa-hourglass-half"></i></span>
-                            <div class="flex-grow-1">
-                                <strong>{{ $pendingChild->full_name }}</strong>
-                                <div class="small text-muted">Child profile awaiting admin approval</div>
+                            <div class="parent-child-card__footer">
+                                @if($child->isApproved())
+                                    <button type="button" class="parent-child-btn" disabled>
+                                        <i class="fa-solid fa-chart-simple"></i> View Dashboard
+                                    </button>
+                                @else
+                                    <button type="button" class="parent-child-btn" disabled>Awaiting approval</button>
+                                @endif
+                                <button type="button" class="parent-child-delete js-delete-child" data-id="{{ $child->id }}" data-name="{{ $child->full_name }}" title="Delete child profile">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
                             </div>
-                            <span class="status-pill pending">Pending</span>
-                        </div>
-                    @empty
-                        <div class="text-secondary small">No pending child requests.</div>
-                    @endforelse
-                </div>
+                        </article>
+                    @endforeach
 
-                <div class="parent-section-card">
-                    <div class="parent-section-head"><h3>Recent Activity</h3></div>
-                    @forelse($children->take(3) as $activityChild)
-                        <div class="list-row">
-                            <span class="quick-action-icon bg-primary-subtle text-primary"><i class="fa-solid fa-user-graduate"></i></span>
-                            <div>
-                                <div><strong>{{ $activityChild->full_name }}</strong> profile {{ $activityChild->status }}</div>
-                                <div class="small text-muted">{{ $activityChild->created_at?->diffForHumans() }}</div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-secondary small">Activity will appear here once you add children.</div>
-                    @endforelse
+                    <div class="parent-add-child-card js-open-add-child" role="button" tabindex="0">
+                        <span class="parent-add-child-card__icon"><i class="fa-solid fa-user-plus"></i></span>
+                        <h3>Add Another Child</h3>
+                        <p>Add your child to get personalized recommendations and tracking.</p>
+                        <span class="parent-btn parent-btn--outline parent-btn--sm"><i class="fa-solid fa-plus"></i> Add Child</span>
+                    </div>
                 </div>
-            </div>
-        </div>
+            @endif
+        </section>
+
+        <aside class="parent-quick-actions">
+            <h2>Quick Actions</h2>
+            <ul class="parent-quick-actions__list">
+                @foreach($quickActions as $action)
+                    <li>
+                        <a href="{{ $action['url'] }}" class="parent-quick-action parent-quick-action--{{ $action['tone'] }}">
+                            <span class="parent-quick-action__icon"><i class="fa-solid {{ $action['icon'] }}"></i></span>
+                            <span class="parent-quick-action__copy">
+                                <strong>{{ $action['title'] }}</strong>
+                                <small>{{ $action['subtitle'] }}</small>
+                            </span>
+                            <i class="fa-solid fa-chevron-right parent-quick-action__arrow"></i>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </aside>
     </div>
 </div>
 
@@ -333,7 +204,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Parent Profile</h5>
+                <h5 class="modal-title">Edit Profile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editParentProfileForm">
