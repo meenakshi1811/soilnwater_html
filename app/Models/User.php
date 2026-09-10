@@ -235,6 +235,76 @@ class User extends Authenticatable implements MustVerifyEmail
         return route('user.dashboard');
     }
 
+    public function panelTitle(): string
+    {
+        if ($this->isAdmin()) {
+            return 'Admin Control Panel';
+        }
+
+        if ($this->isEmployee()) {
+            return 'Employee Portal';
+        }
+
+        if ($this->isStudent()) {
+            return 'Education Dashboard';
+        }
+
+        if ($this->isVendor()) {
+            return 'Vendor Dashboard';
+        }
+
+        if ($this->isConsultant()) {
+            return 'Consultant Dashboard';
+        }
+
+        if ($this->isServiceProvider()) {
+            return 'Service Dashboard';
+        }
+
+        if ($this->isEducator()) {
+            return 'Teacher / Tutor Dashboard';
+        }
+
+        return 'User Dashboard';
+    }
+
+    public function isDashboardRouteActive(): bool
+    {
+        if ($this->isStudent()) {
+            return request()->routeIs('child.*');
+        }
+
+        if ($this->isGeneralUser()) {
+            return request()->routeIs('user.dashboard');
+        }
+
+        if ($this->isVendor()) {
+            return request()->routeIs('vendor.dashboard');
+        }
+
+        if ($this->isConsultant()) {
+            return request()->routeIs('consultant.dashboard');
+        }
+
+        if ($this->isServiceProvider()) {
+            return request()->routeIs('service_provider.dashboard');
+        }
+
+        if ($this->isEducator()) {
+            return request()->routeIs('educator.dashboard');
+        }
+
+        if ($this->isEmployee()) {
+            return request()->routeIs('employee.dashboard') || request()->routeIs('modules.show');
+        }
+
+        if ($this->isAdmin()) {
+            return request()->routeIs('admin.dashboard');
+        }
+
+        return false;
+    }
+
     public function parentProfile(): HasOne
     {
         return $this->hasOne(ParentProfile::class);

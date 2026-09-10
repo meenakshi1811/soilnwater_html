@@ -1,6 +1,10 @@
-@extends('backend.layouts.child-portal')
+@extends('backend.layouts.app')
 
 @section('title', ($firstName ?? $childProfile->full_name) . "'s Education Dashboard")
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/child-portal.css') }}?v={{ now()->timestamp }}">
+@endpush
 
 @section('content')
 @php
@@ -276,17 +280,11 @@
 
 @push('scripts')
 <script>
-(function () {
-    const toggle = document.getElementById('childSidebarToggle');
-    const shell = document.querySelector('.child-portal-shell');
-    toggle?.addEventListener('click', () => shell?.classList.toggle('sidebar-open'));
-
-    document.querySelectorAll('.child-tab').forEach((tab) => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.child-tab').forEach((t) => t.classList.remove('is-active'));
-            tab.classList.add('is-active');
-        });
+document.querySelectorAll('.child-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.child-tab').forEach((t) => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
     });
-})();
+});
 </script>
 @endpush

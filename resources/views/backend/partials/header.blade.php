@@ -5,22 +5,12 @@
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
     $isEducator = $user->isEducator();
+    $isStudent = $user->isStudent();
     $isEmployee = $user->isEmployee();
     $isAdmin = $user->isAdmin();
-    $dashboardUrl = $isGeneralUser
-        ? route('user.dashboard')
-        : ($isVendor ? route('vendor.dashboard')
-            : ($isConsultant ? route('consultant.dashboard')
-                : ($isServiceProvider ? route('service_provider.dashboard')
-                    : ($isEducator ? route('educator.dashboard')
-                        : ($isEmployee ? route('employee.dashboard') : route('admin.dashboard'))))));
-    $dashboardActive = $isGeneralUser
-        ? request()->routeIs('user.dashboard')
-        : ($isVendor ? request()->routeIs('vendor.dashboard')
-            : ($isConsultant ? request()->routeIs('consultant.dashboard')
-                : ($isServiceProvider ? request()->routeIs('service_provider.dashboard')
-                    : ($isEducator ? request()->routeIs('educator.dashboard')
-                        : ($isEmployee ? request()->routeIs('employee.dashboard') : request()->routeIs('admin.dashboard'))))));
+    $dashboardUrl = $user->dashboardUrl();
+    $dashboardActive = $user->isDashboardRouteActive();
+    $panelTitle = $user->panelTitle();
     $profileUrl = $isGeneralUser
         ? route('user.profile.edit')
         : ($isVendor ? route('vendor.profile.edit')
@@ -35,24 +25,22 @@
                 : ($isServiceProvider ? request()->routeIs('service_provider.profile.*')
                     : ($isEducator ? request()->routeIs('educator.profile.*')
                         : ($isEmployee ? request()->routeIs('employee.profile.*') : request()->routeIs('admin.profile.*'))))));
-    $panelTitle = $isGeneralUser
-        ? 'User Dashboard'
-        : ($isVendor ? 'Vendor Dashboard'
-            : ($isConsultant ? 'Consultant Dashboard'
-                : ($isServiceProvider ? 'Service Dashboard'
-                    : ($isEducator ? 'Teacher / Tutor Dashboard'
-                        : ($isEmployee ? 'Employee Portal' : 'Admin Control Panel')))));
     $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
         || ($isConsultant && $user->consultant?->is_premium)
         || ($isServiceProvider && $user->serviceProvider?->is_premium);
     $notifications = $isEmployee ? collect() : $user->notifications()->latest()->limit(8)->get();
     $unreadNotificationCount = $isEmployee ? 0 : $user->unreadNotifications()->count();
+    $displayName = $user->full_name ?: $user->name;
+    if ($isStudent) {
+        $user->loadMissing('childProfile');
+        $displayName = $user->childProfile?->full_name ?: $displayName;
+    }
 @endphp
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div class="admin-header-title-wrap d-flex align-items-center gap-2">
             @if($user->profile_image)
-                <img src="{{ asset($user->profile_image) }}" alt="{{ $user->name }}" width="44" height="44" class="rounded-circle object-fit-cover">
+                <img src="{{ asset($user->profile_image) }}" alt="{{ $displayName }}" width="44" height="44" class="rounded-circle object-fit-cover">
             @endif
             <div>
             <h1 class="admin-header-title mb-0">
@@ -63,7 +51,7 @@
                     </span>
                 @endif
             </h1>
-            <p class="mb-0">Welcome, {{ $user->name }}</p>
+            <p class="mb-0">Welcome, {{ $displayName }}</p>
             </div>
         </div>
 
@@ -119,7 +107,9 @@
                 </div>
             </div>
             @endif
-            <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
+            @if(! $isStudent)
+                <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
+            @endif
             <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-sm admin-logout">Logout</button>

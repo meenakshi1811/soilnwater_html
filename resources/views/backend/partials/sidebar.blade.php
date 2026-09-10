@@ -8,6 +8,7 @@
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
     $isEducator = $user->isEducator();
+    $isStudent = $user->isStudent();
     $vendorApproved = $isVendor && $user->vendor?->isApproved();
     $consultantApproved = $isConsultant && $user->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
@@ -53,6 +54,9 @@
     } elseif ($isEducator && $educatorApproved) {
         $dashboardUrl = route('educator.dashboard');
         $dashboardActive = request()->routeIs('educator.dashboard');
+    } elseif ($isStudent) {
+        $dashboardUrl = route('child.dashboard');
+        $dashboardActive = request()->routeIs('child.*');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -315,6 +319,8 @@
                     <span>Profile</span>
                 </a>
             </li>
+        @elseif($isStudent)
+            @include('backend.partials.sidebar-student-menus')
         @elseif($isGeneralUser)
             @if($canAccessOffers)
             <li>
