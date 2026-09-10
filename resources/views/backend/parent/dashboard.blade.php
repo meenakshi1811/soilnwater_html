@@ -128,20 +128,22 @@
                                     <div class="parent-child-card__avatar parent-child-card__avatar--placeholder">{{ $childInitials }}</div>
                                 @endif
                                 <div class="parent-child-card__info">
-                                    <div class="parent-child-card__name">
-                                        {{ $child->full_name }}
-                                        <i class="fa-solid {{ $child->gender === 'female' ? 'fa-venus' : ($child->gender === 'male' ? 'fa-mars' : 'fa-user') }}"></i>
+                                    <div class="parent-child-card__name-row">
+                                        <div class="parent-child-card__name">
+                                            {{ $child->full_name }}
+                                            <i class="fa-solid {{ $child->gender === 'female' ? 'fa-venus' : ($child->gender === 'male' ? 'fa-mars' : 'fa-user') }}"></i>
+                                        </div>
+                                        @if($child->isPending())
+                                            <span class="parent-status-pill parent-status-pill--pending">Pending</span>
+                                        @elseif($child->isRejected())
+                                            <span class="parent-status-pill parent-status-pill--rejected">Declined</span>
+                                        @endif
                                     </div>
                                     <div class="parent-child-card__class">{{ $classBoard ?: 'Class details pending' }}</div>
                                     @if($child->school_name)
                                         <div class="parent-child-card__school">{{ $child->school_name }}</div>
                                     @endif
                                 </div>
-                                @if($child->isPending())
-                                    <span class="parent-status-pill parent-status-pill--pending">Pending</span>
-                                @elseif($child->isRejected())
-                                    <span class="parent-status-pill parent-status-pill--rejected">Declined</span>
-                                @endif
                             </div>
 
                             @if(count($visibleSubjects))
