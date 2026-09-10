@@ -98,70 +98,83 @@
             <div class="parent-section-card">
                 <div class="parent-section-head">
                     <h3>My Children</h3>
-                    <button type="button" class="btn btn-sm btn-link text-decoration-none js-open-add-child">+ Add Child</button>
+                    @if($children->isNotEmpty())
+                        <button type="button" class="btn btn-sm btn-link text-decoration-none js-open-add-child">+ Add Child</button>
+                    @endif
                 </div>
 
-                <div class="child-card-grid">
-                    @forelse($children as $child)
-                        @php
-                            $childAvatar = filled($child->profile_image) ? asset($child->profile_image) : null;
-                            $childInitials = collect(preg_split('/\s+/', trim($child->full_name)) ?: [])->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('') ?: 'CH';
-                        @endphp
-                        <div class="child-card {{ $child->is_primary ? 'is-primary' : '' }}" data-child-id="{{ $child->id }}">
-                            <div class="child-card-head">
-                                @if($childAvatar)
-                                    <img src="{{ $childAvatar }}" alt="{{ $child->full_name }}" class="child-avatar">
-                                @else
-                                    <div class="child-avatar d-flex align-items-center justify-content-center bg-light text-secondary fw-semibold small">{{ $childInitials }}</div>
-                                @endif
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <strong>{{ $child->full_name }}</strong>
-                                        <i class="fa-solid {{ $child->genderIcon() }}"></i>
-                                        @if($child->is_primary)
-                                            <span class="badge text-bg-success">Primary Child</span>
+                @if($children->isEmpty())
+                    <div class="children-empty-state js-open-add-child" role="button" tabindex="0" aria-label="Add your first child profile">
+                        <span class="children-empty-state__icon">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </span>
+                        <h4 class="children-empty-state__title">No child profiles yet</h4>
+                        <p class="children-empty-state__text">Add your first child with email, phone number, and login credentials. Admin approval is required before they can sign in.</p>
+                        <span class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-plus me-1"></i>Add Child
+                        </span>
+                    </div>
+                @else
+                    <div class="child-card-grid">
+                        @foreach($children as $child)
+                            @php
+                                $childAvatar = filled($child->profile_image) ? asset($child->profile_image) : null;
+                                $childInitials = collect(preg_split('/\s+/', trim($child->full_name)) ?: [])->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('') ?: 'CH';
+                            @endphp
+                            <div class="child-card {{ $child->is_primary ? 'is-primary' : '' }}" data-child-id="{{ $child->id }}">
+                                <div class="child-card-head">
+                                    @if($childAvatar)
+                                        <img src="{{ $childAvatar }}" alt="{{ $child->full_name }}" class="child-avatar">
+                                    @else
+                                        <div class="child-avatar d-flex align-items-center justify-content-center bg-light text-secondary fw-semibold small">{{ $childInitials }}</div>
+                                    @endif
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <strong>{{ $child->full_name }}</strong>
+                                            <i class="fa-solid {{ $child->genderIcon() }}"></i>
+                                            @if($child->is_primary)
+                                                <span class="badge text-bg-success">Primary Child</span>
+                                            @endif
+                                        </div>
+                                        <div class="small text-muted">
+                                            {{ trim(($child->class_grade ?: '').($child->board ? ' - '.$child->board : '')) ?: 'Class details pending' }}
+                                        </div>
+                                        @if($child->school_name)
+                                            <div class="small text-secondary">{{ $child->school_name }}</div>
                                         @endif
                                     </div>
-                                    <div class="small text-muted">
-                                        {{ trim(($child->class_grade ?: '').($child->board ? ' - '.$child->board : '')) ?: 'Class details pending' }}
+                                    <span class="status-pill {{ $child->status }}">{{ ucfirst($child->status) }}</span>
+                                </div>
+
+                                @if(count($child->displaySubjects()))
+                                    <div>
+                                        @foreach($child->displaySubjects() as $subject)
+                                            <span class="child-subject-tag">{{ $subject }}</span>
+                                        @endforeach
                                     </div>
-                                    @if($child->school_name)
-                                        <div class="small text-secondary">{{ $child->school_name }}</div>
-                                    @endif
-                                </div>
-                                <span class="status-pill {{ $child->status }}">{{ ucfirst($child->status) }}</span>
-                            </div>
-
-                            @if(count($child->displaySubjects()))
-                                <div>
-                                    @foreach($child->displaySubjects() as $subject)
-                                        <span class="child-subject-tag">{{ $subject }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <div class="d-flex gap-2 mt-auto pt-2">
-                                @if($child->isApproved())
-                                    <button type="button" class="btn btn-sm btn-outline-primary flex-grow-1" disabled>View Profile</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Education Dashboard</button>
-                                @else
-                                    <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Awaiting approval</button>
                                 @endif
-                                <button type="button" class="btn btn-sm btn-outline-danger js-delete-child" data-id="{{ $child->id }}" data-name="{{ $child->full_name }}" title="Delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-12 text-secondary small">No child profiles yet. Add your first child to get started.</div>
-                    @endforelse
 
-                    <div class="child-add-card js-open-add-child" role="button" tabindex="0">
-                        <i class="fa-solid fa-circle-plus fa-2x"></i>
-                        <strong>Add Child</strong>
-                        <span class="small">Create a child profile with email, phone & login</span>
+                                <div class="d-flex gap-2 mt-auto pt-2">
+                                    @if($child->isApproved())
+                                        <button type="button" class="btn btn-sm btn-outline-primary flex-grow-1" disabled>View Profile</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Education Dashboard</button>
+                                    @else
+                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" disabled>Awaiting approval</button>
+                                    @endif
+                                    <button type="button" class="btn btn-sm btn-outline-danger js-delete-child" data-id="{{ $child->id }}" data-name="{{ $child->full_name }}" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+
+                        <div class="child-add-card js-open-add-child" role="button" tabindex="0" aria-label="Add another child profile">
+                            <i class="fa-solid fa-circle-plus fa-2x"></i>
+                            <strong>Add Child</strong>
+                            <span class="small">Create a child profile with email, phone & login</span>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
         </div>
 
