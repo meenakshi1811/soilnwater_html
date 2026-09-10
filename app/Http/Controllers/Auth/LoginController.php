@@ -93,7 +93,7 @@ class LoginController extends Controller
         }
 
         if ($user && $user->isStudent()) {
-            return route('user.dashboard');
+            return route('child.dashboard');
         }
 
         return '/home';

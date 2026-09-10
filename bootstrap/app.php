@@ -13,6 +13,7 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureUserIsEducator;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
+use App\Http\Middleware\EnsureStudentAccount;
 use App\Http\Middleware\EnsureUserIsServiceProvider;
 use App\Http\Middleware\EnsureUserIsVendor;
 use App\Http\Middleware\EnsureVendorIsApproved;
@@ -66,6 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'consultant.account' => EnsureConsultantIsApproved::class,
             'service_provider.account' => EnsureServiceProviderIsApproved::class,
             'educator.account' => EnsureEducatorAccount::class,
+            'student.account' => EnsureStudentAccount::class,
             'marketplace.approved' => EnsureMarketplacePostingAccountApproved::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

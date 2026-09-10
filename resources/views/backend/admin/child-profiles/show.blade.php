@@ -67,39 +67,149 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endpush
+
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 (function ($) {
-    function toast(type, message) {
-        if (window.toastr) toastr[type === 'success' ? 'success' : 'error'](message);
-        else alert(message);
+    if (!$) return;
+
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+    var approveUrl = @json(route('admin.child-profiles.approve', $childProfile));
+    var rejectUrl = @json(route('admin.child-profiles.reject', $childProfile));
+    var deleteUrl = @json(route('admin.child-profiles.destroy', $childProfile));
+    var indexUrl = @json(route('admin.child-profiles.index'));
+
+    var ajaxHeaders = {
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+    };
+
+    if (window.toastr) {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 4000
+        };
     }
-    var base = @json(url('/admin/child-profiles/'.$childProfile->id));
+
+    function toast(type, message) {
+        if (window.FormHelper?.showToast) {
+            FormHelper.showToast(type === 'success' ? 'success' : 'danger', message);
+            return;
+        }
+        if (window.toastr) {
+            toastr[type === 'success' ? 'success' : 'error'](message);
+            return;
+        }
+        alert(message);
+    }
+
+    function errorMessage(xhr, fallback) {
+        return xhr.responseJSON?.message
+            || xhr.responseJSON?.errors?.reason?.[0]
+            || fallback;
+    }
+
+    function postAction(url, data, $btn) {
+        if ($btn) $btn.prop('disabled', true);
+
+        return $.ajax({
+            url: url,
+            method: 'POST',
+            data: $.extend({ _token: csrfToken }, data || {}),
+            headers: ajaxHeaders
+        }).always(function () {
+            if ($btn) $btn.prop('disabled', false);
+        });
+    }
+
     $(document).on('click', '.js-approve-child', function () {
-        $.post(base + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
-            .done(function (r) { toast('success', r.message); setTimeout(function(){ location.reload(); }, 700); })
-            .fail(function () { toast('error', 'Unable to approve.'); });
+        var $btn = $(this);
+
+        Swal.fire({
+            title: 'Approve child profile?',
+            text: 'The child will be able to sign in after approval.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Approve',
+            confirmButtonColor: '#198754',
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            postAction(approveUrl, {}, $btn)
+                .done(function (response) {
+                    toast('success', response.message || 'Child profile approved successfully.');
+                    setTimeout(function () { window.location.reload(); }, 800);
+                })
+                .fail(function (xhr) {
+                    toast('error', errorMessage(xhr, 'Unable to approve child profile.'));
+                });
+        });
     });
+
     $(document).on('click', '.js-reject-child', function () {
-        Swal.fire({ title: 'Decline?', input: 'textarea', inputLabel: 'Reason', showCancelButton: true, confirmButtonColor: '#dc3545' })
-            .then(function (result) {
-                if (!result.isConfirmed) return;
-                $.post(base + '/reject', { _token: $('meta[name="csrf-token"]').attr('content'), reason: result.value || '' })
-                    .done(function (r) { toast('success', r.message); setTimeout(function(){ location.reload(); }, 700); })
-                    .fail(function () { toast('error', 'Unable to decline.'); });
-            });
+        var $btn = $(this);
+
+        Swal.fire({
+            title: 'Decline child profile?',
+            input: 'textarea',
+            inputLabel: 'Reason (optional)',
+            inputPlaceholder: 'Enter reason for declining...',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Decline',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            postAction(rejectUrl, { reason: result.value || '' }, $btn)
+                .done(function (response) {
+                    toast('success', response.message || 'Child profile declined successfully.');
+                    setTimeout(function () { window.location.reload(); }, 800);
+                })
+                .fail(function (xhr) {
+                    toast('error', errorMessage(xhr, 'Unable to decline child profile.'));
+                });
+        });
     });
+
     $(document).on('click', '.js-delete-child', function () {
-        Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545' })
-            .then(function (result) {
-                if (!result.isConfirmed) return;
-                $.ajax({ url: base, method: 'POST', data: { _token: $('meta[name="csrf-token"]').attr('content'), _method: 'DELETE' }, headers: { Accept: 'application/json' } })
-                    .done(function (r) { toast('success', r.message); window.location.href = @json(route('admin.child-profiles.index')); })
-                    .fail(function () { toast('error', 'Unable to delete.'); });
+        var $btn = $(this);
+
+        Swal.fire({
+            title: 'Delete child profile?',
+            text: 'This will permanently remove the child profile and login account.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            $.ajax({
+                url: deleteUrl,
+                method: 'POST',
+                data: { _token: csrfToken, _method: 'DELETE' },
+                headers: ajaxHeaders
+            }).done(function (response) {
+                toast('success', response.message || 'Child profile deleted successfully.');
+                setTimeout(function () { window.location.href = indexUrl; }, 800);
+            }).fail(function (xhr) {
+                toast('error', errorMessage(xhr, 'Unable to delete child profile.'));
+                $btn.prop('disabled', false);
             });
+        });
     });
 })(window.jQuery);
 </script>

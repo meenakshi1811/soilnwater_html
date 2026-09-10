@@ -159,9 +159,9 @@
 
                             <div class="parent-child-card__footer">
                                 @if($child->isApproved())
-                                    <button type="button" class="parent-child-btn" disabled>
+                                    <a href="{{ route('parent.children.dashboard', $child) }}" class="parent-child-btn">
                                         <i class="fa-solid fa-chart-simple"></i> View Dashboard
-                                    </button>
+                                    </a>
                                 @else
                                     <button type="button" class="parent-child-btn" disabled>Awaiting approval</button>
                                 @endif

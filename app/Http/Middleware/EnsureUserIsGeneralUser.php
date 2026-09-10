@@ -12,7 +12,7 @@ class EnsureUserIsGeneralUser
     {
         $user = $request->user();
 
-        if (! $user?->isGeneralUser() && ! $user?->isStudent()) {
+        if (! $user?->isGeneralUser()) {
             abort(403, 'This area is only available to user accounts.');
         }
 

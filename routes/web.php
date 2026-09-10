@@ -61,6 +61,7 @@ use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
 use App\Http\Controllers\Educator\EducatorDashboardController;
+use App\Http\Controllers\Child\ChildPortalController;
 use App\Http\Controllers\Parent\ParentProfileController;
 use App\Http\Controllers\Educator\EducatorEnquiryController;
 use App\Http\Controllers\Educator\EducatorPendingController;
@@ -303,6 +304,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
         Route::post('/children', [ParentProfileController::class, 'storeChild'])->name('children.store');
         Route::delete('/children/{childProfile}', [ParentProfileController::class, 'destroyChild'])->name('children.destroy');
+        Route::get('/children/{childProfile}/dashboard', [ChildPortalController::class, 'parentView'])->name('children.dashboard');
+    });
+
+    Route::prefix('child')->name('child.')->middleware(['student.account'])->group(function () {
+        Route::get('/dashboard', [ChildPortalController::class, 'dashboard'])->name('dashboard');
     });
 
     Route::get('/vendor/pending', [VendorPendingController::class, 'show'])->name('vendor.pending');
