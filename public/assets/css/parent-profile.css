@@ -630,6 +630,41 @@
     }
 }
 
+/* ── Add child modal scroll fix ── */
+.parent-child-modal .modal-dialog {
+    max-height: calc(100dvh - 2rem);
+    margin: 1rem auto;
+}
+
+.parent-child-modal .modal-content {
+    max-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.parent-child-modal__form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.parent-child-modal__body {
+    overflow-y: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.parent-child-modal .modal-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--parent-border);
+    background: #fff;
+}
+
 @media (max-width: 767.98px) {
     .parent-child-grid {
         grid-template-columns: 1fr;

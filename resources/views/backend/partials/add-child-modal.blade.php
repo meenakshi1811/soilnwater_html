@@ -1,13 +1,13 @@
-<div class="modal fade" id="addChildModal" tabindex="-1" aria-labelledby="addChildModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<div class="modal fade parent-child-modal" id="addChildModal" tabindex="-1" aria-labelledby="addChildModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addChildModalLabel">Add Child Profile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="addChildForm" enctype="multipart/form-data">
+            <form id="addChildForm" class="parent-child-modal__form" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-body">
+                <div class="modal-body parent-child-modal__body">
                     <div id="addChildAlert" class="alert d-none" role="alert"></div>
                     <div class="row g-3">
                         <div class="col-md-6">
