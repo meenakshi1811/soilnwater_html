@@ -194,6 +194,47 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'student';
     }
 
+    public function dashboardUrl(): string
+    {
+        if ($this->isAdmin()) {
+            return route('admin.dashboard');
+        }
+
+        if ($this->isEmployee()) {
+            return route('employee.dashboard');
+        }
+
+        if ($this->isStudent()) {
+            return route('child.dashboard');
+        }
+
+        if ($this->isVendor()) {
+            return $this->vendor?->isApproved()
+                ? route('vendor.dashboard')
+                : route('vendor.pending');
+        }
+
+        if ($this->isConsultant()) {
+            return $this->consultant?->isApproved()
+                ? route('consultant.dashboard')
+                : route('consultant.pending');
+        }
+
+        if ($this->isServiceProvider()) {
+            return $this->serviceProvider?->isApproved()
+                ? route('service_provider.dashboard')
+                : route('service_provider.pending');
+        }
+
+        if ($this->isEducator()) {
+            return $this->educator?->isApproved()
+                ? route('educator.dashboard')
+                : route('educator.pending');
+        }
+
+        return route('user.dashboard');
+    }
+
     public function parentProfile(): HasOne
     {
         return $this->hasOne(ParentProfile::class);

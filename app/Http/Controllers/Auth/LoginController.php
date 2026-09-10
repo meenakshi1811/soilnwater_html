@@ -52,48 +52,8 @@ class LoginController extends Controller
     {
         $user = Auth::user();
 
-        if ($user && $user->role === 'admin') {
-            return route('admin.dashboard');
-        }
-
-        if ($user && $user->isGeneralUser()) {
-            return route('user.dashboard');
-        }
-
-        if ($user && $user->isVendor()) {
-            if ($user->vendor?->isApproved()) {
-                return route('vendor.dashboard');
-            }
-
-            return route('vendor.pending');
-        }
-
-        if ($user && $user->isConsultant()) {
-            if ($user->consultant?->isApproved()) {
-                return route('consultant.dashboard');
-            }
-
-            return route('consultant.pending');
-        }
-
-        if ($user && $user->isServiceProvider()) {
-            if ($user->serviceProvider?->isApproved()) {
-                return route('service_provider.dashboard');
-            }
-
-            return route('service_provider.pending');
-        }
-
-        if ($user && $user->isEducator()) {
-            if ($user->educator?->isApproved()) {
-                return route('educator.dashboard');
-            }
-
-            return route('educator.pending');
-        }
-
-        if ($user && $user->isStudent()) {
-            return route('child.dashboard');
+        if ($user) {
+            return $user->dashboardUrl();
         }
 
         return '/home';
