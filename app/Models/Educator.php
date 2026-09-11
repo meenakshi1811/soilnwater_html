@@ -54,8 +54,13 @@ class Educator extends Model
         'tuition_types',
         'tuition_batches',
         'tuition_location',
+        'tuition_point_address',
+        'tuition_place_id',
+        'tuition_latitude',
+        'tuition_longitude',
         'tuition_timings',
         'tuition_charges',
+        'tuition_delivery_options',
         'years_experience',
         'students_taught',
         'success_rate',
@@ -93,6 +98,7 @@ class Educator extends Model
             'tuition_subjects' => 'array',
             'tuition_types' => 'array',
             'tuition_batches' => 'array',
+            'tuition_delivery_options' => 'array',
             'take_tuitions' => 'boolean',
             'is_verified' => 'boolean',
             'is_available_now' => 'boolean',
@@ -101,6 +107,8 @@ class Educator extends Model
             'institute_longitude' => 'decimal:7',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'tuition_latitude' => 'decimal:7',
+            'tuition_longitude' => 'decimal:7',
             'success_rate' => 'decimal:2',
             'average_rating' => 'decimal:2',
             'approved_at' => 'datetime',
@@ -120,6 +128,35 @@ class Educator extends Model
     public function studyMaterials(): HasMany
     {
         return $this->hasMany(StudyMaterial::class)->latest();
+    }
+
+    public function coursesQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = StudyMaterial::query()
+            ->where('educator_id', $this->id)
+            ->approved();
+
+        if ((clone $query)->courses()->exists()) {
+            return $query->courses();
+        }
+
+        return $query->where('material_type', '!=', 'notes');
+    }
+
+    public function notesQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return StudyMaterial::query()
+            ->where('educator_id', $this->id)
+            ->approved()
+            ->notes();
+    }
+
+    public function questionPapersQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return StudyMaterial::query()
+            ->where('educator_id', $this->id)
+            ->approved()
+            ->questionPapers();
     }
 
     public function reviews(): HasMany
@@ -213,6 +250,70 @@ class Educator extends Model
     public function locationLabel(): string
     {
         return collect([$this->city, $this->state])->filter()->implode(', ');
+    }
+
+    public function tuitionPointAddressLabel(): ?string
+    {
+        return filled($this->tuition_point_address)
+            ? $this->tuition_point_address
+            : (filled($this->tuition_location) ? $this->tuition_location : null);
+    }
+
+    public function hasTuitionPointMap(): bool
+    {
+        return filled($this->tuition_latitude) && filled($this->tuition_longitude);
+    }
+
+    /**
+     * @return array<string, array{enabled: bool, label: string, charges: string, timings: string}>
+     */
+    public function normalizedTuitionDeliveryOptions(): array
+    {
+        $defaults = [
+            'home' => [
+                'enabled' => false,
+                'label' => 'Home tuition',
+                'charges' => '',
+                'timings' => '',
+            ],
+            'personal' => [
+                'enabled' => false,
+                'label' => 'Personal tuition',
+                'charges' => '',
+                'timings' => '',
+            ],
+        ];
+
+        $stored = is_array($this->tuition_delivery_options) ? $this->tuition_delivery_options : [];
+
+        foreach ($defaults as $key => $default) {
+            if (! isset($stored[$key]) || ! is_array($stored[$key])) {
+                continue;
+            }
+
+            $defaults[$key]['enabled'] = (bool) ($stored[$key]['enabled'] ?? false);
+            $defaults[$key]['charges'] = trim((string) ($stored[$key]['charges'] ?? ''));
+            $defaults[$key]['timings'] = trim((string) ($stored[$key]['timings'] ?? ''));
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @return list<array{key: string, label: string, charges: string, timings: string}>
+     */
+    public function activeTuitionDeliveryOptions(): array
+    {
+        return collect($this->normalizedTuitionDeliveryOptions())
+            ->filter(fn (array $item, string $key) => $item['enabled'] && ($item['charges'] !== '' || $item['timings'] !== ''))
+            ->map(fn (array $item, string $key) => [
+                'key' => $key,
+                'label' => $item['label'],
+                'charges' => $item['charges'],
+                'timings' => $item['timings'],
+            ])
+            ->values()
+            ->all();
     }
 
     public function publicTagline(): ?string
@@ -386,6 +487,60 @@ class Educator extends Model
         $first = $subjects->first();
 
         return is_array($first) ? ($first['name'] ?? null) : (is_string($first) ? $first : null);
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, url: string, icon: string, brand: string}>
+     */
+    public function socialLinks(): array
+    {
+        $definitions = [
+            ['key' => 'facebook', 'label' => 'Facebook', 'field' => 'facebook_url', 'icon' => 'fa-facebook-f', 'brand' => 'facebook'],
+            ['key' => 'instagram', 'label' => 'Instagram', 'field' => 'instagram_url', 'icon' => 'fa-instagram', 'brand' => 'instagram'],
+            ['key' => 'youtube', 'label' => 'YouTube', 'field' => 'youtube_url', 'icon' => 'fa-youtube', 'brand' => 'youtube'],
+            ['key' => 'linkedin', 'label' => 'LinkedIn', 'field' => 'linkedin_url', 'icon' => 'fa-linkedin-in', 'brand' => 'linkedin'],
+            ['key' => 'whatsapp', 'label' => 'WhatsApp', 'field' => 'whatsapp_url', 'icon' => 'fa-whatsapp', 'brand' => 'whatsapp'],
+        ];
+
+        $links = [];
+
+        foreach ($definitions as $definition) {
+            $rawUrl = trim((string) ($this->{$definition['field']} ?? ''));
+
+            if ($rawUrl === '') {
+                continue;
+            }
+
+            $links[] = [
+                'key' => $definition['key'],
+                'label' => $definition['label'],
+                'url' => static::normalizeSocialUrl($rawUrl),
+                'icon' => $definition['icon'],
+                'brand' => $definition['brand'],
+            ];
+        }
+
+        return $links;
+    }
+
+    public function hasSocialLinks(): bool
+    {
+        return $this->socialLinks() !== [];
+    }
+
+    public static function normalizeSocialUrl(string $url): string
+    {
+        $url = trim($url);
+
+        if ($url === '') {
+            return '';
+        }
+
+        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            return 'https://'.$url;
+        }
+
+        return $url;
     }
 
     public function recalculateRating(): void

@@ -1,3 +1,12 @@
+@php
+    $authUser = auth()->user();
+    $isMarketplacePremium = $authUser && (
+        ($authUser->isVendor() && $authUser->vendor?->is_premium)
+        || ($authUser->isConsultant() && $authUser->consultant?->is_premium)
+        || ($authUser->isServiceProvider() && $authUser->serviceProvider?->is_premium)
+    );
+    $isEducatorModulePage = request()->routeIs('educator.*', 'admin.educators.*');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,17 +48,12 @@
 
         gtag('config', 'G-CJ8QTYE9ED');
     </script>
+    @if($isEducatorModulePage)
+        <link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
+    @endif
     @stack('styles')
 </head>
-@php
-    $authUser = auth()->user();
-    $isMarketplacePremium = $authUser && (
-        ($authUser->isVendor() && $authUser->vendor?->is_premium)
-        || ($authUser->isConsultant() && $authUser->consultant?->is_premium)
-        || ($authUser->isServiceProvider() && $authUser->serviceProvider?->is_premium)
-    );
-@endphp
-<body class="admin-body{{ $isMarketplacePremium ? ' marketplace-portal-premium' : '' }}">
+<body class="admin-body{{ $isMarketplacePremium ? ' marketplace-portal-premium' : '' }}{{ $isEducatorModulePage ? ' educator-module' : '' }}">
     @include('backend.partials.header')
 
     <div class="admin-shell">

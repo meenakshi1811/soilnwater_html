@@ -19,6 +19,7 @@
 @push('styles')
   <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
   <link rel="stylesheet" href="{{ asset('assets/css/vendors-page.css') }}?v={{ now()->timestamp }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
   <link rel="stylesheet" href="{{ asset('assets/css/educators-page.css') }}?v={{ now()->timestamp }}">
 @endpush
 

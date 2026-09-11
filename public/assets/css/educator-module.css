@@ -1,0 +1,54 @@
+/* Full-width layout for teacher / tutor module pages */
+
+/* Public profile & listings */
+.edu-page {
+  width: 100%;
+  max-width: none;
+}
+
+.edu-container {
+  max-width: none;
+  width: 100%;
+  padding-left: clamp(1rem, 1.5vw, 1.75rem);
+  padding-right: clamp(1rem, 1.5vw, 1.75rem);
+}
+
+.educators-page.vendors-page {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding-left: clamp(1rem, 1.5vw, 1.75rem);
+  padding-right: clamp(1rem, 1.5vw, 1.75rem);
+}
+
+.educators-page .vendors-page__layout {
+  width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .edu-grid {
+    --edu-nav-width: 240px;
+    --edu-sidebar-width: 320px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .edu-grid {
+    --edu-nav-width: 260px;
+    --edu-sidebar-width: 340px;
+  }
+}
+
+/* Educator portal (backend) */
+.educator-module .admin-main {
+  width: 100%;
+  max-width: none !important;
+  flex: 1 1 auto;
+}
+
+.educator-module .admin-panel.ems-page,
+.educator-module .edu-profile-page,
+.educator-module .sm-upload-page {
+  max-width: none;
+  width: 100%;
+}

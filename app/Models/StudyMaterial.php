@@ -11,6 +11,17 @@ use Illuminate\Support\Str;
 
 class StudyMaterial extends Model
 {
+    /** @var list<string> */
+    public const COURSE_MATERIAL_TYPES = [
+        'study_guides',
+        'videos',
+        'reference_books',
+        'sample_papers',
+        'worksheets',
+        'question_papers',
+        'assignments',
+    ];
+
     protected $fillable = [
         'educator_id',
         'user_id',
@@ -318,6 +329,16 @@ class StudyMaterial extends Model
     public function scopeNotes(Builder $query): Builder
     {
         return $query->where('material_type', 'notes');
+    }
+
+    public function scopeQuestionPapers(Builder $query): Builder
+    {
+        return $query->where('material_type', 'question_papers');
+    }
+
+    public function scopeCourses(Builder $query): Builder
+    {
+        return $query->whereIn('material_type', self::COURSE_MATERIAL_TYPES);
     }
 
     public static function generateUniqueSlug(string $title): string

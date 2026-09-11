@@ -119,9 +119,11 @@ document.addEventListener('DOMContentLoaded', function () {
             var messageField = form.querySelector('[name="message"]');
             if (subjectField) {
                 subjectField.value = '';
+                subjectField.dispatchEvent(new Event('input'));
             }
             if (messageField) {
                 messageField.value = '';
+                messageField.dispatchEvent(new Event('input'));
             }
 
             var modalEl = document.getElementById('enquiryModal');
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (btnText) {
                 if (form.id === 'eduQuickQuestionForm') {
-                    btnText.innerHTML = '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Question';
+                    btnText.textContent = 'Send question';
                 } else {
                     btnText.textContent = 'Send';
                 }
@@ -216,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var track = carousel.querySelector('.js-edu-testimonial-track');
+        var viewport = carousel.querySelector('.edu-testimonials__viewport');
         var slides = getCarouselSlides();
         var prevBtn = carousel.querySelector('.js-edu-testimonial-prev');
         var nextBtn = carousel.querySelector('.js-edu-testimonial-next');
@@ -226,13 +229,22 @@ document.addEventListener('DOMContentLoaded', function () {
             carouselTimer = null;
         }
 
+        function slideOffset() {
+            if (!viewport) {
+                return slides[0] ? slides[0].getBoundingClientRect().width : 0;
+            }
+
+            return viewport.clientWidth;
+        }
+
         function showSlide(index) {
             if (!slides.length || !track) {
                 return;
             }
 
             currentIndex = (index + slides.length) % slides.length;
-            track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+            carousel.dataset.slideIndex = String(currentIndex);
+            track.style.transform = 'translateX(-' + (currentIndex * slideOffset()) + 'px)';
         }
 
         if (prevBtn) {
@@ -253,6 +265,26 @@ document.addEventListener('DOMContentLoaded', function () {
             carouselTimer = setInterval(function () {
                 showSlide(currentIndex + 1);
             }, 7000);
+        }
+
+        if (!carousel.dataset.resizeBound) {
+            carousel.dataset.resizeBound = '1';
+            window.addEventListener('resize', function () {
+                var carouselEl = document.getElementById('eduTestimonialCarousel');
+                if (!carouselEl) {
+                    return;
+                }
+
+                var trackEl = carouselEl.querySelector('.js-edu-testimonial-track');
+                var viewportEl = carouselEl.querySelector('.edu-testimonials__viewport');
+                var idx = parseInt(carouselEl.dataset.slideIndex || '0', 10);
+
+                if (!trackEl || !viewportEl) {
+                    return;
+                }
+
+                trackEl.style.transform = 'translateX(-' + (idx * viewportEl.clientWidth) + 'px)';
+            });
         }
     }
 
@@ -411,6 +443,54 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var quickQuestionForm = document.getElementById('eduQuickQuestionForm');
+    var questionTextarea = document.getElementById('eduQuickMessage');
+    var questionCharCountEl = document.querySelector('.js-edu-question-char-count');
+    var questionSubjectInput = document.getElementById('eduQuickSubject');
+
+    function updateQuestionCharCount() {
+        if (!questionTextarea || !questionCharCountEl) {
+            return;
+        }
+
+        questionCharCountEl.textContent = String(questionTextarea.value.length);
+    }
+
+    function syncQuestionTopics() {
+        if (!questionSubjectInput) {
+            return;
+        }
+
+        var current = questionSubjectInput.value.trim().toLowerCase();
+
+        document.querySelectorAll('.js-edu-question-topic').forEach(function (btn) {
+            var topic = (btn.dataset.topic || '').trim().toLowerCase();
+            btn.classList.toggle('is-active', topic !== '' && topic === current);
+        });
+    }
+
+    if (questionTextarea) {
+        questionTextarea.addEventListener('input', updateQuestionCharCount);
+        updateQuestionCharCount();
+    }
+
+    if (questionSubjectInput) {
+        questionSubjectInput.addEventListener('input', syncQuestionTopics);
+    }
+
+    document.querySelectorAll('.js-edu-question-topic').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!questionSubjectInput) {
+                return;
+            }
+
+            questionSubjectInput.value = btn.dataset.topic || '';
+            questionSubjectInput.focus();
+            syncQuestionTopics();
+        });
+    });
+
+    syncQuestionTopics();
+
     if (quickQuestionForm) {
         quickQuestionForm.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -430,11 +510,33 @@ document.addEventListener('DOMContentLoaded', function () {
     var reviewUrl = reviewSection.dataset.reviewUrl;
     var ratingInput = document.getElementById('educatorReviewRating');
     var starButtons = document.querySelectorAll('.edu-star-picker__btn');
+    var ratingLabel = document.querySelector('.js-edu-rating-label');
+    var reviewTextarea = document.getElementById('educatorReviewText');
+    var charCountEl = document.querySelector('.js-edu-review-char-count');
+    var ratingLabels = {
+        1: 'Poor',
+        2: 'Fair',
+        3: 'Good',
+        4: 'Very good',
+        5: 'Excellent',
+    };
 
     function paintStars(value) {
         starButtons.forEach(function (btn) {
             btn.classList.toggle('is-active', Number(btn.dataset.rating) <= Number(value));
         });
+
+        if (ratingLabel) {
+            ratingLabel.textContent = ratingLabels[value] || ratingLabels[5];
+        }
+    }
+
+    function updateCharCount() {
+        if (!reviewTextarea || !charCountEl) {
+            return;
+        }
+
+        charCountEl.textContent = String(reviewTextarea.value.length);
     }
 
     starButtons.forEach(function (btn) {
@@ -452,6 +554,100 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('.edu-star-picker')?.addEventListener('mouseleave', function () {
         paintStars(ratingInput?.value || 5);
     });
+
+    if (reviewTextarea) {
+        reviewTextarea.addEventListener('input', updateCharCount);
+        updateCharCount();
+    }
+
+    paintStars(ratingInput?.value || 5);
+
+    var reviewsListUrl = reviewSection.dataset.reviewsUrl;
+    var reviewsList = document.getElementById('educatorReviewsList');
+    var loadMoreWrap = document.getElementById('educatorReviewsLoadMore');
+    var loadMoreBtn = document.querySelector('.js-edu-reviews-load-more');
+
+    function updateLoadMoreButton(loadedCount, totalCount, hasMore) {
+        if (!loadMoreBtn) {
+            return;
+        }
+
+        loadMoreBtn.dataset.offset = String(loadedCount);
+
+        var meta = loadMoreBtn.querySelector('.btn-meta');
+        var remaining = Math.max(0, totalCount - loadedCount);
+
+        if (meta) {
+            meta.textContent = remaining > 0 ? '(' + remaining + ' remaining)' : '';
+        }
+
+        if (!hasMore && loadMoreWrap) {
+            loadMoreWrap.remove();
+        }
+    }
+
+    async function loadMoreReviews() {
+        if (!loadMoreBtn || !reviewsListUrl || loadMoreBtn.classList.contains('is-loading')) {
+            return;
+        }
+
+        var offset = parseInt(loadMoreBtn.dataset.offset || '0', 10);
+        var btnText = loadMoreBtn.querySelector('.btn-text');
+
+        loadMoreBtn.classList.add('is-loading');
+        if (reviewsList) {
+            reviewsList.classList.add('is-loading');
+        }
+        if (btnText) {
+            btnText.textContent = 'Loading...';
+        }
+
+        try {
+            var url = new URL(reviewsListUrl, window.location.origin);
+            url.searchParams.set('offset', String(offset));
+
+            var response = await fetch(url.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+            });
+
+            var data = await response.json().catch(function () {
+                return {};
+            });
+
+            if (!response.ok || data.ok === false) {
+                throw new Error(data.message || 'Unable to load more reviews.');
+            }
+
+            if (data.reviews_html && reviewsList) {
+                reviewsList.insertAdjacentHTML('beforeend', data.reviews_html);
+            }
+
+            updateLoadMoreButton(
+                data.loaded_count || 0,
+                data.total_count || 0,
+                !!data.has_more
+            );
+
+            reviewSection.dataset.reviewsTotal = String(data.total_count || 0);
+        } catch (error) {
+            notify('error', error.message || 'Unable to load more reviews.');
+        } finally {
+            loadMoreBtn.classList.remove('is-loading');
+            if (reviewsList) {
+                reviewsList.classList.remove('is-loading');
+            }
+            if (btnText && loadMoreBtn.isConnected) {
+                btnText.textContent = 'See more reviews';
+            }
+        }
+    }
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreReviews);
+    }
 
     var reviewForm = document.getElementById('educatorReviewForm');
     if (!reviewForm || !reviewUrl) {
@@ -514,10 +710,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 var existing = data.review_key
                     ? list.querySelector('[data-review-id="' + data.review_key + '"]')
                     : null;
+                var isNewReview = !existing;
+
                 if (existing) {
                     existing.remove();
                 }
                 list.insertAdjacentHTML('afterbegin', data.review_html);
+
+                if (loadMoreBtn && isNewReview) {
+                    var loadedOffset = parseInt(loadMoreBtn.dataset.offset || String(list.querySelectorAll('.edu-review').length - 1), 10);
+                    loadMoreBtn.dataset.offset = String(loadedOffset + 1);
+
+                    var totalCount = parseInt(reviewSection.dataset.reviewsTotal || '0', 10) + 1;
+                    reviewSection.dataset.reviewsTotal = String(totalCount);
+
+                    var remaining = Math.max(0, totalCount - parseInt(loadMoreBtn.dataset.offset || '0', 10));
+                    var meta = loadMoreBtn.querySelector('.btn-meta');
+                    if (meta) {
+                        meta.textContent = remaining > 0 ? '(' + remaining + ' remaining)' : '';
+                    }
+                }
             }
 
             if (data.testimonial_html) {

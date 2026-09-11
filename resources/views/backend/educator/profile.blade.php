@@ -25,6 +25,7 @@
   }
   $toLines = fn ($arr) => is_array($arr) ? implode("\n", $arr) : '';
   $isTutorProfile = (bool) old('take_tuitions', $educator->take_tuitions);
+  $tuitionDeliveryOptions = $educator->normalizedTuitionDeliveryOptions();
   $photoUrl = $educator->photoUrl();
 @endphp
 <div class="admin-panel ems-page edu-profile-page">
@@ -343,6 +344,70 @@
           <div class="edu-profile-subsection">
             <div class="edu-profile-subsection__head">
               <div>
+                <h4 class="edu-profile-subsection__title">Home &amp; personal tuition</h4>
+                <p class="edu-profile-subsection__hint">Enable the tuition types you offer and add charges and timings for each.</p>
+              </div>
+            </div>
+
+            <div class="edu-delivery-options">
+              @foreach([
+                'home' => ['icon' => 'fa-house', 'title' => 'Home tuition', 'desc' => 'You visit the student\'s home for classes.'],
+                'personal' => ['icon' => 'fa-user', 'title' => 'Personal tuition', 'desc' => 'One-on-one personal tuition at your centre or a chosen location.'],
+              ] as $deliveryKey => $deliveryMeta)
+                @php
+                  $deliveryRow = $tuitionDeliveryOptions[$deliveryKey] ?? ['enabled' => false, 'charges' => '', 'timings' => ''];
+                  $deliveryEnabled = (bool) old('tuition_delivery_options.'.$deliveryKey.'.enabled', $deliveryRow['enabled'] ?? false);
+                @endphp
+                <div class="edu-delivery-option" data-delivery-option="{{ $deliveryKey }}">
+                  <div class="edu-toggle-card edu-delivery-option__toggle">
+                    <input
+                      class="form-check-input js-delivery-option-toggle"
+                      type="checkbox"
+                      name="tuition_delivery_options[{{ $deliveryKey }}][enabled]"
+                      value="1"
+                      id="tuitionDelivery{{ ucfirst($deliveryKey) }}"
+                      @checked($deliveryEnabled)
+                    >
+                    <div>
+                      <div class="edu-toggle-card__title">
+                        <i class="fa-solid {{ $deliveryMeta['icon'] }} me-1" aria-hidden="true"></i>
+                        {{ $deliveryMeta['title'] }}
+                      </div>
+                      <p class="edu-toggle-card__desc">{{ $deliveryMeta['desc'] }}</p>
+                    </div>
+                  </div>
+                  <div class="edu-delivery-option__fields row g-3 {{ $deliveryEnabled ? '' : 'd-none' }}">
+                    <div class="col-md-6">
+                      <label class="form-label" for="tuitionDelivery{{ ucfirst($deliveryKey) }}Charges">Charges</label>
+                      <input
+                        type="text"
+                        id="tuitionDelivery{{ ucfirst($deliveryKey) }}Charges"
+                        name="tuition_delivery_options[{{ $deliveryKey }}][charges]"
+                        class="form-control"
+                        value="{{ old('tuition_delivery_options.'.$deliveryKey.'.charges', $deliveryRow['charges'] ?? '') }}"
+                        placeholder="e.g. ₹800 / hour or ₹4,000 / month"
+                      >
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="tuitionDelivery{{ ucfirst($deliveryKey) }}Timings">Timings</label>
+                      <input
+                        type="text"
+                        id="tuitionDelivery{{ ucfirst($deliveryKey) }}Timings"
+                        name="tuition_delivery_options[{{ $deliveryKey }}][timings]"
+                        class="form-control"
+                        value="{{ old('tuition_delivery_options.'.$deliveryKey.'.timings', $deliveryRow['timings'] ?? '') }}"
+                        placeholder="e.g. Weekdays 5 PM – 8 PM"
+                      >
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+
+          <div class="edu-profile-subsection">
+            <div class="edu-profile-subsection__head">
+              <div>
                 <h4 class="edu-profile-subsection__title">Tuition batches</h4>
                 <p class="edu-profile-subsection__hint">Add each class batch with subject, type, student count, and cost.</p>
               </div>
@@ -397,9 +462,21 @@
           </div>
 
           <div class="row g-3 mt-1">
-            <div class="col-md-6">
-              <label class="form-label">Tuition location</label>
-              <input type="text" name="tuition_location" class="form-control" value="{{ old('tuition_location', $educator->tuition_location) }}" placeholder="Home, online, or centre address">
+            <div class="col-12">
+              <label class="form-label" for="tuition_point_address">Tuition point address</label>
+              <input
+                type="text"
+                id="tuition_point_address"
+                name="tuition_point_address"
+                class="form-control"
+                value="{{ old('tuition_point_address', $educator->tuition_point_address ?: $educator->tuition_location) }}"
+                placeholder="Start typing your tuition centre or home address"
+                autocomplete="off"
+              >
+              <input type="hidden" id="tuition_place_id" name="tuition_place_id" value="{{ old('tuition_place_id', $educator->tuition_place_id) }}">
+              <input type="hidden" id="tuition_latitude" name="tuition_latitude" value="{{ old('tuition_latitude', $educator->tuition_latitude) }}">
+              <input type="hidden" id="tuition_longitude" name="tuition_longitude" value="{{ old('tuition_longitude', $educator->tuition_longitude) }}">
+              <small class="text-muted">Search with Google Places — the address will appear on your public tutor profile with a map.</small>
             </div>
             <div class="col-md-6">
               <label class="form-label">Tuition timings</label>
@@ -573,6 +650,12 @@
         ? '<i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Tutor profile'
         : '<i class="fa-solid fa-school" aria-hidden="true"></i> Experienced teacher profile';
     }
+    if (e.target.classList.contains('js-delivery-option-toggle')) {
+      const fields = e.target.closest('[data-delivery-option]')?.querySelector('.edu-delivery-option__fields');
+      if (fields) {
+        fields.classList.toggle('d-none', !e.target.checked);
+      }
+    }
   });
 
   document.querySelectorAll('#experiencesWrap .js-repeat-row').forEach(syncExperienceCurrentState);
@@ -643,6 +726,9 @@
 window.initEducatorExperiencePlacesAutocomplete = function () {
   if (window.FormHelper && typeof window.FormHelper.initEducatorExperienceOrganizationAutocomplete === 'function') {
     window.FormHelper.initEducatorExperienceOrganizationAutocomplete();
+  }
+  if (window.FormHelper && typeof window.FormHelper.initTuitionPointAddressAutocomplete === 'function') {
+    window.FormHelper.initTuitionPointAddressAutocomplete();
   }
 };
 </script>

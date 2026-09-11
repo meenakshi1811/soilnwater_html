@@ -375,6 +375,28 @@
   line-height: 1.45;
 }
 
+.edu-profile-page .edu-delivery-options {
+  display: grid;
+  gap: 1rem;
+}
+
+.edu-profile-page .edu-delivery-option {
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 14px;
+  background: #fff;
+  padding: 1rem;
+}
+
+.edu-profile-page .edu-delivery-option__toggle {
+  margin-bottom: 0;
+}
+
+.edu-profile-page .edu-delivery-option__fields {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--edu-pro-border);
+}
+
 /* Repeatable rows */
 .edu-profile-page .edu-repeat-table-head {
   display: none;

@@ -4,6 +4,7 @@
 @section('meta_description', $educator->publicProfileMetaDescription())
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-profile.css') }}?v={{ now()->timestamp }}">
 @endpush
 
@@ -23,7 +24,7 @@
   $primarySubject = $educator->primarySubject() ?: 'General';
   $shareUrl = $educator->publicUrl();
   $subjectIcons = ['fa-book-open', 'fa-flask', 'fa-calculator', 'fa-globe', 'fa-language', 'fa-laptop-code', 'fa-atom', 'fa-palette'];
-  $testimonials = collect($profileReviews ?? [])->filter(fn ($item) => filled(trim((string) ($item->body ?? ''))))->take(6);
+  $testimonials = collect($testimonials ?? []);
   $aboutText = trim((string) $educator->about);
   $aboutNeedsToggle = strlen($aboutText) > 280;
   $isTutorProfile = $educator->isTutor();
@@ -35,7 +36,6 @@
     ['id' => 'edu-experience', 'label' => 'Experience & Education', 'icon' => 'fa-briefcase'],
     ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap'],
     ['id' => 'edu-notes', 'label' => 'Notes & Materials', 'icon' => 'fa-file-lines'],
-    ['id' => 'edu-videos', 'label' => 'Videos', 'icon' => 'fa-circle-play'],
     ['id' => 'edu-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
     ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
     ['id' => 'edu-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy'],
@@ -343,25 +343,18 @@
 
         {{-- 5. Courses --}}
         <section class="edu-section" id="edu-courses">
-          <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses</h2>
+          <div class="edu-section__head">
+            <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses</h2>
+            @if(($coursesTotal ?? $courses->count()) > 3)
+              <a href="{{ route('educator.courses', $educator->slug) }}" class="edu-section__link">
+                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            @endif
+          </div>
           @if($courses->isNotEmpty())
-            <div class="edu-courses-track">
+            <div class="edu-courses-grid edu-courses-grid--preview">
               @foreach($courses as $course)
-                @php $typeMeta = \App\Models\StudyMaterial::materialTypeMeta($course->material_type); @endphp
-                <a href="{{ $course->publicUrl() }}" class="edu-course-card">
-                  <div class="edu-course-card__thumb">
-                    <img src="{{ $course->thumbnailUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
-                    <span class="edu-course-card__badge">{{ $typeMeta['label'] }}</span>
-                  </div>
-                  <div class="edu-course-card__body">
-                    <h4>{{ $course->title }}</h4>
-                    <div class="edu-course-card__price">{{ $course->is_free ? 'Free' : 'Premium' }}</div>
-                    <div class="edu-course-card__meta">
-                      <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $course->average_rating, 1) }}</span>
-                      <span><i class="fa-solid fa-users" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($course->downloads_count) }}</span>
-                    </div>
-                  </div>
-                </a>
+                @include('frontend.educator.partials.course-card', ['course' => $course])
               @endforeach
             </div>
           @else
@@ -371,26 +364,18 @@
 
         {{-- 6. Notes & Materials --}}
         <section class="edu-section" id="edu-notes">
-          <h2 class="edu-section__title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Notes &amp; Materials</h2>
+          <div class="edu-section__head">
+            <h2 class="edu-section__title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Notes &amp; Materials</h2>
+            @if(($notesTotal ?? $notes->count()) > 3)
+              <a href="{{ route('educator.notes', $educator->slug) }}" class="edu-section__link">
+                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            @endif
+          </div>
           @if($notes->isNotEmpty())
-            <div class="edu-notes-grid">
+            <div class="edu-notes-grid edu-notes-grid--preview">
               @foreach($notes as $note)
-                @php $fileMeta = $note->fileTypeMeta(); @endphp
-                <a href="{{ $note->publicUrl() }}" class="edu-note-card">
-                  <span class="edu-note-card__icon edu-note-card__icon--{{ $fileMeta['tone'] }}">
-                    <i class="fa-solid {{ $fileMeta['icon'] }}" aria-hidden="true"></i>
-                  </span>
-                  <div class="edu-note-card__body">
-                    <h4>{{ $note->title }}</h4>
-                    <p>{{ $note->subject ?: 'Notes' }} · {{ $fileMeta['label'] }}</p>
-                    <div class="edu-note-card__meta">
-                      @if($note->pages)
-                        <span><i class="fa-solid fa-file" aria-hidden="true"></i> {{ number_format($note->pages) }} pages</span>
-                      @endif
-                      <span><i class="fa-solid fa-download" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($note->downloads_count) }}</span>
-                    </div>
-                  </div>
-                </a>
+                @include('frontend.educator.partials.note-card', ['note' => $note])
               @endforeach
             </div>
           @else
@@ -398,54 +383,20 @@
           @endif
         </section>
 
-        {{-- 7. Videos --}}
-        <section class="edu-section" id="edu-videos">
-          <h2 class="edu-section__title"><i class="fa-solid fa-circle-play" aria-hidden="true"></i> Videos</h2>
-          @if($videos->isNotEmpty())
-            <div class="edu-media-grid">
-              @foreach($videos as $video)
-                <a href="{{ $video->publicUrl() }}" class="edu-media-card">
-                  <div class="edu-media-card__thumb">
-                    @if($video->thumbnailUrl())
-                      <img src="{{ $video->thumbnailUrl() }}" alt="">
-                    @else
-                      <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
-                    @endif
-                    <span class="edu-media-card__play"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
-                  </div>
-                  <div class="edu-media-card__body">
-                    <h4>{{ $video->title }}</h4>
-                  </div>
-                </a>
-              @endforeach
-            </div>
-          @else
-            <p class="edu-empty">No videos published yet.</p>
-          @endif
-        </section>
-
-        {{-- 8. Question Papers --}}
+        {{-- 7. Question Papers --}}
         <section class="edu-section" id="edu-papers">
-          <h2 class="edu-section__title"><i class="fa-solid fa-file-circle-question" aria-hidden="true"></i> Question Papers</h2>
+          <div class="edu-section__head">
+            <h2 class="edu-section__title"><i class="fa-solid fa-file-circle-question" aria-hidden="true"></i> Question Papers</h2>
+            @if(($questionPapersTotal ?? $questionPapers->count()) > 3)
+              <a href="{{ route('educator.question-papers', $educator->slug) }}" class="edu-section__link">
+                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            @endif
+          </div>
           @if($questionPapers->isNotEmpty())
-            <div class="edu-notes-grid">
+            <div class="edu-notes-grid edu-notes-grid--preview">
               @foreach($questionPapers as $paper)
-                @php $fileMeta = $paper->fileTypeMeta(); @endphp
-                <a href="{{ $paper->publicUrl() }}" class="edu-note-card">
-                  <span class="edu-note-card__icon edu-note-card__icon--{{ $fileMeta['tone'] }}">
-                    <i class="fa-solid {{ $fileMeta['icon'] }}" aria-hidden="true"></i>
-                  </span>
-                  <div class="edu-note-card__body">
-                    <h4>{{ $paper->title }}</h4>
-                    <p>{{ $paper->subject ?: 'Question Paper' }} · {{ $fileMeta['label'] }}</p>
-                    <div class="edu-note-card__meta">
-                      @if($paper->pages)
-                        <span><i class="fa-solid fa-file" aria-hidden="true"></i> {{ number_format($paper->pages) }} pages</span>
-                      @endif
-                      <span><i class="fa-solid fa-download" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($paper->downloads_count) }}</span>
-                    </div>
-                  </div>
-                </a>
+                @include('frontend.educator.partials.note-card', ['note' => $paper, 'materialLabel' => 'Question Paper'])
               @endforeach
             </div>
           @else
@@ -469,14 +420,21 @@
                 </button>
               </div>
             </div>
-            <div class="edu-testimonials__track js-edu-testimonial-track" id="eduTestimonialTrack">
-              @foreach($testimonials as $item)
-                @include('frontend.educator.partials.testimonial-item', ['item' => $item])
-              @endforeach
+            <div class="edu-testimonials__viewport">
+              <div class="edu-testimonials__track js-edu-testimonial-track" id="eduTestimonialTrack">
+                @foreach($testimonials as $item)
+                  @include('frontend.educator.partials.testimonial-item', ['item' => $item])
+                @endforeach
+              </div>
             </div>
           </div>
 
-          <div id="educatorReviewsSection" data-review-url="{{ route('educator.review', $educator->slug) }}">
+          <div
+            id="educatorReviewsSection"
+            data-review-url="{{ route('educator.review', $educator->slug) }}"
+            data-reviews-url="{{ route('educator.reviews', $educator->slug) }}"
+            data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
+          >
             <h3 class="h6 mb-3">All Reviews</h3>
             <p class="edu-empty mb-3">
               <span class="js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</span>
@@ -486,47 +444,99 @@
             </p>
 
             @auth
+              @php
+                $selectedRating = (int) old('rating', $userReview?->rating ?: 5);
+                $ratingLabels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'];
+                $reviewText = old('review', $userReview?->review ?? '');
+              @endphp
               <form id="educatorReviewForm" class="edu-review-form mb-4" novalidate>
                 @csrf
-                <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
-                <p class="edu-review-form__hint mb-2">Share your experience with this {{ strtolower($educator->roleLabel()) }}.</p>
-
-                @php $selectedRating = (int) old('rating', $userReview?->rating ?: 5); @endphp
-                <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
-                  <input type="hidden" name="rating" id="educatorReviewRating" value="{{ $selectedRating }}">
-                  @foreach (range(1, 5) as $stars)
-                    <button
-                      type="button"
-                      class="edu-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
-                      data-rating="{{ $stars }}"
-                      aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
-                    >
-                      <i class="fa-solid fa-star" aria-hidden="true"></i>
-                    </button>
-                  @endforeach
-                </div>
-
-                <div class="row g-2 mt-2">
-                  <div class="col-md-4">
-                    <label class="form-label" for="educatorStudentClass">Class / Course (optional)</label>
-                    <input type="text" id="educatorStudentClass" name="student_class" class="form-control" value="{{ old('student_class', $userReview?->student_class) }}" placeholder="e.g. Class 12">
+                <div class="edu-review-form__header">
+                  <div class="edu-review-form__icon" aria-hidden="true">
+                    <i class="fa-solid fa-pen-to-square"></i>
                   </div>
-                  <div class="col-md-8">
-                    <label class="form-label" for="educatorReviewText">Your feedback</label>
-                    <textarea id="educatorReviewText" name="review" class="form-control" rows="2" maxlength="2000" placeholder="What was helpful about learning with them?">{{ old('review', $userReview?->review) }}</textarea>
+                  <div>
+                    <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
+                    <p class="edu-review-form__hint">Share your experience with this {{ strtolower($educator->roleLabel()) }} and help other students decide.</p>
                   </div>
                 </div>
 
-                <div class="d-flex justify-content-end mt-3">
-                  <button type="submit" class="edu-btn edu-btn-primary" id="educatorReviewSubmitBtn">
+                <div class="edu-review-form__rating-block">
+                  <span class="edu-review-form__label">How would you rate them?</span>
+                  <div class="edu-review-form__rating-row">
+                    <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
+                      <input type="hidden" name="rating" id="educatorReviewRating" value="{{ $selectedRating }}">
+                      @foreach (range(1, 5) as $stars)
+                        <button
+                          type="button"
+                          class="edu-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
+                          data-rating="{{ $stars }}"
+                          aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
+                        >
+                          <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        </button>
+                      @endforeach
+                    </div>
+                    <span class="edu-review-form__rating-label js-edu-rating-label">{{ $ratingLabels[$selectedRating] ?? 'Excellent' }}</span>
+                  </div>
+                </div>
+
+                <div class="edu-review-form__fields">
+                  <div class="edu-review-form__field">
+                    <label class="edu-review-form__label" for="educatorStudentClass">Class / Course <span class="edu-review-form__optional">(optional)</span></label>
+                    <div class="edu-review-form__input-wrap">
+                      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                      <input
+                        type="text"
+                        id="educatorStudentClass"
+                        name="student_class"
+                        class="edu-review-form__input"
+                        value="{{ old('student_class', $userReview?->student_class) }}"
+                        placeholder="e.g. Class 12, B.Sc Physics"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="edu-review-form__field edu-review-form__field--wide">
+                    <label class="edu-review-form__label" for="educatorReviewText">Your feedback</label>
+                    <textarea
+                      id="educatorReviewText"
+                      name="review"
+                      class="edu-review-form__textarea"
+                      rows="4"
+                      maxlength="2000"
+                      placeholder="What did you learn? How was their teaching style, clarity, and support?"
+                    >{{ $reviewText }}</textarea>
+                    <div class="edu-review-form__field-footer">
+                      <span class="edu-review-form__char-count"><span class="js-edu-review-char-count">{{ strlen($reviewText) }}</span> / 2000</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-review-form__actions">
+                  <p class="edu-review-form__note">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    Reviews are visible on this profile and may appear in testimonials.
+                  </p>
+                  <button type="submit" class="edu-btn edu-btn-primary edu-review-form__submit" id="educatorReviewSubmitBtn">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
                     <span class="btn-text">{{ ($userReview ?? null) ? 'Update review' : 'Submit review' }}</span>
                   </button>
                 </div>
               </form>
             @else
               <div class="edu-review-login mb-4">
-                <p class="mb-2">Sign in to leave a review for this educator.</p>
-                <button type="button" class="edu-btn edu-btn-outline js-edu-guest-action" data-action="review">Login to review</button>
+                <div class="edu-review-login__icon" aria-hidden="true">
+                  <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="edu-review-login__body">
+                  <h4 class="edu-review-login__title">Share your experience</h4>
+                  <p class="edu-review-login__text">Sign in to rate this {{ strtolower($educator->roleLabel()) }} and help other students make informed choices.</p>
+                  <button type="button" class="edu-btn edu-btn-primary edu-review-login__btn js-edu-guest-action" data-action="review">
+                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                    Login to review
+                  </button>
+                </div>
               </div>
             @endauth
 
@@ -537,6 +547,19 @@
                 <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
               @endforelse
             </div>
+
+            @if(($profileReviewsHasMore ?? false))
+              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
+                <button
+                  type="button"
+                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
+                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
+                >
+                  <span class="btn-text">See more reviews</span>
+                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
+                </button>
+              </div>
+            @endif
           </div>
         </section>
 
@@ -612,9 +635,27 @@
           @endif
 
           @if($isTutorProfile)
-            @if($educator->tuition_location)
-              <p class="edu-classes-label mt-3">Tuition location</p>
-              <p class="mb-0"><i class="fa-solid fa-location-dot text-primary me-1" aria-hidden="true"></i> {{ $educator->tuition_location }}</p>
+            @if($educator->tuitionPointAddressLabel())
+              <p class="edu-classes-label mt-3">Tuition point</p>
+              <p class="mb-2"><i class="fa-solid fa-location-dot text-primary me-1" aria-hidden="true"></i> {{ $educator->tuitionPointAddressLabel() }}</p>
+              @if($educator->hasTuitionPointMap())
+                <div class="edu-tuition-map">
+                  @include('community.partials.location-map-embed', [
+                    'lat' => $educator->tuition_latitude,
+                    'lng' => $educator->tuition_longitude,
+                    'title' => 'Tuition point map for '.$educator->display_name,
+                    'wrapperClass' => 'edu-tuition-map__embed',
+                  ])
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query={{ $educator->tuition_latitude }},{{ $educator->tuition_longitude }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="edu-tuition-map__link"
+                  >
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open in Google Maps
+                  </a>
+                </div>
+              @endif
             @endif
             @if($educator->tuition_timings)
               <p class="edu-classes-label mt-3">Tuition timings</p>
@@ -629,7 +670,34 @@
           <h2 class="edu-section__title"><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> Fees &amp; Packages</h2>
           @php
             $tuitionBatches = $educator->normalizedTuitionBatches();
+            $tuitionDeliveryOptions = $educator->activeTuitionDeliveryOptions();
           @endphp
+          @if($tuitionDeliveryOptions !== [])
+            <div class="edu-delivery-grid {{ $tuitionBatches !== [] ? 'mb-3' : '' }}">
+              @foreach($tuitionDeliveryOptions as $deliveryOption)
+                <article class="edu-delivery-card edu-delivery-card--{{ $deliveryOption['key'] }}">
+                  <div class="edu-delivery-card__head">
+                    <span class="edu-delivery-card__icon" aria-hidden="true">
+                      <i class="fa-solid {{ $deliveryOption['key'] === 'home' ? 'fa-house' : 'fa-user' }}"></i>
+                    </span>
+                    <h3 class="edu-delivery-card__title">{{ $deliveryOption['label'] }}</h3>
+                  </div>
+                  @if($deliveryOption['charges'])
+                    <p class="edu-delivery-card__row">
+                      <span>Charges</span>
+                      <strong>{{ $deliveryOption['charges'] }}</strong>
+                    </p>
+                  @endif
+                  @if($deliveryOption['timings'])
+                    <p class="edu-delivery-card__row">
+                      <span>Timings</span>
+                      <strong>{{ $deliveryOption['timings'] }}</strong>
+                    </p>
+                  @endif
+                </article>
+              @endforeach
+            </div>
+          @endif
           @if($tuitionBatches !== [])
             <div class="edu-fees-table-wrap">
               <table class="edu-fees-table">
@@ -661,7 +729,7 @@
               <p class="mb-1 text-muted small">Additional fee notes</p>
               <strong>{{ $educator->tuition_charges }}</strong>
             </div>
-          @elseif($tuitionBatches === [])
+          @elseif($tuitionBatches === [] && $tuitionDeliveryOptions === [])
             <p class="edu-empty">Fee details not published. Send an enquiry to discuss packages.</p>
           @endif
         </section>
@@ -670,32 +738,114 @@
         {{-- 15. Ask a Question --}}
         <section class="edu-section" id="edu-question">
           <h2 class="edu-section__title"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Ask a Question</h2>
-          <div class="edu-ask-cta">
-            <p>{{ $isTutorProfile ? 'Have a question about tuition batches, fees, or availability?' : 'Have a question about classes, subjects, or teaching experience?' }} Send a message directly to {{ $educator->display_name }}.</p>
-            @auth
-              <form id="eduQuickQuestionForm" class="edu-quick-form" method="POST" action="{{ route('educator.enquiry', $educator->slug) }}" novalidate>
-                @csrf
-                <input type="hidden" name="name" value="{{ auth()->user()->name }}">
-                <input type="hidden" name="email" value="{{ auth()->user()->email }}">
-                <input type="hidden" name="phone" value="{{ auth()->user()->phone_number }}">
-                <div class="mb-2">
-                  <label class="form-label" for="eduQuickSubject">Subject (optional)</label>
-                  <input type="text" id="eduQuickSubject" name="subject" class="form-control" placeholder="{{ $isTutorProfile ? 'e.g. Class 10 Maths tuition batch' : 'e.g. Class 10 Science teaching experience' }}">
+
+          @auth
+            @php
+              $questionTopics = $isTutorProfile
+                ? ['Tuition fees & batches', 'Availability & timings', 'Home / personal tuition', 'Demo class enquiry']
+                : ['Subjects & syllabus', 'Teaching experience', 'Class schedule', 'Demo class enquiry'];
+            @endphp
+            <form
+              id="eduQuickQuestionForm"
+              class="edu-question-form"
+              method="POST"
+              action="{{ route('educator.enquiry', $educator->slug) }}"
+              novalidate
+            >
+              @csrf
+              <input type="hidden" name="name" value="{{ auth()->user()->name }}">
+              <input type="hidden" name="email" value="{{ auth()->user()->email }}">
+              <input type="hidden" name="phone" value="{{ auth()->user()->phone_number }}">
+
+              <div class="edu-question-form__header">
+                <div class="edu-question-form__icon" aria-hidden="true">
+                  <i class="fa-solid fa-comments"></i>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label" for="eduQuickMessage">Your question</label>
-                  <textarea id="eduQuickMessage" name="message" class="form-control" rows="3" required placeholder="Write your question here..."></textarea>
+                <div>
+                  <h3 class="edu-question-form__title">Ask {{ $educator->display_name }} directly</h3>
+                  <p class="edu-question-form__hint">
+                    {{ $isTutorProfile
+                      ? 'Ask about tuition batches, fees, availability, or how classes are conducted.'
+                      : 'Ask about subjects, teaching approach, experience, or how classes are run.' }}
+                  </p>
                 </div>
-                <button type="submit" class="edu-btn edu-btn-primary" id="eduQuickQuestionSubmit">
-                  <span class="btn-text"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Question</span>
+              </div>
+
+              <div class="edu-question-form__topics">
+                <span class="edu-question-form__label">Popular topics</span>
+                <div class="edu-question-form__topic-list">
+                  @foreach($questionTopics as $topic)
+                    <button type="button" class="edu-question-form__topic js-edu-question-topic" data-topic="{{ $topic }}">
+                      {{ $topic }}
+                    </button>
+                  @endforeach
+                </div>
+              </div>
+
+              <div class="edu-question-form__fields">
+                <div class="edu-question-form__field">
+                  <label class="edu-question-form__label" for="eduQuickSubject">
+                    Topic <span class="edu-question-form__optional">(optional)</span>
+                  </label>
+                  <div class="edu-question-form__input-wrap">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                    <input
+                      type="text"
+                      id="eduQuickSubject"
+                      name="subject"
+                      class="edu-question-form__input"
+                      placeholder="{{ $isTutorProfile ? 'e.g. Class 10 Maths tuition batch' : 'e.g. Class 10 Science teaching experience' }}"
+                    >
+                  </div>
+                </div>
+
+                <div class="edu-question-form__field edu-question-form__field--wide">
+                  <label class="edu-question-form__label" for="eduQuickMessage">Your question</label>
+                  <textarea
+                    id="eduQuickMessage"
+                    name="message"
+                    class="edu-question-form__textarea"
+                    rows="4"
+                    maxlength="5000"
+                    required
+                    placeholder="Write your question clearly — include class, subject, or any details that will help {{ $educator->display_name }} reply faster."
+                  ></textarea>
+                  <div class="edu-question-form__field-footer">
+                    <span class="edu-question-form__char-count"><span class="js-edu-question-char-count">0</span> / 5000</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edu-question-form__actions">
+                <p class="edu-question-form__note">
+                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  Your message is sent privately to the educator. You will be notified when they respond.
+                </p>
+                <button type="submit" class="edu-btn edu-btn-primary edu-question-form__submit" id="eduQuickQuestionSubmit">
+                  <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                  <span class="btn-text">Send question</span>
                 </button>
-              </form>
-            @else
-              <button type="button" class="edu-btn edu-btn-primary js-edu-guest-action" data-action="question">
-                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Ask a Question
-              </button>
-            @endauth
-          </div>
+              </div>
+            </form>
+          @else
+            <div class="edu-question-login">
+              <div class="edu-question-login__icon" aria-hidden="true">
+                <i class="fa-solid fa-circle-question"></i>
+              </div>
+              <div class="edu-question-login__body">
+                <h3 class="edu-question-login__title">Have a question?</h3>
+                <p class="edu-question-login__text">
+                  {{ $isTutorProfile
+                    ? 'Sign in to ask about tuition batches, fees, availability, or teaching style.'
+                    : 'Sign in to ask about subjects, classes, experience, or teaching approach.' }}
+                </p>
+                <button type="button" class="edu-btn edu-btn-primary edu-question-login__btn js-edu-guest-action" data-action="question">
+                  <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                  Login to ask a question
+                </button>
+              </div>
+            </div>
+          @endauth
         </section>
 
         {{-- 16. Contact & Enquiry --}}
@@ -716,25 +866,11 @@
             @endif
           </ul>
 
-          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && !$educator->residential_address)
+          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && !$educator->residential_address && ! $educator->hasSocialLinks())
             <p class="edu-empty">Contact details not published.</p>
           @endif
 
-          <div class="edu-social-row mb-3">
-            @foreach([
-              'facebook_url' => 'fa-facebook',
-              'instagram_url' => 'fa-instagram',
-              'youtube_url' => 'fa-youtube',
-              'linkedin_url' => 'fa-linkedin',
-              'whatsapp_url' => 'fa-whatsapp',
-            ] as $field => $icon)
-              @if($educator->{$field})
-                <a href="{{ $educator->{$field} }}" target="_blank" rel="noopener" class="edu-social-btn" aria-label="{{ ucfirst(str_replace('_url', '', $field)) }}">
-                  <i class="fa-brands {{ $icon }}" aria-hidden="true"></i>
-                </a>
-              @endif
-            @endforeach
-          </div>
+          @include('frontend.educator.partials.social-links', ['educator' => $educator])
 
           <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
             <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
@@ -773,24 +909,10 @@
             @if($educator->email)<li><span>Email</span><span>{{ $educator->email }}</span></li>@endif
             @if($educator->residential_address)<li><span>Address</span><span>{{ $educator->residential_address }}</span></li>@endif
           </ul>
-          @if(!$educator->phone && !$educator->email && !$educator->residential_address)
+          @if(!$educator->phone && !$educator->email && !$educator->residential_address && ! $educator->hasSocialLinks())
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
-          <div class="edu-social-row">
-            @foreach([
-              'facebook_url' => 'fa-facebook',
-              'instagram_url' => 'fa-instagram',
-              'youtube_url' => 'fa-youtube',
-              'linkedin_url' => 'fa-linkedin',
-              'whatsapp_url' => 'fa-whatsapp',
-            ] as $field => $icon)
-              @if($educator->{$field})
-                <a href="{{ $educator->{$field} }}" target="_blank" rel="noopener" class="edu-social-btn" aria-label="{{ ucfirst(str_replace('_url', '', $field)) }}">
-                  <i class="fa-brands {{ $icon }}" aria-hidden="true"></i>
-                </a>
-              @endif
-            @endforeach
-          </div>
+          @include('frontend.educator.partials.social-links', ['educator' => $educator, 'compact' => true])
         </div>
 
         <div class="edu-sidebar-card">

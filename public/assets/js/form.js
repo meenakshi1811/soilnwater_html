@@ -664,6 +664,69 @@
             });
         },
 
+        initTuitionPointAddressAutocomplete: function () {
+            var addressInput = document.getElementById('tuition_point_address');
+            var placeIdInput = document.getElementById('tuition_place_id');
+            var latitudeInput = document.getElementById('tuition_latitude');
+            var longitudeInput = document.getElementById('tuition_longitude');
+
+            if (!addressInput || addressInput.dataset.googlePlacesReady === 'true') {
+                return;
+            }
+
+            if (!window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
+                var attempts = Number(addressInput.dataset.googlePlacesAttempts || 0);
+                if (attempts >= 20) {
+                    return;
+                }
+
+                addressInput.dataset.googlePlacesAttempts = String(attempts + 1);
+                window.setTimeout(function () {
+                    if (window.FormHelper) {
+                        window.FormHelper.initTuitionPointAddressAutocomplete();
+                    }
+                }, 500);
+                return;
+            }
+
+            window.SoilnWaterGooglePlaces.bindAutocomplete(addressInput, {
+                geometry: true,
+                placeId: true,
+                onPlaceChanged: function (place) {
+                    var selectedAddress = window.SoilnWaterGooglePlaces.getSelectedAddress(place);
+
+                    if (selectedAddress) {
+                        addressInput.value = selectedAddress;
+                    }
+
+                    if (placeIdInput) {
+                        placeIdInput.value = place.place_id || '';
+                    }
+
+                    if (latitudeInput && longitudeInput && place.geometry && place.geometry.location) {
+                        latitudeInput.value = String(place.geometry.location.lat());
+                        longitudeInput.value = String(place.geometry.location.lng());
+                    }
+
+                    $(addressInput).trigger('input').trigger('change');
+                },
+            });
+
+            addressInput.addEventListener('input', function () {
+                if (addressInput.value.trim() === '') {
+                    if (placeIdInput) {
+                        placeIdInput.value = '';
+                    }
+                    if (latitudeInput) {
+                        latitudeInput.value = '';
+                    }
+                    if (longitudeInput) {
+                        longitudeInput.value = '';
+                    }
+                }
+            });
+        },
+
         initRegisterWhatsappSync: function (options) {
             options = options || {};
             var phoneSelector = options.phoneSelector || '#phone_number';

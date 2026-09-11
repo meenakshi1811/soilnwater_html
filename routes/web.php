@@ -192,6 +192,10 @@ Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, '
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
+Route::get('/teachers-tutors/{slug}/courses', [FrontendEducatorProfileController::class, 'courses'])->name('educator.courses');
+Route::get('/teachers-tutors/{slug}/notes', [FrontendEducatorProfileController::class, 'notes'])->name('educator.notes');
+Route::get('/teachers-tutors/{slug}/question-papers', [FrontendEducatorProfileController::class, 'questionPapers'])->name('educator.question-papers');
+Route::get('/teachers-tutors/{slug}/reviews', [FrontendEducatorProfileController::class, 'reviews'])->name('educator.reviews');
 Route::get('/teachers-tutors/{slug}', [FrontendEducatorProfileController::class, 'show'])->name('educator.show');
 Route::post('/teachers-tutors/{slug}/enquiry', [FrontendEducatorProfileController::class, 'enquiry'])->middleware('auth')->name('educator.enquiry');
 Route::post('/teachers-tutors/{slug}/follow', [FrontendEducatorProfileController::class, 'follow'])->middleware('auth')->name('educator.follow');

@@ -90,8 +90,21 @@ class EducatorProfileController extends Controller
             'tuition_batches.*.student_count' => ['nullable', 'string', 'max:20'],
             'tuition_batches.*.cost' => ['nullable', 'string', 'max:120'],
             'tuition_location' => ['nullable', 'string', 'max:255'],
+            'tuition_point_address' => ['nullable', 'string', 'max:500'],
+            'tuition_place_id' => ['nullable', 'string', 'max:255'],
+            'tuition_latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'tuition_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'tuition_timings' => ['nullable', 'string', 'max:255'],
             'tuition_charges' => ['nullable', 'string', 'max:255'],
+            'tuition_delivery_options' => ['nullable', 'array'],
+            'tuition_delivery_options.home' => ['nullable', 'array'],
+            'tuition_delivery_options.home.enabled' => ['nullable', 'boolean'],
+            'tuition_delivery_options.home.charges' => ['nullable', 'string', 'max:255'],
+            'tuition_delivery_options.home.timings' => ['nullable', 'string', 'max:255'],
+            'tuition_delivery_options.personal' => ['nullable', 'array'],
+            'tuition_delivery_options.personal.enabled' => ['nullable', 'boolean'],
+            'tuition_delivery_options.personal.charges' => ['nullable', 'string', 'max:255'],
+            'tuition_delivery_options.personal.timings' => ['nullable', 'string', 'max:255'],
             'years_experience' => ['nullable', 'integer', 'min:0', 'max:80'],
             'students_taught' => ['nullable', 'integer', 'min:0'],
             'success_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -146,6 +159,10 @@ class EducatorProfileController extends Controller
         $validated['certifications'] = $this->cleanStringList($validated['certifications'] ?? []);
         $validated['service_area'] = $this->cleanStringList($validated['service_area'] ?? []);
         $validated['tuition_batches'] = $this->cleanTuitionBatches($validated['tuition_batches'] ?? []);
+        $validated['tuition_delivery_options'] = $this->cleanTuitionDeliveryOptions(
+            $validated['tuition_delivery_options'] ?? [],
+            $request
+        );
         $validated['tuition_classes'] = collect($validated['tuition_batches'])->pluck('class')->filter()->unique()->values()->all();
         $validated['tuition_subjects'] = collect($validated['tuition_batches'])->pluck('subject')->filter()->unique()->values()->all();
         $validated['tuition_types'] = collect($validated['tuition_batches'])->pluck('batch_type')->filter()->unique()->values()->all();
@@ -155,6 +172,15 @@ class EducatorProfileController extends Controller
         $validated['availability'] = $this->cleanObjectList($validated['availability'] ?? [], ['day', 'slots']);
         $validated['take_tuitions'] = $request->boolean('take_tuitions');
         $validated['is_available_now'] = $request->boolean('is_available_now');
+        $validated['tuition_point_address'] = trim((string) ($validated['tuition_point_address'] ?? ''));
+
+        if ($validated['tuition_point_address'] === '') {
+            $validated['tuition_place_id'] = null;
+            $validated['tuition_latitude'] = null;
+            $validated['tuition_longitude'] = null;
+        }
+
+        $validated['tuition_location'] = $validated['tuition_point_address'] ?: null;
         $validated['tagline'] = Educator::excerptFromAbout($validated['about'] ?? null);
         $validated['display_name'] = $validated['name'];
         $validated['phone'] = $validated['phone_number'];
@@ -230,6 +256,38 @@ class EducatorProfileController extends Controller
      * @param  array<int, mixed>  $items
      * @return list<array{class: string, subject: string, batch_type: string, student_count: string, cost: string}>
      */
+    /**
+     * @param  array<string, mixed>  $options
+     * @return array<string, array{enabled: bool, label: string, charges: string, timings: string}>
+     */
+    private function cleanTuitionDeliveryOptions(array $options, Request $request): array
+    {
+        $result = [];
+
+        foreach ([
+            'home' => 'Home tuition',
+            'personal' => 'Personal tuition',
+        ] as $key => $label) {
+            $row = is_array($options[$key] ?? null) ? $options[$key] : [];
+            $enabled = $request->boolean('tuition_delivery_options.'.$key.'.enabled');
+            $charges = trim((string) ($row['charges'] ?? ''));
+            $timings = trim((string) ($row['timings'] ?? ''));
+
+            if (! $enabled) {
+                continue;
+            }
+
+            $result[$key] = [
+                'enabled' => true,
+                'label' => $label,
+                'charges' => $charges,
+                'timings' => $timings,
+            ];
+        }
+
+        return $result;
+    }
+
     private function cleanTuitionBatches(array $items): array
     {
         return collect($items)
