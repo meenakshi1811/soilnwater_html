@@ -52,6 +52,9 @@
           <dt class="col-sm-4">Board / University</dt><dd class="col-sm-8">{{ $material->board_university ?: '—' }}</dd>
           <dt class="col-sm-4">Topic / Chapter</dt><dd class="col-sm-8">{{ $material->topic_chapter ?: '—' }}</dd>
           <dt class="col-sm-4">Exam / Test</dt><dd class="col-sm-8">{{ $material->exam_test ?: '—' }}</dd>
+          @if($material->material_type === 'sample_papers')
+            <dt class="col-sm-4">Marks obtained</dt><dd class="col-sm-8">{{ data_get($material->meta, 'marks_obtained') ?: '—' }}</dd>
+          @endif
           <dt class="col-sm-4">Language</dt><dd class="col-sm-8">{{ $material->language ?: '—' }}</dd>
           <dt class="col-sm-4">Difficulty</dt><dd class="col-sm-8">{{ $material->difficulty ?: '—' }}</dd>
           <dt class="col-sm-4">Academic year</dt><dd class="col-sm-8">{{ $material->academic_year ?: '—' }}</dd>
@@ -62,6 +65,64 @@
           <dd class="col-sm-8">{{ optional($material->updated_at)?->timezone(config('app.timezone'))->format('d M Y, h:i A') ?: '—' }}</dd>
         </dl>
       </div>
+
+      @if($material->hasSolvedWorksheet())
+        <div class="chart-card mb-4">
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+            <h5 class="mb-0">Solved Worksheet</h5>
+            @if($material->solvedWorksheetFileUrl())
+              <a href="{{ route('educator.materials.solved-worksheet-download', $material) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fa-solid fa-download me-1"></i> Download solved worksheet
+              </a>
+            @endif
+          </div>
+
+          @if($material->isCustomSolvedWorksheet())
+            <div class="ck-content border rounded-3 p-3 bg-white">
+              {!! $material->customSolvedWorksheetHtml() !!}
+            </div>
+          @elseif($material->canPreviewSolvedWorksheetInline() && $material->solvedWorksheetFileUrl())
+            @if(str_contains((string) $material->solvedWorksheetFileType(), 'pdf'))
+              <iframe src="{{ $material->solvedWorksheetFileUrl() }}#page=1" title="Solved worksheet" class="w-100 rounded border" style="min-height:480px;"></iframe>
+            @else
+              <img src="{{ $material->solvedWorksheetFileUrl() }}" alt="Solved worksheet" class="img-fluid rounded border">
+            @endif
+            <p class="small text-muted mt-2 mb-0">{{ $material->solvedWorksheetFileName() }} · {{ strtoupper((string) $material->solvedWorksheetFileType()) }} · {{ $material->solvedWorksheetFileSizeLabel() }}</p>
+          @else
+            <p class="mb-1 fw-semibold">{{ $material->solvedWorksheetFileName() ?: 'Solved worksheet file' }}</p>
+            <p class="small text-muted mb-0">{{ strtoupper((string) $material->solvedWorksheetFileType()) }} · {{ $material->solvedWorksheetFileSizeLabel() }}</p>
+          @endif
+        </div>
+      @endif
+
+      @if($material->hasBoardSolution())
+        <div class="chart-card mb-4">
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+            <h5 class="mb-0">Board Paper Solution</h5>
+            @if($material->solutionFileUrl())
+              <a href="{{ route('educator.materials.solution-download', $material) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fa-solid fa-download me-1"></i> Download solution file
+              </a>
+            @endif
+          </div>
+
+          @if($material->isCustomBoardSolution())
+            <div class="ck-content border rounded-3 p-3 bg-white">
+              {!! $material->customSolutionHtml() !!}
+            </div>
+          @elseif($material->canPreviewSolutionInline() && $material->solutionFileUrl())
+            @if(str_contains((string) $material->solutionFileType(), 'pdf'))
+              <iframe src="{{ $material->solutionFileUrl() }}#page=1" title="Board paper solution" class="w-100 rounded border" style="min-height:480px;"></iframe>
+            @else
+              <img src="{{ $material->solutionFileUrl() }}" alt="Board paper solution" class="img-fluid rounded border">
+            @endif
+            <p class="small text-muted mt-2 mb-0">{{ $material->solutionFileName() }} · {{ strtoupper((string) $material->solutionFileType()) }} · {{ $material->solutionFileSizeLabel() }}</p>
+          @else
+            <p class="mb-1 fw-semibold">{{ $material->solutionFileName() ?: 'Solution file' }}</p>
+            <p class="small text-muted mb-0">{{ strtoupper((string) $material->solutionFileType()) }} · {{ $material->solutionFileSizeLabel() }}</p>
+          @endif
+        </div>
+      @endif
 
       <div class="chart-card">
         <h5 class="mb-3">Table of contents</h5>
@@ -85,6 +146,11 @@
           <a href="{{ route('educator.materials.download', $material) }}" class="btn btn-primary w-100">
             <i class="fa-solid fa-download me-1"></i> Download file
           </a>
+        @elseif($material->hasCustomWrittenContent())
+          <p class="text-success mb-2 small"><i class="fa-solid fa-pen-to-square me-1"></i> {{ $material->customWrittenContentLabel() }}</p>
+          <div class="ck-content border rounded-3 p-3 bg-white text-start">
+            {!! $material->customNoteHtml() !!}
+          </div>
         @else
           <p class="text-secondary mb-0">No file uploaded.</p>
         @endif

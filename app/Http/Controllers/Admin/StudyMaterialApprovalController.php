@@ -104,6 +104,32 @@ class StudyMaterialApprovalController extends Controller
         );
     }
 
+    public function downloadSolution(StudyMaterial $study_material): BinaryFileResponse
+    {
+        abort_unless($study_material->hasBoardSolution(), 404);
+
+        $solutionPath = data_get($study_material->meta, 'solution_file_path');
+        abort_unless(filled($solutionPath) && is_file(public_path($solutionPath)), 404);
+
+        return response()->download(
+            public_path($solutionPath),
+            $study_material->solutionFileName() ?: basename($solutionPath)
+        );
+    }
+
+    public function downloadSolvedWorksheet(StudyMaterial $study_material): BinaryFileResponse
+    {
+        abort_unless($study_material->hasSolvedWorksheet(), 404);
+
+        $filePath = data_get($study_material->meta, 'solved_worksheet_file_path');
+        abort_unless(filled($filePath) && is_file(public_path($filePath)), 404);
+
+        return response()->download(
+            public_path($filePath),
+            $study_material->solvedWorksheetFileName() ?: basename($filePath)
+        );
+    }
+
     public function approve(StudyMaterial $study_material): JsonResponse
     {
         $study_material->update([
@@ -163,6 +189,8 @@ class StudyMaterialApprovalController extends Controller
     {
         EducatorFileUploader::deleteIfExists($study_material->thumbnail);
         EducatorFileUploader::deleteIfExists($study_material->file_path);
+        EducatorFileUploader::deleteIfExists(data_get($study_material->meta, 'solution_file_path'));
+        EducatorFileUploader::deleteIfExists(data_get($study_material->meta, 'solved_worksheet_file_path'));
         $study_material->delete();
 
         return response()->json([

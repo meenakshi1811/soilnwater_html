@@ -7,10 +7,104 @@ class StudyMaterialUploadConfig
     public const UPLOADER_ROLES = [
         'teacher' => ['label' => 'Teacher', 'icon' => 'fa-chalkboard-user'],
         'student' => ['label' => 'Student', 'icon' => 'fa-user-graduate'],
-        'parent' => ['label' => 'Parent', 'icon' => 'fa-people-roof'],
         'education_professional' => ['label' => 'Education Professional', 'icon' => 'fa-briefcase'],
         'other' => ['label' => 'Other', 'icon' => 'fa-user'],
     ];
+
+    /**
+     * Options hidden for each uploader role (teachers see all options).
+     *
+     * @return list<string>
+     */
+    public static function hiddenOptionsForRole(string $uploaderRole): array
+    {
+        return match ($uploaderRole) {
+            'student' => [
+                'featured',
+                'group_assignment',
+                'curriculum_aligned',
+                'marking_scheme',
+                'model_answer',
+                'recommended_book',
+                'competitive_exams',
+            ],
+            'other' => ['featured', 'group_assignment'],
+            'education_professional' => ['group_assignment'],
+            default => [],
+        };
+    }
+
+    public static function resolveUploaderRole(?\App\Models\User $user): string
+    {
+        if (! $user) {
+            return 'teacher';
+        }
+
+        if ($user->isTeacher()) {
+            return 'teacher';
+        }
+
+        if ($user->isStudent()) {
+            return 'student';
+        }
+
+        // Parent uploads on behalf of their child (student account).
+        if ($user->hasParentProfileEnabled()) {
+            return 'student';
+        }
+
+        return 'education_professional';
+    }
+
+    /**
+     * Parent uploads for a child profile — child accounts use the student role.
+     */
+    public static function shouldShowChildSelector(?\App\Models\User $user): bool
+    {
+        if (! $user || $user->isTeacher() || $user->isStudent()) {
+            return false;
+        }
+
+        return $user->hasParentProfileEnabled()
+            && $user->childProfiles()->where('status', 'approved')->exists();
+    }
+
+    /**
+     * @return array<string, array{label: string, icon: string}>
+     */
+    public static function visibleUploaderRoles(?\App\Models\User $user): array
+    {
+        $resolved = self::resolveUploaderRole($user);
+
+        if (in_array($resolved, ['teacher', 'student'], true)) {
+            return array_intersect_key(self::UPLOADER_ROLES, [$resolved => true]);
+        }
+
+        return array_diff_key(
+            self::UPLOADER_ROLES,
+            array_flip(['teacher', 'student'])
+        );
+    }
+
+    public static function shouldShowUploaderRolePicker(?\App\Models\User $user): bool
+    {
+        if (self::shouldShowChildSelector($user)) {
+            return false;
+        }
+
+        return count(self::visibleUploaderRoles($user)) > 1;
+    }
+
+    /**
+     * @param  array<string, string>  $options
+     * @return array<string, string>
+     */
+    public static function filterOptionsForRole(array $options, string $uploaderRole): array
+    {
+        $hidden = self::hiddenOptionsForRole($uploaderRole);
+
+        return array_diff_key($options, array_flip($hidden));
+    }
 
     /**
      * @return array<string, array<string, mixed>>
@@ -309,6 +403,66 @@ class StudyMaterialUploadConfig
                 'pdf_notes' => 'Include PDF / Notes',
                 'featured' => 'Set as featured content',
             ],
+        ];
+    }
+
+    /**
+     * Calendar years for material forms (newest first).
+     *
+     * @return list<string>
+     */
+    public static function yearOptions(?string $includeValue = null, int $startYear = 0, int $endYear = 1990): array
+    {
+        $startYear = $startYear > 0 ? $startYear : (int) date('Y');
+        $years = array_map('strval', range($startYear, $endYear));
+
+        if ($includeValue !== null && $includeValue !== '' && ! in_array($includeValue, $years, true)) {
+            array_unshift($years, $includeValue);
+        }
+
+        return $years;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function questionPaperInstitutionTypes(): array
+    {
+        return [
+            'university' => 'University',
+            'college' => 'College',
+            'school' => 'School',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function boardExamTypes(): array
+    {
+        return [
+            'Board Exam',
+            'Pre-Board Exam',
+            'Model Paper',
+            'Sample Paper',
+            'Compartment Exam',
+            'Supplementary Exam',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function institutionExamTypes(): array
+    {
+        return [
+            'Semester Exam',
+            'Annual Exam',
+            'Mid Term Exam',
+            'Final Exam',
+            'Unit Test',
+            'Internal Assessment',
+            'Entrance Exam',
         ];
     }
 

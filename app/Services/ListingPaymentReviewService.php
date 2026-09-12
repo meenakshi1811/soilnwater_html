@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Mail\ListingPaymentSubmittedMail;
 use App\Models\ListingPaymentSubmission;
 use App\Models\Offer;
+use App\Models\StudyMaterial;
+use App\Models\StudyMaterialPurchase;
 use App\Models\User;
 use App\Models\UserAd;
 use App\Services\OfferPriceService;
@@ -22,7 +24,7 @@ class ListingPaymentReviewService
 
         $listing = $submission->resolveListing();
         if (! $listing) {
-            throw new InvalidArgumentException('The linked ad/offer could not be found.');
+            throw new InvalidArgumentException('The linked listing could not be found.');
         }
 
         $submission->update([
@@ -46,12 +48,25 @@ class ListingPaymentReviewService
                 'approval_reviewed_at' => now(),
                 'approval_reviewed_by' => $admin->id,
             ]);
+        } elseif ($listing instanceof StudyMaterial) {
+            StudyMaterialPurchase::query()->updateOrCreate(
+                [
+                    'user_id' => $submission->user_id,
+                    'study_material_id' => $listing->id,
+                ],
+                [
+                    'listing_payment_submission_id' => $submission->id,
+                    'granted_at' => now(),
+                ]
+            );
         }
 
         PortalNotificationService::notifyUser(
             $submission->user,
             'Payment verified',
-            'Your payment for the '.strtolower($submission->listingTypeLabel()).' "'.$submission->listingDisplayName().'" has been verified. It is now active.',
+            $submission->listing_type === ListingPaymentSubmission::TYPE_STUDY_MATERIAL
+                ? 'Your payment for the study note "'.$submission->listingDisplayName().'" has been verified. You can now access the full note.'
+                : 'Your payment for the '.strtolower($submission->listingTypeLabel()).' "'.$submission->listingDisplayName().'" has been verified. It is now active.',
             self::ownerListingUrl($submission),
             'reviewed'
         );
@@ -73,7 +88,9 @@ class ListingPaymentReviewService
         PortalNotificationService::notifyUser(
             $submission->user,
             'Payment declined',
-            'Your payment proof for the '.strtolower($submission->listingTypeLabel()).' "'.$submission->listingDisplayName().'" could not be verified. Please review the note and submit again if needed.',
+            $submission->listing_type === ListingPaymentSubmission::TYPE_STUDY_MATERIAL
+                ? 'Your payment proof for the study note "'.$submission->listingDisplayName().'" could not be verified. Please review the note and submit again if needed.'
+                : 'Your payment proof for the '.strtolower($submission->listingTypeLabel()).' "'.$submission->listingDisplayName().'" could not be verified. Please review the note and submit again if needed.',
             self::ownerListingUrl($submission),
             'reviewed'
         );
@@ -105,6 +122,7 @@ class ListingPaymentReviewService
         return match ($submission->listing_type) {
             ListingPaymentSubmission::TYPE_AD => route('ads.index'),
             ListingPaymentSubmission::TYPE_OFFER => route('offers.index'),
+            ListingPaymentSubmission::TYPE_STUDY_MATERIAL => route('study-materials.show', StudyMaterial::query()->find($submission->listing_id)?->slug ?: ''),
             default => route('home'),
         };
     }

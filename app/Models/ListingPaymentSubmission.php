@@ -17,6 +17,8 @@ class ListingPaymentSubmission extends Model
 
     public const TYPE_OFFER = 'offer';
 
+    public const TYPE_STUDY_MATERIAL = 'study_material';
+
     protected $fillable = [
         'user_id',
         'listing_type',
@@ -61,15 +63,17 @@ class ListingPaymentSubmission extends Model
         return match ($this->listing_type) {
             self::TYPE_AD => 'Ad',
             self::TYPE_OFFER => 'Offer',
+            self::TYPE_STUDY_MATERIAL => 'Study Material',
             default => ucfirst((string) $this->listing_type),
         };
     }
 
-    public function resolveListing(): UserAd|Offer|null
+    public function resolveListing(): UserAd|Offer|StudyMaterial|null
     {
         return match ($this->listing_type) {
             self::TYPE_AD => UserAd::query()->find($this->listing_id),
             self::TYPE_OFFER => Offer::query()->find($this->listing_id),
+            self::TYPE_STUDY_MATERIAL => StudyMaterial::query()->find($this->listing_id),
             default => null,
         };
     }

@@ -18,12 +18,18 @@
     $tags = collect($material->tags ?? [])->filter()->values();
     $plainDescription = trim(strip_tags((string) $material->description));
     $typeMeta = \App\Models\StudyMaterial::materialTypeMeta($material->material_type);
+    $canAccessContent = $canAccessContent ?? true;
+    $paymentState = $paymentState ?? ['mode' => 'free', 'submitted_at' => null, 'last_rejected_note' => null];
     $downloadUrl = auth()->check() ? route('study-materials.download', $material->slug) : route('login');
-    $readOnlineUrl = $material->canPreviewInline() && $material->fileUrl()
+    $readOnlineUrl = $canAccessContent && $material->canPreviewInline() && $material->fileUrl()
         ? $material->fileUrl()
         : $downloadUrl;
     $avgRating = (float) $material->average_rating;
     $filledStars = (int) round($avgRating);
+    $hasBoardSolution = $material->hasBoardSolution();
+    $hasSolvedWorksheet = $material->hasSolvedWorksheet();
+    $solutionDownloadUrl = auth()->check() ? route('study-materials.solution-download', $material->slug) : route('login');
+    $solvedWorksheetDownloadUrl = auth()->check() ? route('study-materials.solved-worksheet-download', $material->slug) : route('login');
 @endphp
 
 <div
@@ -85,9 +91,19 @@
                     @endforeach
                 </div>
 
-                <a href="{{ $downloadUrl }}" class="sm-show-contents__download">
-                    <i class="fa-solid fa-download" aria-hidden="true"></i> Download Full Notes
-                </a>
+                @if($canAccessContent && $material->fileUrl())
+                    <a href="{{ $downloadUrl }}" class="sm-show-contents__download">
+                        <i class="fa-solid fa-download" aria-hidden="true"></i> Download Full Notes
+                    </a>
+                @elseif($material->isPaidNote() && ! $canAccessContent)
+                    <button type="button" class="sm-show-contents__download sm-show-contents__download--buy" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
+                        <i class="fa-solid fa-lock" aria-hidden="true"></i> Buy to unlock
+                    </button>
+                @else
+                    <span class="sm-show-contents__download sm-show-contents__download--muted">
+                        <i class="fa-solid fa-book-open" aria-hidden="true"></i> Read online
+                    </span>
+                @endif
             </aside>
 
             {{-- Center: Viewer + Tabs --}}
@@ -126,8 +142,37 @@
                         </button>
 
                         <div class="sm-show-viewer-canvas js-sm-viewer-canvas">
+                            @if(! $canAccessContent && $material->isPaidNote())
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Paid note — purchase to unlock</h3>
+                                    <p>This note costs <strong>{{ $material->formattedPrice() }}</strong>. Pay via UPI, submit your payment proof, and access the full content after admin approval.</p>
+                                    @if(($paymentState['mode'] ?? '') === 'login_required')
+                                        <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to purchase</a>
+                                    @elseif(($paymentState['mode'] ?? '') === 'pending')
+                                        <div class="alert alert-warning mb-0">
+                                            <i class="fa-solid fa-clock me-1"></i>
+                                            Your payment proof is under review.
+                                            @if(!empty($paymentState['submitted_at']))
+                                                Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
+                                            @endif
+                                        </div>
+                                    @else
+                                        @if(!empty($paymentState['last_rejected_note']))
+                                            <div class="alert alert-danger">{{ $paymentState['last_rejected_note'] }}</div>
+                                        @endif
+                                        <button type="button" class="sm-btn sm-btn-primary" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
+                                            <i class="fa-solid fa-indian-rupee-sign me-1"></i> Buy for {{ $material->formattedPrice() }}
+                                        </button>
+                                    @endif
+                                </div>
+                            @else
                             <div class="sm-show-viewer-content js-sm-viewer-content">
-                            @if($material->canPreviewInline() && $material->fileUrl())
+                            @if($material->hasCustomWrittenContent())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customNoteHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewInline() && $material->fileUrl())
                                 @if(str_contains(strtolower((string) $material->file_type), 'pdf'))
                                     <iframe
                                         src="{{ $material->fileUrl() }}#page=1"
@@ -160,6 +205,7 @@
                                 </div>
                             @endif
                             </div>
+                            @endif
                         </div>
 
                         <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--next js-sm-viewer-next" aria-label="Next page">
@@ -172,6 +218,12 @@
                     <div class="sm-show-tabs" id="materialTabs" role="tablist">
                         <button type="button" class="sm-show-tab is-active" data-tab="description" role="tab">Description</button>
                         <button type="button" class="sm-show-tab" data-tab="details" role="tab">Details</button>
+                        @if($hasBoardSolution)
+                            <button type="button" class="sm-show-tab" data-tab="solution" role="tab">Board Solution</button>
+                        @endif
+                        @if($hasSolvedWorksheet)
+                            <button type="button" class="sm-show-tab" data-tab="solved-worksheet" role="tab">Solved Worksheet</button>
+                        @endif
                         <button type="button" class="sm-show-tab" data-tab="related" role="tab">Related Materials</button>
                         <button type="button" class="sm-show-tab" data-tab="questions" role="tab">Questions</button>
                         <button type="button" class="sm-show-tab" data-tab="reviews" role="tab">
@@ -236,16 +288,120 @@
                             <li><span>Class / Course</span><strong>{{ $material->class_course ?: '—' }}</strong></li>
                             <li><span>Subject</span><strong>{{ $material->subject ?: '—' }}</strong></li>
                             <li><span>Chapter / Topic</span><strong>{{ $material->topic_chapter ?: '—' }}</strong></li>
-                            <li><span>Board</span><strong>{{ $material->board_university ?: '—' }}</strong></li>
+                            <li><span>{{ $material->isBoardQuestionPaper() ? 'Board' : 'Board / University' }}</span><strong>{{ $material->board_university ?: '—' }}</strong></li>
+                            @if($material->isBoardQuestionPaper())
+                                <li><span>Code / Serial No.</span><strong>{{ data_get($material->meta, 'set_code') ?: '—' }}</strong></li>
+                            @endif
                             <li><span>Medium</span><strong>{{ $material->medium ?: $material->language ?: '—' }}</strong></li>
                             <li><span>Academic Year</span><strong>{{ $material->academic_year ?: '—' }}</strong></li>
                             <li><span>Exam / Test</span><strong>{{ $material->exam_test ?: '—' }}</strong></li>
+                            @if($material->material_type === 'sample_papers' && filled(data_get($material->meta, 'marks_obtained')))
+                                <li><span>Marks Obtained</span><strong>{{ data_get($material->meta, 'marks_obtained') }}</strong></li>
+                            @endif
+                            @if($hasBoardSolution)
+                                <li><span>Solution</span><strong>{{ $material->isCustomBoardSolution() ? 'Written solution' : 'Uploaded solution file' }}</strong></li>
+                            @endif
+                            @if($hasSolvedWorksheet)
+                                <li><span>Solved Worksheet</span><strong>{{ $material->isCustomSolvedWorksheet() ? 'Written answer key' : 'Uploaded answer key' }}</strong></li>
+                            @endif
                             <li><span>Difficulty</span><strong>{{ $material->difficulty ?: '—' }}</strong></li>
                             <li><span>Pages</span><strong>{{ $material->pages ?: '—' }}</strong></li>
                             <li><span>File Type</span><strong>{{ strtoupper((string) $material->file_type) ?: '—' }}</strong></li>
                             <li><span>File Size</span><strong>{{ $material->fileSizeLabel() }}</strong></li>
                         </ul>
                     </div>
+
+                    @if($hasBoardSolution)
+                        <div class="sm-show-tab-panel" data-panel="solution" role="tabpanel">
+                            @if(! $canAccessContent)
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Solution locked</h3>
+                                    <p>Please log in or purchase access to view the board paper solution.</p>
+                                    <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
+                                </div>
+                            @elseif($material->isCustomBoardSolution())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customSolutionHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewSolutionInline() && $material->solutionFileUrl())
+                                @if(str_contains((string) $material->solutionFileType(), 'pdf'))
+                                    <iframe
+                                        src="{{ $material->solutionFileUrl() }}#page=1"
+                                        title="Board paper solution"
+                                        class="sm-show-viewer-frame"
+                                        style="width:100%;min-height:70vh;border:0;border-radius:12px;"
+                                    ></iframe>
+                                @else
+                                    <img
+                                        src="{{ $material->solutionFileUrl() }}"
+                                        alt="Board paper solution"
+                                        class="sm-show-viewer-image"
+                                        style="max-width:100%;height:auto;border-radius:12px;"
+                                    >
+                                @endif
+                                <div class="mt-3">
+                                    <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-outline">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solution
+                                    </a>
+                                </div>
+                            @else
+                                <div class="sm-show-solution-file">
+                                    <p class="mb-2"><strong>{{ $material->solutionFileName() ?: 'Solution file' }}</strong></p>
+                                    <p class="text-muted mb-3">{{ strtoupper((string) $material->solutionFileType()) }} · {{ $material->solutionFileSizeLabel() }}</p>
+                                    <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-primary">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solution
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($hasSolvedWorksheet)
+                        <div class="sm-show-tab-panel" data-panel="solved-worksheet" role="tabpanel">
+                            @if(! $canAccessContent)
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Solved worksheet locked</h3>
+                                    <p>Please log in to view the solved worksheet.</p>
+                                    <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
+                                </div>
+                            @elseif($material->isCustomSolvedWorksheet())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customSolvedWorksheetHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewSolvedWorksheetInline() && $material->solvedWorksheetFileUrl())
+                                @if(str_contains((string) $material->solvedWorksheetFileType(), 'pdf'))
+                                    <iframe
+                                        src="{{ $material->solvedWorksheetFileUrl() }}#page=1"
+                                        title="Solved worksheet"
+                                        class="sm-show-viewer-frame"
+                                        style="width:100%;min-height:70vh;border:0;border-radius:12px;"
+                                    ></iframe>
+                                @else
+                                    <img
+                                        src="{{ $material->solvedWorksheetFileUrl() }}"
+                                        alt="Solved worksheet"
+                                        class="sm-show-viewer-image"
+                                        style="max-width:100%;height:auto;border-radius:12px;"
+                                    >
+                                @endif
+                                <div class="mt-3">
+                                    <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-outline">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
+                                    </a>
+                                </div>
+                            @else
+                                <div class="sm-show-solution-file">
+                                    <p class="mb-2"><strong>{{ $material->solvedWorksheetFileName() ?: 'Solved worksheet file' }}</strong></p>
+                                    <p class="text-muted mb-3">{{ strtoupper((string) $material->solvedWorksheetFileType()) }} · {{ $material->solvedWorksheetFileSizeLabel() }}</p>
+                                    <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-primary">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
 
                     <div class="sm-show-tab-panel" data-panel="related" role="tabpanel">
                         <div class="sm-show-related-list">
@@ -348,7 +504,9 @@
 
                     <div class="sm-show-summary__badges">
                         <span class="sm-show-badge sm-show-badge--type">{{ $material->materialTypeLabel() }}</span>
-                        @if($material->is_free)
+                        @if($material->isPaidNote())
+                            <span class="sm-show-badge sm-show-badge--paid">{{ $material->formattedPrice() }}</span>
+                        @elseif($material->is_free)
                             <span class="sm-show-badge sm-show-badge--free">Free</span>
                         @endif
                     </div>
@@ -385,12 +543,28 @@
                     </div>
 
                     <div class="sm-show-summary__actions">
-                        <a href="{{ $downloadUrl }}" class="sm-btn sm-btn-primary sm-show-summary__download">
-                            <i class="fa-solid fa-download" aria-hidden="true"></i> Download Notes
-                        </a>
-                        <a href="{{ $readOnlineUrl }}" class="sm-btn sm-btn-outline sm-show-summary__read" target="_blank" rel="noopener">
-                            Read Online
-                        </a>
+                        @if($canAccessContent)
+                            @if($material->fileUrl())
+                                <a href="{{ $downloadUrl }}" class="sm-btn sm-btn-primary sm-show-summary__download">
+                                    <i class="fa-solid fa-download" aria-hidden="true"></i> Download Notes
+                                </a>
+                            @endif
+                            @if($readOnlineUrl && ($material->canPreviewInline() || $material->hasCustomWrittenContent()))
+                                <a href="{{ $readOnlineUrl }}" class="sm-btn sm-btn-outline sm-show-summary__read" target="_blank" rel="noopener">
+                                    Read Online
+                                </a>
+                            @endif
+                        @elseif($material->isPaidNote())
+                            @if(($paymentState['mode'] ?? '') === 'login_required')
+                                <a href="{{ route('login') }}" class="sm-btn sm-btn-primary w-100">Login to purchase</a>
+                            @elseif(($paymentState['mode'] ?? '') === 'pending')
+                                <button type="button" class="sm-btn sm-btn-outline w-100" disabled>Payment under review</button>
+                            @else
+                                <button type="button" class="sm-btn sm-btn-primary w-100" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
+                                    <i class="fa-solid fa-indian-rupee-sign me-1"></i> Buy for {{ $material->formattedPrice() }}
+                                </button>
+                            @endif
+                        @endif
                     </div>
 
                     <div class="sm-show-summary__details">
@@ -399,13 +573,21 @@
                             <li><span>Class / Course</span><strong>{{ $material->class_course ?: '—' }}</strong></li>
                             <li><span>Subject</span><strong>{{ $material->subject ?: '—' }}</strong></li>
                             <li><span>Chapter / Topic</span><strong>{{ $material->topic_chapter ?: '—' }}</strong></li>
-                            <li><span>Board</span><strong>{{ $material->board_university ?: '—' }}</strong></li>
+                            <li><span>{{ $material->isBoardQuestionPaper() ? 'Board' : 'Board / University' }}</span><strong>{{ $material->board_university ?: '—' }}</strong></li>
                             <li><span>Medium</span><strong>{{ $material->medium ?: $material->language ?: '—' }}</strong></li>
                             <li><span>Academic Year</span><strong>{{ $material->academic_year ?: '—' }}</strong></li>
                             <li><span>Pages</span><strong>{{ $material->pages ?: '—' }}</strong></li>
                             <li><span>File Type</span><strong>{{ strtoupper((string) $material->file_type) ?: '—' }}</strong></li>
                             <li><span>File Size</span><strong>{{ $material->fileSizeLabel() }}</strong></li>
+                            @if($hasBoardSolution)
+                                <li><span>Board Solution</span><strong>{{ $material->isCustomBoardSolution() ? 'Written' : 'File uploaded' }}</strong></li>
+                            @endif
                         </ul>
+                        @if($hasBoardSolution && $canAccessContent)
+                            <button type="button" class="sm-btn sm-btn-outline w-100 mt-2 js-sm-open-solution-tab">
+                                <i class="fa-solid fa-file-circle-check me-1"></i> View Board Solution
+                            </button>
+                        @endif
                     </div>
 
                     @if($material->educator)
@@ -459,9 +641,76 @@
         </div>
     </div>
 </div>
+
+@if($material->isPaidNote() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
+    @include('frontend.study-materials.partials.payment-modal')
+@endif
 @endsection
 
 @push('scripts')
 @include('community.partials.toastr-assets')
 <script src="{{ asset('assets/js/study-materials-show.js') }}?v={{ now()->timestamp }}" defer></script>
+@if($material->isPaidNote() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('studyMaterialPaymentForm');
+    var fileInput = document.getElementById('studyMaterialPaymentScreenshot');
+    var fileName = document.getElementById('studyMaterialPaymentFileName');
+    var preview = document.getElementById('studyMaterialPaymentPreview');
+    var previewImage = document.getElementById('studyMaterialPaymentPreviewImage');
+    var alertBox = document.getElementById('studyMaterialPaymentAlert');
+    var submitBtn = document.getElementById('studyMaterialPaymentSubmitBtn');
+    var modalEl = document.getElementById('studyMaterialPaymentModal');
+
+    if (!form) return;
+
+    fileInput?.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        if (fileName) {
+            fileName.textContent = file.name;
+            fileName.classList.remove('d-none');
+        }
+        if (preview && previewImage) {
+            previewImage.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!fileInput?.files?.length) {
+            alert('Please upload a payment screenshot.');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        alertBox?.classList.add('d-none');
+
+        fetch(modalEl.dataset.submitUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: new FormData(form),
+        }).then(function (response) {
+            return response.json().then(function (payload) {
+                if (!response.ok) throw new Error(payload.message || 'Unable to submit payment proof.');
+                if (window.toastr) window.toastr.success(payload.message || 'Payment proof submitted.');
+                window.location.reload();
+            });
+        }).catch(function (error) {
+            if (alertBox) {
+                alertBox.className = 'alert alert-danger';
+                alertBox.textContent = error.message || 'Unable to submit payment proof.';
+                alertBox.classList.remove('d-none');
+            }
+            submitBtn.disabled = false;
+        });
+    });
+});
+</script>
+@endif
 @endpush

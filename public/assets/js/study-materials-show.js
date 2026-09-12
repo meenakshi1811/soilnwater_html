@@ -116,6 +116,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('smReviewsPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
+    document.querySelector('.js-sm-open-solution-tab')?.addEventListener('click', function () {
+        const solutionTab = document.querySelector('#materialTabs .sm-show-tab[data-tab="solution"]');
+        solutionTab?.click();
+        document.querySelector('.sm-show-tabs-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
     document.querySelector('.js-sm-desc-toggle')?.addEventListener('click', function () {
         const text = document.querySelector('.js-sm-desc-text');
         if (!text) {

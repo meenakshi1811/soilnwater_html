@@ -12,7 +12,7 @@
         <div>
             <p class="ems-kicker mb-1">Payments</p>
             <h2 class="admin-title mb-1">Ad &amp; Offer Payments</h2>
-            <p class="mb-0 text-secondary">Review payment proofs submitted for paid ads and offers, then verify to activate them.</p>
+            <p class="mb-0 text-secondary">Review payment proofs submitted for paid ads, offers, and study notes, then verify to grant access.</p>
         </div>
     </div>
 

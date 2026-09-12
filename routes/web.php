@@ -205,8 +205,11 @@ Route::get('/study-materials', [StudyMaterialLibraryController::class, 'index'])
 Route::get('/study-materials/notes', [StudyMaterialLibraryController::class, 'notes'])->name('study-materials.notes');
 Route::get('/study-materials/{slug}', [StudyMaterialLibraryController::class, 'show'])->name('study-materials.show');
 Route::get('/study-materials/{slug}/download', [StudyMaterialLibraryController::class, 'download'])->middleware('auth')->name('study-materials.download');
+Route::get('/study-materials/{slug}/solution-download', [StudyMaterialLibraryController::class, 'downloadSolution'])->middleware('auth')->name('study-materials.solution-download');
+Route::get('/study-materials/{slug}/solved-worksheet-download', [StudyMaterialLibraryController::class, 'downloadSolvedWorksheet'])->middleware('auth')->name('study-materials.solved-worksheet-download');
 Route::post('/study-materials/{slug}/bookmark', [StudyMaterialLibraryController::class, 'bookmark'])->middleware('auth')->name('study-materials.bookmark');
 Route::post('/study-materials/{slug}/review', [StudyMaterialLibraryController::class, 'review'])->middleware('auth')->name('study-materials.review');
+Route::post('/study-materials/payment-confirmation', [\App\Http\Controllers\Frontend\StudyMaterialPaymentController::class, 'store'])->middleware('auth')->name('study-materials.payment.submit');
 
 Auth::routes(['verify' => true]);
 
@@ -364,6 +367,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('educator')->name('materials.data');
         Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('educator')->name('materials.type-config');
         Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('educator')->name('materials.download');
+        Route::get('/materials/{material}/solution-download', [StudyMaterialController::class, 'downloadSolution'])->middleware('educator')->name('materials.solution-download');
+        Route::get('/materials/{material}/solved-worksheet-download', [StudyMaterialController::class, 'downloadSolvedWorksheet'])->middleware('educator')->name('materials.solved-worksheet-download');
         Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
     });
@@ -741,6 +746,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/data', [StudyMaterialApprovalController::class, 'data'])->name('data');
             Route::get('/{study_material}', [StudyMaterialApprovalController::class, 'show'])->name('show');
             Route::get('/{study_material}/download', [StudyMaterialApprovalController::class, 'download'])->name('download');
+            Route::get('/{study_material}/solution-download', [StudyMaterialApprovalController::class, 'downloadSolution'])->name('solution-download');
+            Route::get('/{study_material}/solved-worksheet-download', [StudyMaterialApprovalController::class, 'downloadSolvedWorksheet'])->name('solved-worksheet-download');
             Route::post('/{study_material}/approve', [StudyMaterialApprovalController::class, 'approve'])->name('approve');
             Route::post('/{study_material}/reject', [StudyMaterialApprovalController::class, 'reject'])->name('reject');
             Route::delete('/{study_material}', [StudyMaterialApprovalController::class, 'destroy'])->name('destroy');

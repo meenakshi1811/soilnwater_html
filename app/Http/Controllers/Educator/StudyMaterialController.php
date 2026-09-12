@@ -16,6 +16,9 @@ use Yajra\DataTables\Facades\DataTables;
 
 class StudyMaterialController extends Controller
 {
+    /** @var list<string> */
+    private const CUSTOM_CONTENT_TYPES = ['notes', 'sample_papers', 'worksheets', 'assignments'];
+
     public function index(): View
     {
         return view('backend.educator.materials.index');
@@ -95,7 +98,9 @@ class StudyMaterialController extends Controller
     {
         abort_unless(in_array($type, StudyMaterialUploadConfig::typeKeys(), true), 404);
 
+        $uploaderRole = StudyMaterialUploadConfig::resolveUploaderRole(auth()->user());
         $config = StudyMaterialUploadConfig::type($type);
+        $config['options'] = StudyMaterialUploadConfig::filterOptionsForRole($config['options'], $uploaderRole);
         $config['short_title'] = str_replace('Upload ', '', $config['title']);
         $config['details_title'] = match ($type) {
             'reference_books' => 'Book Details',
@@ -188,6 +193,34 @@ class StudyMaterialController extends Controller
         );
     }
 
+    public function downloadSolution(StudyMaterial $material): BinaryFileResponse
+    {
+        $this->authorizeOwner($material);
+        abort_unless($material->hasBoardSolution(), 404);
+
+        $solutionPath = data_get($material->meta, 'solution_file_path');
+        abort_unless(filled($solutionPath) && is_file(public_path($solutionPath)), 404);
+
+        return response()->download(
+            public_path($solutionPath),
+            $material->solutionFileName() ?: basename($solutionPath)
+        );
+    }
+
+    public function downloadSolvedWorksheet(StudyMaterial $material): BinaryFileResponse
+    {
+        $this->authorizeOwner($material);
+        abort_unless($material->hasSolvedWorksheet(), 404);
+
+        $filePath = data_get($material->meta, 'solved_worksheet_file_path');
+        abort_unless(filled($filePath) && is_file(public_path($filePath)), 404);
+
+        return response()->download(
+            public_path($filePath),
+            $material->solvedWorksheetFileName() ?: basename($filePath)
+        );
+    }
+
     public function edit(StudyMaterial $material): View
     {
         $this->authorizeOwner($material);
@@ -257,6 +290,8 @@ class StudyMaterialController extends Controller
         $this->authorizeOwner($material);
         EducatorFileUploader::deleteIfExists($material->thumbnail);
         EducatorFileUploader::deleteIfExists($material->file_path);
+        EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solution_file_path'));
+        EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solved_worksheet_file_path'));
         $material->delete();
 
         return response()->json(['ok' => true, 'message' => 'Study material deleted.']);
@@ -275,12 +310,18 @@ class StudyMaterialController extends Controller
         $materialType = $request->string('material_type')->toString();
         $maxFileKb = $materialType === 'videos' ? 512000 : 51200;
         $hasExternalLink = filled($request->input('meta.external_url'));
+        $isCustomContent = in_array($materialType, self::CUSTOM_CONTENT_TYPES, true)
+            && $request->input('meta.content_mode') === 'custom';
 
-        $fileRules = $material?->exists
-            ? ['nullable', 'file', 'max:'.$maxFileKb]
-            : ($hasExternalLink && $materialType === 'videos'
+        $fileRules = ['nullable', 'file', 'max:'.$maxFileKb];
+
+        if (! $isCustomContent) {
+            $fileRules = $material?->exists
                 ? ['nullable', 'file', 'max:'.$maxFileKb]
-                : ['required', 'file', 'max:'.$maxFileKb]);
+                : ($hasExternalLink && $materialType === 'videos'
+                    ? ['nullable', 'file', 'max:'.$maxFileKb]
+                    : ['required', 'file', 'max:'.$maxFileKb]);
+        }
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -297,14 +338,22 @@ class StudyMaterialController extends Controller
             'academic_year' => ['nullable', 'string', 'max:20'],
             'medium' => ['nullable', 'string', 'max:50'],
             'pages' => ['nullable', 'integer', 'min:1', 'max:10000'],
+            'price' => ['nullable', 'numeric', 'min:1', 'max:999999'],
             'is_free' => ['nullable', 'boolean'],
+            'meta.visibility' => ['nullable', 'string', 'in:public,personal'],
+            'meta.pricing_mode' => ['nullable', 'string', 'in:free,paid'],
             'tags' => ['nullable', 'string', 'max:500'],
             'contents' => ['nullable', 'array'],
             'contents.*' => ['nullable', 'string', 'max:255'],
             'terms_accepted' => ['accepted'],
             'meta' => ['nullable', 'array'],
             'meta.uploader_role' => ['nullable', 'string', 'max:40'],
+            'meta.child_profile_id' => ['nullable', 'integer', 'exists:child_profiles,id'],
+            'meta.content_mode' => ['nullable', 'string', 'in:upload,custom'],
+            'meta.custom_note_html' => ['nullable', 'string', 'max:500000'],
+            'meta.editor_language' => ['nullable', 'string', 'max:20'],
             'meta.author' => ['nullable', 'string', 'max:255'],
+            'meta.author_rights_confirmed' => ['nullable', 'boolean'],
             'meta.publisher' => ['nullable', 'string', 'max:255'],
             'meta.edition' => ['nullable', 'string', 'max:80'],
             'meta.isbn' => ['nullable', 'string', 'max:40'],
@@ -320,9 +369,20 @@ class StudyMaterialController extends Controller
             'meta.exam_focus' => ['nullable', 'string', 'max:120'],
             'meta.solution_type' => ['nullable', 'string', 'max:80'],
             'meta.solution_format' => ['nullable', 'string', 'max:80'],
+            'meta.marks_obtained' => ['nullable', 'string', 'max:20'],
             'meta.term' => ['nullable', 'string', 'max:80'],
             'meta.month' => ['nullable', 'string', 'max:40'],
             'meta.set_code' => ['nullable', 'string', 'max:40'],
+            'meta.is_board' => ['nullable', 'boolean'],
+            'meta.institution_type' => ['nullable', 'string', 'in:university,college,school'],
+            'meta.solution_mode' => ['nullable', 'string', 'in:upload,custom'],
+            'meta.custom_solution_html' => ['nullable', 'string', 'max:500000'],
+            'meta.solution_editor_language' => ['nullable', 'string', 'max:20'],
+            'solution_file' => ['nullable', 'file', 'max:51200'],
+            'meta.solved_worksheet_mode' => ['nullable', 'string', 'in:upload,custom'],
+            'meta.custom_solved_worksheet_html' => ['nullable', 'string', 'max:500000'],
+            'meta.solved_worksheet_editor_language' => ['nullable', 'string', 'max:20'],
+            'solved_worksheet_file' => ['nullable', 'file', 'max:51200'],
             'meta.content_type' => ['nullable', 'string', 'max:30'],
             'meta.lesson_type' => ['nullable', 'string', 'max:80'],
             'meta.duration' => ['nullable', 'string', 'max:40'],
@@ -341,8 +401,6 @@ class StudyMaterialController extends Controller
             'file.required' => 'Please upload a file or provide a valid link.',
         ]);
 
-        $validated['is_free'] = $request->boolean('is_free', true)
-            || collect($request->input('meta.options', []))->contains('allow_download');
         $validated['tags'] = collect(explode(',', (string) ($validated['tags'] ?? '')))
             ->map(fn ($tag) => trim($tag))
             ->filter()
@@ -378,10 +436,256 @@ class StudyMaterialController extends Controller
             $meta['generate_preview'] = $request->boolean('meta.generate_preview');
         }
 
+        if ($materialType === 'question_papers') {
+            $meta['is_board'] = $request->boolean('meta.is_board');
+
+            if ($meta['is_board']) {
+                unset($meta['institution_type']);
+                abort_unless(filled($validated['board_university'] ?? null), 422, 'Please select board name.');
+                $meta = $this->applyBoardQuestionPaperSolution($request, $meta, $material);
+            } else {
+                $institutionType = (string) ($request->input('meta.institution_type') ?? '');
+                abort_unless(in_array($institutionType, ['university', 'college', 'school'], true), 422, 'Please select institution type.');
+                $meta['institution_type'] = $institutionType;
+                abort_unless(filled($validated['board_university'] ?? null), 422, 'Please enter institution name.');
+                unset($meta['month']);
+                $meta = $this->clearBoardQuestionPaperSolution($meta, $material);
+            }
+        }
+
+        if ($isCustomContent) {
+            $customContentHtml = trim((string) ($meta['custom_note_html'] ?? ''));
+            $customContentMessage = match ($materialType) {
+                'sample_papers' => 'Please write your solved paper content.',
+                'worksheets' => 'Please write your worksheet content.',
+                'assignments' => 'Please write your assignment content.',
+                default => 'Please write your custom note content.',
+            };
+            abort_unless(filled(strip_tags($customContentHtml)), 422, $customContentMessage);
+            $meta['content_mode'] = 'custom';
+        } elseif (in_array($materialType, self::CUSTOM_CONTENT_TYPES, true)) {
+            $meta['content_mode'] = $meta['content_mode'] ?? 'upload';
+        }
+
+        if ($materialType === 'worksheets') {
+            $meta = $this->applyWorksheetSolved($request, $meta, $material);
+        } else {
+            $meta = $this->clearWorksheetSolved($meta, $material);
+        }
+
+        if ($materialType === 'reference_books') {
+            abort_unless($request->boolean('meta.author_rights_confirmed'), 422, 'You must confirm that you are the author and hold all rights to this book.');
+            $meta['author_rights_confirmed'] = true;
+        } else {
+            unset($meta['author_rights_confirmed']);
+        }
+
+        if ($materialType === 'notes') {
+            $visibility = in_array($meta['visibility'] ?? 'public', ['public', 'personal'], true)
+                ? ($meta['visibility'] ?? 'public')
+                : 'public';
+            $meta['visibility'] = $visibility;
+
+            if ($visibility === 'personal') {
+                $validated['is_free'] = true;
+                $validated['price'] = null;
+                $meta['pricing_mode'] = 'free';
+            } else {
+                $pricingMode = ($meta['pricing_mode'] ?? 'free') === 'paid' ? 'paid' : 'free';
+                $meta['pricing_mode'] = $pricingMode;
+
+                if ($pricingMode === 'paid') {
+                    $price = (float) $request->input('price', 0);
+                    abort_unless($price > 0, 422, 'Please enter a valid price for paid notes.');
+                    $validated['is_free'] = false;
+                    $validated['price'] = round($price, 2);
+                } else {
+                    $validated['is_free'] = true;
+                    $validated['price'] = null;
+                }
+            }
+        } else {
+            $validated['is_free'] = $request->boolean('is_free', true);
+            $validated['price'] = null;
+        }
+
+        if (StudyMaterialUploadConfig::shouldShowChildSelector(auth()->user())) {
+            $childProfileId = (int) ($meta['child_profile_id'] ?? 0);
+            abort_unless($childProfileId > 0, 422, 'Please select which child this material is for.');
+
+            $ownsChild = auth()->user()->childProfiles()
+                ->where('id', $childProfileId)
+                ->where('status', 'approved')
+                ->exists();
+
+            abort_unless($ownsChild, 422, 'The selected child profile is invalid.');
+            $meta['uploader_role'] = 'student';
+        }
+
         $validated['meta'] = $meta ?: null;
 
-        unset($validated['file'], $validated['thumbnail'], $validated['terms_accepted']);
+        unset($validated['file'], $validated['thumbnail'], $validated['solution_file'], $validated['solved_worksheet_file'], $validated['terms_accepted']);
 
         return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function applyBoardQuestionPaperSolution(Request $request, array $meta, ?StudyMaterial $material = null): array
+    {
+        $solutionMode = $request->input('meta.solution_mode') === 'custom' ? 'custom' : 'upload';
+        $meta['solution_mode'] = $solutionMode;
+
+        if ($solutionMode === 'custom') {
+            $html = trim((string) $request->input('meta.custom_solution_html', ''));
+            if (filled(strip_tags($html))) {
+                $meta['custom_solution_html'] = $html;
+            } else {
+                unset($meta['custom_solution_html']);
+            }
+
+            if ($material && filled(data_get($material->meta, 'solution_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solution_file_path'));
+            }
+
+            unset(
+                $meta['solution_file_path'],
+                $meta['solution_file_name'],
+                $meta['solution_file_type'],
+                $meta['solution_file_size']
+            );
+
+            return $meta;
+        }
+
+        unset($meta['custom_solution_html']);
+
+        if ($request->hasFile('solution_file')) {
+            if ($material && filled(data_get($material->meta, 'solution_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solution_file_path'));
+            }
+
+            $file = $request->file('solution_file');
+            $meta['solution_file_path'] = EducatorFileUploader::storeDocument($file, 'material-solutions');
+            $meta['solution_file_name'] = $file->getClientOriginalName();
+            $meta['solution_file_type'] = strtolower($file->getClientOriginalExtension() ?: 'bin');
+            $meta['solution_file_size'] = $file->getSize();
+
+            return $meta;
+        }
+
+        foreach (['solution_file_path', 'solution_file_name', 'solution_file_type', 'solution_file_size'] as $key) {
+            $existing = data_get($material?->meta, $key);
+            if (filled($existing)) {
+                $meta[$key] = $existing;
+            }
+        }
+
+        return $meta;
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function clearBoardQuestionPaperSolution(array $meta, ?StudyMaterial $material = null): array
+    {
+        if ($material && filled(data_get($material->meta, 'solution_file_path'))) {
+            EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solution_file_path'));
+        }
+
+        unset(
+            $meta['solution_mode'],
+            $meta['custom_solution_html'],
+            $meta['solution_editor_language'],
+            $meta['solution_file_path'],
+            $meta['solution_file_name'],
+            $meta['solution_file_type'],
+            $meta['solution_file_size']
+        );
+
+        return $meta;
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function applyWorksheetSolved(Request $request, array $meta, ?StudyMaterial $material = null): array
+    {
+        $solvedMode = $request->input('meta.solved_worksheet_mode') === 'custom' ? 'custom' : 'upload';
+        $meta['solved_worksheet_mode'] = $solvedMode;
+
+        if ($solvedMode === 'custom') {
+            $html = trim((string) $request->input('meta.custom_solved_worksheet_html', ''));
+            if (filled(strip_tags($html))) {
+                $meta['custom_solved_worksheet_html'] = $html;
+            } else {
+                unset($meta['custom_solved_worksheet_html']);
+            }
+
+            if ($material && filled(data_get($material->meta, 'solved_worksheet_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solved_worksheet_file_path'));
+            }
+
+            unset(
+                $meta['solved_worksheet_file_path'],
+                $meta['solved_worksheet_file_name'],
+                $meta['solved_worksheet_file_type'],
+                $meta['solved_worksheet_file_size']
+            );
+
+            return $meta;
+        }
+
+        unset($meta['custom_solved_worksheet_html']);
+
+        if ($request->hasFile('solved_worksheet_file')) {
+            if ($material && filled(data_get($material->meta, 'solved_worksheet_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solved_worksheet_file_path'));
+            }
+
+            $file = $request->file('solved_worksheet_file');
+            $meta['solved_worksheet_file_path'] = EducatorFileUploader::storeDocument($file, 'material-solutions');
+            $meta['solved_worksheet_file_name'] = $file->getClientOriginalName();
+            $meta['solved_worksheet_file_type'] = strtolower($file->getClientOriginalExtension() ?: 'bin');
+            $meta['solved_worksheet_file_size'] = $file->getSize();
+
+            return $meta;
+        }
+
+        foreach (['solved_worksheet_file_path', 'solved_worksheet_file_name', 'solved_worksheet_file_type', 'solved_worksheet_file_size'] as $key) {
+            $existing = data_get($material?->meta, $key);
+            if (filled($existing)) {
+                $meta[$key] = $existing;
+            }
+        }
+
+        return $meta;
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function clearWorksheetSolved(array $meta, ?StudyMaterial $material = null): array
+    {
+        if ($material && filled(data_get($material->meta, 'solved_worksheet_file_path'))) {
+            EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solved_worksheet_file_path'));
+        }
+
+        unset(
+            $meta['solved_worksheet_mode'],
+            $meta['custom_solved_worksheet_html'],
+            $meta['solved_worksheet_editor_language'],
+            $meta['solved_worksheet_file_path'],
+            $meta['solved_worksheet_file_name'],
+            $meta['solved_worksheet_file_type'],
+            $meta['solved_worksheet_file_size']
+        );
+
+        return $meta;
     }
 }

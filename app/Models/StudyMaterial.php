@@ -46,6 +46,7 @@ class StudyMaterial extends Model
         'academic_year',
         'medium',
         'is_free',
+        'price',
         'is_trending',
         'is_verified',
         'tags',
@@ -68,6 +69,7 @@ class StudyMaterial extends Model
             'contents' => 'array',
             'meta' => 'array',
             'is_free' => 'boolean',
+            'price' => 'decimal:2',
             'is_trending' => 'boolean',
             'is_verified' => 'boolean',
             'average_rating' => 'decimal:2',
@@ -98,6 +100,11 @@ class StudyMaterial extends Model
     public function bookmarkedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'study_material_bookmarks')->withTimestamps();
+    }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(StudyMaterialPurchase::class);
     }
 
     public function isApproved(): bool
@@ -248,8 +255,273 @@ class StudyMaterial extends Model
         return $items;
     }
 
+    public function isPersonalNote(): bool
+    {
+        return $this->material_type === 'notes'
+            && data_get($this->meta, 'visibility', 'public') === 'personal';
+    }
+
+    public function isPublicNote(): bool
+    {
+        return $this->material_type !== 'notes'
+            || data_get($this->meta, 'visibility', 'public') === 'public';
+    }
+
+    public function isPaidNote(): bool
+    {
+        return $this->material_type === 'notes'
+            && ! $this->is_free
+            && (float) ($this->price ?? 0) > 0;
+    }
+
+    public function formattedPrice(): string
+    {
+        return '₹'.number_format((float) ($this->price ?? 0), 2);
+    }
+
+    public function isOwnedBy(?User $user): bool
+    {
+        return $user && (int) $this->user_id === (int) $user->id;
+    }
+
+    public function hasPurchasedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->purchases()
+            ->where('user_id', $user->id)
+            ->exists();
+    }
+
+    public function canAccessContent(?User $user): bool
+    {
+        if ($this->isPersonalNote()) {
+            return $this->isOwnedBy($user);
+        }
+
+        if ($this->isOwnedBy($user)) {
+            return true;
+        }
+
+        if ($this->isPaidNote()) {
+            return $this->hasPurchasedBy($user);
+        }
+
+        return true;
+    }
+
+    public function isCustomNote(): bool
+    {
+        return $this->material_type === 'notes'
+            && data_get($this->meta, 'content_mode') === 'custom';
+    }
+
+    public function isCustomSolvedPaper(): bool
+    {
+        return $this->material_type === 'sample_papers'
+            && data_get($this->meta, 'content_mode') === 'custom';
+    }
+
+    public function isCustomWorksheet(): bool
+    {
+        return $this->material_type === 'worksheets'
+            && data_get($this->meta, 'content_mode') === 'custom';
+    }
+
+    public function isCustomAssignment(): bool
+    {
+        return $this->material_type === 'assignments'
+            && data_get($this->meta, 'content_mode') === 'custom';
+    }
+
+    public function hasCustomWrittenContent(): bool
+    {
+        return in_array($this->material_type, ['notes', 'sample_papers', 'worksheets', 'assignments'], true)
+            && data_get($this->meta, 'content_mode') === 'custom'
+            && filled($this->customNoteHtml());
+    }
+
+    public function customWrittenContentLabel(): string
+    {
+        return match ($this->material_type) {
+            'sample_papers' => 'Written solved paper',
+            'worksheets' => 'Written worksheet',
+            'assignments' => 'Written assignment',
+            default => 'Written note',
+        };
+    }
+
+    public function customNoteHtml(): ?string
+    {
+        $html = data_get($this->meta, 'custom_note_html');
+
+        return filled($html) ? (string) $html : null;
+    }
+
+    public function isBoardQuestionPaper(): bool
+    {
+        return $this->material_type === 'question_papers'
+            && filter_var(data_get($this->meta, 'is_board'), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    public function isCustomBoardSolution(): bool
+    {
+        return $this->isBoardQuestionPaper()
+            && data_get($this->meta, 'solution_mode') === 'custom'
+            && filled($this->customSolutionHtml());
+    }
+
+    public function customSolutionHtml(): ?string
+    {
+        $html = data_get($this->meta, 'custom_solution_html');
+
+        return filled($html) ? (string) $html : null;
+    }
+
+    public function hasBoardSolution(): bool
+    {
+        if (! $this->isBoardQuestionPaper()) {
+            return false;
+        }
+
+        return $this->isCustomBoardSolution()
+            || filled(data_get($this->meta, 'solution_file_path'));
+    }
+
+    public function solutionFileUrl(): ?string
+    {
+        $path = data_get($this->meta, 'solution_file_path');
+
+        return filled($path) ? asset((string) $path) : null;
+    }
+
+    public function solutionFileName(): ?string
+    {
+        $name = data_get($this->meta, 'solution_file_name');
+
+        return filled($name) ? (string) $name : null;
+    }
+
+    public function solutionFileType(): ?string
+    {
+        $type = data_get($this->meta, 'solution_file_type');
+
+        return filled($type) ? strtolower((string) $type) : null;
+    }
+
+    public function solutionFileSizeLabel(): string
+    {
+        $bytes = (int) data_get($this->meta, 'solution_file_size', 0);
+
+        if ($bytes >= 1048576) {
+            return rtrim(rtrim(number_format($bytes / 1048576, 1), '0'), '.').' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return rtrim(rtrim(number_format($bytes / 1024, 1), '0'), '.').' KB';
+        }
+
+        return $bytes > 0 ? $bytes.' B' : '—';
+    }
+
+    public function canPreviewSolutionInline(): bool
+    {
+        if ($this->isCustomBoardSolution()) {
+            return true;
+        }
+
+        $type = strtolower((string) $this->solutionFileType());
+
+        return str_contains($type, 'pdf')
+            || str_contains($type, 'jpg')
+            || str_contains($type, 'jpeg')
+            || str_contains($type, 'png')
+            || str_contains($type, 'webp');
+    }
+
+    public function isCustomSolvedWorksheet(): bool
+    {
+        return $this->material_type === 'worksheets'
+            && data_get($this->meta, 'solved_worksheet_mode') === 'custom'
+            && filled($this->customSolvedWorksheetHtml());
+    }
+
+    public function customSolvedWorksheetHtml(): ?string
+    {
+        $html = data_get($this->meta, 'custom_solved_worksheet_html');
+
+        return filled($html) ? (string) $html : null;
+    }
+
+    public function hasSolvedWorksheet(): bool
+    {
+        if ($this->material_type !== 'worksheets') {
+            return false;
+        }
+
+        return $this->isCustomSolvedWorksheet()
+            || filled(data_get($this->meta, 'solved_worksheet_file_path'));
+    }
+
+    public function solvedWorksheetFileUrl(): ?string
+    {
+        $path = data_get($this->meta, 'solved_worksheet_file_path');
+
+        return filled($path) ? asset((string) $path) : null;
+    }
+
+    public function solvedWorksheetFileName(): ?string
+    {
+        $name = data_get($this->meta, 'solved_worksheet_file_name');
+
+        return filled($name) ? (string) $name : null;
+    }
+
+    public function solvedWorksheetFileType(): ?string
+    {
+        $type = data_get($this->meta, 'solved_worksheet_file_type');
+
+        return filled($type) ? strtolower((string) $type) : null;
+    }
+
+    public function solvedWorksheetFileSizeLabel(): string
+    {
+        $bytes = (int) data_get($this->meta, 'solved_worksheet_file_size', 0);
+
+        if ($bytes >= 1048576) {
+            return rtrim(rtrim(number_format($bytes / 1048576, 1), '0'), '.').' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return rtrim(rtrim(number_format($bytes / 1024, 1), '0'), '.').' KB';
+        }
+
+        return $bytes > 0 ? $bytes.' B' : '—';
+    }
+
+    public function canPreviewSolvedWorksheetInline(): bool
+    {
+        if ($this->isCustomSolvedWorksheet()) {
+            return true;
+        }
+
+        $type = strtolower((string) $this->solvedWorksheetFileType());
+
+        return str_contains($type, 'pdf')
+            || str_contains($type, 'jpg')
+            || str_contains($type, 'jpeg')
+            || str_contains($type, 'png')
+            || str_contains($type, 'webp');
+    }
+
     public function canPreviewInline(): bool
     {
+        if ($this->hasCustomWrittenContent()) {
+            return true;
+        }
+
         $type = strtolower((string) $this->file_type);
 
         return str_contains($type, 'pdf')
@@ -324,6 +596,20 @@ class StudyMaterial extends Model
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', 'approved');
+    }
+
+    public function scopePubliclyListed(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder): void {
+            $builder->where('material_type', '!=', 'notes')
+                ->orWhere(function (Builder $notes): void {
+                    $notes->where('material_type', 'notes')
+                        ->where(function (Builder $visibility): void {
+                            $visibility->whereNull('meta->visibility')
+                                ->orWhere('meta->visibility', 'public');
+                        });
+                });
+        });
     }
 
     public function scopeNotes(Builder $query): Builder

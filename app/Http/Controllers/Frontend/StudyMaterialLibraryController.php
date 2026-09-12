@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\ListingPaymentSubmission;
 use App\Models\StudyMaterial;
 use App\Models\StudyMaterialReview;
 use App\Services\PortalNotificationService;
@@ -41,7 +42,7 @@ class StudyMaterialLibraryController extends Controller
      */
     private function buildNotesPageData(Request $request): array
     {
-        $base = StudyMaterial::query()->approved()->with([
+        $base = StudyMaterial::query()->approved()->publiclyListed()->with([
             'educator:id,display_name,slug,profile_photo,is_verified,type,professional_headline',
         ]);
 
@@ -58,13 +59,14 @@ class StudyMaterialLibraryController extends Controller
 
         $stats = [
             'total' => (clone $base)->count(),
-            'subjects' => (int) StudyMaterial::query()->approved()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->count('subject'),
+            'subjects' => (int) StudyMaterial::query()->approved()->publiclyListed()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->count('subject'),
             'downloads' => (int) (clone $base)->sum('downloads_count'),
-            'contributors' => (int) StudyMaterial::query()->approved()->distinct()->count('educator_id'),
+            'contributors' => (int) StudyMaterial::query()->approved()->publiclyListed()->distinct()->count('educator_id'),
         ];
 
         $categories = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->whereNotNull('category')
             ->where('category', '!=', '')
             ->select('category', DB::raw('COUNT(*) as total'))
@@ -75,6 +77,7 @@ class StudyMaterialLibraryController extends Controller
 
         $materialTypes = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->select('material_type', DB::raw('COUNT(*) as total'))
             ->groupBy('material_type')
             ->orderByDesc('total')
@@ -82,6 +85,7 @@ class StudyMaterialLibraryController extends Controller
 
         $fileTypes = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->whereNotNull('file_type')
             ->where('file_type', '!=', '')
             ->select('file_type', DB::raw('COUNT(*) as total'))
@@ -91,6 +95,7 @@ class StudyMaterialLibraryController extends Controller
 
         $popularSubjects = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->whereNotNull('subject')
             ->where('subject', '!=', '')
             ->select('subject', DB::raw('COUNT(*) as total'))
@@ -101,6 +106,7 @@ class StudyMaterialLibraryController extends Controller
 
         $topContributors = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->select(
                 'educator_id',
                 DB::raw('COUNT(*) as materials_count'),
@@ -171,10 +177,18 @@ class StudyMaterialLibraryController extends Controller
             ])
             ->firstOrFail();
 
+        if ($material->isPersonalNote() && ! $material->isOwnedBy(auth()->user())) {
+            abort(404);
+        }
+
         $material->increment('views_count');
+
+        $canAccessContent = $material->canAccessContent(auth()->user());
+        $paymentState = $this->resolvePaymentState($material);
 
         $related = StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->where('id', '!=', $material->id)
             ->where(function ($q) use ($material) {
                 $q->where('subject', $material->subject)
@@ -196,12 +210,18 @@ class StudyMaterialLibraryController extends Controller
                 ->first()
             : null;
 
-        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked', 'userReview'));
+        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked', 'userReview', 'canAccessContent', 'paymentState'));
     }
 
     public function download(string $slug): BinaryFileResponse|RedirectResponse
     {
         $material = StudyMaterial::query()->approved()->where('slug', $slug)->firstOrFail();
+
+        if ($material->isPersonalNote() && ! $material->isOwnedBy(auth()->user())) {
+            abort(403);
+        }
+
+        abort_unless($material->canAccessContent(auth()->user()), 403, 'Please purchase this note to download it.');
 
         abort_unless(filled($material->file_path) && is_file(public_path($material->file_path)), 404);
 
@@ -210,6 +230,38 @@ class StudyMaterialLibraryController extends Controller
         return response()->download(
             public_path($material->file_path),
             $material->file_name ?: basename($material->file_path)
+        );
+    }
+
+    public function downloadSolution(string $slug): BinaryFileResponse|RedirectResponse
+    {
+        $material = StudyMaterial::query()->approved()->where('slug', $slug)->firstOrFail();
+
+        abort_unless($material->canAccessContent(auth()->user()), 403);
+        abort_unless($material->hasBoardSolution(), 404);
+
+        $solutionPath = data_get($material->meta, 'solution_file_path');
+        abort_unless(filled($solutionPath) && is_file(public_path($solutionPath)), 404);
+
+        return response()->download(
+            public_path($solutionPath),
+            $material->solutionFileName() ?: basename($solutionPath)
+        );
+    }
+
+    public function downloadSolvedWorksheet(string $slug): BinaryFileResponse|RedirectResponse
+    {
+        $material = StudyMaterial::query()->approved()->where('slug', $slug)->firstOrFail();
+
+        abort_unless($material->canAccessContent(auth()->user()), 403);
+        abort_unless($material->hasSolvedWorksheet(), 404);
+
+        $filePath = data_get($material->meta, 'solved_worksheet_file_path');
+        abort_unless(filled($filePath) && is_file(public_path($filePath)), 404);
+
+        return response()->download(
+            public_path($filePath),
+            $material->solvedWorksheetFileName() ?: basename($filePath)
         );
     }
 
@@ -391,10 +443,59 @@ class StudyMaterialLibraryController extends Controller
     {
         return StudyMaterial::query()
             ->approved()
+            ->publiclyListed()
             ->whereNotNull($column)
             ->where($column, '!=', '')
             ->distinct()
             ->orderBy($column)
             ->pluck($column);
+    }
+
+    /**
+     * @return array{mode: string, submitted_at: ?\Illuminate\Support\Carbon, last_rejected_note: ?string}
+     */
+    private function resolvePaymentState(StudyMaterial $material): array
+    {
+        if (! $material->isPaidNote()) {
+            return ['mode' => 'free', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        if ($material->canAccessContent(auth()->user())) {
+            return ['mode' => 'purchased', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        if (! auth()->check()) {
+            return ['mode' => 'login_required', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        $pending = ListingPaymentSubmission::query()
+            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
+            ->where('listing_id', $material->id)
+            ->where('user_id', auth()->id())
+            ->where('status', ListingPaymentSubmission::STATUS_PENDING)
+            ->latest('submitted_at')
+            ->first();
+
+        if ($pending) {
+            return [
+                'mode' => 'pending',
+                'submitted_at' => $pending->submitted_at,
+                'last_rejected_note' => null,
+            ];
+        }
+
+        $rejected = ListingPaymentSubmission::query()
+            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
+            ->where('listing_id', $material->id)
+            ->where('user_id', auth()->id())
+            ->where('status', ListingPaymentSubmission::STATUS_REJECTED)
+            ->latest('reviewed_at')
+            ->first();
+
+        return [
+            'mode' => 'payment_required',
+            'submitted_at' => null,
+            'last_rejected_note' => $rejected?->admin_note,
+        ];
     }
 }

@@ -39,7 +39,11 @@ class ListingPaymentSubmissionController extends Controller
 
         return DataTables::of($query)
             ->addColumn('listing_type_label', function (ListingPaymentSubmission $submission): string {
-                $icon = $submission->listing_type === ListingPaymentSubmission::TYPE_AD ? 'fa-rectangle-ad' : 'fa-tags';
+                $icon = match ($submission->listing_type) {
+                    ListingPaymentSubmission::TYPE_AD => 'fa-rectangle-ad',
+                    ListingPaymentSubmission::TYPE_STUDY_MATERIAL => 'fa-note-sticky',
+                    default => 'fa-tags',
+                };
 
                 return '<span class="badge text-bg-light border">'
                     .'<i class="fa-solid '.$icon.' me-1"></i>'
