@@ -245,9 +245,9 @@
 <script src="{{ asset('assets/js/parent-profile.js') }}?v={{ now()->timestamp }}"></script>
 <script>
 window.ParentProfileConfig = {
-    storeChildUrl: @json(route('parent.children.store')),
-    updateProfileUrl: @json(route('parent.profile.update')),
-    deleteChildUrlBase: @json(url('/parent/children')),
+    storeChildUrl: @json(route('parent.children.store', absolute: false)),
+    updateProfileUrl: @json(route('parent.profile.update', absolute: false)),
+    deleteChildUrlBase: @json('/parent/children'),
     csrfToken: @json(csrf_token()),
 };
 </script>

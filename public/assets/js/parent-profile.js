@@ -26,11 +26,17 @@
         var enabled = $switch.is(':checked');
         var url = $switch.data('toggle-url');
 
+        var token = csrfToken();
+
         $.ajax({
             url: url,
             method: 'POST',
-            data: { _token: csrfToken(), enabled: enabled ? 1 : 0 },
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            data: { _token: token, enabled: enabled ? 1 : 0 },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token,
+            },
         })
             .done(function (response) {
                 toast('success', response.message || 'Parent profile updated.');
@@ -61,7 +67,9 @@
         event.preventDefault();
         var $form = $(this);
         var $btn = $('#addChildSubmitBtn');
+        var token = csrfToken();
         var formData = new FormData(this);
+        formData.set('_token', token);
         formData.set('is_primary', $('#child_is_primary').is(':checked') ? '1' : '0');
 
         $btn.prop('disabled', true);
@@ -72,7 +80,11 @@
             data: formData,
             processData: false,
             contentType: false,
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token,
+            },
         })
             .done(function (response) {
                 toast('success', response.message || 'Child profile submitted.');
@@ -100,11 +112,17 @@
         var $btn = $('#editParentProfileSubmitBtn');
         $btn.prop('disabled', true);
 
+        var token = csrfToken();
+
         $.ajax({
             url: window.ParentProfileConfig?.updateProfileUrl,
             method: 'POST',
-            data: $(this).serialize() + '&_method=PUT',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            data: $(this).serialize() + '&_method=PUT&_token=' + encodeURIComponent(token),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token,
+            },
         })
             .done(function (response) {
                 toast('success', response.message || 'Profile updated.');
@@ -125,11 +143,17 @@
         var deleteUrl = (window.ParentProfileConfig?.deleteChildUrlBase || '/parent/children') + '/' + id;
 
         var performDelete = function () {
+            var token = csrfToken();
+
             $.ajax({
                 url: deleteUrl,
                 method: 'POST',
-                data: { _token: csrfToken(), _method: 'DELETE' },
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                data: { _token: token, _method: 'DELETE' },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
             })
                 .done(function (response) {
                     toast('success', response.message || 'Child profile deleted.');

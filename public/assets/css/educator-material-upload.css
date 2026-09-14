@@ -356,6 +356,44 @@
   color: var(--sm-blue);
 }
 
+.sm-upload-step[data-step-id="upload"] .sm-upload-section__head {
+  margin-bottom: 1rem;
+}
+
+.sm-upload-step[data-step-id="upload"] .sm-upload-section__num {
+  width: 34px;
+  height: 34px;
+  font-size: 0.95rem;
+}
+
+.sm-upload-step[data-step-id="upload"] .sm-upload-section__title {
+  font-size: 1.15rem;
+}
+
+.js-custom-content-toggle .form-label {
+  font-size: 0.95rem;
+  margin-bottom: 0.55rem;
+}
+
+.js-custom-content-toggle .sm-upload-link-tabs {
+  gap: 0.55rem;
+  margin-bottom: 0;
+}
+
+.js-custom-content-toggle .sm-upload-link-tab {
+  padding: 0.55rem 1.15rem;
+  font-size: 0.92rem;
+}
+
+.js-custom-content-toggle .sm-upload-link-tab i {
+  font-size: 1rem;
+}
+
+.js-custom-content-toggle .text-muted {
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
 .sm-upload-options-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

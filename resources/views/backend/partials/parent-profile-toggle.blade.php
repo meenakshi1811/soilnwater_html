@@ -1,8 +1,8 @@
 @php
     $parentProfile = $user->parentProfile ?? null;
     $parentEnabled = (bool) ($parentProfile?->is_enabled ?? false);
-    $toggleUrl = route('parent.profile.toggle');
-    $dashboardUrl = route('parent.dashboard');
+    $toggleUrl = route('parent.profile.toggle', absolute: false);
+    $dashboardUrl = route('parent.dashboard', absolute: false);
 @endphp
 
 <div class="card admin-table-card mb-4" id="parentProfileToggleCard">
