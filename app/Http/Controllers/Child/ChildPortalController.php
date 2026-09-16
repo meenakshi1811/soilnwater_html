@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Child;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChildProfile;
+use App\Models\User;
+use App\Support\ActiveChildSession;
 use App\Support\AuthActor;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,22 +16,25 @@ class ChildPortalController extends Controller
     public function dashboard(Request $request): View
     {
         $childProfile = $this->resolveChildProfile($request);
+        $actingViaParent = ActiveChildSession::belongsToParent($request->user()->id);
 
-        return view('backend.child.dashboard', $this->buildDashboardData($childProfile, false));
+        return view('backend.child.dashboard', $this->buildDashboardData($childProfile, $actingViaParent));
     }
 
-    public function parentView(Request $request, ChildProfile $childProfile): View
+    public function parentView(Request $request, ChildProfile $childProfile): RedirectResponse
     {
         abort_unless($childProfile->parent_user_id === $request->user()->id, 403);
         abort_unless($childProfile->isApproved(), 404);
 
-        return view('backend.child.dashboard', $this->buildDashboardData($childProfile, true));
+        ActiveChildSession::activate($childProfile);
+
+        return redirect()->route('child.dashboard');
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function buildDashboardData(ChildProfile $childProfile, bool $viewingAsParent): array
+    private function buildDashboardData(ChildProfile $childProfile, bool $actingViaParent): array
     {
         $childProfile->loadMissing(['childUser', 'parentUser']);
 
@@ -40,9 +46,16 @@ class ChildPortalController extends Controller
             $subjects = ['Mathematics', 'Science', 'English', 'Social Studies', 'Hindi'];
         }
 
+        $parentUser = $childProfile->parentUser;
+        $approvedSiblings = $parentUser
+            ? $parentUser->childProfiles()->where('status', 'approved')->orderByDesc('is_primary')->orderBy('full_name')->get()
+            : collect();
+
         return [
             'childProfile' => $childProfile,
-            'viewingAsParent' => $viewingAsParent,
+            'viewingAsParent' => $actingViaParent,
+            'actingViaParent' => $actingViaParent,
+            'approvedSiblings' => $approvedSiblings,
             'activeNav' => 'overview',
             'classBoard' => $classBoard,
             'firstName' => $firstName,
@@ -88,13 +101,37 @@ class ChildPortalController extends Controller
 
     private function resolveChildProfile(Request $request): ChildProfile
     {
+        $activeChildProfile = ActiveChildSession::profile();
+
+        if ($activeChildProfile && $activeChildProfile->parent_user_id === $request->user()->id && $activeChildProfile->isApproved()) {
+            return $activeChildProfile;
+        }
+
         $user = AuthActor::user();
         $user->loadMissing('childProfile');
 
-        $childProfile = $user->childProfile;
+        if ($user->childProfile?->isApproved()) {
+            return $user->childProfile;
+        }
 
-        abort_unless($childProfile && $childProfile->isApproved(), 403);
+        if ($user->isSelfRegisteredStudent()) {
+            return $this->childProfileFromStudentUser($user);
+        }
 
-        return $childProfile;
+        abort(403);
+    }
+
+    private function childProfileFromStudentUser(User $user): ChildProfile
+    {
+        $profile = new ChildProfile([
+            'child_user_id' => $user->id,
+            'full_name' => $user->full_name ?: $user->name,
+            'profile_image' => $user->profile_image,
+            'status' => 'approved',
+        ]);
+
+        $profile->setRelation('childUser', $user);
+
+        return $profile;
     }
 }

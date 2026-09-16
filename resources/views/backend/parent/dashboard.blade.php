@@ -87,6 +87,25 @@
         </div>
     </section>
 
+    @if($approvedChildren->isNotEmpty())
+        <section class="parent-active-child-banner">
+            <div class="parent-active-child-banner__copy">
+                <h2>Select a child profile</h2>
+                <p>Choose an approved child below to open their dashboard. Children sign in through your parent account.</p>
+            </div>
+            @if($activeChildProfile)
+                <div class="parent-active-child-banner__status">
+                    <span>Currently viewing: <strong>{{ $activeChildProfile->full_name }}</strong></span>
+                    <a href="{{ route('child.dashboard') }}" class="parent-btn parent-btn--outline parent-btn--sm">Go to child dashboard</a>
+                    <form method="POST" action="{{ route('parent.children.switch-back') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="parent-btn parent-btn--outline parent-btn--sm">Exit child profile</button>
+                    </form>
+                </div>
+            @endif
+        </section>
+    @endif
+
     {{-- Lower section: children + quick actions --}}
     <div class="parent-lower">
         <section class="parent-children-panel">
@@ -119,8 +138,9 @@
                             $visibleSubjects = array_slice($subjects, 0, 3);
                             $extraSubjects = max(count($subjects) - 3, 0);
                             $classBoard = collect([$child->class_grade, $child->board])->filter()->implode(' • ');
+                            $isActiveChild = isset($activeChildProfile) && $activeChildProfile?->id === $child->id;
                         @endphp
-                        <article class="parent-child-card {{ $genderClass }}" data-child-id="{{ $child->id }}">
+                        <article class="parent-child-card {{ $genderClass }} @if($isActiveChild) is-active @endif" data-child-id="{{ $child->id }}">
                             <div class="parent-child-card__top">
                                 @if($childAvatar)
                                     <img src="{{ $childAvatar }}" alt="{{ $child->full_name }}" class="parent-child-card__avatar">
@@ -140,6 +160,13 @@
                                         @endif
                                     </div>
                                     <div class="parent-child-card__class">{{ $classBoard ?: 'Class details pending' }}</div>
+                                    @if($child->age || $child->date_of_birth)
+                                        <div class="parent-child-card__meta">
+                                            @if($child->age)Age {{ $child->age }}@endif
+                                            @if($child->age && $child->date_of_birth) &bull; @endif
+                                            @if($child->date_of_birth)DOB {{ $child->date_of_birth->format('d M Y') }}@endif
+                                        </div>
+                                    @endif
                                     @if($child->school_name)
                                         <div class="parent-child-card__school">{{ $child->school_name }}</div>
                                     @endif
@@ -159,9 +186,13 @@
 
                             <div class="parent-child-card__footer">
                                 @if($child->isApproved())
-                                    <a href="{{ route('parent.children.dashboard', $child) }}" class="parent-child-btn">
-                                        <i class="fa-solid fa-chart-simple"></i> View Dashboard
-                                    </a>
+                                    <form method="POST" action="{{ route('parent.children.switch', $child) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="parent-child-btn">
+                                            <i class="fa-solid fa-right-to-bracket"></i>
+                                            {{ $isActiveChild ? 'Continue as Profile' : 'Login as Profile' }}
+                                        </button>
+                                    </form>
                                 @else
                                     <button type="button" class="parent-child-btn" disabled>Awaiting approval</button>
                                 @endif
@@ -251,4 +282,14 @@ window.ParentProfileConfig = {
     csrfToken: @json(csrf_token()),
 };
 </script>
+@if(config('services.google.maps_api_key'))
+<script>
+window.initParentChildSchoolPlacesAutocomplete = function () {
+    if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+        window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(document.getElementById('addChildModal') || document);
+    }
+};
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initParentChildSchoolPlacesAutocomplete"></script>
+@endif
 @endpush

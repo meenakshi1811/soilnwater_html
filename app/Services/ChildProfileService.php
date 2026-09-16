@@ -25,26 +25,16 @@ class ChildProfileService
             ]);
         }
 
-        if (User::query()->where('email', $data['email'])->exists()) {
-            throw ValidationException::withMessages([
-                'email' => 'This email is already registered.',
-            ]);
-        }
-
-        if (User::query()->where('phone_number', $data['phone_number'])->exists()) {
-            throw ValidationException::withMessages([
-                'phone_number' => 'This phone number is already registered.',
-            ]);
-        }
-
         return DB::transaction(function () use ($parent, $data, $profileImage): ChildProfile {
+            $childEmail = $this->generateChildEmail($parent->id);
             $childUser = User::query()->create([
                 'name' => $data['full_name'],
                 'full_name' => $data['full_name'],
-                'email' => $data['email'],
+                'email' => $childEmail,
                 'phone_number' => $data['phone_number'],
+                'date_of_birth' => $data['date_of_birth'],
                 'role' => 'student',
-                'password' => Hash::make($data['password']),
+                'password' => Hash::make(Str::random(32)),
                 'is_active' => false,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
@@ -63,8 +53,10 @@ class ChildProfileService
                 'parent_user_id' => $parent->id,
                 'child_user_id' => $childUser->id,
                 'full_name' => $data['full_name'],
-                'email' => $data['email'],
+                'email' => null,
                 'phone_number' => $data['phone_number'],
+                'date_of_birth' => $data['date_of_birth'],
+                'age' => $data['age'],
                 'gender' => $data['gender'] ?? null,
                 'class_grade' => $data['class_grade'] ?? null,
                 'board' => $data['board'] ?? null,
@@ -90,7 +82,7 @@ class ChildProfileService
                 route('admin.child-profiles.show', $childProfile)
             );
 
-            $this->sendCreatedMail($childProfile, $parent);
+            $this->sendCreatedMailToParent($childProfile, $parent);
 
             return $childProfile->fresh(['childUser', 'parentUser']);
         });
@@ -185,11 +177,24 @@ class ChildProfileService
         return 'uploads/child-profiles/'.$childProfileId.'/'.$filename;
     }
 
-    private function sendCreatedMail(ChildProfile $childProfile, User $parent): void
+    private function generateChildEmail(int $parentId): string
     {
+        do {
+            $email = 'child.'.$parentId.'.'.Str::lower(Str::random(12)).'@child.soilnwater.local';
+        } while (User::query()->where('email', $email)->exists());
+
+        return $email;
+    }
+
+    private function sendCreatedMailToParent(ChildProfile $childProfile, User $parent): void
+    {
+        if (! $parent->email) {
+            return;
+        }
+
         try {
-            Mail::to($childProfile->email)->send(
-                ChildProfileCreatedByParentMail::forChild($childProfile, $parent)
+            Mail::to($parent->email)->send(
+                ChildProfileCreatedByParentMail::forParent($childProfile, $parent)
             );
         } catch (\Throwable $exception) {
             Log::warning('Failed to send child profile created email.', [
@@ -203,7 +208,6 @@ class ChildProfileService
     {
         $statusLabel = $action === 'approved' ? 'approved' : 'declined';
         $parentUrl = route('parent.dashboard');
-        $loginUrl = route('login');
 
         PortalNotificationService::notifyOwnerOfReview(
             $childProfile->parentUser,
@@ -214,24 +218,12 @@ class ChildProfileService
             $reason
         );
 
-        PortalNotificationService::notifyUser(
-            $childProfile->childUser,
-            'Child profile '.$statusLabel,
-            'Your profile created by '.($childProfile->parentUser?->full_name ?: $childProfile->parentUser?->name ?: 'your parent').' has been '.$statusLabel.'.',
-            $action === 'approved' ? $loginUrl : null,
-            'reviewed'
-        );
-
         try {
             if ($childProfile->parentUser?->email) {
                 Mail::to($childProfile->parentUser->email)->send(
                     ChildProfileStatusMail::forParent($childProfile, $action, $reason)
                 );
             }
-
-            Mail::to($childProfile->email)->send(
-                ChildProfileStatusMail::forChild($childProfile, $action, $reason)
-            );
         } catch (\Throwable $exception) {
             Log::warning('Failed to send child profile status email.', [
                 'child_profile_id' => $childProfile->id,

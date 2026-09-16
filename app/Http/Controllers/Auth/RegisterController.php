@@ -46,7 +46,7 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        return Validator::make($data, [
+        $validator = Validator::make($data, [
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
@@ -55,13 +55,13 @@ class RegisterController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,student'],
             'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,student', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
         ], [
@@ -72,10 +72,38 @@ class RegisterController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
-            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, and teacher / tutor registrations.',
-            'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, teacher / tutor, and student registrations.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
+
+        $validator->after(function ($validator) use ($data): void {
+            if ($validator->errors()->has('date_of_birth') || empty($data['date_of_birth'])) {
+                return;
+            }
+
+            $dateOfBirth = \Illuminate\Support\Carbon::parse($data['date_of_birth']);
+            $role = (string) ($data['role'] ?? '');
+
+            if ($role === 'student') {
+                if ($dateOfBirth->gt(now()->subYears(16))) {
+                    $validator->errors()->add(
+                        'date_of_birth',
+                        'You are not eligible for this as you are not 16+. Please tell your parent to create a user profile here and enable parent mode.'
+                    );
+                }
+
+                return;
+            }
+
+            if ($dateOfBirth->gt(now()->subYears(18))) {
+                $validator->errors()->add(
+                    'date_of_birth',
+                    'You must be at least 18 years old to register.'
+                );
+            }
+        });
+
+        return $validator;
     }
 
     /**
@@ -108,7 +136,7 @@ class RegisterController extends Controller
 
         $user = $this->create($payload);
 
-        if ($user->isGeneralUser() && $request->hasFile('profile_image')) {
+        if (($user->isGeneralUser() || $user->isStudent()) && $request->hasFile('profile_image')) {
             $user->forceFill([
                 'profile_image' => UserFileUploader::storeImage($request->file('profile_image'), 'profiles'),
             ])->save();
@@ -200,7 +228,7 @@ class RegisterController extends Controller
             return redirect()->route('register.contact.verify.form')->with('status', $message);
         }
 
-        if ($user->isGeneralUser()) {
+        if ($user->isGeneralUser() || $user->isStudent()) {
             $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
 

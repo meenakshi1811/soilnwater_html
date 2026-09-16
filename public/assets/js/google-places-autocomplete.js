@@ -85,6 +85,103 @@
         return place.name || getSelectedAddress(place);
     }
 
+    function resolveInputTarget(input, datasetKey) {
+        var target = input.dataset[datasetKey];
+
+        if (!target) {
+            return null;
+        }
+
+        if (input.form) {
+            var formMatch = input.form.querySelector('#' + target)
+                || input.form.querySelector('[name="' + target + '"]');
+
+            if (formMatch) {
+                return formMatch;
+            }
+        }
+
+        return document.getElementById(target)
+            || document.querySelector('[name="' + target + '"]');
+    }
+
+    function clearCoordinateTargets(input) {
+        var latitudeInput = resolveInputTarget(input, 'latitudeTarget');
+        var longitudeInput = resolveInputTarget(input, 'longitudeTarget');
+
+        if (latitudeInput) {
+            latitudeInput.value = '';
+        }
+
+        if (longitudeInput) {
+            longitudeInput.value = '';
+        }
+    }
+
+    function bindSchoolInstituteInput(input) {
+        if (!input || input.dataset.googlePlacesReady === 'true') {
+            return;
+        }
+
+        if (!window.google || !google.maps || !google.maps.places) {
+            var attempts = Number(input.dataset.googlePlacesAttempts || 0);
+
+            if (attempts >= 20) {
+                return;
+            }
+
+            input.dataset.googlePlacesAttempts = String(attempts + 1);
+            window.setTimeout(function () {
+                bindSchoolInstituteInput(input);
+            }, 500);
+
+            return;
+        }
+
+        var latitudeInput = resolveInputTarget(input, 'latitudeTarget');
+        var longitudeInput = resolveInputTarget(input, 'longitudeTarget');
+        var usesCoordinates = Boolean(latitudeInput && longitudeInput);
+
+        bindAutocomplete(input, {
+            types: ['establishment'],
+            addressComponents: false,
+            geometry: usesCoordinates,
+            onPlaceChanged: function (place) {
+                var placeName = getPlaceName(place);
+
+                if (placeName) {
+                    input.value = placeName;
+                }
+
+                if (usesCoordinates && place && place.geometry && place.geometry.location) {
+                    latitudeInput.value = String(place.geometry.location.lat());
+                    longitudeInput.value = String(place.geometry.location.lng());
+                }
+
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            },
+        });
+
+        if (!input.dataset.schoolSearchInputBound) {
+            input.addEventListener('input', function () {
+                if (!input.value.trim()) {
+                    clearCoordinateTargets(input);
+                }
+            });
+
+            input.dataset.schoolSearchInputBound = 'true';
+        }
+    }
+
+    function initSchoolInstituteSearchFields(root) {
+        var scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+
+        scope.querySelectorAll('.js-school-institute-search, .js-experience-organization').forEach(function (input) {
+            bindSchoolInstituteInput(input);
+        });
+    }
+
     function bindAutocomplete(input, options) {
         options = options || {};
 
@@ -122,5 +219,6 @@
         buildFields: buildFields,
         buildOptions: buildOptions,
         bindAutocomplete: bindAutocomplete,
+        initSchoolInstituteSearchFields: initSchoolInstituteSearchFields,
     };
 })(window);

@@ -45,14 +45,39 @@
 @endphp
 
 <div class="child-dashboard">
+    @if($viewingAsParent ?? false)
+        <div class="child-parent-mode-banner">
+            <div>
+                <strong>Parent mode</strong>
+                <span>You are viewing {{ $childProfile->full_name }}&rsquo;s profile. Switch profiles or return to your parent dashboard anytime.</span>
+            </div>
+            <div class="child-parent-mode-banner__actions">
+                @if(($approvedSiblings ?? collect())->count() > 1)
+                    <div class="child-select-wrap">
+                        <select class="child-select js-switch-child-profile" aria-label="Switch child profile">
+                            @foreach($approvedSiblings as $sibling)
+                                <option value="{{ route('parent.children.switch', $sibling) }}" @selected($sibling->id === $childProfile->id)>
+                                    {{ $sibling->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                @endif
+                <form method="POST" action="{{ route('parent.children.switch-back') }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="child-btn child-btn--outline child-btn--sm">Exit child profile</button>
+                </form>
+            </div>
+        </div>
+    @endif
+
     {{-- Page header --}}
     <header class="child-page-header">
         <div class="child-page-header__main">
             <nav class="child-breadcrumbs" aria-label="Breadcrumb">
-                @if($viewingAsParent)
-                    <a href="{{ route('parent.dashboard') }}">Dashboard</a>
-                    <span>&rsaquo;</span>
-                    <span>My Children</span>
+                @if($viewingAsParent ?? false)
+                    <a href="{{ route('parent.dashboard') }}">Parent Dashboard</a>
                     <span>&rsaquo;</span>
                     <span class="is-current">{{ $childProfile->full_name }}</span>
                 @else
@@ -286,5 +311,35 @@ document.querySelectorAll('.child-tab').forEach((tab) => {
         tab.classList.add('is-active');
     });
 });
+
+(function () {
+    var switcher = document.querySelector('.js-switch-child-profile');
+    if (!switcher) {
+        return;
+    }
+
+    switcher.addEventListener('change', function () {
+        var action = this.value;
+        if (!action) {
+            return;
+        }
+
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = action;
+
+        var token = document.querySelector('meta[name="csrf-token"]');
+        if (token) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_token';
+            input.value = token.getAttribute('content');
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+})();
 </script>
 @endpush

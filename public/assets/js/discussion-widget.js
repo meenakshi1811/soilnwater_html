@@ -206,8 +206,8 @@
         }
 
         const widgetOpen = Boolean(widget?.classList.contains('is-open') && !widget.hidden);
-        fab.classList.toggle('is-open', widgetOpen);
-        fab.setAttribute('aria-expanded', widgetOpen ? 'true' : 'false');
+        fab?.classList.toggle('is-open', widgetOpen);
+        fab?.setAttribute('aria-expanded', widgetOpen ? 'true' : 'false');
     }
 
     function syncBannerChatPosition() {

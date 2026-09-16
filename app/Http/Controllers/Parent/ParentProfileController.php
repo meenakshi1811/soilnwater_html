@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\ChildProfile;
 use App\Services\ChildProfileService;
 use App\Services\ParentProfileService;
+use App\Support\ActiveChildSession;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -28,12 +31,15 @@ class ParentProfileController extends Controller
         $children = $user->childProfiles()->with('childUser')->latest()->get();
         $approvedChildren = $children->where('status', 'approved');
         $primaryChild = $children->firstWhere('is_primary', true) ?: $approvedChildren->first();
+        $activeChildProfile = ActiveChildSession::profile();
 
         return view('backend.parent.dashboard', [
             'user' => $user,
             'parentProfile' => $parentProfile,
             'children' => $children,
+            'approvedChildren' => $approvedChildren,
             'primaryChild' => $primaryChild,
+            'activeChildProfile' => $activeChildProfile,
             'stats' => [
                 'children' => $children->count(),
                 'materials_saved' => 0,
@@ -90,19 +96,57 @@ class ParentProfileController extends Controller
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'dob_day' => ['required', 'integer', 'min:1', 'max:31'],
+            'dob_month' => ['required', 'integer', 'min:1', 'max:12'],
+            'dob_year' => ['required', 'integer', 'min:'.(now()->year - 25), 'max:'.now()->year],
+            'age' => ['required', 'integer', 'min:1', 'max:25'],
             'gender' => ['nullable', 'in:male,female,other'],
             'class_grade' => ['nullable', 'string', 'max:100'],
-            'board' => ['nullable', 'string', 'max:100'],
+            'has_board' => ['nullable', 'boolean'],
+            'board' => ['nullable', 'required_if:has_board,1,true', 'string', 'max:100'],
             'school_name' => ['nullable', 'string', 'max:255'],
             'subjects' => ['nullable'],
             'is_primary' => ['nullable', 'boolean'],
             'profile_image' => ['nullable', 'image', 'max:2048'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'board.required_if' => 'Please enter the board name when board is enabled.',
         ]);
+
+        if (! ($validated['has_board'] ?? false)) {
+            $validated['board'] = null;
+        }
+
+        if (! checkdate((int) $validated['dob_month'], (int) $validated['dob_day'], (int) $validated['dob_year'])) {
+            return response()->json([
+                'message' => 'Please enter a valid date of birth.',
+                'errors' => ['date_of_birth' => ['Please enter a valid date of birth.']],
+            ], 422);
+        }
+
+        $dateOfBirth = Carbon::createFromDate(
+            (int) $validated['dob_year'],
+            (int) $validated['dob_month'],
+            (int) $validated['dob_day']
+        );
+
+        if ($dateOfBirth->isFuture()) {
+            return response()->json([
+                'message' => 'Date of birth cannot be in the future.',
+                'errors' => ['date_of_birth' => ['Date of birth cannot be in the future.']],
+            ], 422);
+        }
+
+        $calculatedAge = $dateOfBirth->age;
+        if (abs($calculatedAge - (int) $validated['age']) > 1) {
+            return response()->json([
+                'message' => 'Age does not match the selected date of birth.',
+                'errors' => ['age' => ['Age does not match the selected date of birth.']],
+            ], 422);
+        }
+
+        $validated['date_of_birth'] = $dateOfBirth->toDateString();
 
         $childProfile = $this->childProfileService->createForParent(
             $user,
@@ -111,7 +155,7 @@ class ParentProfileController extends Controller
         );
 
         return response()->json([
-            'message' => 'Child profile submitted successfully. Admin approval is required before the child can sign in.',
+            'message' => 'Child profile submitted successfully. Admin approval is required before you can access this profile from your parent dashboard.',
             'child' => [
                 'id' => $childProfile->id,
                 'full_name' => $childProfile->full_name,
@@ -120,9 +164,37 @@ class ParentProfileController extends Controller
         ], 201);
     }
 
+    public function switchToChild(Request $request, ChildProfile $childProfile): RedirectResponse
+    {
+        abort_unless($childProfile->parent_user_id === $request->user()->id, 403);
+        abort_unless($childProfile->isApproved(), 404);
+        abort_unless($request->user()->hasParentProfileEnabled(), 403);
+
+        ActiveChildSession::activate($childProfile);
+
+        return redirect()
+            ->route('child.dashboard')
+            ->with('success', 'You are now viewing '.$childProfile->full_name.'\'s profile.');
+    }
+
+    public function switchBack(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->hasParentProfileEnabled(), 403);
+
+        ActiveChildSession::clear();
+
+        return redirect()
+            ->route('parent.dashboard')
+            ->with('success', 'Returned to parent dashboard.');
+    }
+
     public function destroyChild(Request $request, ChildProfile $childProfile): JsonResponse
     {
         abort_unless($childProfile->parent_user_id === $request->user()->id, 403);
+
+        if (ActiveChildSession::id() === $childProfile->id) {
+            ActiveChildSession::clear();
+        }
 
         $this->childProfileService->delete($childProfile);
 

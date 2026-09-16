@@ -557,10 +557,12 @@ class Educator extends Model
 
         $total = (int) ($profile->total ?? 0) + (int) ($materials->total ?? 0);
         $sum = (float) ($profile->rating_sum ?? 0) + (float) ($materials->rating_sum ?? 0);
+        $averageRating = $total > 0 ? round($sum / $total, 2) : 0;
 
         $this->forceFill([
             'reviews_count' => $total,
-            'average_rating' => $total > 0 ? round($sum / $total, 2) : 0,
+            'average_rating' => $averageRating,
+            'success_rate' => $total > 0 ? round(($averageRating / 5) * 100, 2) : null,
         ])->save();
     }
 

@@ -68,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'service_provider.account' => EnsureServiceProviderIsApproved::class,
             'educator.account' => EnsureEducatorAccount::class,
             'student.account' => EnsureStudentAccount::class,
+            'child.portal' => \App\Http\Middleware\EnsureChildPortalAccess::class,
             'marketplace.approved' => EnsureMarketplacePostingAccountApproved::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

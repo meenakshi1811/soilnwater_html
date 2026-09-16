@@ -7,6 +7,7 @@ use App\Services\DiscussionGroupInvitationService;
 use App\Services\PortalNotificationService;
 use App\Services\PremiumPromptService;
 use App\Support\GoogleGeocoder;
+use App\Support\UserDashboard;
 use App\Support\UserFileUploader;
 use App\Mail\ConsultantStatusMail;
 use App\Mail\EducatorStatusMail;
@@ -53,7 +54,7 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            return $user->dashboardUrl();
+            return UserDashboard::url($user);
         }
 
         return '/home';
@@ -69,7 +70,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
+        if ($user->requiresContactVerification() && ! $user->hasVerifiedContact()) {
             Auth::logout();
 
             return $this->contactVerificationRequiredResponse(
@@ -99,7 +100,7 @@ class LoginController extends Controller
             );
         }
 
-        if (! $this->isMarketplaceUser($user) && ! $user->isGeneralUser() && ! $user->hasVerifiedEmail()) {
+        if (! $this->isMarketplaceUser($user) && ! $user->requiresContactVerification() && ! $user->hasVerifiedEmail()) {
             Auth::logout();
 
             if ($request->expectsJson()) {
@@ -155,7 +156,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
+        if ($user->requiresContactVerification() && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
@@ -321,11 +322,11 @@ class LoginController extends Controller
             return $childApprovalResponse;
         }
 
-        if (($user->isGeneralUser() || $user->isEducator() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
+        if (($user->requiresContactVerification() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
 
-            $message = ($user->isGeneralUser() || $user->isEducator())
+            $message = $user->requiresContactVerification()
                 ? 'Your email and phone number are not verified yet. Please verify your account first.'
                 : 'Your account is approved. Please verify your email and phone number before signing in.';
 
@@ -336,7 +337,7 @@ class LoginController extends Controller
             );
         }
 
-        if (! $this->isMarketplaceUser($user) && ! $user->isGeneralUser() && ! $user->hasVerifiedEmail()) {
+        if (! $this->isMarketplaceUser($user) && ! $user->isGeneralUser() && ! $user->isStudent() && ! $user->hasVerifiedEmail()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
             $message = 'Your account is not verified yet. Please verify your email before signing in.';
@@ -504,7 +505,7 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if (($user->isGeneralUser() || $user->isEducator()) && ! $user->hasVerifiedContact()) {
+        if ($user->requiresContactVerification() && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
@@ -918,26 +919,11 @@ class LoginController extends Controller
 
     private function ensureApprovedChildAccount(Request $request, User $user, bool $logout = false): RedirectResponse|JsonResponse|null
     {
-        if (! $user->isStudent()) {
+        if (! $user->isParentManagedChild()) {
             return null;
         }
 
-        $user->loadMissing('childProfile');
-        $childProfile = $user->childProfile;
-
-        if (! $childProfile) {
-            return null;
-        }
-
-        $message = match ($childProfile->status) {
-            'approved' => null,
-            'rejected' => 'Your child profile has been declined by the admin. Please contact your parent/guardian or support for assistance.',
-            default => 'Your child profile is pending admin approval. You will be able to sign in once approved.',
-        };
-
-        if (! $message) {
-            return null;
-        }
+        $message = 'Child profiles cannot sign in directly. Please ask your parent to sign in and select your profile from the parent dashboard.';
 
         if ($logout) {
             Auth::logout();

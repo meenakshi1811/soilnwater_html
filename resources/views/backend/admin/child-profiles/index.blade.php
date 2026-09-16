@@ -30,7 +30,7 @@
                 <tr>
                     <th>Child</th>
                     <th>Parent</th>
-                    <th>Email</th>
+                    <th>Age</th>
                     <th>Phone</th>
                     <th>Class / Board</th>
                     <th>Status</th>

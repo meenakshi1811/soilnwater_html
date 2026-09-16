@@ -45,7 +45,7 @@ class EducatorProfileController extends Controller
         $questionPapersTotal = (clone $questionPapersQuery)->count();
         $questionPapers = $questionPapersQuery->latest()->limit(3)->get();
 
-        $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 10);
+        $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 100);
         $profileReviews = $profileReviewsPage['items'];
         $profileReviewsTotal = $profileReviewsPage['total'];
         $profileReviewsHasMore = $profileReviewsPage['has_more'];
@@ -53,10 +53,12 @@ class EducatorProfileController extends Controller
         $educator->recalculateRating();
         $educator->refresh();
 
-        $userReview = auth()->check()
+        $authUser = auth()->user();
+        $canWriteReview = $authUser?->canWriteEducatorReview($educator) ?? false;
+        $userReview = $canWriteReview
             ? EducatorReview::query()
                 ->where('educator_id', $educator->id)
-                ->where('user_id', auth()->id())
+                ->where('user_id', $authUser->id)
                 ->first()
             : null;
 
@@ -73,7 +75,8 @@ class EducatorProfileController extends Controller
             'profileReviewsTotal',
             'profileReviewsHasMore',
             'testimonials',
-            'userReview'
+            'userReview',
+            'canWriteReview'
         ));
     }
 
@@ -617,6 +620,9 @@ class EducatorProfileController extends Controller
             ->with('user')
             ->where('slug', $slug)
             ->firstOrFail();
+
+        $user = auth()->user();
+        abort_unless($user && $user->canWriteEducatorReview($educator), 403, 'Only parent and student accounts can leave reviews. Child profiles cannot submit reviews.');
 
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],

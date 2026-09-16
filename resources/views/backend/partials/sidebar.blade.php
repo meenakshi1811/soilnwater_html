@@ -38,8 +38,13 @@
     $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
     $childProfilesMenuActive = request()->routeIs('admin.child-profiles.*');
     $hasParentProfileEnabled = (bool) $user?->parentProfile?->is_enabled;
+    $activeChildProfile = \App\Support\ActiveChildSession::profile();
+    $isActingAsChild = $hasParentProfileEnabled && $activeChildProfile && $activeChildProfile->parent_user_id === $user?->id;
 
-    if ($isGeneralUser) {
+    if ($isActingAsChild) {
+        $dashboardUrl = route('child.dashboard');
+        $dashboardActive = request()->routeIs('child.*');
+    } elseif ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
         $dashboardActive = request()->routeIs('user.dashboard');
     } elseif ($isVendor && $vendorApproved) {
@@ -111,7 +116,7 @@
                 <span>Dashboard</span>
             </a>
         </li>
-        @if($hasParentProfileEnabled)
+        @if($hasParentProfileEnabled && ! $isActingAsChild)
             <li>
                 <a class="{{ $parentDashboardActive ? 'active' : '' }}" href="{{ route('parent.dashboard') }}">
                     <i class="fa-solid fa-children"></i>
@@ -319,8 +324,16 @@
                     <span>Profile</span>
                 </a>
             </li>
-        @elseif($isStudent)
+        @elseif($isStudent || $isActingAsChild)
             @include('backend.partials.sidebar-student-menus')
+            @if($isActingAsChild)
+                <li>
+                    <a class="{{ $parentDashboardActive ? 'active' : '' }}" href="{{ route('parent.dashboard') }}">
+                        <i class="fa-solid fa-people-roof"></i>
+                        <span>Parent Dashboard</span>
+                    </a>
+                </li>
+            @endif
         @elseif($isGeneralUser)
             @if($canAccessOffers)
             <li>

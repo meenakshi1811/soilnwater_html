@@ -71,11 +71,13 @@
                 type="text"
                 name="child_school_name"
                 id="childSchoolName"
-                class="form-control"
+                class="form-control js-school-institute-search"
+                autocomplete="off"
                 value="{{ old('child_school_name', data_get($post->meta, 'child_school_name', data_get($post->meta, 'school_name'))) }}"
                 maxlength="160"
-                placeholder="Optional — helps schools participate"
+                placeholder="Search school name"
             >
+            <small class="text-muted">Start typing to search schools via Google.</small>
         </div>
     </div>
 </div>

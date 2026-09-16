@@ -22,9 +22,13 @@ class EducatorProfileController extends Controller
             $user->name = $user->educator->display_name;
         }
 
+        $educator = $user->educator;
+        $educator?->recalculateRating();
+        $educator?->refresh();
+
         return view('backend.educator.profile', [
             'user' => $user,
-            'educator' => $user->educator,
+            'educator' => $educator,
         ]);
     }
 
@@ -107,7 +111,6 @@ class EducatorProfileController extends Controller
             'tuition_delivery_options.personal.timings' => ['nullable', 'string', 'max:255'],
             'years_experience' => ['nullable', 'integer', 'min:0', 'max:80'],
             'students_taught' => ['nullable', 'integer', 'min:0'],
-            'success_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_available_now' => ['nullable', 'boolean'],
             'facebook_url' => ['nullable', 'url', 'max:500'],
             'instagram_url' => ['nullable', 'url', 'max:500'],
@@ -199,6 +202,7 @@ class EducatorProfileController extends Controller
             'address',
             'date_of_birth',
             'password',
+            'success_rate',
         ])->all());
 
         if ($phoneChanged) {

@@ -28,8 +28,9 @@
                 <h5 class="mb-3">Child details</h5>
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Full name</dt><dd class="col-sm-8">{{ $childProfile->full_name }}</dd>
-                    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $childProfile->email }}</dd>
                     <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ $childProfile->phone_number }}</dd>
+                    <dt class="col-sm-4">Age</dt><dd class="col-sm-8">{{ $childProfile->age ?: '—' }}</dd>
+                    <dt class="col-sm-4">Date of birth</dt><dd class="col-sm-8">{{ $childProfile->date_of_birth?->format('d M Y') ?? '—' }}</dd>
                     <dt class="col-sm-4">Gender</dt><dd class="col-sm-8">{{ ucfirst($childProfile->gender ?: '—') }}</dd>
                     <dt class="col-sm-4">Class / Grade</dt><dd class="col-sm-8">{{ $childProfile->class_grade ?: '—' }}</dd>
                     <dt class="col-sm-4">Board</dt><dd class="col-sm-8">{{ $childProfile->board ?: '—' }}</dd>

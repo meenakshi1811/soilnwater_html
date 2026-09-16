@@ -891,6 +891,7 @@
 
             $('.js-qp-board-fields').toggleClass('d-none', !isBoard);
             $('.js-qp-institution-fields').toggleClass('d-none', isBoard);
+            $('.js-qp-institution-search-hint').toggleClass('d-none', isBoard);
             $('.js-qp-board-fields :input').prop('disabled', !isBoard);
             $('.js-qp-institution-fields :input').prop('disabled', isBoard);
             $('.js-qp-board-only').toggleClass('d-none', !isBoard);
@@ -920,6 +921,10 @@
             }
 
             syncQuestionPaperSolutionPanels();
+
+            if (!isBoard && window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+                window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(document.querySelector('.js-qp-institution-fields') || document);
+            }
         }
 
         function syncNoteVisibilityPricing() {

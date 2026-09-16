@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\ActiveChildSession;
 use App\Support\ModulePermissions;
+use App\Support\UserDashboard;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -194,45 +196,36 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'student';
     }
 
+    public function isParentManagedChild(): bool
+    {
+        if (! $this->isStudent()) {
+            return false;
+        }
+
+        if ($this->relationLoaded('childProfile')) {
+            return $this->childProfile !== null;
+        }
+
+        return $this->childProfile()->exists();
+    }
+
+    public function isSelfRegisteredStudent(): bool
+    {
+        return $this->isStudent() && ! $this->isParentManagedChild();
+    }
+
+    public function requiresContactVerification(): bool
+    {
+        if ($this->isParentManagedChild()) {
+            return false;
+        }
+
+        return $this->isGeneralUser() || $this->isEducator() || $this->isStudent();
+    }
+
     public function dashboardUrl(): string
     {
-        if ($this->isAdmin()) {
-            return route('admin.dashboard');
-        }
-
-        if ($this->isEmployee()) {
-            return route('employee.dashboard');
-        }
-
-        if ($this->isStudent()) {
-            return route('child.dashboard');
-        }
-
-        if ($this->isVendor()) {
-            return $this->vendor?->isApproved()
-                ? route('vendor.dashboard')
-                : route('vendor.pending');
-        }
-
-        if ($this->isConsultant()) {
-            return $this->consultant?->isApproved()
-                ? route('consultant.dashboard')
-                : route('consultant.pending');
-        }
-
-        if ($this->isServiceProvider()) {
-            return $this->serviceProvider?->isApproved()
-                ? route('service_provider.dashboard')
-                : route('service_provider.pending');
-        }
-
-        if ($this->isEducator()) {
-            return $this->educator?->isApproved()
-                ? route('educator.dashboard')
-                : route('educator.pending');
-        }
-
-        return route('user.dashboard');
+        return UserDashboard::url($this);
     }
 
     public function panelTitle(): string
@@ -323,6 +316,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasParentProfileEnabled(): bool
     {
         return (bool) $this->parentProfile?->is_enabled;
+    }
+
+    public function canWriteEducatorReview(?Educator $educator = null): bool
+    {
+        if (ActiveChildSession::belongsToParent($this->id)) {
+            return false;
+        }
+
+        if ($this->isStudent() && ! $this->isSelfRegisteredStudent()) {
+            return false;
+        }
+
+        if (! $this->hasParentProfileEnabled() && ! $this->isGeneralUser() && ! $this->isSelfRegisteredStudent()) {
+            return false;
+        }
+
+        if ($educator !== null && (int) $educator->user_id === (int) $this->id) {
+            return false;
+        }
+
+        return true;
     }
 
     public function isStaff(): bool

@@ -39,7 +39,7 @@ class ChildProfileController extends Controller
         return DataTables::of($query)
             ->addColumn('child_name', fn (ChildProfile $child) => e($child->full_name))
             ->addColumn('parent_name', fn (ChildProfile $child) => e($child->parentUser?->full_name ?: $child->parentUser?->name ?: '—'))
-            ->addColumn('email_display', fn (ChildProfile $child) => e($child->email))
+            ->addColumn('email_display', fn (ChildProfile $child) => e($child->age ? $child->age.' yrs' : '—'))
             ->addColumn('phone_display', fn (ChildProfile $child) => e($child->phone_number))
             ->addColumn('class_display', fn (ChildProfile $child) => e(trim(($child->class_grade ?: '').($child->board ? ' · '.$child->board : '')) ?: '—'))
             ->addColumn('status_badge', function (ChildProfile $child): string {

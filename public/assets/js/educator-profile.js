@@ -696,6 +696,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return requireAuth('leave a review');
             }
 
+            if (response.status === 403) {
+                throw new Error(data.message || 'Only parent and student accounts can leave reviews.');
+            }
+
             if (!response.ok || data.ok === false) {
                 var firstError = data.errors ? Object.values(data.errors).flat()[0] : null;
                 throw new Error(firstError || data.message || 'Unable to save review.');

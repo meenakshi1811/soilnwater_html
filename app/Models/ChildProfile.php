@@ -13,6 +13,8 @@ class ChildProfile extends Model
         'full_name',
         'email',
         'phone_number',
+        'date_of_birth',
+        'age',
         'gender',
         'class_grade',
         'board',
@@ -32,6 +34,7 @@ class ChildProfile extends Model
             'subjects' => 'array',
             'is_primary' => 'boolean',
             'approved_at' => 'datetime',
+            'date_of_birth' => 'date',
         ];
     }
 

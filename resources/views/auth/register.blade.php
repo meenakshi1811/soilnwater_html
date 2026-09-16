@@ -109,13 +109,14 @@
                                 <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                                 <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
                                 <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
+                                <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
                             </select>
                             @error('role')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher'], true) ? '' : 'd-none' }}">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'student'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, services, and teachers / tutors, this image will also appear on the public profile.</small>
@@ -167,7 +168,20 @@
 
                         <div class="mb-3">
                             <label for="date_of_birth" class="form-label">Date of Birth</label>
-                            <input id="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" name="date_of_birth" value="{{ old('date_of_birth') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
+                            <input
+                                id="date_of_birth"
+                                type="date"
+                                class="form-control @error('date_of_birth') is-invalid @enderror"
+                                name="date_of_birth"
+                                value="{{ old('date_of_birth') }}"
+                                max="{{ old('role') === 'student' ? now()->subYears(16)->toDateString() : now()->subYears(18)->toDateString() }}"
+                                data-student-max="{{ now()->subYears(16)->toDateString() }}"
+                                data-default-max="{{ now()->subYears(18)->toDateString() }}"
+                                required
+                            >
+                            <small id="dateOfBirthHint" class="text-muted">
+                                {{ old('role') === 'student' ? 'Students must be at least 16 years old to register.' : 'You must be at least 18 years old to register.' }}
+                            </small>
                             @error('date_of_birth')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror

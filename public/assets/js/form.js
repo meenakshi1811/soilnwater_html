@@ -570,7 +570,7 @@
             var toggleBusinessFields = function () {
                 var role = $role.val();
                 var showBusinessFields = isBusinessRole();
-                var showProfileImage = role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher';
+                var showProfileImage = role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student';
                 $businessFields.toggleClass('d-none', !showBusinessFields);
                 $profileImageWrap.toggleClass('d-none', !showProfileImage);
                 $profileImage.prop('required', showProfileImage);
@@ -590,6 +590,58 @@
             $role.off('change.businessFields').on('change.businessFields', toggleBusinessFields);
             $('input[name="has_gst"]').off('change.businessFields').on('change.businessFields', toggleGst);
             toggleBusinessFields();
+        },
+
+        initRegisterRoleDobRules: function () {
+            var $role = $('#role');
+            var $dob = $('#date_of_birth');
+            var $hint = $('#dateOfBirthHint');
+
+            if (! $role.length || ! $dob.length || !$('#registerForm').length) {
+                return;
+            }
+
+            var studentIneligibleMessage = 'You are not eligible for this as you are not 16+. Please tell your parent to create a user profile here and enable parent mode.';
+
+            var syncDobRules = function () {
+                var role = $role.val();
+                var isStudent = role === 'student';
+
+                $dob.attr('max', isStudent ? ($dob.data('studentMax') || '') : ($dob.data('defaultMax') || ''));
+
+                if ($hint.length) {
+                    $hint.text(isStudent
+                        ? 'Students must be at least 16 years old to register.'
+                        : 'You must be at least 18 years old to register.');
+                }
+            };
+
+            $.validator.addMethod('registerDobEligible', function (value) {
+                if (!value) {
+                    return true;
+                }
+
+                var role = $role.val();
+                var dob = new Date(value + 'T00:00:00');
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (Number.isNaN(dob.getTime()) || dob > today) {
+                    return false;
+                }
+
+                var minBirthDate = new Date(today);
+                minBirthDate.setFullYear(today.getFullYear() - (role === 'student' ? 16 : 18));
+
+                return dob <= minBirthDate;
+            }, function () {
+                return $role.val() === 'student'
+                    ? studentIneligibleMessage
+                    : 'You must be at least 18 years old to register.';
+            });
+
+            $role.off('change.registerDob').on('change.registerDob', syncDobRules);
+            syncDobRules();
         },
 
         initGoogleCompleteForm: function () {
@@ -624,44 +676,23 @@
         },
 
         bindExperienceOrganizationAutocomplete: function (input) {
-            if (!input || input.dataset.googlePlacesReady === 'true') {
+            if (!input || !window.SoilnWaterGooglePlaces) {
                 return;
             }
 
-            if (!window.google || !google.maps || !google.maps.places || !window.SoilnWaterGooglePlaces) {
-                var attempts = Number(input.dataset.googlePlacesAttempts || 0);
-                if (attempts >= 20) {
-                    return;
-                }
-
-                input.dataset.googlePlacesAttempts = String(attempts + 1);
-                var self = this;
-                window.setTimeout(function () {
-                    self.bindExperienceOrganizationAutocomplete(input);
-                }, 500);
-                return;
-            }
-
-            window.SoilnWaterGooglePlaces.bindAutocomplete(input, {
-                types: ['establishment'],
-                addressComponents: false,
-                onPlaceChanged: function (place) {
-                    var placeName = window.SoilnWaterGooglePlaces.getPlaceName(place);
-                    if (placeName) {
-                        input.value = placeName;
-                    }
-
-                    $(input).trigger('input').trigger('change');
-                },
-            });
+            window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(input.parentElement || document);
         },
 
         initEducatorExperienceOrganizationAutocomplete: function () {
-            document.querySelectorAll('.js-experience-organization').forEach(function (input) {
-                if (window.FormHelper) {
-                    window.FormHelper.bindExperienceOrganizationAutocomplete(input);
-                }
-            });
+            if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+                window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields();
+            }
+        },
+
+        initSchoolInstituteSearchFields: function (root) {
+            if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+                window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(root || document);
+            }
         },
 
         initTuitionPointAddressAutocomplete: function () {
@@ -768,6 +799,7 @@
         initRegisterForm: function () {
             this.initRegisterPlaceAutocomplete();
             this.initRegisterBusinessFields();
+            this.initRegisterRoleDobRules();
             this.initRegisterWhatsappSync();
             this.initRegisterWhatsappSync({
                 phoneSelector: '#google_phone_number',
@@ -820,10 +852,10 @@
                     profile_image: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher';
+                            return role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student';
                         }
                     },
-                    date_of_birth: { required: true, date: true },
+                    date_of_birth: { required: true, date: true, registerDobEligible: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#password' },
                     accept_terms: { required: true }

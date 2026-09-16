@@ -30,8 +30,12 @@
         || ($isServiceProvider && $user->serviceProvider?->is_premium);
     $notifications = $isEmployee ? collect() : $user->notifications()->latest()->limit(8)->get();
     $unreadNotificationCount = $isEmployee ? 0 : $user->unreadNotifications()->count();
+    $activeChildProfile = \App\Support\ActiveChildSession::profile();
+    $isActingAsChild = $activeChildProfile && $activeChildProfile->parent_user_id === $user->id;
     $displayName = $user->full_name ?: $user->name;
-    if ($isStudent) {
+    if ($isActingAsChild) {
+        $displayName = $activeChildProfile->full_name;
+    } elseif ($isStudent) {
         $user->loadMissing('childProfile');
         $displayName = $user->childProfile?->full_name ?: $displayName;
     }
@@ -51,7 +55,13 @@
                     </span>
                 @endif
             </h1>
-            <p class="mb-0">Welcome, {{ $displayName }}</p>
+            <p class="mb-0">
+                @if($isActingAsChild)
+                    Viewing as {{ $displayName }}
+                @else
+                    Welcome, {{ $displayName }}
+                @endif
+            </p>
             </div>
         </div>
 

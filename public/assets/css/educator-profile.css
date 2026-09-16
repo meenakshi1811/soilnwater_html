@@ -942,6 +942,97 @@
 }
 
 /* Reviews */
+.edu-reviews-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.25rem;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--edu-border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.edu-reviews-summary__score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.edu-reviews-summary__value {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--edu-ink);
+}
+
+.edu-reviews-summary__out-of {
+  font-size: 0.88rem;
+  color: var(--edu-muted);
+}
+
+.edu-reviews-summary__stars {
+  color: var(--edu-star);
+  font-size: 1.05rem;
+}
+
+.edu-reviews-summary__meta {
+  color: var(--edu-muted);
+  font-size: 0.92rem;
+}
+
+.edu-reviews-summary__note {
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.edu-reviews-list__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.85rem;
+  color: var(--edu-ink);
+}
+
+.edu-review-compose {
+  margin-top: 1.5rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--edu-border);
+}
+
+.edu-review-restricted {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+}
+
+.edu-review-restricted__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #fef3c7;
+  color: #b45309;
+  flex-shrink: 0;
+}
+
+.edu-review-restricted__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: var(--edu-ink);
+}
+
+.edu-review-restricted__text {
+  color: var(--edu-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .edu-review {
   border: 1px solid #eef3fb;
   border-radius: 12px;
@@ -1727,6 +1818,15 @@
 .edu-sidebar-card h3 i {
   color: var(--edu-primary);
   font-size: 0.88rem;
+}
+
+.edu-sidebar-card--contact .edu-contact-social {
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.edu-sidebar-card--contact .edu-btn {
+  margin-top: 0.15rem;
 }
 
 .edu-available-now {

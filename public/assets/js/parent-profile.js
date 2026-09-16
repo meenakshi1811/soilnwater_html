@@ -54,6 +54,65 @@
             });
     });
 
+    function calculateAgeFromDob(day, month, year) {
+        if (!day || !month || !year) {
+            return null;
+        }
+
+        var today = new Date();
+        var birthDate = new Date(Number(year), Number(month) - 1, Number(day));
+
+        if (Number.isNaN(birthDate.getTime())) {
+            return null;
+        }
+
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age -= 1;
+        }
+
+        return age >= 0 ? age : null;
+    }
+
+    function syncChildDobFields($scope) {
+        var $root = $scope && $scope.length ? $scope : $(document);
+        var day = $root.find('.js-dob-day').val();
+        var month = $root.find('.js-dob-month').val();
+        var year = $root.find('.js-dob-year').val();
+        var $combined = $root.find('.js-dob-combined');
+        var $age = $root.find('.js-child-age');
+
+        if (day && month && year) {
+            var paddedMonth = String(month).padStart(2, '0');
+            var paddedDay = String(day).padStart(2, '0');
+            $combined.val(year + '-' + paddedMonth + '-' + paddedDay);
+
+            var age = calculateAgeFromDob(day, month, year);
+            if (age !== null && $age.length) {
+                $age.val(age);
+            }
+        } else {
+            $combined.val('');
+        }
+    }
+
+    $(document).on('change', '.js-dob-day, .js-dob-month, .js-dob-year', function () {
+        syncChildDobFields($(this).closest('.date-of-birth-dropdown, .parent-child-modal__form, form'));
+    });
+
+    function initChildSchoolAutocomplete() {
+        var modal = document.getElementById('addChildModal');
+
+        if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+            window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(modal || document);
+        }
+    }
+
+    window.ParentProfile = window.ParentProfile || {};
+    window.ParentProfile.initChildSchoolAutocomplete = initChildSchoolAutocomplete;
+
     // Open add child modal
     $(document).on('click', '.js-open-add-child', function () {
         var modalEl = document.getElementById('addChildModal');
@@ -62,15 +121,48 @@
         }
     });
 
+    function syncChildBoardField() {
+        var $toggle = $('#child_has_board');
+        var $wrap = $('.js-child-board-wrap');
+        var $board = $('#child_board');
+        var isEnabled = $toggle.is(':checked');
+
+        $wrap.toggleClass('d-none', !isEnabled);
+        $board.prop('required', isEnabled);
+
+        if (!isEnabled) {
+            $board.val('');
+        }
+    }
+
+    $(document).on('change', '.js-child-has-board', syncChildBoardField);
+
+    $(document).on('shown.bs.modal', '#addChildModal', function () {
+        initChildSchoolAutocomplete();
+        syncChildBoardField();
+    });
+
+    $(document).on('hidden.bs.modal', '#addChildModal', function () {
+        $('#child_has_board').prop('checked', false);
+        syncChildBoardField();
+    });
+
     // Add child form
     $(document).on('submit', '#addChildForm', function (event) {
         event.preventDefault();
         var $form = $(this);
         var $btn = $('#addChildSubmitBtn');
         var token = csrfToken();
+        syncChildDobFields($form);
+
         var formData = new FormData(this);
         formData.set('_token', token);
         formData.set('is_primary', $('#child_is_primary').is(':checked') ? '1' : '0');
+        formData.set('has_board', $('#child_has_board').is(':checked') ? '1' : '0');
+
+        if (!$('#child_has_board').is(':checked')) {
+            formData.delete('board');
+        }
 
         $btn.prop('disabled', true);
 

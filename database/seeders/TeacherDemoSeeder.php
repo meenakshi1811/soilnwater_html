@@ -161,7 +161,7 @@ class TeacherDemoSeeder extends Seeder
                 'tuition_charges' => '₹450–₹800 / hour (subject & class based)',
                 'years_experience' => 12,
                 'students_taught' => 860,
-                'success_rate' => 96.50,
+                'success_rate' => null,
                 'average_rating' => 0,
                 'reviews_count' => 0,
                 'is_verified' => true,

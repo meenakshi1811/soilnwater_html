@@ -159,7 +159,7 @@
                   <span>Students</span>
                 </div>
                 <div class="edu-overview__stat">
-                  <strong>{{ $educator->success_rate !== null ? $educator->success_rate.'%' : '—' }}</strong>
+                  <strong>{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
                   <span>Success Rate</span>
                 </div>
               </div>
@@ -299,7 +299,7 @@
             </div>
             <div class="edu-exp-stat">
               <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-              <strong>{{ $educator->success_rate !== null ? $educator->success_rate.'%' : '—' }}</strong>
+              <strong>{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
               <span>Success Rate</span>
             </div>
             <div class="edu-exp-stat">
@@ -435,21 +435,54 @@
             data-reviews-url="{{ route('educator.reviews', $educator->slug) }}"
             data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
           >
-            <h3 class="h6 mb-3">All Reviews</h3>
-            <p class="edu-empty mb-3">
-              <span class="js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</span>
-              average ·
-              <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span>
-              reviews (profile + study materials)
-            </p>
+            <div class="edu-reviews-summary">
+              <div class="edu-reviews-summary__score">
+                <strong class="edu-reviews-summary__value js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
+                <span class="edu-reviews-summary__out-of">out of 5</span>
+              </div>
+              <div class="edu-reviews-summary__stars" aria-label="{{ number_format((float) $educator->average_rating, 1) }} out of 5 stars">
+                @for($s = 1; $s <= 5; $s++)
+                  <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
+                @endfor
+              </div>
+              <p class="edu-reviews-summary__meta mb-0">
+                Based on <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews
+                <span class="edu-reviews-summary__note">(profile + study materials)</span>
+              </p>
+            </div>
 
+            <h3 class="edu-reviews-list__title">All Reviews</h3>
+
+            <div id="educatorReviewsList">
+              @forelse(($profileReviews ?? collect()) as $item)
+                @include('frontend.educator.partials.review-item', ['item' => $item])
+              @empty
+                <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
+              @endforelse
+            </div>
+
+            @if(($profileReviewsHasMore ?? false))
+              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
+                <button
+                  type="button"
+                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
+                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
+                >
+                  <span class="btn-text">See more reviews</span>
+                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
+                </button>
+              </div>
+            @endif
+
+            <div class="edu-review-compose" id="educatorReviewCompose">
             @auth
+              @if($canWriteReview ?? false)
               @php
                 $selectedRating = (int) old('rating', $userReview?->rating ?: 5);
                 $ratingLabels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'];
                 $reviewText = old('review', $userReview?->review ?? '');
               @endphp
-              <form id="educatorReviewForm" class="edu-review-form mb-4" novalidate>
+              <form id="educatorReviewForm" class="edu-review-form" novalidate>
                 @csrf
                 <div class="edu-review-form__header">
                   <div class="edu-review-form__icon" aria-hidden="true">
@@ -457,7 +490,7 @@
                   </div>
                   <div>
                     <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
-                    <p class="edu-review-form__hint">Share your experience with this {{ strtolower($educator->roleLabel()) }} and help other students decide.</p>
+                    <p class="edu-review-form__hint">Share your experience as a parent or student and help others choose the right {{ strtolower($educator->roleLabel()) }}.</p>
                   </div>
                 </div>
 
@@ -524,14 +557,33 @@
                   </button>
                 </div>
               </form>
+              @else
+                <div class="edu-review-restricted">
+                  <div class="edu-review-restricted__icon" aria-hidden="true">
+                    <i class="fa-solid fa-user-lock"></i>
+                  </div>
+                  <div>
+                    <h4 class="edu-review-restricted__title">Reviews are for parents and students only</h4>
+                    <p class="edu-review-restricted__text mb-0">
+                      @if(\App\Support\ActiveChildSession::belongsToParent(auth()->id()))
+                        Exit the child profile from your parent dashboard to leave a review as a parent.
+                      @elseif(auth()->user()?->isStudent())
+                        Child profiles cannot submit reviews. Ask your parent to sign in and share feedback.
+                      @else
+                        Enable your parent profile or sign in with a student account to write a review.
+                      @endif
+                    </p>
+                  </div>
+                </div>
+              @endif
             @else
-              <div class="edu-review-login mb-4">
+              <div class="edu-review-login">
                 <div class="edu-review-login__icon" aria-hidden="true">
                   <i class="fa-solid fa-star"></i>
                 </div>
                 <div class="edu-review-login__body">
                   <h4 class="edu-review-login__title">Share your experience</h4>
-                  <p class="edu-review-login__text">Sign in to rate this {{ strtolower($educator->roleLabel()) }} and help other students make informed choices.</p>
+                  <p class="edu-review-login__text">Parents and students can sign in to rate this {{ strtolower($educator->roleLabel()) }} and help others make informed choices.</p>
                   <button type="button" class="edu-btn edu-btn-primary edu-review-login__btn js-edu-guest-action" data-action="review">
                     <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
                     Login to review
@@ -539,27 +591,7 @@
                 </div>
               </div>
             @endauth
-
-            <div id="educatorReviewsList">
-              @forelse(($profileReviews ?? collect()) as $item)
-                @include('frontend.educator.partials.review-item', ['item' => $item])
-              @empty
-                <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
-              @endforelse
             </div>
-
-            @if(($profileReviewsHasMore ?? false))
-              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
-                <button
-                  type="button"
-                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
-                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
-                >
-                  <span class="btn-text">See more reviews</span>
-                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
-                </button>
-              </div>
-            @endif
           </div>
         </section>
 
@@ -902,17 +934,21 @@
           @endif
         </div>
 
-        <div class="edu-sidebar-card">
-          <h3><i class="fa-solid fa-address-book" aria-hidden="true"></i> Contact</h3>
+        <div class="edu-sidebar-card edu-sidebar-card--contact">
+          <h3><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h3>
           <ul class="edu-sidebar-list">
             @if($educator->phone)<li><span>Phone</span><span>{{ $educator->phone }}</span></li>@endif
             @if($educator->email)<li><span>Email</span><span>{{ $educator->email }}</span></li>@endif
+            @if($educator->whatsapp)<li><span>WhatsApp</span><span>{{ $educator->whatsapp }}</span></li>@endif
             @if($educator->residential_address)<li><span>Address</span><span>{{ $educator->residential_address }}</span></li>@endif
           </ul>
-          @if(!$educator->phone && !$educator->email && !$educator->residential_address && ! $educator->hasSocialLinks())
+          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && !$educator->residential_address && ! $educator->hasSocialLinks())
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
-          @include('frontend.educator.partials.social-links', ['educator' => $educator, 'compact' => true])
+          @include('frontend.educator.partials.social-links', ['educator' => $educator])
+          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
+            <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
+          </button>
         </div>
 
         <div class="edu-sidebar-card">

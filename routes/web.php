@@ -311,10 +311,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
         Route::post('/children', [ParentProfileController::class, 'storeChild'])->name('children.store');
         Route::delete('/children/{childProfile}', [ParentProfileController::class, 'destroyChild'])->name('children.destroy');
+        Route::post('/children/{childProfile}/switch', [ParentProfileController::class, 'switchToChild'])->name('children.switch');
+        Route::post('/children/switch-back', [ParentProfileController::class, 'switchBack'])->name('children.switch-back');
         Route::get('/children/{childProfile}/dashboard', [ChildPortalController::class, 'parentView'])->name('children.dashboard');
     });
 
-    Route::prefix('child')->name('child.')->middleware(['student.account'])->group(function () {
+    Route::prefix('child')->name('child.')->middleware(['child.portal'])->group(function () {
         Route::get('/dashboard', [ChildPortalController::class, 'dashboard'])->name('dashboard');
     });
 

@@ -250,7 +250,8 @@
               </div>
               <div class="mb-3">
                 <label class="form-label js-qp-institution-name-label">University Name <span class="text-danger">*</span></label>
-                <input type="text" name="board_university" class="form-control js-qp-institution-name" value="{{ old('board_university', $material->board_university) }}" placeholder="Enter university name" @disabled($qpIsBoard)>
+                <input type="text" name="board_university" class="form-control js-qp-institution-name js-school-institute-search" autocomplete="off" value="{{ old('board_university', $material->board_university) }}" placeholder="Search university, college, or school" @disabled($qpIsBoard)>
+                <small class="text-muted js-qp-institution-search-hint {{ $qpIsBoard ? 'd-none' : '' }}">Start typing to search schools and institutes via Google.</small>
               </div>
             </div>
 
@@ -884,4 +885,14 @@
     }
   });
 </script>
+@if(config('services.google.maps_api_key'))
+<script>
+window.initEducatorMaterialSchoolSearch = function () {
+  if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+    window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields();
+  }
+};
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initEducatorMaterialSchoolSearch"></script>
+@endif
 @endpush

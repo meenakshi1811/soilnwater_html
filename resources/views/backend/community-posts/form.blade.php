@@ -11212,6 +11212,10 @@ The mountains keep.</pre>
     window.initCommunityPostMaps = function () {
         window.initCommunityPostLocationAutocomplete();
 
+        if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+            window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields();
+        }
+
         const contentType = document.getElementById('contentType')?.value || '';
         if (usesStructuredCommunityLocation(contentType)) {
             initCommunityGpsMap();

@@ -128,12 +128,14 @@
             <div class="col-md-6">
               <label class="form-label">Professional headline</label>
               <input type="text" name="professional_headline" class="form-control" value="{{ old('professional_headline', $educator->professional_headline) }}" placeholder="e.g. CBSE Physics expert · 12+ years">
+              <small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small>
             </div>
             <div class="col-md-6">
               <label class="form-label">Associated institute</label>
-              <input type="text" name="associated_institute" class="form-control" value="{{ old('associated_institute', $educator->associated_institute) }}" placeholder="Current school or college">
-              <input type="hidden" name="institute_latitude" value="{{ old('institute_latitude', $educator->institute_latitude) }}">
-              <input type="hidden" name="institute_longitude" value="{{ old('institute_longitude', $educator->institute_longitude) }}">
+              <input type="text" name="associated_institute" id="associated_institute" class="form-control js-school-institute-search" autocomplete="off" value="{{ old('associated_institute', $educator->associated_institute) }}" placeholder="Search school or institute name" data-latitude-target="institute_latitude" data-longitude-target="institute_longitude">
+              <small class="edu-field-hint">Start typing to search schools and institutes via Google.</small>
+              <input type="hidden" name="institute_latitude" id="institute_latitude" value="{{ old('institute_latitude', $educator->institute_latitude) }}">
+              <input type="hidden" name="institute_longitude" id="institute_longitude" value="{{ old('institute_longitude', $educator->institute_longitude) }}">
             </div>
             <div class="col-md-4">
               <label class="form-label">State</label>
@@ -169,7 +171,10 @@
               @foreach($qualifications as $i => $row)
                 <div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row">
                   <input type="text" name="qualifications[{{ $i }}][degree]" class="form-control" placeholder="Degree" value="{{ $row['degree'] ?? '' }}">
-                  <input type="text" name="qualifications[{{ $i }}][institution]" class="form-control" placeholder="Institution" value="{{ $row['institution'] ?? '' }}">
+                  <div class="edu-repeat-field-stack">
+                    <input type="text" name="qualifications[{{ $i }}][institution]" class="form-control js-school-institute-search" autocomplete="off" placeholder="Search school or institute" value="{{ $row['institution'] ?? '' }}">
+                    <small class="edu-field-hint">Search via Google.</small>
+                  </div>
                   <input type="text" name="qualifications[{{ $i }}][year]" class="form-control" placeholder="Year" value="{{ $row['year'] ?? '' }}">
                   <button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button>
                 </div>
@@ -194,44 +199,51 @@
                 @endphp
                 <div class="experience-card js-repeat-row">
                   <span class="experience-card__badge"><i class="fa-solid fa-briefcase"></i> Experience {{ $i + 1 }}</span>
-                  <div class="row g-2 align-items-end">
-                    <div class="col-md-6">
-                      <label class="form-label">Job title</label>
-                      <input type="text" name="experiences[{{ $i }}][title]" class="form-control" placeholder="Senior Physics Teacher" value="{{ $row['title'] ?? '' }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">Place of work</label>
-                      <input type="text" name="experiences[{{ $i }}][organization]" class="form-control js-experience-organization" autocomplete="off" placeholder="Search school or institute name" value="{{ $row['organization'] ?? '' }}">
-                      <small class="text-muted">Start typing to search schools via Google.</small>
-                    </div>
-                    <div class="col-md-3">
-                      <label class="form-label">Start year</label>
-                      <select name="experiences[{{ $i }}][start_year]" class="form-select">
-                        <option value="">Select year</option>
-                        @foreach($experienceYears as $year)
-                          <option value="{{ $year }}" @selected((string) ($row['start_year'] ?? '') === (string) $year)>{{ $year }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                    <div class="col-md-3">
-                      <label class="form-label">End year</label>
-                      <select name="experiences[{{ $i }}][end_year]" class="form-select js-exp-end-year" @disabled($isCurrentExperience)>
-                        <option value="">Select year</option>
-                        @foreach($experienceYears as $year)
-                          <option value="{{ $year }}" @selected((string) ($row['end_year'] ?? '') === (string) $year)>{{ $year }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                    <div class="col-md-5">
-                      <div class="form-check experience-current-check">
-                        <input class="form-check-input js-exp-current" type="checkbox" name="experiences[{{ $i }}][is_current]" value="1" id="experienceCurrent{{ $i }}" @checked($isCurrentExperience)>
-                        <label class="form-check-label" for="experienceCurrent{{ $i }}">I still work here</label>
+                  <div class="experience-card__grid">
+                    <div class="experience-card__fields experience-card__fields--top">
+                      <div class="experience-field">
+                        <label class="form-label">Job title</label>
+                        <input type="text" name="experiences[{{ $i }}][title]" class="form-control" placeholder="Senior Physics Teacher" value="{{ $row['title'] ?? '' }}">
+                        <small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small>
+                      </div>
+                      <div class="experience-field">
+                        <label class="form-label">Place of work</label>
+                        <input type="text" name="experiences[{{ $i }}][organization]" class="form-control js-school-institute-search js-experience-organization" autocomplete="off" placeholder="Search school or institute name" value="{{ $row['organization'] ?? '' }}">
+                        <small class="edu-field-hint">Start typing to search schools via Google.</small>
                       </div>
                     </div>
-                    <div class="col-md-1">
-                      <button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove experience">&times;</button>
+                    <div class="experience-card__fields experience-card__fields--meta">
+                      <div class="experience-field">
+                        <label class="form-label">Start year</label>
+                        <select name="experiences[{{ $i }}][start_year]" class="form-select">
+                          <option value="">Select year</option>
+                          @foreach($experienceYears as $year)
+                            <option value="{{ $year }}" @selected((string) ($row['start_year'] ?? '') === (string) $year)>{{ $year }}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                      <div class="experience-field">
+                        <label class="form-label">End year</label>
+                        <select name="experiences[{{ $i }}][end_year]" class="form-select js-exp-end-year" @disabled($isCurrentExperience)>
+                          <option value="">Select year</option>
+                          @foreach($experienceYears as $year)
+                            <option value="{{ $year }}" @selected((string) ($row['end_year'] ?? '') === (string) $year)>{{ $year }}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                      <div class="experience-field experience-field--current">
+                        <label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label>
+                        <div class="form-check experience-current-check">
+                          <input class="form-check-input js-exp-current" type="checkbox" name="experiences[{{ $i }}][is_current]" value="1" id="experienceCurrent{{ $i }}" @checked($isCurrentExperience)>
+                          <label class="form-check-label" for="experienceCurrent{{ $i }}">I still work here</label>
+                        </div>
+                      </div>
+                      <div class="experience-field experience-field--action">
+                        <label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove experience">&times;</button>
+                      </div>
                     </div>
-                    <div class="col-12">
+                    <div class="experience-field experience-field--full">
                       <label class="form-label">Description</label>
                       <textarea name="experiences[{{ $i }}][description]" class="form-control" rows="2" placeholder="Teaching responsibilities, achievements, and role details">{{ $row['description'] ?? '' }}</textarea>
                     </div>
@@ -246,11 +258,12 @@
               <div class="col-md-6">
                 <label class="form-label">Teaching method</label>
                 <input type="text" name="teaching_method" class="form-control" value="{{ old('teaching_method', $educator->teaching_method) }}" placeholder="e.g. Concept-first, visual learning">
+                <small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Teaching modes</label>
                 <textarea class="form-control js-lines" data-name="teaching_modes" rows="3" placeholder="One mode per line">{{ $toLines(old('teaching_modes', $educator->teaching_modes ?? [])) }}</textarea>
-                <small class="text-muted">One per line — e.g. Online, Home tuition, Classroom</small>
+                <small class="edu-field-hint">One per line — e.g. Online, Home tuition, Classroom</small>
               </div>
             </div>
 
@@ -280,7 +293,8 @@
               </div>
               <div class="edu-stat-field">
                 <div class="edu-stat-field__label"><i class="fa-solid fa-chart-line"></i> Success rate %</div>
-                <input type="number" step="0.01" name="success_rate" class="form-control" value="{{ old('success_rate', $educator->success_rate) }}">
+                <input type="text" class="form-control" value="{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}" readonly disabled>
+                <small class="text-muted">Calculated from profile and material reviews.</small>
               </div>
             </div>
 
@@ -594,9 +608,9 @@
     return html;
   };
 
-  const initExperienceOrganizationSearch = function () {
-    if (window.FormHelper && typeof window.FormHelper.initEducatorExperienceOrganizationAutocomplete === 'function') {
-      window.FormHelper.initEducatorExperienceOrganizationAutocomplete();
+  const initSchoolInstituteSearch = function (root) {
+    if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+      window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(root || document);
     }
   };
 
@@ -618,8 +632,8 @@
 
   const templates = {
     subject: (i) => `<div class="edu-repeat-row edu-repeat-row--subject js-repeat-row"><input type="text" name="subjects[${i}][name]" class="form-control" placeholder="Subject name"><select name="subjects[${i}][level]" class="form-select"><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="specialized">Specialized</option></select><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
-    qualification: (i) => `<div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row"><input type="text" name="qualifications[${i}][degree]" class="form-control" placeholder="Degree"><input type="text" name="qualifications[${i}][institution]" class="form-control" placeholder="Institution"><input type="text" name="qualifications[${i}][year]" class="form-control" placeholder="Year"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
-    experience: (i) => `<div class="experience-card js-repeat-row"><span class="experience-card__badge"><i class="fa-solid fa-briefcase"></i> Experience ${i + 1}</span><div class="row g-2 align-items-end"><div class="col-md-6"><label class="form-label">Job title</label><input type="text" name="experiences[${i}][title]" class="form-control" placeholder="Senior Physics Teacher"></div><div class="col-md-6"><label class="form-label">Place of work</label><input type="text" name="experiences[${i}][organization]" class="form-control js-experience-organization" autocomplete="off" placeholder="Search school or institute name"><small class="text-muted">Start typing to search schools via Google.</small></div><div class="col-md-3"><label class="form-label">Start year</label><select name="experiences[${i}][start_year]" class="form-select">${experienceYearOptions('')}</select></div><div class="col-md-3"><label class="form-label">End year</label><select name="experiences[${i}][end_year]" class="form-select js-exp-end-year">${experienceYearOptions('')}</select></div><div class="col-md-5"><div class="form-check experience-current-check"><input class="form-check-input js-exp-current" type="checkbox" name="experiences[${i}][is_current]" value="1" id="experienceCurrent${i}"><label class="form-check-label" for="experienceCurrent${i}">I still work here</label></div></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove experience">&times;</button></div><div class="col-12"><label class="form-label">Description</label><textarea name="experiences[${i}][description]" class="form-control" rows="2" placeholder="Teaching responsibilities, achievements, and role details"></textarea></div></div></div>`,
+    qualification: (i) => `<div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row"><input type="text" name="qualifications[${i}][degree]" class="form-control" placeholder="Degree"><div class="edu-repeat-field-stack"><input type="text" name="qualifications[${i}][institution]" class="form-control js-school-institute-search" autocomplete="off" placeholder="Search school or institute"><small class="edu-field-hint">Search via Google.</small></div><input type="text" name="qualifications[${i}][year]" class="form-control" placeholder="Year"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
+    experience: (i) => `<div class="experience-card js-repeat-row"><span class="experience-card__badge"><i class="fa-solid fa-briefcase"></i> Experience ${i + 1}</span><div class="experience-card__grid"><div class="experience-card__fields experience-card__fields--top"><div class="experience-field"><label class="form-label">Job title</label><input type="text" name="experiences[${i}][title]" class="form-control" placeholder="Senior Physics Teacher"><small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small></div><div class="experience-field"><label class="form-label">Place of work</label><input type="text" name="experiences[${i}][organization]" class="form-control js-school-institute-search js-experience-organization" autocomplete="off" placeholder="Search school or institute name"><small class="edu-field-hint">Start typing to search schools via Google.</small></div></div><div class="experience-card__fields experience-card__fields--meta"><div class="experience-field"><label class="form-label">Start year</label><select name="experiences[${i}][start_year]" class="form-select">${experienceYearOptions('')}</select></div><div class="experience-field"><label class="form-label">End year</label><select name="experiences[${i}][end_year]" class="form-select js-exp-end-year">${experienceYearOptions('')}</select></div><div class="experience-field experience-field--current"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><div class="form-check experience-current-check"><input class="form-check-input js-exp-current" type="checkbox" name="experiences[${i}][is_current]" value="1" id="experienceCurrent${i}"><label class="form-check-label" for="experienceCurrent${i}">I still work here</label></div></div><div class="experience-field experience-field--action"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove experience">&times;</button></div></div><div class="experience-field experience-field--full"><label class="form-label">Description</label><textarea name="experiences[${i}][description]" class="form-control" rows="2" placeholder="Teaching responsibilities, achievements, and role details"></textarea></div></div></div>`,
     availability: (i) => `<div class="edu-repeat-row edu-repeat-row--availability js-repeat-row"><input type="text" name="availability[${i}][day]" class="form-control" placeholder="Monday"><input type="text" name="availability[${i}][slots]" class="form-control" placeholder="4:00 PM – 7:00 PM"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
     tuitionBatch: (i) => `<div class="tuition-batch-card js-repeat-row"><div class="tuition-batch-card__grid"><div><label class="form-label d-md-none">Class</label><input type="text" name="tuition_batches[${i}][class]" class="form-control" placeholder="Class 10"></div><div><label class="form-label d-md-none">Subject</label><input type="text" name="tuition_batches[${i}][subject]" class="form-control" placeholder="Physics"></div><div><label class="form-label d-md-none">Batch type</label><input type="text" name="tuition_batches[${i}][batch_type]" class="form-control" placeholder="Small group" list="tuitionBatchTypeOptions"></div><div><label class="form-label d-md-none">Students</label><input type="number" name="tuition_batches[${i}][student_count]" class="form-control" min="1" placeholder="8"></div><div><label class="form-label d-md-none">Cost</label><input type="text" name="tuition_batches[${i}][cost]" class="form-control" placeholder="₹500 / month"></div><div class="tuition-batch-card__actions"><button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove batch">&times;</button></div></div></div>`
   };
@@ -631,8 +645,12 @@
       wrap.insertAdjacentHTML('beforeend', templates[btn.dataset.template](i));
       if (btn.dataset.template === 'experience') {
         syncExperienceCurrentState(wrap.lastElementChild);
-        initExperienceOrganizationSearch();
+        initSchoolInstituteSearch(wrap.lastElementChild);
         renumberExperienceBadges();
+      }
+
+      if (btn.dataset.template === 'qualification') {
+        initSchoolInstituteSearch(wrap.lastElementChild);
       }
     });
   });
@@ -659,7 +677,7 @@
   });
 
   document.querySelectorAll('#experiencesWrap .js-repeat-row').forEach(syncExperienceCurrentState);
-  initExperienceOrganizationSearch();
+  initSchoolInstituteSearch();
 
   document.addEventListener('click', function (e) {
     if (e.target.classList.contains('js-remove-row')) {
@@ -724,8 +742,8 @@
 @if(config('services.google.maps_api_key'))
 <script>
 window.initEducatorExperiencePlacesAutocomplete = function () {
-  if (window.FormHelper && typeof window.FormHelper.initEducatorExperienceOrganizationAutocomplete === 'function') {
-    window.FormHelper.initEducatorExperienceOrganizationAutocomplete();
+  if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+    window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields();
   }
   if (window.FormHelper && typeof window.FormHelper.initTuitionPointAddressAutocomplete === 'function') {
     window.FormHelper.initTuitionPointAddressAutocomplete();

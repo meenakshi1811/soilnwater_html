@@ -9,11 +9,14 @@
 
   @php
     $registeredLocation = null;
-    if (auth()->check()) {
+    $user = auth()->user();
+    $dashboardUrl = \App\Support\UserDashboard::url($user);
+
+    if ($user) {
       $registeredLocation = collect([
-        auth()->user()->address,
-        auth()->user()->city,
-        auth()->user()->pincode,
+        $user->address,
+        $user->city,
+        $user->pincode,
       ])->filter()->implode(', ');
     }
   @endphp
@@ -109,10 +112,6 @@
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
     @auth
-      @php
-        $user = auth()->user();
-        $dashboardUrl = $user->dashboardUrl();
-      @endphp
       <div class="dropdown user-menu-dropdown">
         <button
           class="btn-login dropdown-toggle user-menu-toggle"
