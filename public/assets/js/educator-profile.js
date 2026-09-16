@@ -315,6 +315,118 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initTestimonialCarousel();
 
+    var noticeCarouselTimer = null;
+
+    function initNoticeCarousel() {
+        var carousel = document.querySelector('.js-edu-notice-carousel');
+
+        if (!carousel) {
+            return;
+        }
+
+        var track = carousel.querySelector('.js-edu-notice-track');
+        var viewport = carousel.querySelector('.edu-notices__viewport');
+        var slides = carousel.querySelectorAll('.edu-notice');
+        var prevBtn = carousel.querySelector('.js-edu-notice-prev');
+        var nextBtn = carousel.querySelector('.js-edu-notice-next');
+        var currentIndex = 0;
+
+        if (noticeCarouselTimer) {
+            clearInterval(noticeCarouselTimer);
+            noticeCarouselTimer = null;
+        }
+
+        function slideOffset() {
+            if (!viewport) {
+                return slides[0] ? slides[0].getBoundingClientRect().width : 0;
+            }
+
+            return viewport.clientWidth;
+        }
+
+        function showSlide(index) {
+            if (!slides.length || !track) {
+                return;
+            }
+
+            currentIndex = (index + slides.length) % slides.length;
+            carousel.dataset.slideIndex = String(currentIndex);
+            track.style.transform = 'translateX(-' + (currentIndex * slideOffset()) + 'px)';
+        }
+
+        if (prevBtn) {
+            prevBtn.onclick = function () {
+                showSlide(currentIndex - 1);
+            };
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = function () {
+                showSlide(currentIndex + 1);
+            };
+        }
+
+        showSlide(0);
+
+        if (slides.length > 1) {
+            noticeCarouselTimer = setInterval(function () {
+                showSlide(currentIndex + 1);
+            }, 7000);
+        }
+
+        if (!carousel.dataset.resizeBound) {
+            carousel.dataset.resizeBound = '1';
+            window.addEventListener('resize', function () {
+                var carouselEl = document.getElementById('eduNoticeCarousel');
+                if (!carouselEl) {
+                    return;
+                }
+
+                var trackEl = carouselEl.querySelector('.js-edu-notice-track');
+                var viewportEl = carouselEl.querySelector('.edu-notices__viewport');
+                var idx = parseInt(carouselEl.dataset.slideIndex || '0', 10);
+
+                if (!trackEl || !viewportEl) {
+                    return;
+                }
+
+                trackEl.style.transform = 'translateX(-' + (idx * viewportEl.clientWidth) + 'px)';
+            });
+        }
+    }
+
+    initNoticeCarousel();
+
+    document.querySelectorAll('.js-edu-notice-read-more').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var notice = btn.closest('.edu-notice');
+            var modalEl = document.getElementById('educatorNoticeModal');
+            if (!notice || !modalEl || !window.bootstrap) {
+                return;
+            }
+
+            var titleEl = modalEl.querySelector('#educatorNoticeModalLabel');
+            var bodyEl = modalEl.querySelector('#educatorNoticeModalBody');
+            var expiryEl = modalEl.querySelector('#educatorNoticeModalExpiry');
+
+            if (titleEl) {
+                titleEl.textContent = notice.dataset.noticeTitle || 'Notice';
+            }
+
+            if (bodyEl) {
+                bodyEl.textContent = notice.dataset.noticeMessage || '';
+            }
+
+            if (expiryEl) {
+                expiryEl.textContent = notice.dataset.noticeExpires
+                    ? 'Valid until ' + notice.dataset.noticeExpires
+                    : '';
+            }
+
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+    });
+
     document.querySelectorAll('.js-edu-share-profile').forEach(function (btn) {
         btn.addEventListener('click', async function () {
             var title = page.dataset.shareTitle || document.title;

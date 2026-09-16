@@ -1,0 +1,30 @@
+.institutes-page .institutes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.institutes-card__board {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.institutes-card__tagline {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.institutes-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.institutes-stats-row strong {
+  color: #0f172a;
+}

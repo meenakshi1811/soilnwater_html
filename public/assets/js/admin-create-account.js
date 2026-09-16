@@ -8,7 +8,7 @@
         lockedRole: null,
 
         isBusinessRole: function (role) {
-            return role === 'vendor' || role === 'consultant' || role === 'service_provider';
+            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'institute';
         },
 
         isEducatorRole: function (role) {
@@ -83,7 +83,7 @@
         },
 
         reloadListingTables: function () {
-            $('#vendorsTable, #consultantsTable, #service_providersTable, #educatorsTable, #usersTable').each(function () {
+            $('#vendorsTable, #consultantsTable, #service_providersTable, #educatorsTable, #institutesTable, #usersTable').each(function () {
                 if ($.fn.DataTable.isDataTable(this)) {
                     $(this).DataTable().ajax.reload(null, false);
                 }

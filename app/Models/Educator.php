@@ -164,6 +164,16 @@ class Educator extends Model
         return $this->hasMany(EducatorReview::class)->latest();
     }
 
+    public function notices(): HasMany
+    {
+        return $this->hasMany(EducatorNotice::class)->latest();
+    }
+
+    public function activeNotices(): HasMany
+    {
+        return $this->notices()->active();
+    }
+
     public function enquiries(): HasMany
     {
         return $this->hasMany(EducatorEnquiry::class)->latest();

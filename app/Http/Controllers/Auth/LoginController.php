@@ -392,7 +392,7 @@ class LoginController extends Controller
     public function googleRegister(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,institute'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_same_as_phone' => ['nullable', 'boolean'],
@@ -523,6 +523,13 @@ class LoginController extends Controller
                     Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($user->consultant, 'pending'));
                 } elseif ($user->isServiceProvider() && $user->serviceProvider) {
                     Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($user->serviceProvider, 'pending'));
+                } elseif ($user->isInstitute() && $user->institute) {
+                    Mail::to($user->email)->send(\App\Mail\InstituteStatusMail::forInstitute($user->institute, 'pending'));
+                    PortalNotificationService::notifyAdminsOfApprovalRequest(
+                        'School / Institute account',
+                        $user->institute->institution_name,
+                        route('admin.institutes.show', $user->institute)
+                    );
                 } elseif ($user->isEducator() && $user->educator) {
                     Mail::to($user->email)->send(EducatorStatusMail::forEducator($user->educator, 'pending'));
                     PortalNotificationService::notifyAdminsOfApprovalRequest(
@@ -613,12 +620,12 @@ class LoginController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,institute'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,institute', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
@@ -664,6 +671,7 @@ class LoginController extends Controller
         $vendor = null;
         $consultant = null;
         $serviceProvider = null;
+        $institute = null;
         $educator = null;
 
         if ($user->isVendor()) {
@@ -711,6 +719,21 @@ class LoginController extends Controller
             $user->forceFill(['profile_image' => $serviceProvider->logo])->save();
         }
 
+        if ($user->isInstitute()) {
+            $institute = \App\Services\InstituteRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
+                'profile_image',
+            ]));
+            $user->forceFill(['profile_image' => $institute->logo])->save();
+        }
+
         if ($user->isEducator()) {
             $educator = \App\Services\EducatorRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
@@ -743,11 +766,15 @@ class LoginController extends Controller
             return redirect()->intended($this->redirectPath());
         }
 
-        if ($vendor || $consultant || $serviceProvider) {
+        if ($vendor || $consultant || $serviceProvider || $institute) {
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor account', $vendor->company_name, route('admin.vendors.show', $vendor));
+            } elseif ($institute) {
+                Mail::to($user->email)->send(\App\Mail\InstituteStatusMail::forInstitute($institute, 'pending'));
+                $message = 'Thank you for registering. Your school / institute profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest('School / Institute account', $institute->institution_name, route('admin.institutes.show', $institute));
             } elseif ($consultant) {
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
@@ -961,6 +988,10 @@ class LoginController extends Controller
             $message = $user->educator?->isRejected()
                 ? 'Your '.$user->educator->roleLabel().' account has been rejected by the admin. Please contact support for more information.'
                 : 'Your '.$user->educator->roleLabel().' account is pending admin approval. You will be able to log in once approved.';
+        } elseif ($user->isInstitute() && ! $user->institute?->isApproved()) {
+            $message = $user->institute?->isRejected()
+                ? 'Your school / institute account has been rejected by the admin. Please contact support for more information.'
+                : 'Your school / institute account is pending admin approval. You will be able to log in once approved.';
         }
 
         if (! $message) {
@@ -999,11 +1030,16 @@ class LoginController extends Controller
             \App\Services\EducatorRegistrationService::createProfileForUser($user);
             $user->load('educator');
         }
+
+        if ($user->isInstitute() && ! $user->institute) {
+            \App\Services\InstituteRegistrationService::createProfileForUser($user);
+            $user->load('institute');
+        }
     }
 
     private function isMarketplaceUser(User $user): bool
     {
-        return $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->isEducator();
+        return $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->isEducator() || $user->isInstitute();
     }
 
     private function otpCacheKey(int $userId): string

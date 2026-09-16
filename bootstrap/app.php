@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\EnsureConsultantIsApproved;
 use App\Http\Middleware\EnsureEducatorAccount;
+use App\Http\Middleware\EnsureInstituteAccount;
+use App\Http\Middleware\EnsureUserIsInstitute;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureServiceProviderIsApproved;
 use App\Http\Middleware\EnsureChatNotBlocked;
@@ -67,6 +69,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'consultant.account' => EnsureConsultantIsApproved::class,
             'service_provider.account' => EnsureServiceProviderIsApproved::class,
             'educator.account' => EnsureEducatorAccount::class,
+            'institute.account' => EnsureInstituteAccount::class,
+            'institute' => EnsureUserIsInstitute::class,
             'student.account' => EnsureStudentAccount::class,
             'child.portal' => \App\Http\Middleware\EnsureChildPortalAccess::class,
             'marketplace.approved' => EnsureMarketplacePostingAccountApproved::class,

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Educator;
 use App\Models\EducatorEnquiry;
+use App\Models\EducatorNotice;
 use App\Models\EducatorReview;
 use App\Models\StudyMaterial;
 use App\Models\StudyMaterialReview;
@@ -465,6 +466,37 @@ class TeacherDemoSeeder extends Seeder
 
         $educator->recalculateRating();
 
+        $demoNotices = [
+            [
+                'title' => 'Summer batch registration open',
+                'message' => 'Physics and Mathematics summer batches for Class 11 and 12 start from 5 May. Limited seats available for small-group tuition.',
+                'expires_at' => now()->addDays(45)->toDateString(),
+            ],
+            [
+                'title' => 'Board exam revision schedule',
+                'message' => 'Weekly revision tests for CBSE Class 12 Physics will be held every Saturday from 10:00 AM to 12:30 PM. Students must carry their registered notebook, previous test papers, and formula sheet. Doubt-clearing sessions will follow each test. Parents can collect the detailed April–May revision calendar from the front desk or message on WhatsApp. Please confirm your child\'s attendance by Thursday evening so batch planning can be finalized.',
+                'expires_at' => now()->addDays(21)->toDateString(),
+            ],
+            [
+                'title' => 'Holiday notice',
+                'message' => 'Tuition will remain closed on 18 May for a local festival. Regular classes resume on 19 May.',
+                'expires_at' => now()->addDays(14)->toDateString(),
+            ],
+        ];
+
+        foreach ($demoNotices as $noticeData) {
+            EducatorNotice::query()->updateOrCreate(
+                [
+                    'educator_id' => $educator->id,
+                    'title' => $noticeData['title'],
+                ],
+                [
+                    'message' => $noticeData['message'],
+                    'expires_at' => $noticeData['expires_at'],
+                ]
+            );
+        }
+
         $this->command?->info('Teacher demo data seeded successfully.');
         $this->command?->newLine();
         $this->command?->table(
@@ -477,6 +509,7 @@ class TeacherDemoSeeder extends Seeder
                 ['Educator portal', url('/educator/dashboard')],
                 ['Student demo logins', 'student1.demo@soilnwater.test / Student@123'],
                 ['Study materials', (string) $materials->count().' approved notes/resources'],
+                ['Notice board items', (string) count($demoNotices).' active demo notices'],
             ]
         );
     }

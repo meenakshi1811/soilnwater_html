@@ -203,14 +203,16 @@ class StudyMaterialLibraryController extends Controller
         $isBookmarked = auth()->check()
             && $material->bookmarkedBy()->where('user_id', auth()->id())->exists();
 
-        $userReview = auth()->check()
+        $authUser = auth()->user();
+        $userReview = $authUser
             ? StudyMaterialReview::query()
                 ->where('study_material_id', $material->id)
-                ->where('user_id', auth()->id())
+                ->where('user_id', $authUser->id)
                 ->first()
             : null;
+        $canWriteReview = $authUser?->canWriteEducatorReview($material->educator) ?? false;
 
-        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked', 'userReview', 'canAccessContent', 'paymentState'));
+        return view('frontend.study-materials.show', compact('material', 'related', 'isBookmarked', 'userReview', 'canWriteReview', 'canAccessContent', 'paymentState'));
     }
 
     public function download(string $slug): BinaryFileResponse|RedirectResponse
@@ -303,6 +305,9 @@ class StudyMaterialLibraryController extends Controller
             ->with(['educator.user', 'user'])
             ->where('slug', $slug)
             ->firstOrFail();
+
+        $user = auth()->user();
+        abort_unless($user && $user->canWriteEducatorReview($material->educator), 403, 'Only parent and student accounts can leave reviews. Child profiles cannot submit reviews.');
 
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],

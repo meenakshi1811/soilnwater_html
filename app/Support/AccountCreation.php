@@ -17,6 +17,7 @@ final class AccountCreation
             'consultant' => 'consultants',
             'service_provider' => 'service_providers',
             'teacher' => 'educators',
+            'institute' => 'institutes',
         ];
     }
 

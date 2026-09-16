@@ -433,6 +433,7 @@
 
                     <div class="sm-show-tab-panel" data-panel="reviews" role="tabpanel" id="smReviewsPanel">
                         @auth
+                            @if($canWriteReview ?? false)
                             <form id="smReviewForm" class="sm-review-form mb-4" novalidate>
                                 @csrf
                                 <h4 class="sm-review-form__title">{{ $userReview ? 'Update your review' : 'Write a review' }}</h4>
@@ -469,9 +470,10 @@
                                     </button>
                                 </div>
                             </form>
+                            @endif
                         @else
                             <div class="sm-review-login mb-4">
-                                <p class="mb-2">Sign in to leave a review for this material.</p>
+                                <p class="mb-2">Parents and students can sign in to leave a review for this material.</p>
                                 <a href="{{ route('login') }}" class="sm-btn sm-btn-outline">Login to review</a>
                             </div>
                         @endauth

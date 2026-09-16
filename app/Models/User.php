@@ -191,6 +191,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Educator::class);
     }
 
+    public function isInstitute(): bool
+    {
+        return $this->role === 'institute';
+    }
+
+    public function institute(): HasOne
+    {
+        return $this->hasOne(Institute::class);
+    }
+
     public function isStudent(): bool
     {
         return $this->role === 'student';
@@ -258,6 +268,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return 'Teacher / Tutor Dashboard';
         }
 
+        if ($this->isInstitute()) {
+            return 'Institute Dashboard';
+        }
+
         return 'User Dashboard';
     }
 
@@ -285,6 +299,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         if ($this->isEducator()) {
             return request()->routeIs('educator.dashboard');
+        }
+
+        if ($this->isInstitute()) {
+            return request()->routeIs('institute.dashboard');
         }
 
         if ($this->isEmployee()) {
@@ -324,11 +342,11 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        if ($this->isStudent() && ! $this->isSelfRegisteredStudent()) {
+        if ($this->isParentManagedChild()) {
             return false;
         }
 
-        if (! $this->hasParentProfileEnabled() && ! $this->isGeneralUser() && ! $this->isSelfRegisteredStudent()) {
+        if (! $this->isSelfRegisteredStudent() && ! $this->hasParentProfileEnabled()) {
             return false;
         }
 

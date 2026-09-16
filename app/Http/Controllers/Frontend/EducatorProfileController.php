@@ -50,6 +50,7 @@ class EducatorProfileController extends Controller
         $profileReviewsTotal = $profileReviewsPage['total'];
         $profileReviewsHasMore = $profileReviewsPage['has_more'];
         $testimonials = $this->profileTestimonialsFor($educator, 6);
+        $notices = $educator->activeNotices()->latest()->get();
         $educator->recalculateRating();
         $educator->refresh();
 
@@ -75,6 +76,7 @@ class EducatorProfileController extends Controller
             'profileReviewsTotal',
             'profileReviewsHasMore',
             'testimonials',
+            'notices',
             'userReview',
             'canWriteReview'
         ));

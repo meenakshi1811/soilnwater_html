@@ -109,6 +109,7 @@
                                 <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                                 <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
                                 <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
+                                <option value="institute" {{ old('role') === 'institute' ? 'selected' : '' }}>School / Institute</option>
                                 <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
                             </select>
                             @error('role')
@@ -116,7 +117,7 @@
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'student'], true) ? '' : 'd-none' }}">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'student', 'institute'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, services, and teachers / tutors, this image will also appear on the public profile.</small>
@@ -253,6 +254,7 @@
                             <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                             <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
                             <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
+                            <option value="institute" {{ old('role') === 'institute' ? 'selected' : '' }}>School / Institute</option>
                         </select>
                         @error('role')
                             <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>

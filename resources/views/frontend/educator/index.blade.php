@@ -14,7 +14,6 @@
   $joinUrl = route('register', ['role' => 'teacher']);
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
   $ratingOptions = [4.5, 4.0, 3.5, 3.0, 2.0];
-  $subjectIcons = ['fa-book', 'fa-flask', 'fa-calculator', 'fa-globe', 'fa-language', 'fa-laptop-code', 'fa-palette', 'fa-atom'];
 @endphp
 
 @push('styles')
@@ -223,7 +222,7 @@
                 title="{{ $subject->name }}"
               >
                 <span class="vendors-category-chip__icon vendors-category-chip__icon--{{ ($index % 8) + 1 }}">
-                  <i class="fa-solid {{ $subjectIcons[$index % count($subjectIcons)] }}" aria-hidden="true"></i>
+                  <i class="fa-solid {{ \App\Support\SubjectPresentation::iconFor($subject->name, $index) }}" aria-hidden="true"></i>
                 </span>
                 <span class="vendors-category-chip__text">
                   <strong>{{ $subject->name }}</strong>

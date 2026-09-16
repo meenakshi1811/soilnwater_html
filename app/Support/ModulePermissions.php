@@ -24,6 +24,7 @@ final class ModulePermissions
             'consultants' => 'Consultants',
             'service_providers' => 'Services',
             'educators' => 'Teachers & Tutors',
+            'institutes' => 'Schools & Institutes',
             'enquiry' => 'Enquiry',
             'products' => 'Products',
             'offers' => 'Offers',
@@ -72,6 +73,7 @@ final class ModulePermissions
             'consultants' => 'admin.consultants.index',
             'service_providers' => 'admin.service_providers.index',
             'educators' => 'admin.educators.index',
+            'institutes' => 'admin.institutes.index',
             'offers' => 'offers.index',
             'ads' => 'ads.index',
         ];
@@ -96,6 +98,7 @@ final class ModulePermissions
             'admin.service-provider-services.' => 'service_providers',
             'admin.educators.' => 'educators',
             'admin.study-materials.' => 'educators',
+            'admin.institutes.' => 'institutes',
             'admin.offers.' => 'offers',
             'admin.offer-prices.' => 'offers',
             'offers.' => 'offers',

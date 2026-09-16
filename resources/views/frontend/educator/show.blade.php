@@ -23,8 +23,8 @@
   $availability = collect($educator->availability ?? []);
   $primarySubject = $educator->primarySubject() ?: 'General';
   $shareUrl = $educator->publicUrl();
-  $subjectIcons = ['fa-book-open', 'fa-flask', 'fa-calculator', 'fa-globe', 'fa-language', 'fa-laptop-code', 'fa-atom', 'fa-palette'];
   $testimonials = collect($testimonials ?? []);
+  $notices = collect($notices ?? []);
   $aboutText = trim((string) $educator->about);
   $aboutNeedsToggle = strlen($aboutText) > 280;
   $isTutorProfile = $educator->isTutor();
@@ -83,6 +83,16 @@
           </a>
         @endforeach
       </div>
+    </div>
+
+    <div class="edu-profile-top">
+      <div class="edu-profile-banner" style="--edu-banner-image: url('{{ $photo }}');">
+        <div class="edu-profile-banner__overlay"></div>
+      </div>
+
+      @if($notices->isNotEmpty())
+        @include('frontend.educator.partials.notice-board', ['notices' => $notices])
+      @endif
     </div>
 
     <div class="edu-grid">
@@ -244,7 +254,7 @@
                 @php
                   $name = is_array($subject) ? ($subject['name'] ?? '') : $subject;
                   $level = is_array($subject) ? ($subject['level'] ?? 'primary') : 'primary';
-                  $icon = $subjectIcons[$index % count($subjectIcons)];
+                  $icon = \App\Support\SubjectPresentation::iconFor($name, $index);
                 @endphp
                 @if($name)
                   <div class="edu-subject-card">
@@ -474,9 +484,9 @@
               </div>
             @endif
 
+            @if(! auth()->check() || ($canWriteReview ?? false))
             <div class="edu-review-compose" id="educatorReviewCompose">
             @auth
-              @if($canWriteReview ?? false)
               @php
                 $selectedRating = (int) old('rating', $userReview?->rating ?: 5);
                 $ratingLabels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'];
@@ -557,25 +567,6 @@
                   </button>
                 </div>
               </form>
-              @else
-                <div class="edu-review-restricted">
-                  <div class="edu-review-restricted__icon" aria-hidden="true">
-                    <i class="fa-solid fa-user-lock"></i>
-                  </div>
-                  <div>
-                    <h4 class="edu-review-restricted__title">Reviews are for parents and students only</h4>
-                    <p class="edu-review-restricted__text mb-0">
-                      @if(\App\Support\ActiveChildSession::belongsToParent(auth()->id()))
-                        Exit the child profile from your parent dashboard to leave a review as a parent.
-                      @elseif(auth()->user()?->isStudent())
-                        Child profiles cannot submit reviews. Ask your parent to sign in and share feedback.
-                      @else
-                        Enable your parent profile or sign in with a student account to write a review.
-                      @endif
-                    </p>
-                  </div>
-                </div>
-              @endif
             @else
               <div class="edu-review-login">
                 <div class="edu-review-login__icon" aria-hidden="true">
@@ -592,6 +583,7 @@
               </div>
             @endauth
             </div>
+            @endif
           </div>
         </section>
 
@@ -998,6 +990,24 @@
           @endforelse
         </div>
       </aside>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="educatorNoticeModal" tabindex="-1" aria-labelledby="educatorNoticeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="educatorNoticeModalLabel">Notice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2" id="educatorNoticeModalExpiry"></p>
+        <div id="educatorNoticeModalBody" class="edu-notice-modal__body"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>

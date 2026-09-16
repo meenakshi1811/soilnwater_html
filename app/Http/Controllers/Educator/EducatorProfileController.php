@@ -26,9 +26,14 @@ class EducatorProfileController extends Controller
         $educator?->recalculateRating();
         $educator?->refresh();
 
+        $notices = $educator
+            ? $educator->notices()->latest()->get()
+            : collect();
+
         return view('backend.educator.profile', [
             'user' => $user,
             'educator' => $educator,
+            'notices' => $notices,
         ]);
     }
 

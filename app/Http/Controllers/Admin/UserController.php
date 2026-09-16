@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Services\ConsultantRegistrationService;
 use App\Services\EducatorRegistrationService;
 use App\Services\ServiceProviderRegistrationService;
+use App\Services\InstituteRegistrationService;
 use App\Services\VendorRegistrationService;
 use App\Support\AccountCreation;
 use App\Support\GoogleGeocoder;
@@ -82,6 +83,7 @@ class UserController extends Controller
                     'consultant' => ['Consultant', 'text-bg-purple'],
                     'service_provider' => ['Service Provider', 'text-bg-teal'],
                     'teacher' => ['Teacher / Tutor', 'text-bg-success'],
+                    'institute' => ['School / Institute', 'text-bg-warning'],
                     'admin' => ['Admin', 'text-bg-danger'],
                     'employee' => ['Employee', 'text-bg-dark'],
                     'builder' => ['Builder', 'text-bg-secondary'],
@@ -284,6 +286,17 @@ class UserController extends Controller
                 ]);
             }
 
+            if ($user->isInstitute()) {
+                $institute = InstituteRegistrationService::createProfileForUser($user, $profileData);
+                $user->forceFill(['profile_image' => $institute->logo])->save();
+                $institute->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'approved_by' => $adminUserId,
+                    'is_verified' => true,
+                ]);
+            }
+
             return $user;
         });
 
@@ -409,14 +422,14 @@ class UserController extends Controller
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher,institute'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['nullable', 'required_if:role,user,teacher', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
-            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'date', 'before_or_equal:today'],
+            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'date', 'before_or_equal:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
@@ -482,6 +495,7 @@ class UserController extends Controller
                 'serviceProvider.services.subcategoryModel',
             ]),
             'teacher' => $user->loadMissing(['educator.studyMaterials']),
+            'institute' => $user->loadMissing(['institute']),
             default => null,
         };
     }
@@ -531,6 +545,14 @@ class UserController extends Controller
                 'city' => $user->educator->city,
                 'headline' => $user->educator->professional_headline,
                 'materials_count' => $user->educator->studyMaterials->count(),
+            ] : null,
+            'institute' => $user->institute ? [
+                'label' => $user->institute->roleLabel(),
+                'display_name' => $user->institute->displayName(),
+                'slug' => $user->institute->slug,
+                'status' => $user->institute->status,
+                'city' => $user->institute->city,
+                'institution_type' => $user->institute->institution_type,
             ] : null,
             default => null,
         };

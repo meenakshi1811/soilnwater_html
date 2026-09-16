@@ -28,6 +28,9 @@ class UserDashboard
             $user->isEducator() => $user->educator?->isApproved()
                 ? route('educator.dashboard')
                 : route('educator.pending'),
+            $user->isInstitute() => $user->institute?->isApproved()
+                ? route('institute.dashboard')
+                : route('institute.pending'),
             default => route('user.dashboard'),
         };
     }
