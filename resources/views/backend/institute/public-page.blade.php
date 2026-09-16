@@ -296,14 +296,17 @@
 @endsection
 
 @push('scripts')
+@php
+    $instPublicContentRoutes = [
+        'notices' => $portalRoute('notices.store'),
+        'achievements' => $portalRoute('achievements.store'),
+        'performers' => $portalRoute('performers.store'),
+        'classes' => $portalRoute('classes.store'),
+        'books' => $portalRoute('books.store'),
+    ];
+@endphp
 <script>
-window.instPublicContentRoutes = @json([
-    'notices' => $portalRoute('notices.store'),
-    'achievements' => $portalRoute('achievements.store'),
-    'performers' => $portalRoute('performers.store'),
-    'classes' => $portalRoute('classes.store'),
-    'books' => $portalRoute('books.store'),
-]);
+window.instPublicContentRoutes = @json($instPublicContentRoutes);
 </script>
 <script src="{{ asset('assets/js/institute-public-content.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
