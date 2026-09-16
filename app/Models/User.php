@@ -213,7 +213,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function portalRoute(string $name, mixed $parameters = [], bool $absolute = true): string
     {
-        return route($this->portalRoutePrefix().'.'.$name, $parameters, $absolute);
+        return \App\Support\SchoolInstituteHelper::portalRoute($this, $name, $parameters, $absolute);
     }
 
     public function institute(): HasOne

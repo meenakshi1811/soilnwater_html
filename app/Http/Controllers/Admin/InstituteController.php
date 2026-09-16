@@ -140,7 +140,7 @@ class InstituteController extends Controller
             $this->accountLabel,
             $institute->displayName(),
             'approved',
-            route($this->portalRoutePrefix.'.dashboard')
+            \App\Support\SchoolInstituteHelper::routeForPrefix($this->portalRoutePrefix, 'dashboard')
         );
 
         return response()->json([

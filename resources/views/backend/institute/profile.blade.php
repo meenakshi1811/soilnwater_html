@@ -19,7 +19,7 @@
             <p class="mb-0 text-secondary">Update your school details visible on the public listing and profile page.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route($portalPrefix.'.public-page.edit') }}" class="btn btn-outline-primary">
+            <a href="{{ $portalRoute('public-page.edit') }}" class="btn btn-outline-primary">
                 <i class="fa-solid fa-globe me-1"></i> Manage public page
             </a>
             @if($institute->isApproved())
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route($portalPrefix.'.profile.update') }}" enctype="multipart/form-data" class="js-ajax-form chart-card" data-success-redirect="{{ route($portalPrefix.'.profile.edit') }}">
+    <form method="POST" action="{{ $portalRoute('profile.update') }}" enctype="multipart/form-data" class="js-ajax-form chart-card" data-success-redirect="{{ $portalRoute('profile.edit') }}">
         @csrf
         @method('PUT')
 

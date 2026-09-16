@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Institute;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 
 final class SchoolInstituteHelper
 {
@@ -54,5 +55,33 @@ final class SchoolInstituteHelper
     public static function defaultInstitutionTypeForRole(string $role): string
     {
         return $role === 'school' ? 'school' : 'coaching';
+    }
+
+    public static function portalRouteName(?User $user, string $suffix): string
+    {
+        $prefix = $user?->portalRoutePrefix() ?? 'school';
+
+        return $prefix.'.'.$suffix;
+    }
+
+    public static function portalRoute(?User $user, string $suffix, mixed $parameters = [], bool $absolute = true): string
+    {
+        return self::routeForPrefix($user?->portalRoutePrefix() ?? 'school', $suffix, $parameters, $absolute);
+    }
+
+    public static function routeForPrefix(string $prefix, string $suffix, mixed $parameters = [], bool $absolute = true): string
+    {
+        $routeName = $prefix.'.'.$suffix;
+
+        if (Route::has($routeName)) {
+            return route($routeName, $parameters, $absolute);
+        }
+
+        $legacyName = 'institute.'.$suffix;
+        if ($prefix !== 'institute' && Route::has($legacyName)) {
+            return route($legacyName, $parameters, $absolute);
+        }
+
+        return url('/');
     }
 }

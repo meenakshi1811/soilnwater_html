@@ -298,11 +298,11 @@
 @push('scripts')
 <script>
 window.instPublicContentRoutes = @json([
-    'notices' => route($portalPrefix.'.notices.store'),
-    'achievements' => route($portalPrefix.'.achievements.store'),
-    'performers' => route($portalPrefix.'.performers.store'),
-    'classes' => route($portalPrefix.'.classes.store'),
-    'books' => route($portalPrefix.'.books.store'),
+    'notices' => $portalRoute('notices.store'),
+    'achievements' => $portalRoute('achievements.store'),
+    'performers' => $portalRoute('performers.store'),
+    'classes' => $portalRoute('classes.store'),
+    'books' => $portalRoute('books.store'),
 ]);
 </script>
 <script src="{{ asset('assets/js/institute-public-content.js') }}?v={{ now()->timestamp }}"></script>

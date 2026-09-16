@@ -15,7 +15,7 @@
         @endif
       </div>
     </div>
-    <button type="button" class="btn btn-outline-danger btn-sm js-inst-achievement-delete" data-url="{{ route(($portalPrefix ?? auth()->user()?->portalRoutePrefix() ?? 'school').'.achievements.destroy', $achievement) }}" aria-label="Delete achievement">
+    <button type="button" class="btn btn-outline-danger btn-sm js-inst-achievement-delete" data-url="{{ $portalRoute('achievements.destroy', $achievement) }}" aria-label="Delete achievement">
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>

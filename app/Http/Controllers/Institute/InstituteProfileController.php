@@ -125,6 +125,6 @@ class InstituteProfileController extends Controller
             ]);
         }
 
-        return redirect()->route($request->user()->portalRoutePrefix().'.profile.edit')->with('status', $message);
+        return redirect()->to($request->user()->portalRoute('profile.edit'))->with('status', $message);
     }
 }

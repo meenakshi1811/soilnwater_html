@@ -11,7 +11,7 @@
         <p class="mb-0 mt-1 text-secondary small">{{ $class->description }}</p>
       @endif
     </div>
-    <button type="button" class="btn btn-outline-danger btn-sm js-inst-class-delete" data-url="{{ route(($portalPrefix ?? auth()->user()?->portalRoutePrefix() ?? 'school').'.classes.destroy', $class) }}" aria-label="Delete class">
+    <button type="button" class="btn btn-outline-danger btn-sm js-inst-class-delete" data-url="{{ $portalRoute('classes.destroy', $class) }}" aria-label="Delete class">
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>

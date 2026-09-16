@@ -19,7 +19,7 @@
         @endif
       </div>
     </div>
-    <button type="button" class="btn btn-outline-danger btn-sm js-inst-book-delete" data-url="{{ route(($portalPrefix ?? auth()->user()?->portalRoutePrefix() ?? 'school').'.books.destroy', $book) }}" aria-label="Delete book">
+    <button type="button" class="btn btn-outline-danger btn-sm js-inst-book-delete" data-url="{{ $portalRoute('books.destroy', $book) }}" aria-label="Delete book">
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>

@@ -1,0 +1,45 @@
+<?php
+
+use App\Http\Controllers\Institute\InstituteDashboardController;
+use App\Http\Controllers\Institute\InstituteEnquiryController;
+use App\Http\Controllers\Institute\InstituteNoticeController;
+use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
+use App\Http\Controllers\Institute\InstitutePublicContentController;
+use App\Http\Controllers\Institute\InstitutePublicPageController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('school')->name('school.')->middleware(['school.account'])->group(function (): void {
+    Route::get('/dashboard', [InstituteDashboardController::class, 'dashboard'])->middleware('school')->name('dashboard');
+    Route::get('/profile', [PortalInstituteProfileController::class, 'edit'])->middleware('school')->name('profile.edit');
+    Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware('school')->name('profile.update');
+    Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('school')->name('public-page.edit');
+    Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('school')->name('enquiries.index');
+    Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('school')->name('notices.store');
+    Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('school')->name('notices.destroy');
+    Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('school')->name('achievements.store');
+    Route::delete('/achievements/{achievement}', [InstitutePublicContentController::class, 'destroyAchievement'])->middleware('school')->name('achievements.destroy');
+    Route::post('/performers', [InstitutePublicContentController::class, 'storePerformer'])->middleware('school')->name('performers.store');
+    Route::delete('/performers/{performer}', [InstitutePublicContentController::class, 'destroyPerformer'])->middleware('school')->name('performers.destroy');
+    Route::post('/classes', [InstitutePublicContentController::class, 'storeClass'])->middleware('school')->name('classes.store');
+    Route::delete('/classes/{class}', [InstitutePublicContentController::class, 'destroyClass'])->middleware('school')->name('classes.destroy');
+    Route::post('/books', [InstitutePublicContentController::class, 'storeBook'])->middleware('school')->name('books.store');
+    Route::delete('/books/{book}', [InstitutePublicContentController::class, 'destroyBook'])->middleware('school')->name('books.destroy');
+});
+
+Route::prefix('institute')->name('institute.')->middleware(['institute.account'])->group(function (): void {
+    Route::get('/dashboard', [InstituteDashboardController::class, 'dashboard'])->middleware('institute')->name('dashboard');
+    Route::get('/profile', [PortalInstituteProfileController::class, 'edit'])->middleware('institute')->name('profile.edit');
+    Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware('institute')->name('profile.update');
+    Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('institute')->name('public-page.edit');
+    Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('institute')->name('enquiries.index');
+    Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('institute')->name('notices.store');
+    Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('institute')->name('notices.destroy');
+    Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('institute')->name('achievements.store');
+    Route::delete('/achievements/{achievement}', [InstitutePublicContentController::class, 'destroyAchievement'])->middleware('institute')->name('achievements.destroy');
+    Route::post('/performers', [InstitutePublicContentController::class, 'storePerformer'])->middleware('institute')->name('performers.store');
+    Route::delete('/performers/{performer}', [InstitutePublicContentController::class, 'destroyPerformer'])->middleware('institute')->name('performers.destroy');
+    Route::post('/classes', [InstitutePublicContentController::class, 'storeClass'])->middleware('institute')->name('classes.store');
+    Route::delete('/classes/{class}', [InstitutePublicContentController::class, 'destroyClass'])->middleware('institute')->name('classes.destroy');
+    Route::post('/books', [InstitutePublicContentController::class, 'storeBook'])->middleware('institute')->name('books.store');
+    Route::delete('/books/{book}', [InstitutePublicContentController::class, 'destroyBook'])->middleware('institute')->name('books.destroy');
+});

@@ -66,10 +66,10 @@
         $dashboardUrl = route('educator.dashboard');
         $dashboardActive = request()->routeIs('educator.dashboard');
     } elseif ($isSchool && $schoolApproved) {
-        $dashboardUrl = route('school.dashboard');
+        $dashboardUrl = $user->portalRoute('dashboard');
         $dashboardActive = request()->routeIs('school.dashboard');
     } elseif ($isInstitute && $instituteApproved) {
-        $dashboardUrl = route('institute.dashboard');
+        $dashboardUrl = $user->portalRoute('dashboard');
         $dashboardActive = request()->routeIs('institute.dashboard');
     } elseif ($isStudent) {
         $dashboardUrl = route('child.dashboard');
@@ -721,19 +721,19 @@
                     </summary>
                     <ul class="list-unstyled ps-4">
                         <li>
-                            <a class="{{ request()->routeIs('school.profile.*') ? 'active' : '' }}" href="{{ route('school.profile.edit') }}">
+                            <a class="{{ request()->routeIs('school.profile.*') ? 'active' : '' }}" href="{{ $user->portalRoute('profile.edit') }}">
                                 <i class="fa-solid fa-id-card"></i>
                                 <span>Profile</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.public-page.*') ? 'active' : '' }}" href="{{ route('school.public-page.edit') }}">
+                            <a class="{{ request()->routeIs('school.public-page.*') ? 'active' : '' }}" href="{{ $user->portalRoute('public-page.edit') }}">
                                 <i class="fa-solid fa-globe"></i>
                                 <span>Public page</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.enquiries.*') ? 'active' : '' }}" href="{{ route('school.enquiries.index') }}">
+                            <a class="{{ request()->routeIs('school.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Enquiries</span>
                             </a>
@@ -754,19 +754,19 @@
                     </summary>
                     <ul class="list-unstyled ps-4">
                         <li>
-                            <a class="{{ request()->routeIs('institute.profile.*') ? 'active' : '' }}" href="{{ route('institute.profile.edit') }}">
+                            <a class="{{ request()->routeIs('institute.profile.*') ? 'active' : '' }}" href="{{ $user->portalRoute('profile.edit') }}">
                                 <i class="fa-solid fa-id-card"></i>
                                 <span>Profile</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('institute.public-page.*') ? 'active' : '' }}" href="{{ route('institute.public-page.edit') }}">
+                            <a class="{{ request()->routeIs('institute.public-page.*') ? 'active' : '' }}" href="{{ $user->portalRoute('public-page.edit') }}">
                                 <i class="fa-solid fa-globe"></i>
                                 <span>Public page</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('institute.enquiries.*') ? 'active' : '' }}" href="{{ route('institute.enquiries.index') }}">
+                            <a class="{{ request()->routeIs('institute.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Enquiries</span>
                             </a>

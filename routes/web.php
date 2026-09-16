@@ -387,28 +387,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/school/pending', [InstitutePendingController::class, 'show'])->name('school.pending');
     Route::get('/institute/pending', [InstitutePendingController::class, 'show'])->name('institute.pending');
 
-    $registerSchoolInstitutePortal = function (string $prefix, string $name, string $accountMiddleware, string $approvedMiddleware): void {
-        Route::prefix($prefix)->name($name)->middleware([$accountMiddleware])->group(function () use ($approvedMiddleware): void {
-            Route::get('/dashboard', [InstituteDashboardController::class, 'dashboard'])->middleware($approvedMiddleware)->name('dashboard');
-            Route::get('/profile', [PortalInstituteProfileController::class, 'edit'])->middleware($approvedMiddleware)->name('profile.edit');
-            Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware($approvedMiddleware)->name('profile.update');
-            Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware($approvedMiddleware)->name('public-page.edit');
-            Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware($approvedMiddleware)->name('enquiries.index');
-            Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware($approvedMiddleware)->name('notices.store');
-            Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware($approvedMiddleware)->name('notices.destroy');
-            Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware($approvedMiddleware)->name('achievements.store');
-            Route::delete('/achievements/{achievement}', [InstitutePublicContentController::class, 'destroyAchievement'])->middleware($approvedMiddleware)->name('achievements.destroy');
-            Route::post('/performers', [InstitutePublicContentController::class, 'storePerformer'])->middleware($approvedMiddleware)->name('performers.store');
-            Route::delete('/performers/{performer}', [InstitutePublicContentController::class, 'destroyPerformer'])->middleware($approvedMiddleware)->name('performers.destroy');
-            Route::post('/classes', [InstitutePublicContentController::class, 'storeClass'])->middleware($approvedMiddleware)->name('classes.store');
-            Route::delete('/classes/{class}', [InstitutePublicContentController::class, 'destroyClass'])->middleware($approvedMiddleware)->name('classes.destroy');
-            Route::post('/books', [InstitutePublicContentController::class, 'storeBook'])->middleware($approvedMiddleware)->name('books.store');
-            Route::delete('/books/{book}', [InstitutePublicContentController::class, 'destroyBook'])->middleware($approvedMiddleware)->name('books.destroy');
-        });
-    };
-
-    $registerSchoolInstitutePortal('school', 'school', 'school.account', 'school');
-    $registerSchoolInstitutePortal('institute', 'institute', 'institute.account', 'institute');
+    require __DIR__.'/includes/school_institute_portal.php';
 
     Route::prefix('educator')->name('educator.')->middleware(['educator.account'])->group(function () {
         Route::get('/dashboard', [EducatorDashboardController::class, 'dashboard'])->middleware('educator')->name('dashboard');

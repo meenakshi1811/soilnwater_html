@@ -11,7 +11,7 @@
         @endif
       </div>
     </div>
-    <button type="button" class="btn btn-outline-danger btn-sm js-inst-notice-delete" data-url="{{ route(($portalPrefix ?? auth()->user()?->portalRoutePrefix() ?? 'school').'.notices.destroy', $notice) }}" aria-label="Delete notice">
+    <button type="button" class="btn btn-outline-danger btn-sm js-inst-notice-delete" data-url="{{ $portalRoute('notices.destroy', $notice) }}" aria-label="Delete notice">
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>

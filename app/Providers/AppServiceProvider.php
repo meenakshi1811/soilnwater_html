@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Support\AuthActor;
+use App\Support\SchoolInstituteHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,9 +30,13 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('backend.institute.*', function ($view): void {
             $user = AuthActor::user();
+            $prefix = $user?->portalRoutePrefix() ?? 'school';
             $view->with([
-                'portalPrefix' => $user?->portalRoutePrefix() ?? 'school',
+                'portalPrefix' => $prefix,
                 'portalLabel' => $user?->isSchool() ? 'School' : 'Institute',
+                'portalRoute' => static fn (string $suffix, mixed $parameters = []) => $user
+                    ? $user->portalRoute($suffix, $parameters)
+                    : SchoolInstituteHelper::routeForPrefix($prefix, $suffix, $parameters),
             ]);
         });
 

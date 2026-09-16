@@ -77,7 +77,7 @@ class InstituteProfileController extends Controller
             $owner,
             'New enquiry received',
             $fromName.' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.'),
-            $institute->user?->portalRoute('enquiries.index') ?? route('school.enquiries.index'),
+            $institute->user?->portalRoute('enquiries.index') ?? \App\Support\SchoolInstituteHelper::routeForPrefix('school', 'enquiries.index'),
             'engagement'
         );
 

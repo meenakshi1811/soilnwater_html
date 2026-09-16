@@ -17,7 +17,7 @@ class InstitutePendingController extends Controller
         }
 
         if ($user->institute?->isApproved()) {
-            return redirect()->route($user->portalRoutePrefix().'.dashboard');
+            return redirect()->to($user->portalRoute('dashboard'));
         }
 
         return view('backend.institute.pending', [
