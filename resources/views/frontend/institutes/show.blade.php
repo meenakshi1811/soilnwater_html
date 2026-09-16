@@ -1,456 +1,509 @@
-@extends('frontend.layouts.app')
+@extends('frontend.institutes.layout')
 
-@section('meta_title', $institute->displayName().' | Schools & Institutes | SoilnWater')
+@section('title', $institute->displayName().' – '.(($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute'))
+
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($institute->about ?: $institute->tagline ?: $institute->description ?: 'School profile on SoilnWater'), 160))
 
 @php
-  $photo = $institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp');
-  $bannerPhoto = $institute->galleryUrls()[0] ?? $photo;
-  $grades = collect($institute->grades_offered ?? []);
-  $facilities = collect($institute->facilities ?? []);
-  $gallery = collect($institute->galleryUrls());
-  $notices = collect($institute->activeNotices ?? []);
-  $achievements = collect($institute->achievements ?? []);
-  $performers = collect($institute->topPerformers ?? []);
-  $classes = collect($institute->schoolClasses ?? []);
-  $books = collect($institute->books ?? []);
-  $authUser = auth()->user();
-  $aboutText = trim((string) ($institute->about ?: $institute->description));
-  $aboutNeedsToggle = strlen($aboutText) > 320;
-  $shareUrl = $institute->publicUrl();
-  $establishedYear = $institute->establishedYear();
-
-  $navItems = collect([
-    ['id' => 'sch-overview', 'label' => 'Overview', 'icon' => 'fa-school'],
-    ['id' => 'sch-about', 'label' => 'About', 'icon' => 'fa-circle-info', 'show' => filled($aboutText)],
-    ['id' => 'sch-classes', 'label' => 'Classes', 'icon' => 'fa-chalkboard', 'show' => $classes->isNotEmpty() || $grades->isNotEmpty()],
-    ['id' => 'sch-performers', 'label' => 'Top Performers', 'icon' => 'fa-medal', 'show' => $performers->isNotEmpty()],
-    ['id' => 'sch-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy', 'show' => $achievements->isNotEmpty()],
-    ['id' => 'sch-books', 'label' => 'Books & Authors', 'icon' => 'fa-book', 'show' => $books->isNotEmpty()],
-    ['id' => 'sch-facilities', 'label' => 'Facilities', 'icon' => 'fa-building', 'show' => $facilities->isNotEmpty()],
-    ['id' => 'sch-gallery', 'label' => 'Gallery', 'icon' => 'fa-images', 'show' => $gallery->count() > 1],
-    ['id' => 'sch-contact', 'label' => 'Contact', 'icon' => 'fa-envelope'],
-  ])->filter(fn ($item) => ($item['show'] ?? true))->values()->all();
+    $photo = $institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp');
+    $bannerSlides = collect($institute->galleryUrls());
+    if ($bannerSlides->isEmpty()) {
+        $bannerSlides = collect([$photo]);
+    }
+    $grades = collect($institute->grades_offered ?? []);
+    $facilities = collect($institute->facilities ?? []);
+    $gallery = collect($institute->galleryUrls());
+    $notices = collect($institute->activeNotices ?? []);
+    $achievements = collect($institute->achievements ?? []);
+    $performers = collect($institute->topPerformers ?? []);
+    $classes = collect($institute->schoolClasses ?? []);
+    $books = collect($institute->books ?? []);
+    $authUser = auth()->user();
+    $aboutText = trim((string) ($institute->about ?: $institute->description));
+    $aboutNeedsToggle = strlen($aboutText) > 320;
+    $establishedYear = $institute->establishedYear();
+    $entityLabel = ($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute';
 @endphp
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/institute-profile.css') }}?v={{ now()->timestamp }}">
-@endpush
-
-@section('content')
-<div
-  class="sch-page"
-  id="instituteProfilePage"
-  data-enquiry-url="{{ route(($listingContext ?? 'schools').'.enquiry', $institute->slug) }}"
-  data-login-url="{{ route('login') }}"
-  data-is-auth="{{ auth()->check() ? '1' : '0' }}"
-  data-share-url="{{ $shareUrl }}"
-  data-share-title="{{ $institute->displayName() }}"
->
-  <div class="container-fluid sch-container">
-    @if(session('status'))
-      <div class="alert alert-success mb-3">{{ session('status') }}</div>
-    @endif
-
-    <nav class="sch-breadcrumb" aria-label="Breadcrumb">
-      <a href="{{ route('frontend.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
-      <span class="sch-breadcrumb__sep" aria-hidden="true">›</span>
-      <a href="{{ route(($listingContext ?? 'schools').'.index') }}">{{ ($ownerRole ?? 'school') === 'school' ? 'Schools' : 'Institutes' }}</a>
-      <span class="sch-breadcrumb__sep" aria-hidden="true">›</span>
-      <span class="sch-breadcrumb__current" aria-current="page">{{ $institute->displayName() }}</span>
-    </nav>
-
-    <div class="sch-nav-mobile">
-      <div class="sch-nav-mobile__inner">
-        @foreach($navItems as $item)
-          <a href="#{{ $item['id'] }}" class="sch-nav-mobile__link js-sch-nav-link">
-            <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
-            {{ $item['label'] }}
-          </a>
-        @endforeach
-      </div>
-    </div>
-
-    <div class="sch-profile-top">
-      <div class="sch-profile-banner" style="--sch-banner-image: url('{{ $bannerPhoto }}');">
-        <div class="sch-profile-banner__overlay"></div>
-        <div class="sch-profile-banner__content">
-          <img src="{{ $photo }}" alt="{{ $institute->displayName() }}" class="sch-profile-banner__logo" onerror="this.onerror=null;this.src='{{ asset('assets/images/logo_soilnwater.webp') }}';">
-          <div>
-            <div class="sch-profile-banner__badges">
-              <span class="sch-badge sch-badge--primary">{{ $institute->institutionTypeLabel() }}</span>
-              @if($institute->is_verified)
-                <span class="sch-badge sch-badge--success"><i class="fa-solid fa-circle-check"></i> Verified</span>
-              @endif
-              @if($institute->board_affiliation)
-                <span class="sch-badge sch-badge--light">{{ $institute->board_affiliation }}</span>
-              @endif
-            </div>
-            <h1 class="sch-profile-banner__title">{{ $institute->displayName() }}</h1>
-            @if($institute->tagline)
-              <p class="sch-profile-banner__tagline">{{ $institute->tagline }}</p>
-            @endif
-            <p class="sch-profile-banner__location mb-0">
-              <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-              {{ $institute->address ? $institute->address.', ' : '' }}{{ $institute->locationLabel() }} {{ $institute->pincode }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      @if($notices->isNotEmpty())
-        @include('frontend.institutes.partials.notice-board', ['notices' => $notices])
-      @endif
-    </div>
-
-    <div class="sch-grid">
-      <aside class="sch-nav" aria-label="School profile sections">
-        <div class="sch-nav__inner">
-          <ul class="sch-nav__list">
-            @foreach($navItems as $loopIndex => $item)
-              <li>
-                <a href="#{{ $item['id'] }}" class="sch-nav__link js-sch-nav-link {{ $loopIndex === 0 ? 'is-active' : '' }}">
-                  <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
-                  {{ $item['label'] }}
-                </a>
-              </li>
+@section('institute_content')
+<section class="vendor-store-hero">
+    <div id="schoolHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+        <div class="carousel-inner h-100">
+            @foreach($bannerSlides as $i => $slideUrl)
+                <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
+                    <img src="{{ $slideUrl }}" alt="{{ $institute->displayName() }} banner {{ $i + 1 }}" class="vendor-store-hero__image">
+                </div>
             @endforeach
-          </ul>
-          <div class="sch-nav__share">
-            <button type="button" class="sch-btn sch-btn-outline js-sch-share">
-              <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share
-            </button>
-          </div>
         </div>
-      </aside>
+        @if($bannerSlides->count() > 1)
+            <button class="carousel-control-prev" type="button" data-bs-target="#schoolHeroCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#schoolHeroCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        @endif
+    </div>
+</section>
 
-      <main class="sch-main">
-        <section id="sch-overview" class="sch-section sch-overview">
-          <h2 class="sch-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> School Overview</h2>
-          <div class="sch-stats">
+<section class="vendor-hero-text-section">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+            <div class="flex-grow-1">
+                <div class="school-hero-badges mb-2">
+                    <span class="school-hero-badge">{{ $institute->institutionTypeLabel() }}</span>
+                    @if($institute->is_verified)
+                        <span class="school-hero-badge school-hero-badge--verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                    @endif
+                    @if($institute->board_affiliation)
+                        <span class="school-hero-badge school-hero-badge--muted">{{ $institute->board_affiliation }}</span>
+                    @endif
+                </div>
+                <h1>{{ $institute->displayName() }}</h1>
+                @if($institute->tagline)
+                    <div class="lead mb-2 opacity-90 vendor-hero-subheading">{{ $institute->tagline }}</div>
+                @endif
+                @if($institute->formattedAddress())
+                    <p class="mb-0 text-secondary">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        {{ $institute->formattedAddress() }}
+                    </p>
+                @endif
+            </div>
+            @if($institute->phone)
+                <a href="tel:{{ $institute->phone }}" class="btn btn-store-primary align-self-center">
+                    <i class="fa-solid fa-phone me-1"></i> Call {{ $entityLabel }}
+                </a>
+            @endif
+        </div>
+    </div>
+</section>
+
+@if($notices->isNotEmpty())
+    <section class="vendor-store-section school-notice-section">
+        <div class="container">
+            @include('frontend.institutes.partials.notice-board', ['notices' => $notices])
+        </div>
+    </section>
+@endif
+
+<section id="sch-overview" class="vendor-store-section alt">
+    <div class="container">
+        <p class="vendor-store-eyebrow mb-1">Overview</p>
+        <h2 class="vendor-store-section-title mb-4">{{ $entityLabel }} at a glance</h2>
+        <div class="row g-3 g-md-4 school-stat-grid">
             @if($establishedYear)
-              <div class="sch-stat">
-                <span class="sch-stat__value">{{ $establishedYear }}</span>
-                <span class="sch-stat__label">Established</span>
-              </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="school-stat-card">
+                        <span class="school-stat-card__value">{{ $establishedYear }}</span>
+                        <span class="school-stat-card__label">Established</span>
+                    </div>
+                </div>
             @endif
             @if($institute->board_affiliation)
-              <div class="sch-stat">
-                <span class="sch-stat__value">{{ $institute->board_affiliation }}</span>
-                <span class="sch-stat__label">Board</span>
-              </div>
-            @endif
-            <div class="sch-stat">
-              <span class="sch-stat__value">{{ $classes->count() ?: $grades->count() ?: '—' }}</span>
-              <span class="sch-stat__label">{{ $classes->isNotEmpty() ? 'Classes listed' : 'Grades offered' }}</span>
-            </div>
-            <div class="sch-stat">
-              <span class="sch-stat__value">{{ $performers->count() }}</span>
-              <span class="sch-stat__label">Top performers</span>
-            </div>
-            <div class="sch-stat">
-              <span class="sch-stat__value">{{ $achievements->count() }}</span>
-              <span class="sch-stat__label">Achievements</span>
-            </div>
-            <div class="sch-stat">
-              <span class="sch-stat__value">{{ $books->count() }}</span>
-              <span class="sch-stat__label">Books listed</span>
-            </div>
-          </div>
-          @if($institute->website_url)
-            <p class="mb-0 mt-3">
-              <a href="{{ $institute->website_url }}" target="_blank" rel="noopener" class="sch-link">
-                <i class="fa-solid fa-globe"></i> Visit official website
-              </a>
-            </p>
-          @endif
-        </section>
-
-        @if(filled($aboutText))
-          <section id="sch-about" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About Our School</h2>
-            <div class="sch-about-text js-sch-about-text {{ $aboutNeedsToggle ? 'is-collapsed' : '' }}">{!! nl2br(e($aboutText)) !!}</div>
-            @if($aboutNeedsToggle)
-              <button type="button" class="sch-read-more js-sch-read-more">
-                Read More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-              </button>
-            @endif
-          </section>
-        @endif
-
-        @if($classes->isNotEmpty() || $grades->isNotEmpty())
-          <section id="sch-classes" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-chalkboard" aria-hidden="true"></i> Classes</h2>
-            @if($classes->isNotEmpty())
-              <div class="sch-class-grid">
-                @foreach($classes as $class)
-                  <article class="sch-class-card">
-                    <div class="sch-class-card__head">
-                      <h3 class="sch-class-card__title">{{ $class->displayLabel() }}</h3>
-                      @if($class->strength)
-                        <span class="sch-class-card__badge">{{ $class->strength }} students</span>
-                      @endif
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="school-stat-card">
+                        <span class="school-stat-card__value">{{ $institute->board_affiliation }}</span>
+                        <span class="school-stat-card__label">Board</span>
                     </div>
-                    <ul class="sch-class-card__meta list-unstyled mb-0">
-                      @if($class->class_teacher)
-                        <li><i class="fa-solid fa-user-tie"></i> {{ $class->class_teacher }}</li>
-                      @endif
-                      @if($class->room)
-                        <li><i class="fa-solid fa-door-open"></i> Room {{ $class->room }}</li>
-                      @endif
-                    </ul>
-                    @if($class->description)
-                      <p class="sch-class-card__desc mb-0">{{ $class->description }}</p>
-                    @endif
-                  </article>
-                @endforeach
-              </div>
-            @elseif($grades->isNotEmpty())
-              <div class="sch-chip-list">
-                @foreach($grades as $grade)
-                  <span class="sch-chip">{{ $grade }}</span>
-                @endforeach
-              </div>
-            @endif
-          </section>
-        @endif
-
-        @if($performers->isNotEmpty())
-          <section id="sch-performers" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-medal" aria-hidden="true"></i> Top Performers</h2>
-            <div class="sch-performer-grid">
-              @foreach($performers as $performer)
-                <article class="sch-performer-card">
-                  <div class="sch-performer-card__photo-wrap">
-                    @if($performer->photoUrl())
-                      <img src="{{ $performer->photoUrl() }}" alt="{{ $performer->student_name }}" class="sch-performer-card__photo">
-                    @else
-                      <span class="sch-performer-card__photo sch-performer-card__photo--placeholder"><i class="fa-solid fa-user-graduate"></i></span>
-                    @endif
-                    @if($performer->rank)
-                      <span class="sch-performer-card__rank">#{{ $performer->rank }}</span>
-                    @endif
-                  </div>
-                  <div class="sch-performer-card__body">
-                    <h3 class="sch-performer-card__name">{{ $performer->student_name }}</h3>
-                    @if($performer->class_name)
-                      <p class="sch-performer-card__class mb-1">{{ $performer->class_name }}</p>
-                    @endif
-                    <p class="sch-performer-card__achievement mb-1">{{ $performer->achievement_title }}</p>
-                    @if($performer->score)
-                      <p class="sch-performer-card__score mb-0">{{ $performer->score }}</p>
-                    @endif
-                    @if($performer->academic_year)
-                      <p class="sch-performer-card__year mb-0">{{ $performer->academic_year }}</p>
-                    @endif
-                  </div>
-                </article>
-              @endforeach
-            </div>
-          </section>
-        @endif
-
-        @if($achievements->isNotEmpty())
-          <section id="sch-achievements" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-trophy" aria-hidden="true"></i> Achievements</h2>
-            <div class="sch-achievement-grid">
-              @foreach($achievements as $achievement)
-                <article class="sch-achievement-card">
-                  @if($achievement->imageUrl())
-                    <img src="{{ $achievement->imageUrl() }}" alt="" class="sch-achievement-card__image">
-                  @else
-                    <div class="sch-achievement-card__image sch-achievement-card__image--placeholder">
-                      <i class="fa-solid fa-trophy"></i>
-                    </div>
-                  @endif
-                  <div class="sch-achievement-card__body">
-                    <div class="sch-achievement-card__meta">
-                      @if($achievement->category)<span>{{ $achievement->category }}</span>@endif
-                      @if($achievement->year)<span>{{ $achievement->year }}</span>@endif
-                    </div>
-                    <h3 class="sch-achievement-card__title">{{ $achievement->title }}</h3>
-                    @if($achievement->description)
-                      <p class="sch-achievement-card__desc mb-0">{{ $achievement->description }}</p>
-                    @endif
-                  </div>
-                </article>
-              @endforeach
-            </div>
-          </section>
-        @endif
-
-        @if($books->isNotEmpty())
-          <section id="sch-books" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-book" aria-hidden="true"></i> Books &amp; Authors</h2>
-            <div class="sch-book-grid">
-              @foreach($books as $book)
-                <article class="sch-book-card">
-                  @if($book->coverUrl())
-                    <img src="{{ $book->coverUrl() }}" alt="{{ $book->title }}" class="sch-book-card__cover">
-                  @else
-                    <div class="sch-book-card__cover sch-book-card__cover--placeholder"><i class="fa-solid fa-book"></i></div>
-                  @endif
-                  <div class="sch-book-card__body">
-                    <h3 class="sch-book-card__title">{{ $book->title }}</h3>
-                    <p class="sch-book-card__author mb-1">By {{ $book->author }}</p>
-                    <div class="sch-book-card__tags">
-                      @if($book->class_name)<span>{{ $book->class_name }}</span>@endif
-                      @if($book->subject)<span>{{ $book->subject }}</span>@endif
-                    </div>
-                    @if($book->publisher)
-                      <p class="sch-book-card__publisher mb-0">{{ $book->publisher }}</p>
-                    @endif
-                  </div>
-                </article>
-              @endforeach
-            </div>
-          </section>
-        @endif
-
-        @if($facilities->isNotEmpty())
-          <section id="sch-facilities" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-building" aria-hidden="true"></i> Facilities</h2>
-            <div class="sch-facility-grid">
-              @foreach($facilities as $facility)
-                <div class="sch-facility-item">
-                  <i class="fa-solid fa-check-circle" aria-hidden="true"></i>
-                  <span>{{ $facility }}</span>
                 </div>
-              @endforeach
+            @endif
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="school-stat-card">
+                    <span class="school-stat-card__value">{{ $classes->count() ?: $grades->count() ?: '—' }}</span>
+                    <span class="school-stat-card__label">{{ $classes->isNotEmpty() ? 'Classes listed' : 'Grades offered' }}</span>
+                </div>
             </div>
-          </section>
-        @endif
-
-        @if($gallery->count() > 1)
-          <section id="sch-gallery" class="sch-section">
-            <h2 class="sch-section__title"><i class="fa-solid fa-images" aria-hidden="true"></i> Gallery</h2>
-            <div class="sch-gallery-grid">
-              @foreach($gallery as $imageUrl)
-                <a href="{{ $imageUrl }}" class="sch-gallery-item" target="_blank" rel="noopener">
-                  <img src="{{ $imageUrl }}" alt="School gallery image">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="school-stat-card">
+                    <span class="school-stat-card__value">{{ $performers->count() }}</span>
+                    <span class="school-stat-card__label">Top performers</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="school-stat-card">
+                    <span class="school-stat-card__value">{{ $achievements->count() }}</span>
+                    <span class="school-stat-card__label">Achievements</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="school-stat-card">
+                    <span class="school-stat-card__value">{{ $books->count() }}</span>
+                    <span class="school-stat-card__label">Books listed</span>
+                </div>
+            </div>
+        </div>
+        @if($institute->website_url)
+            <div class="mt-4">
+                <a href="{{ $institute->website_url }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-globe me-1"></i> Visit official website
                 </a>
-              @endforeach
             </div>
-          </section>
         @endif
+    </div>
+</section>
 
-        <section id="sch-contact" class="sch-section">
-          <h2 class="sch-section__title"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h2>
-          <div class="row g-4">
-            <div class="col-md-5">
-              <ul class="sch-contact-list list-unstyled mb-0">
-                @if($institute->phone)
-                  <li><i class="fa-solid fa-phone"></i> <a href="tel:{{ $institute->phone }}">{{ $institute->phone }}</a></li>
+@if(filled($aboutText))
+    <section id="sch-about" class="vendor-store-section">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">About us</p>
+            <h2 class="vendor-store-section-title mb-4">About our {{ strtolower($entityLabel) }}</h2>
+            <div class="content-body">
+                <div class="school-about-text js-sch-about-text {{ $aboutNeedsToggle ? 'is-collapsed' : '' }}">{!! nl2br(e($aboutText)) !!}</div>
+                @if($aboutNeedsToggle)
+                    <button type="button" class="btn btn-link px-0 js-sch-read-more">
+                        Read More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
                 @endif
-                @if($institute->whatsapp)
-                  <li><i class="fa-brands fa-whatsapp"></i> <a href="https://wa.me/{{ preg_replace('/\D/', '', $institute->whatsapp) }}" target="_blank" rel="noopener">{{ $institute->whatsapp }}</a></li>
-                @endif
-                @if($institute->email)
-                  <li><i class="fa-solid fa-envelope"></i> <a href="mailto:{{ $institute->email }}">{{ $institute->email }}</a></li>
-                @endif
-                @if($institute->contact_person)
-                  <li><i class="fa-solid fa-user"></i> {{ $institute->contact_person }}</li>
-                @endif
-              </ul>
-              @if($institute->facebook_url || $institute->instagram_url || $institute->youtube_url)
-                <div class="sch-socials mt-3">
-                  @if($institute->facebook_url)<a href="{{ $institute->facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>@endif
-                  @if($institute->instagram_url)<a href="{{ $institute->instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
-                  @if($institute->youtube_url)<a href="{{ $institute->youtube_url }}" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>@endif
+            </div>
+        </div>
+    </section>
+@endif
+
+@if($classes->isNotEmpty() || $grades->isNotEmpty())
+    <section id="sch-classes" class="vendor-store-section alt">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Academics</p>
+            <h2 class="vendor-store-section-title mb-4">Classes</h2>
+            @if($classes->isNotEmpty())
+                <div class="row g-4">
+                    @foreach($classes as $class)
+                        <div class="col-md-6 col-xl-4">
+                            <article class="vendor-store-professional-card h-100 school-class-card">
+                                <div class="vendor-store-professional-card__header">
+                                    <h3>{{ $class->displayLabel() }}</h3>
+                                    @if($class->strength)
+                                        <span>{{ $class->strength }} students</span>
+                                    @endif
+                                </div>
+                                <div class="school-class-card__meta">
+                                    @if($class->class_teacher)
+                                        <p class="mb-1"><i class="fa-solid fa-user-tie me-1"></i> {{ $class->class_teacher }}</p>
+                                    @endif
+                                    @if($class->room)
+                                        <p class="mb-1"><i class="fa-solid fa-door-open me-1"></i> Room {{ $class->room }}</p>
+                                    @endif
+                                    @if($class->description)
+                                        <p class="mb-0 text-secondary">{{ $class->description }}</p>
+                                    @endif
+                                </div>
+                            </article>
+                        </div>
+                    @endforeach
                 </div>
-              @endif
-            </div>
-            <div class="col-md-7">
-              @guest
-                <p class="text-secondary mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry to this school.</p>
-              @else
-                <form id="instituteEnquiryForm" class="sch-enquiry-form">
-                  @csrf
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label" for="enquiry_name">Your name</label>
-                      <input type="text" class="form-control" id="enquiry_name" name="name" value="{{ $authUser->name }}" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="enquiry_email">Email</label>
-                      <input type="email" class="form-control" id="enquiry_email" name="email" value="{{ $authUser->email }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="enquiry_phone">Phone</label>
-                      <input type="text" class="form-control" id="enquiry_phone" name="phone" value="{{ $authUser->phone_number }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="enquiry_subject">Subject</label>
-                      <input type="text" class="form-control" id="enquiry_subject" name="subject" placeholder="Admission enquiry">
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label" for="enquiry_message">Message</label>
-                      <textarea class="form-control" id="enquiry_message" name="message" rows="4" required placeholder="Tell us about your enquiry..."></textarea>
-                    </div>
-                    <div class="col-12">
-                      <div id="instituteEnquiryFeedback" class="alert d-none" role="alert"></div>
-                      <button type="submit" class="sch-btn sch-btn-primary js-institute-enquiry-submit">
-                        <span class="js-enquiry-btn-text">Send enquiry</span>
-                        <span class="js-enquiry-btn-sending d-none">Sending...</span>
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              @endguest
-            </div>
-          </div>
-        </section>
-      </main>
+            @elseif($grades->isNotEmpty())
+                <div class="school-chip-list">
+                    @foreach($grades as $grade)
+                        <span class="school-chip">{{ $grade }}</span>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+@endif
 
-      <aside class="sch-sidebar">
-        <div class="sch-sidebar-card">
-          <img src="{{ $photo }}" alt="" class="sch-sidebar-card__logo">
-          <h3 class="sch-sidebar-card__title">{{ $institute->displayName() }}</h3>
-          <p class="sch-sidebar-card__location mb-3"><i class="fa-solid fa-location-dot"></i> {{ $institute->locationLabel() }}</p>
-          @if($institute->phone)
-            <a href="tel:{{ $institute->phone }}" class="sch-btn sch-btn-primary w-100 mb-2"><i class="fa-solid fa-phone"></i> Call school</a>
-          @endif
-          <a href="#sch-contact" class="sch-btn sch-btn-outline w-100 js-sch-nav-link">Send enquiry</a>
+@if($performers->isNotEmpty())
+    <section id="sch-performers" class="vendor-store-section">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Excellence</p>
+            <h2 class="vendor-store-section-title mb-4">Top performers</h2>
+            <div class="row g-4">
+                @foreach($performers as $performer)
+                    <div class="col-md-6 col-lg-4">
+                        <article class="school-performer-card h-100">
+                            <div class="school-performer-card__photo-wrap">
+                                @if($performer->photoUrl())
+                                    <img src="{{ $performer->photoUrl() }}" alt="{{ $performer->student_name }}" class="school-performer-card__photo">
+                                @else
+                                    <span class="school-performer-card__photo school-performer-card__photo--placeholder"><i class="fa-solid fa-user-graduate"></i></span>
+                                @endif
+                                @if($performer->rank)
+                                    <span class="school-performer-card__rank">#{{ $performer->rank }}</span>
+                                @endif
+                            </div>
+                            <div class="school-performer-card__body">
+                                <h3>{{ $performer->student_name }}</h3>
+                                @if($performer->class_name)
+                                    <p class="text-secondary mb-1">{{ $performer->class_name }}</p>
+                                @endif
+                                <p class="fw-semibold mb-1">{{ $performer->achievement_title }}</p>
+                                @if($performer->score)
+                                    <p class="mb-1">{{ $performer->score }}</p>
+                                @endif
+                                @if($performer->academic_year)
+                                    <p class="small text-secondary mb-0">{{ $performer->academic_year }}</p>
+                                @endif
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+@if($achievements->isNotEmpty())
+    <section id="sch-achievements" class="vendor-store-section alt">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Highlights</p>
+            <h2 class="vendor-store-section-title mb-4">Achievements</h2>
+            <div class="row g-4">
+                @foreach($achievements as $achievement)
+                    <div class="col-md-6 col-lg-4">
+                        <article class="school-achievement-card h-100">
+                            @if($achievement->imageUrl())
+                                <img src="{{ $achievement->imageUrl() }}" alt="" class="school-achievement-card__image">
+                            @else
+                                <div class="school-achievement-card__image school-achievement-card__image--placeholder">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                            @endif
+                            <div class="school-achievement-card__body">
+                                <div class="school-achievement-card__meta">
+                                    @if($achievement->category)<span>{{ $achievement->category }}</span>@endif
+                                    @if($achievement->year)<span>{{ $achievement->year }}</span>@endif
+                                </div>
+                                <h3>{{ $achievement->title }}</h3>
+                                @if($achievement->description)
+                                    <p class="text-secondary mb-0">{{ $achievement->description }}</p>
+                                @endif
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+@if($books->isNotEmpty())
+    <section id="sch-books" class="vendor-store-section">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Library</p>
+            <h2 class="vendor-store-section-title mb-4">Books &amp; authors</h2>
+            <div class="row g-4">
+                @foreach($books as $book)
+                    <div class="col-md-6 col-lg-4">
+                        <article class="school-book-card h-100">
+                            @if($book->coverUrl())
+                                <img src="{{ $book->coverUrl() }}" alt="{{ $book->title }}" class="school-book-card__cover">
+                            @else
+                                <div class="school-book-card__cover school-book-card__cover--placeholder"><i class="fa-solid fa-book"></i></div>
+                            @endif
+                            <div class="school-book-card__body">
+                                <h3>{{ $book->title }}</h3>
+                                <p class="text-secondary mb-2">By {{ $book->author }}</p>
+                                <div class="school-book-card__tags">
+                                    @if($book->class_name)<span>{{ $book->class_name }}</span>@endif
+                                    @if($book->subject)<span>{{ $book->subject }}</span>@endif
+                                </div>
+                                @if($book->publisher)
+                                    <p class="small text-secondary mb-0 mt-2">{{ $book->publisher }}</p>
+                                @endif
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+@if($facilities->isNotEmpty())
+    <section id="sch-facilities" class="vendor-store-section alt">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Campus</p>
+            <h2 class="vendor-store-section-title mb-4">Facilities</h2>
+            <div class="row g-3">
+                @foreach($facilities as $facility)
+                    <div class="col-md-6 col-lg-4">
+                        <div class="school-facility-item">
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span>{{ $facility }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+@if($gallery->count() > 1)
+    <section id="sch-gallery" class="vendor-store-section">
+        <div class="container">
+            <p class="vendor-store-eyebrow mb-1">Gallery</p>
+            <h2 class="vendor-store-section-title mb-4">Campus gallery</h2>
+            <div class="row g-3">
+                @foreach($gallery as $imageUrl)
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="{{ $imageUrl }}" class="school-gallery-item" target="_blank" rel="noopener" data-bs-toggle="modal" data-bs-target="#schoolGalleryModal" data-gallery-src="{{ $imageUrl }}">
+                            <img src="{{ $imageUrl }}" alt="Gallery image" class="section-img">
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+<section id="sch-contact" class="vendor-contact-page py-5 py-lg-6">
+    <div class="container">
+        <div class="contact-hero shadow-sm overflow-hidden mb-4 mb-lg-5">
+            <div class="contact-hero__bg"></div>
+            <div class="contact-hero__content p-4 p-lg-5">
+                <p class="text-uppercase fw-semibold mb-2 contact-eyebrow">Let's Connect</p>
+                <h2 class="display-6 fw-bold mb-3 text-white">{{ $institute->displayName() }}</h2>
+                <p class="mb-0 contact-subtitle">Reach out for admissions, campus visits, and general enquiries.</p>
+            </div>
         </div>
 
-        @if($notices->isNotEmpty())
-          <div class="sch-sidebar-card">
-            <h4 class="sch-sidebar-card__heading"><i class="fa-solid fa-bullhorn"></i> Latest notice</h4>
-            @php $latestNotice = $notices->first(); @endphp
-            <p class="sch-sidebar-card__notice-title mb-1"><strong>{{ $latestNotice->displayTitle() }}</strong></p>
-            <p class="sch-sidebar-card__notice-text mb-0">{{ $latestNotice->excerpt(120) }}</p>
-          </div>
-        @endif
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="contact-panel card border-0 shadow-sm h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <h3 class="h4 fw-bold mb-4">{{ $entityLabel }} details</h3>
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <span class="contact-icon"><i class="fa-solid fa-location-dot"></i></span>
+                            <div>
+                                <p class="mb-1 fw-semibold">Address</p>
+                                <p class="mb-0 text-muted">{{ $institute->formattedAddress() ?: 'Address details are not available yet.' }}</p>
+                            </div>
+                        </div>
+                        @if($institute->phone)
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <span class="contact-icon"><i class="fa-solid fa-phone"></i></span>
+                                <div>
+                                    <p class="mb-1 fw-semibold">Phone</p>
+                                    <p class="mb-0"><a href="tel:{{ $institute->phone }}">{{ $institute->phone }}</a></p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($institute->email)
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <span class="contact-icon"><i class="fa-solid fa-envelope"></i></span>
+                                <div>
+                                    <p class="mb-1 fw-semibold">Email</p>
+                                    <p class="mb-0"><a href="mailto:{{ $institute->email }}">{{ $institute->email }}</a></p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($institute->facebook_url || $institute->instagram_url || $institute->youtube_url)
+                            <div class="school-socials mt-3">
+                                @if($institute->facebook_url)<a href="{{ $institute->facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>@endif
+                                @if($institute->instagram_url)<a href="{{ $institute->instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
+                                @if($institute->youtube_url)<a href="{{ $institute->youtube_url }}" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>@endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="enquiry-panel card border-0 shadow-sm h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="enquiry-badge mb-3">Quick Enquiry</div>
+                        <h3 class="h5 fw-bold mb-2">Send your enquiry</h3>
+                        <p class="text-muted mb-4">Share your admission or information request and the {{ strtolower($entityLabel) }} team will get back to you.</p>
 
-        @if($performers->isNotEmpty())
-          <div class="sch-sidebar-card">
-            <h4 class="sch-sidebar-card__heading"><i class="fa-solid fa-medal"></i> Star student</h4>
-            @php $star = $performers->first(); @endphp
-            <p class="mb-1"><strong>{{ $star->student_name }}</strong></p>
-            <p class="text-secondary mb-0 small">{{ $star->achievement_title }}</p>
-          </div>
-        @endif
-      </aside>
+                        @guest
+                            <p class="text-secondary mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry.</p>
+                        @else
+                            <form id="instituteEnquiryForm">
+                                @csrf
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="enquiry_name">Your name</label>
+                                        <input type="text" class="form-control" id="enquiry_name" name="name" value="{{ $authUser->name }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="enquiry_email">Email</label>
+                                        <input type="email" class="form-control" id="enquiry_email" name="email" value="{{ $authUser->email }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="enquiry_phone">Phone</label>
+                                        <input type="text" class="form-control" id="enquiry_phone" name="phone" value="{{ $authUser->phone_number }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="enquiry_subject">Subject</label>
+                                        <input type="text" class="form-control" id="enquiry_subject" name="subject" placeholder="Admission enquiry">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="enquiry_message">Message</label>
+                                        <textarea class="form-control" id="enquiry_message" name="message" rows="4" required placeholder="Tell us about your enquiry..."></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <div id="instituteEnquiryFeedback" class="alert d-none" role="alert"></div>
+                                        <button type="submit" class="btn btn-store-primary js-institute-enquiry-submit">
+                                            <span class="js-enquiry-btn-text">Send enquiry</span>
+                                            <span class="js-enquiry-btn-sending d-none">Sending...</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        @endguest
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+</section>
 
 <div class="modal fade" id="schNoticeModal" tabindex="-1" aria-labelledby="schNoticeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="schNoticeModalLabel">Notice</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-secondary small mb-2" id="schNoticeModalExpiry"></p>
-        <div id="schNoticeModalBody"></div>
-      </div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="schNoticeModalLabel">Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small mb-2" id="schNoticeModalExpiry"></p>
+                <div id="schNoticeModalBody"></div>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
+<div class="modal fade" id="schoolGalleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Gallery preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 text-center">
+                <img id="schoolGalleryModalImg" src="" alt="Gallery image" class="img-fluid rounded" style="max-height:80vh;object-fit:contain;">
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
-@push('scripts')
-<script src="{{ asset('assets/js/institute-profile.js') }}?v={{ now()->timestamp }}"></script>
+@push('institute_scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-gallery-src]').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            var img = document.getElementById('schoolGalleryModalImg');
+            if (img) {
+                img.src = link.getAttribute('data-gallery-src') || '';
+            }
+        });
+    });
+});
+</script>
+@endpush
+
+@push('styles')
+<style>
+.vendor-contact-page{background:linear-gradient(180deg,#f8faff 0%,#f3f6ff 100%)}
+.contact-hero{position:relative;border-radius:1rem;background:#1e3a5f;color:#fff}
+.contact-hero__bg{position:absolute;inset:0;background:linear-gradient(135deg,#1e3a5f 0%,#2d5a87 100%);opacity:.95}
+.contact-hero__content{position:relative;z-index:1}
+.contact-eyebrow{letter-spacing:.08em;color:rgba(255,255,255,.75)}
+.contact-subtitle{color:rgba(255,255,255,.85)}
+.contact-icon{width:42px;height:42px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#eef4ff;color:#2d5a87;flex-shrink:0}
+.enquiry-badge{display:inline-block;padding:.35rem .75rem;border-radius:999px;background:#fff3ea;color:#c45a00;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+</style>
 @endpush

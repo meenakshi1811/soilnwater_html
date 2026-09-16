@@ -1,0 +1,380 @@
+/* School / institute public profile — vendor-store layout supplement */
+
+.school-hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.school-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #1e3a5f;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.school-hero-badge--verified {
+    background: #e8f7ee;
+    color: #12824e;
+}
+
+.school-hero-badge--muted {
+    background: #f3f6ff;
+    color: #5a6b85;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+}
+
+.school-notice-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.sch-notices {
+    background: #fff;
+    border: 1px solid #e7edf7;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 8px 24px rgba(30, 58, 95, 0.06);
+}
+
+.sch-notices__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.sch-notices__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.sch-notices__nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sch-notices__btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #dbe4f2;
+    border-radius: 999px;
+    background: #fff;
+    color: #1e3a5f;
+}
+
+.sch-notices__viewport {
+    overflow: hidden;
+}
+
+.sch-notices__track {
+    display: flex;
+    transition: transform 0.35s ease;
+}
+
+.sch-notice {
+    flex: 0 0 100%;
+    min-width: 100%;
+    padding-right: 0.5rem;
+}
+
+.sch-notice__head {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.sch-notice__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff3ea;
+    color: #e67e22;
+    flex-shrink: 0;
+}
+
+.sch-notice__title {
+    margin: 0 0 0.15rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1b2b44;
+}
+
+.sch-notice__meta {
+    font-size: 0.82rem;
+    color: #6b7c93;
+}
+
+.sch-notice__text {
+    margin: 0;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.sch-notice__read-more {
+    margin-top: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: #2d5a87;
+    font-weight: 600;
+    padding: 0;
+}
+
+.school-stat-card {
+    background: #fff;
+    border: 1px solid #e7edf7;
+    border-radius: 1rem;
+    padding: 1rem;
+    text-align: center;
+    height: 100%;
+    box-shadow: 0 4px 16px rgba(30, 58, 95, 0.04);
+}
+
+.school-stat-card__value {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #1e3a5f;
+    line-height: 1.2;
+}
+
+.school-stat-card__label {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: #6b7c93;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.school-about-text.is-collapsed {
+    max-height: 8.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.school-about-text.is-collapsed::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3rem;
+    background: linear-gradient(transparent, #fff);
+}
+
+.vendor-store-section.alt .school-about-text.is-collapsed::after {
+    background: linear-gradient(transparent, #f8faff);
+}
+
+.school-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.school-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #1e3a5f;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.school-class-card__meta p {
+    margin-bottom: 0.35rem;
+    color: #475569;
+}
+
+.school-performer-card,
+.school-achievement-card,
+.school-book-card {
+    background: #fff;
+    border: 1px solid #e7edf7;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(30, 58, 95, 0.05);
+}
+
+.school-performer-card__photo-wrap {
+    position: relative;
+    background: #eef4ff;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.school-performer-card__photo {
+    width: 96px;
+    height: 96px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12);
+}
+
+.school-performer-card__photo--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dbeafe;
+    color: #1e3a5f;
+    font-size: 2rem;
+}
+
+.school-performer-card__rank {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #e67e22;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+}
+
+.school-performer-card__body,
+.school-achievement-card__body,
+.school-book-card__body {
+    padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.school-performer-card__body h3,
+.school-achievement-card__body h3,
+.school-book-card__body h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    color: #1b2b44;
+}
+
+.school-achievement-card__image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.school-achievement-card__image--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff3ea;
+    color: #e67e22;
+    font-size: 2.5rem;
+}
+
+.school-achievement-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.school-achievement-card__meta span,
+.school-book-card__tags span {
+    display: inline-flex;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #2d5a87;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.school-book-card__cover {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.school-book-card__cover--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef4ff;
+    color: #1e3a5f;
+    font-size: 2.5rem;
+}
+
+.school-book-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.school-facility-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+    background: #fff;
+    border: 1px solid #e7edf7;
+    border-radius: 0.85rem;
+    height: 100%;
+    font-weight: 600;
+    color: #334155;
+}
+
+.school-facility-item i {
+    color: #12824e;
+}
+
+.school-gallery-item {
+    display: block;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    border: 1px solid #e7edf7;
+}
+
+.school-gallery-item img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.25s ease;
+}
+
+.school-gallery-item:hover img {
+    transform: scale(1.03);
+}
+
+.school-socials {
+    display: flex;
+    gap: 0.65rem;
+}
+
+.school-socials a {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef4ff;
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+@media (max-width: 991.98px) {
+    .school-stat-card__value {
+        font-size: 1.15rem;
+    }
+}

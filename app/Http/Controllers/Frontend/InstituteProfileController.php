@@ -34,6 +34,7 @@ class InstituteProfileController extends Controller
             'institute' => $institute,
             'ownerRole' => $ownerRole,
             'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+            'activeNav' => 'home',
         ]);
     }
 

@@ -149,6 +149,18 @@ class Institute extends Model
         return $this->display_name ?: $this->institution_name ?: 'Institute';
     }
 
+    public function publicDisplayName(): string
+    {
+        return $this->displayName();
+    }
+
+    public function formattedAddress(): string
+    {
+        return collect([$this->address, $this->city, $this->state, $this->pincode])
+            ->filter(fn ($part) => filled($part))
+            ->implode(', ');
+    }
+
     public function logoUrl(): ?string
     {
         return filled($this->logo) ? asset($this->logo) : null;
