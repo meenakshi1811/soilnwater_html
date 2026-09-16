@@ -27,6 +27,14 @@ class AppServiceProvider extends ServiceProvider
             AuthActor::shouldUseActiveGuard();
         });
 
+        View::composer('backend.institute.*', function ($view): void {
+            $user = AuthActor::user();
+            $view->with([
+                'portalPrefix' => $user?->portalRoutePrefix() ?? 'school',
+                'portalLabel' => $user?->isSchool() ? 'School' : 'Institute',
+            ]);
+        });
+
         Paginator::defaultView('vendor.pagination.bootstrap-5');
         Paginator::defaultSimpleView('vendor.pagination.simple-bootstrap-5');
 

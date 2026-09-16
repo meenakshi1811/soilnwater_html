@@ -89,9 +89,17 @@ final class ModuleSidebar
                     ['label' => 'Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-book-open', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
                 ],
             ],
-            'institutes' => [
-                'label' => 'Schools & Institutes',
+            'schools' => [
+                'label' => 'Schools',
                 'icon' => 'fa-solid fa-school',
+                'active_routes' => ['admin.schools.*'],
+                'items' => [
+                    ['label' => 'All Schools', 'route' => 'admin.schools.index', 'icon' => 'fa-solid fa-list', 'module' => 'schools', 'action' => 'read', 'active' => 'admin.schools.*'],
+                ],
+            ],
+            'institutes' => [
+                'label' => 'Institutes',
+                'icon' => 'fa-solid fa-building-columns',
                 'active_routes' => ['admin.institutes.*'],
                 'items' => [
                     ['label' => 'All Institutes', 'route' => 'admin.institutes.index', 'icon' => 'fa-solid fa-list', 'module' => 'institutes', 'action' => 'read', 'active' => 'admin.institutes.*'],

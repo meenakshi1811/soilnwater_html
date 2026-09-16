@@ -1,6 +1,6 @@
 @extends('backend.layouts.app')
 
-@section('title', 'Schools & Institutes')
+@section('title', $pageTitle ?? 'Institutes')
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -10,20 +10,20 @@
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div>
-            <p class="ems-kicker mb-1">Institute Management</p>
-            <h2 class="admin-title mb-1">Schools &amp; Institutes</h2>
-            <p class="mb-0 text-secondary">Review institute registrations, approve accounts, and manage profiles.</p>
+            <p class="ems-kicker mb-1">{{ $pageKicker ?? 'Institute Management' }}</p>
+            <h2 class="admin-title mb-1">{{ $pageTitle ?? 'Institutes' }}</h2>
+            <p class="mb-0 text-secondary">Review registrations, approve accounts, and manage public profiles.</p>
         </div>
         @include('backend.partials.create-account-button', [
-            'role' => 'institute',
-            'label' => 'Add School / Institute',
-            'modalTitle' => 'Add School / Institute',
+            'role' => $createAccountRole ?? 'institute',
+            'label' => $createAccountLabel ?? 'Add Institute',
+            'modalTitle' => $createAccountLabel ?? 'Add Institute',
         ])
     </div>
 
     <div class="chart-card">
         <div class="table-responsive">
-            <table id="institutesTable" class="table table-bordered align-middle w-100">
+            <table id="institutesTable" class="table table-bordered align-middle w-100" data-admin-base="{{ rtrim(route(($adminRoutePrefix ?? 'admin.institutes').'.index'), '/') }}">
                 <thead>
                 <tr>
                     <th>Institution</th>

@@ -8,7 +8,7 @@
         lockedRole: null,
 
         isBusinessRole: function (role) {
-            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'institute';
+            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'institute';
         },
 
         isEducatorRole: function (role) {

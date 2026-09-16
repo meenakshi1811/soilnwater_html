@@ -1,10 +1,12 @@
 (function ($) {
   if (!$ || !$('#institutesTable').length) return;
 
+  var adminBase = $('#institutesTable').data('admin-base') || '/admin/institutes';
+
   var table = $('#institutesTable').DataTable({
     processing: true,
     serverSide: true,
-    ajax: { url: '/admin/institutes/data' },
+    ajax: { url: adminBase + '/data' },
     columns: [
       { data: 'name', name: 'institution_name' },
       { data: 'type_label', name: 'institution_type' },
@@ -27,15 +29,15 @@
 
   $(document).on('click', '.js-approve-institute', function () {
     var id = $(this).data('id');
-    $.post('/admin/institutes/' + id + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
+    $.post(adminBase + '/' + id + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
       .done(function (r) { toast('success', r.message); table.ajax.reload(null, false); })
-      .fail(function () { toast('error', 'Unable to approve institute.'); });
+      .fail(function () { toast('error', 'Unable to approve record.'); });
   });
 
   $(document).on('click', '.js-reject-institute', function () {
     var id = $(this).data('id');
     var submitReject = function (reason) {
-      $.post('/admin/institutes/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content'), reason: reason })
+      $.post(adminBase + '/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content'), reason: reason })
         .done(function (r) { toast('success', r.message); table.ajax.reload(null, false); })
         .fail(function (xhr) {
           toast('error', xhr.responseJSON?.errors?.reason?.[0] || xhr.responseJSON?.message || 'Unable to reject.');
@@ -43,7 +45,7 @@
     };
     if (window.Swal) {
       Swal.fire({
-        title: 'Reject this institute?',
+        title: 'Reject this application?',
         input: 'textarea',
         inputLabel: 'Rejection reason',
         inputPlaceholder: 'Explain why this application is being rejected...',
@@ -63,15 +65,15 @@
   });
 
   $(document).on('click', '.js-delete-institute', function () {
-    if (!confirm('Delete this institute permanently?')) return;
+    if (!confirm('Delete this record permanently?')) return;
     var id = $(this).data('id');
     $.ajax({
-      url: '/admin/institutes/' + id,
+      url: adminBase + '/' + id,
       method: 'DELETE',
       headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
     }).done(function (r) {
       toast('success', r.message);
       table.ajax.reload(null, false);
-    }).fail(function () { toast('error', 'Unable to delete institute.'); });
+    }).fail(function () { toast('error', 'Unable to delete record.'); });
   });
 })(window.jQuery);

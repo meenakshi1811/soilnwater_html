@@ -12,7 +12,8 @@
         'consultant' => 'Consultant',
         'service_provider' => 'Service Provider',
         'teacher' => 'Teacher / Tutor',
-        'institute' => 'School / Institute',
+        'school' => 'School',
+        'institute' => 'Institute',
     ] as $roleKey => $roleLabel) {
         if (AccountCreation::canCreateRole($portalActor, $portalIsAdmin, $roleKey)) {
             $allowedCreateRoles[$roleKey] = $roleLabel;

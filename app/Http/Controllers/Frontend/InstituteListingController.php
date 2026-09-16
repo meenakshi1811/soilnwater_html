@@ -12,39 +12,58 @@ use Illuminate\View\View;
 
 class InstituteListingController extends Controller
 {
-    public function index(Request $request): View|JsonResponse
+    public function schoolIndex(Request $request): View|JsonResponse
     {
-        $listingData = $this->listingPageData($request, 12);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return $this->listingJsonResponse($listingData);
-        }
-
-        return view('frontend.institutes.index', [
-            'institutes' => $listingData['institutes'],
-            'cities' => $listingData['cities'],
-            'types' => $listingData['types'],
-            'boards' => $listingData['boards'],
-            'instituteStats' => $this->listingStats(),
-            'hasLocation' => $listingData['hasLocation'],
-        ]);
+        return $this->index($request, 'school');
     }
 
-    public function listings(Request $request): View|JsonResponse
+    public function schoolListings(Request $request): View|JsonResponse
     {
-        $listingData = $this->listingPageData($request, 24);
+        return $this->listings($request, 'school');
+    }
+
+    public function instituteIndex(Request $request): View|JsonResponse
+    {
+        return $this->index($request, 'institute');
+    }
+
+    public function instituteListings(Request $request): View|JsonResponse
+    {
+        return $this->listings($request, 'institute');
+    }
+
+    public function index(Request $request, string $ownerRole = 'school'): View|JsonResponse
+    {
+        $listingData = $this->listingPageData($request, 12, $ownerRole);
 
         if ($request->ajax() || $request->wantsJson()) {
             return $this->listingJsonResponse($listingData);
         }
 
-        return view('frontend.institutes.listings', [
-            'institutes' => $listingData['institutes'],
-            'cities' => $listingData['cities'],
-            'types' => $listingData['types'],
-            'boards' => $listingData['boards'],
-            'instituteStats' => $this->listingStats(),
-            'hasLocation' => $listingData['hasLocation'],
+        return view('frontend.institutes.index', $this->listingViewData($listingData, $ownerRole));
+    }
+
+    public function listings(Request $request, string $ownerRole = 'school'): View|JsonResponse
+    {
+        $listingData = $this->listingPageData($request, 24, $ownerRole);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return $this->listingJsonResponse($listingData);
+        }
+
+        return view('frontend.institutes.listings', $this->listingViewData($listingData, $ownerRole));
+    }
+
+    /**
+     * @param  array<string, mixed>  $listingData
+     * @return array<string, mixed>
+     */
+    private function listingViewData(array $listingData, string $ownerRole): array
+    {
+        return array_merge($listingData, [
+            'ownerRole' => $ownerRole,
+            'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+            'instituteStats' => $this->listingStats($ownerRole),
         ]);
     }
 
@@ -57,21 +76,26 @@ class InstituteListingController extends Controller
      *     hasLocation: bool
      * }
      */
-    private function listingPageData(Request $request, int $perPage): array
+    private function listingPageData(Request $request, int $perPage, string $ownerRole = 'school'): array
     {
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
         $hasLocation = is_numeric($lat) && is_numeric($lng);
 
-        $institutes = $this->baseQuery($request, $hasLocation ? (float) $lat : null, $hasLocation ? (float) $lng : null)
+        $institutes = $this->baseQuery(
+            $request,
+            $hasLocation ? (float) $lat : null,
+            $hasLocation ? (float) $lng : null,
+            $ownerRole
+        )
             ->paginate($perPage)
             ->appends($request->query());
 
         return [
             'institutes' => $institutes,
-            'cities' => $this->availableCities(),
-            'types' => $this->availableTypes(),
-            'boards' => $this->availableBoards(),
+            'cities' => $this->availableCities($ownerRole),
+            'types' => $this->availableTypes($ownerRole),
+            'boards' => $this->availableBoards($ownerRole),
             'hasLocation' => $hasLocation,
         ];
     }
@@ -92,7 +116,7 @@ class InstituteListingController extends Controller
         ]);
     }
 
-    private function baseQuery(Request $request, ?float $lat = null, ?float $lng = null): Builder
+    private function baseQuery(Request $request, ?float $lat = null, ?float $lng = null, string $ownerRole = 'school'): Builder
     {
         $search = trim((string) $request->input('search', $request->input('q', '')));
         $city = trim((string) $request->input('city', ''));
@@ -103,7 +127,8 @@ class InstituteListingController extends Controller
 
         $query = Institute::query()
             ->approved()
-            ->with(['user:id,name,profile_image']);
+            ->forOwnerRole($ownerRole)
+            ->with(['user:id,name,profile_image,role']);
 
         if ($lat !== null && $lng !== null) {
             $distanceSql = '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))';
@@ -155,9 +180,9 @@ class InstituteListingController extends Controller
     /**
      * @return array{verified: int, total: int, cities: int}
      */
-    private function listingStats(): array
+    private function listingStats(string $ownerRole = 'school'): array
     {
-        $approved = Institute::query()->approved();
+        $approved = Institute::query()->approved()->forOwnerRole($ownerRole);
 
         return [
             'verified' => (clone $approved)->where('is_verified', true)->count(),
@@ -169,10 +194,11 @@ class InstituteListingController extends Controller
     /**
      * @return Collection<int, string>
      */
-    private function availableCities(): Collection
+    private function availableCities(string $ownerRole = 'school'): Collection
     {
         return Institute::query()
             ->approved()
+            ->forOwnerRole($ownerRole)
             ->whereNotNull('city')
             ->where('city', '!=', '')
             ->distinct()
@@ -185,10 +211,11 @@ class InstituteListingController extends Controller
     /**
      * @return Collection<int, string>
      */
-    private function availableTypes(): Collection
+    private function availableTypes(string $ownerRole = 'school'): Collection
     {
         return Institute::query()
             ->approved()
+            ->forOwnerRole($ownerRole)
             ->whereNotNull('institution_type')
             ->where('institution_type', '!=', '')
             ->distinct()
@@ -201,10 +228,11 @@ class InstituteListingController extends Controller
     /**
      * @return Collection<int, string>
      */
-    private function availableBoards(): Collection
+    private function availableBoards(string $ownerRole = 'school'): Collection
     {
         return Institute::query()
             ->approved()
+            ->forOwnerRole($ownerRole)
             ->whereNotNull('board_affiliation')
             ->where('board_affiliation', '!=', '')
             ->distinct()

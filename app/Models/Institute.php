@@ -80,6 +80,50 @@ class Institute extends Model
         return $this->hasMany(InstituteEnquiry::class)->latest();
     }
 
+    public function notices(): HasMany
+    {
+        return $this->hasMany(InstituteNotice::class)->latest();
+    }
+
+    public function activeNotices(): HasMany
+    {
+        return $this->notices()->active();
+    }
+
+    public function achievements(): HasMany
+    {
+        return $this->hasMany(InstituteAchievement::class)->orderBy('sort_order')->orderByDesc('year');
+    }
+
+    public function topPerformers(): HasMany
+    {
+        return $this->hasMany(InstituteTopPerformer::class)->orderBy('sort_order')->orderBy('rank');
+    }
+
+    public function schoolClasses(): HasMany
+    {
+        return $this->hasMany(InstituteClass::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function books(): HasMany
+    {
+        return $this->hasMany(InstituteBook::class)->orderBy('sort_order')->orderBy('title');
+    }
+
+    public function galleryUrls(): array
+    {
+        return collect($this->gallery ?? [])
+            ->filter(fn ($path) => filled($path))
+            ->map(fn ($path) => asset($path))
+            ->values()
+            ->all();
+    }
+
+    public function establishedYear(): ?int
+    {
+        return $this->date_of_establishment?->year;
+    }
+
     public function isApproved(): bool
     {
         return $this->status === 'approved';
@@ -112,7 +156,26 @@ class Institute extends Model
 
     public function publicUrl(): string
     {
-        return route('institute.show', $this->slug);
+        $this->loadMissing('user');
+
+        return $this->user?->isSchool()
+            ? route('schools.show', $this->slug)
+            : route('institutes.show', $this->slug);
+    }
+
+    public function scopeForOwnerRole(Builder $query, string $role): Builder
+    {
+        return $query->whereHas('user', fn (Builder $userQuery) => $userQuery->where('role', $role));
+    }
+
+    public function scopeSchools(Builder $query): Builder
+    {
+        return $query->forOwnerRole('school');
+    }
+
+    public function scopeInstitutes(Builder $query): Builder
+    {
+        return $query->forOwnerRole('institute');
     }
 
     public function locationLabel(): string

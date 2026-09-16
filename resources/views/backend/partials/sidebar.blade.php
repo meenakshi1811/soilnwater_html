@@ -8,12 +8,14 @@
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
     $isEducator = $user->isEducator();
+    $isSchool = $user->isSchool();
     $isInstitute = $user->isInstitute();
     $isStudent = $user->isStudent();
     $vendorApproved = $isVendor && $user->vendor?->isApproved();
     $consultantApproved = $isConsultant && $user->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
     $educatorApproved = $isEducator && $user->educator?->isApproved();
+    $schoolApproved = $isSchool && $user->institute?->isApproved();
     $instituteApproved = $isInstitute && $user->institute?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
@@ -35,7 +37,8 @@
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
-    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.enquiries.*');
+    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*');
+    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
     $parentDashboardActive = request()->routeIs('parent.*');
     $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
@@ -62,6 +65,9 @@
     } elseif ($isEducator && $educatorApproved) {
         $dashboardUrl = route('educator.dashboard');
         $dashboardActive = request()->routeIs('educator.dashboard');
+    } elseif ($isSchool && $schoolApproved) {
+        $dashboardUrl = route('school.dashboard');
+        $dashboardActive = request()->routeIs('school.dashboard');
     } elseif ($isInstitute && $instituteApproved) {
         $dashboardUrl = route('institute.dashboard');
         $dashboardActive = request()->routeIs('institute.dashboard');
@@ -703,12 +709,45 @@
                 </details>
             </li>
 
+        @elseif($isSchool && $schoolApproved)
+            <li class="admin-sidebar-group">
+                <details {{ $schoolPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $schoolPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-school"></i>
+                            <span>School Pages</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('school.profile.*') ? 'active' : '' }}" href="{{ route('school.profile.edit') }}">
+                                <i class="fa-solid fa-id-card"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('school.public-page.*') ? 'active' : '' }}" href="{{ route('school.public-page.edit') }}">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Public page</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('school.enquiries.*') ? 'active' : '' }}" href="{{ route('school.enquiries.index') }}">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                                <span>Enquiries</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
         @elseif($isInstitute && $instituteApproved)
             <li class="admin-sidebar-group">
                 <details {{ $institutePagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $institutePagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
                         <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-school"></i>
+                            <i class="fa-solid fa-building-columns"></i>
                             <span>Institute Pages</span>
                         </span>
                         <i class="fa-solid fa-chevron-down small"></i>
@@ -718,6 +757,12 @@
                             <a class="{{ request()->routeIs('institute.profile.*') ? 'active' : '' }}" href="{{ route('institute.profile.edit') }}">
                                 <i class="fa-solid fa-id-card"></i>
                                 <span>Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('institute.public-page.*') ? 'active' : '' }}" href="{{ route('institute.public-page.edit') }}">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Public page</span>
                             </a>
                         </li>
                         <li>

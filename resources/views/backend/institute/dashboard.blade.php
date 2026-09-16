@@ -10,8 +10,9 @@
             <h2 class="admin-title mb-1">Welcome, {{ $institute->displayName() }}</h2>
             <p class="mb-0 text-secondary">Manage your public profile and student enquiries.</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('institute.profile.edit') }}" class="btn btn-outline-primary">Edit profile</a>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route($portalPrefix.'.profile.edit') }}" class="btn btn-outline-primary">Edit profile</a>
+            <a href="{{ route($portalPrefix.'.public-page.edit') }}" class="btn btn-outline-primary">Manage public page</a>
             @if($institute->isApproved())
                 <a href="{{ $institute->publicUrl() }}" target="_blank" class="btn btn-primary ems-btn-primary">View live profile</a>
             @endif
@@ -38,9 +39,10 @@
     <div class="chart-card">
         <h5 class="mb-3">Quick actions</h5>
         <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('institute.profile.edit') }}" class="btn btn-primary"><i class="fa-solid fa-pen me-1"></i>Edit profile</a>
-            <a href="{{ route('institute.enquiries.index') }}" class="btn btn-outline-secondary">View enquiries</a>
-            <a href="{{ route('institute.index') }}" target="_blank" class="btn btn-outline-success">Browse school listing</a>
+            <a href="{{ route($portalPrefix.'.profile.edit') }}" class="btn btn-primary"><i class="fa-solid fa-pen me-1"></i>Edit profile</a>
+            <a href="{{ route($portalPrefix.'.public-page.edit') }}" class="btn btn-outline-primary"><i class="fa-solid fa-globe me-1"></i>Manage public page</a>
+            <a href="{{ route($portalPrefix.'.enquiries.index') }}" class="btn btn-outline-secondary">View enquiries</a>
+            <a href="{{ route($portalPrefix === 'school' ? 'schools.index' : 'institutes.index') }}" target="_blank" class="btn btn-outline-success">Browse public listing</a>
         </div>
     </div>
 </div>

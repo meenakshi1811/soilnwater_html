@@ -16,24 +16,40 @@ use Illuminate\View\View;
 
 class InstituteProfileController extends Controller
 {
-    public function show(string $slug): View
+    public function schoolShow(string $slug): View
     {
-        $institute = Institute::query()
-            ->approved()
-            ->where('slug', $slug)
-            ->with(['user:id,name,profile_image'])
-            ->firstOrFail();
-
-        return view('frontend.institutes.show', compact('institute'));
+        return $this->show($slug, 'school');
     }
 
-    public function enquiry(Request $request, string $slug): RedirectResponse|JsonResponse
+    public function instituteShow(string $slug): View
     {
-        $institute = Institute::query()
-            ->approved()
-            ->with('user')
-            ->where('slug', $slug)
-            ->firstOrFail();
+        return $this->show($slug, 'institute');
+    }
+
+    public function show(string $slug, string $ownerRole = 'school'): View
+    {
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+
+        return view('frontend.institutes.show', [
+            'institute' => $institute,
+            'ownerRole' => $ownerRole,
+            'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+        ]);
+    }
+
+    public function schoolEnquiry(Request $request, string $slug): RedirectResponse|JsonResponse
+    {
+        return $this->enquiry($request, $slug, 'school');
+    }
+
+    public function instituteEnquiry(Request $request, string $slug): RedirectResponse|JsonResponse
+    {
+        return $this->enquiry($request, $slug, 'institute');
+    }
+
+    public function enquiry(Request $request, string $slug, string $ownerRole = 'school'): RedirectResponse|JsonResponse
+    {
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -61,7 +77,7 @@ class InstituteProfileController extends Controller
             $owner,
             'New enquiry received',
             $fromName.' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.'),
-            route('institute.enquiries.index'),
+            $institute->user?->portalRoute('enquiries.index') ?? route('school.enquiries.index'),
             'engagement'
         );
 
@@ -91,5 +107,22 @@ class InstituteProfileController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    private function findApprovedProfile(string $slug, string $ownerRole): Institute
+    {
+        return Institute::query()
+            ->approved()
+            ->forOwnerRole($ownerRole)
+            ->where('slug', $slug)
+            ->with([
+                'user:id,name,profile_image,role',
+                'activeNotices',
+                'achievements',
+                'topPerformers',
+                'schoolClasses',
+                'books',
+            ])
+            ->firstOrFail();
     }
 }

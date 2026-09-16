@@ -9,41 +9,51 @@ class InstituteDashboardController extends Controller
 {
     public function dashboard(): View
     {
-        $institute = auth()->user()->institute;
-        $institute->loadCount(['enquiries']);
+        $user = auth()->user();
+        $institute = $user->institute;
+        $institute->loadCount(['enquiries', 'notices', 'achievements', 'topPerformers', 'schoolClasses', 'books']);
 
         $completeness = $this->profileCompleteness($institute);
+        $portalPrefix = $user->portalRoutePrefix();
 
         return view('backend.institute.dashboard', [
             'institute' => $institute,
             'completeness' => $completeness,
+            'portalPrefix' => $portalPrefix,
             'stats' => [
                 [
                     'label' => 'Enquiries',
                     'value' => $institute->enquiries_count,
                     'detail' => 'Messages from students and parents',
-                    'url' => route('institute.enquiries.index'),
+                    'url' => route($portalPrefix.'.enquiries.index'),
                     'icon' => 'fa-envelope-open-text',
+                ],
+                [
+                    'label' => 'Public page items',
+                    'value' => $institute->notices_count + $institute->achievements_count + $institute->top_performers_count + $institute->school_classes_count + $institute->books_count,
+                    'detail' => 'Notices, classes, performers, achievements, books',
+                    'url' => route($portalPrefix.'.public-page.edit'),
+                    'icon' => 'fa-globe',
                 ],
                 [
                     'label' => 'Profile completeness',
                     'value' => $completeness.'%',
                     'detail' => 'Keep your public profile up to date',
-                    'url' => route('institute.profile.edit'),
+                    'url' => route($portalPrefix.'.profile.edit'),
                     'icon' => 'fa-user-check',
                 ],
                 [
                     'label' => 'Institution type',
                     'value' => $institute->institutionTypeLabel(),
                     'detail' => $institute->board_affiliation ?: 'Board not set',
-                    'url' => route('institute.profile.edit'),
+                    'url' => route($portalPrefix.'.profile.edit'),
                     'icon' => 'fa-school',
                 ],
                 [
                     'label' => 'Location',
                     'value' => $institute->city ?: '—',
                     'detail' => $institute->locationLabel() ?: 'Add your city and state',
-                    'url' => route('institute.profile.edit'),
+                    'url' => route($portalPrefix.'.profile.edit'),
                     'icon' => 'fa-location-dot',
                 ],
             ],

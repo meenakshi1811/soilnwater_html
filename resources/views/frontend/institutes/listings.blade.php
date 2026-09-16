@@ -1,6 +1,12 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', 'All Schools & Institutes | SoilnWater')
+@php
+  $listingContext = $listingContext ?? 'schools';
+  $isSchoolListing = $listingContext === 'schools';
+  $pageTitle = $isSchoolListing ? 'Schools' : 'Institutes';
+@endphp
+
+@section('meta_title', 'All '.$pageTitle.' | SoilnWater')
 
 @php
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
@@ -16,8 +22,8 @@
 <div
   class="vendors-page institutes-page"
   id="institutesPageRoot"
-  data-index-url="{{ route('institute.index') }}"
-  data-listings-url="{{ route('institute.listings') }}"
+  data-index-url="{{ route($listingContext.'.index') }}"
+  data-listings-url="{{ route($listingContext.'.listings') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-preview-listing="0"
 >
@@ -27,8 +33,8 @@
     <main class="vendors-main">
       <div class="vendors-main__head">
         <div>
-          <h1>All Schools &amp; Institutes</h1>
-          <p class="vendors-main__lead"><a href="{{ route('institute.index') }}">&larr; Back to school listing</a></p>
+          <h1>All {{ $pageTitle }}</h1>
+          <p class="vendors-main__lead"><a href="{{ route($listingContext.'.index') }}">&larr; Back to {{ strtolower($pageTitle) }} listing</a></p>
         </div>
         <select id="institutesMarketSort" class="form-select">
           <option value="recent" @selected(request('sort', 'recent') === 'recent')>Recently approved</option>

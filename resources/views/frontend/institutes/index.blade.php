@@ -1,10 +1,17 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', 'Schools & Institutes | SoilnWater')
-@section('meta_description', 'Find schools and institutes near you. Filter by city, board, institution type and more.')
+@php
+  $listingContext = $listingContext ?? 'schools';
+  $isSchoolListing = $listingContext === 'schools';
+  $pageTitle = $isSchoolListing ? 'Schools' : 'Institutes';
+  $joinRole = $isSchoolListing ? 'school' : 'institute';
+@endphp
+
+@section('meta_title', $pageTitle.' | SoilnWater')
+@section('meta_description', 'Find '.$pageTitle.' near you. Filter by city, board, institution type and more.')
 
 @php
-  $joinUrl = route('register', ['role' => 'institute']);
+  $joinUrl = route('register', ['role' => $joinRole]);
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
 @endphp
 
@@ -18,8 +25,8 @@
 <div
   class="vendors-page institutes-page"
   id="institutesPageRoot"
-  data-index-url="{{ route('institute.index') }}"
-  data-listings-url="{{ route('institute.listings') }}"
+  data-index-url="{{ route($listingContext.'.index') }}"
+  data-listings-url="{{ route($listingContext.'.listings') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-preview-listing="1"
 >
@@ -27,7 +34,7 @@
     <aside class="vendors-sidebar">
       <div class="vendors-sidebar__head">
         <div>
-          <h2>Find Schools &amp; Institutes</h2>
+          <h2>Find {{ $pageTitle }}</h2>
           <p class="vendors-sidebar__lead">Filter by city, board, and institution type.</p>
         </div>
         <button type="button" class="vendors-sidebar__reset" id="institutesMarketResetFilters">Reset All</button>
@@ -140,7 +147,7 @@
       <div id="institutesScrollSentinel" class="vendors-scroll-sentinel" aria-hidden="true"></div>
 
       <div class="vendors-view-all-wrap">
-        <a href="{{ route('institute.listings', request()->query()) }}" id="institutesViewAllLink" class="btn btn-outline-secondary">View all listings</a>
+        <a href="{{ route($listingContext.'.listings', request()->query()) }}" id="institutesViewAllLink" class="btn btn-outline-secondary">View all listings</a>
       </div>
     </main>
   </div>

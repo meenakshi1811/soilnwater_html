@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use App\Support\InstituteFileUploader;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,17 +20,31 @@ use Yajra\DataTables\Facades\DataTables;
 
 class InstituteController extends Controller
 {
+    protected string $ownerRole = 'institute';
+
+    protected string $adminRoutePrefix = 'admin.institutes';
+
+    protected string $portalRoutePrefix = 'institute';
+
+    protected string $publicRouteName = 'institutes.show';
+
+    protected string $entityLabel = 'Institute';
+
+    protected string $accountLabel = 'Institute account';
+
+    protected string $createAccountRole = 'institute';
+
     public function index(): View
     {
-        return view('backend.institutes.index');
+        return view('backend.institutes.index', $this->adminViewData());
     }
 
     public function data(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 404);
 
-        $query = Institute::query()
-            ->with('user:id,name,email,phone_number,created_at')
+        $query = $this->scopedQuery()
+            ->with('user:id,name,email,phone_number,created_at,role')
             ->select([
                 'id',
                 'user_id',
@@ -64,7 +79,7 @@ class InstituteController extends Controller
             })
             ->addColumn('public_page_link', function (Institute $institute): string {
                 if ($institute->isApproved()) {
-                    return '<a class="service-page-link" href="'.route('institute.show', $institute->slug).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
+                    return '<a class="service-page-link" href="'.route($this->publicRouteName, $institute->slug).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
                 }
 
                 return '<span class="text-muted">—</span>';
@@ -79,7 +94,7 @@ class InstituteController extends Controller
                     : '';
 
                 return '<div class="d-flex gap-2 justify-content-end">'
-                    .'<a href="'.route('admin.institutes.show', $institute).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .'<a href="'.route($this->adminRoutePrefix.'.show', $institute).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
                     .$approveBtn
                     .$rejectBtn
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-institute" data-id="'.$institute->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button>'
@@ -101,13 +116,15 @@ class InstituteController extends Controller
 
     public function show(Institute $institute): View
     {
+        $this->ensureOwnerRole($institute);
         $institute->load(['user', 'approver:id,name']);
 
-        return view('backend.institutes.show', compact('institute'));
+        return view('backend.institutes.show', array_merge($this->adminViewData(), compact('institute')));
     }
 
     public function approve(Request $request, Institute $institute): JsonResponse
     {
+        $this->ensureOwnerRole($institute);
         $institute->loadMissing('user');
 
         $institute->update([
@@ -120,19 +137,21 @@ class InstituteController extends Controller
         $emailSent = $this->sendInstituteStatusMail($institute->fresh('user'), 'approved');
         PortalNotificationService::notifyOwnerOfReview(
             $institute->user,
-            'School / Institute account',
+            $this->accountLabel,
             $institute->displayName(),
             'approved',
-            route('institute.dashboard')
+            route($this->portalRoutePrefix.'.dashboard')
         );
 
         return response()->json([
-            'message' => 'School / Institute approved. They can now access the institute portal.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
+            'message' => $this->entityLabel.' approved. They can now access the portal.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
         ]);
     }
 
     public function reject(Request $request, Institute $institute): JsonResponse
     {
+        $this->ensureOwnerRole($institute);
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'min:5', 'max:1000'],
         ]);
@@ -151,7 +170,7 @@ class InstituteController extends Controller
         $emailSent = $this->sendInstituteStatusMail($institute->fresh('user'), 'rejected', $reason);
         PortalNotificationService::notifyOwnerOfReview(
             $owner,
-            'School / Institute account',
+            $this->accountLabel,
             $institute->displayName(),
             'rejected',
             route('login'),
@@ -159,23 +178,26 @@ class InstituteController extends Controller
         );
 
         return response()->json([
-            'message' => 'School / Institute application rejected.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
+            'message' => $this->entityLabel.' application rejected.'.($emailSent ? ' Email and portal notification sent.' : ' Portal notification sent.'),
         ]);
     }
 
     public function destroy(Institute $institute): JsonResponse
     {
+        $this->ensureOwnerRole($institute);
+
         $institute->loadMissing('user');
         $owner = $institute->user;
         $recipient = $this->instituteNotificationRecipient($institute);
         $displayName = $institute->displayName();
         $mail = $recipient ? InstituteStatusMail::forInstitute($institute, 'deleted') : null;
+        $ownerRole = $this->ownerRole;
 
-        DB::transaction(function () use ($institute): void {
+        DB::transaction(function () use ($institute, $ownerRole): void {
             $userId = $institute->user_id;
             InstituteFileUploader::deleteIfExists($institute->logo);
             $institute->delete();
-            User::whereKey($userId)->where('role', 'institute')->delete();
+            User::whereKey($userId)->where('role', $ownerRole)->delete();
         });
 
         $emailSent = false;
@@ -194,7 +216,7 @@ class InstituteController extends Controller
         if ($owner) {
             PortalNotificationService::notifyOwnerOfReview(
                 $owner,
-                'School / Institute account',
+                $this->accountLabel,
                 $displayName,
                 'deleted',
                 route('login')
@@ -202,8 +224,35 @@ class InstituteController extends Controller
         }
 
         return response()->json([
-            'message' => 'Institute deleted successfully.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => $this->entityLabel.' deleted successfully.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
+    }
+
+    protected function scopedQuery(): Builder
+    {
+        return Institute::query()->forOwnerRole($this->ownerRole);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function adminViewData(): array
+    {
+        return [
+            'ownerRole' => $this->ownerRole,
+            'adminRoutePrefix' => $this->adminRoutePrefix,
+            'entityLabel' => $this->entityLabel,
+            'pageTitle' => $this->entityLabel.'s',
+            'pageKicker' => $this->entityLabel.' Management',
+            'createAccountRole' => $this->createAccountRole,
+            'createAccountLabel' => 'Add '.$this->entityLabel,
+        ];
+    }
+
+    protected function ensureOwnerRole(Institute $institute): void
+    {
+        $institute->loadMissing('user');
+        abort_unless($institute->user?->role === $this->ownerRole, 404);
     }
 
     private function sendInstituteStatusMail(Institute $institute, string $action, ?string $reason = null): bool

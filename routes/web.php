@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
 use App\Http\Controllers\Admin\ChildProfileController as AdminChildProfileController;
 use App\Http\Controllers\Admin\EducatorController;
 use App\Http\Controllers\Admin\InstituteController;
+use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
 use App\Http\Controllers\Admin\StudyMaterialApprovalController;
 use App\Http\Controllers\Admin\ContactSupportController;
@@ -68,7 +69,10 @@ use App\Http\Controllers\Educator\EducatorEnquiryController;
 use App\Http\Controllers\Educator\EducatorPendingController;
 use App\Http\Controllers\Institute\InstituteDashboardController;
 use App\Http\Controllers\Institute\InstituteEnquiryController;
+use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstitutePendingController;
+use App\Http\Controllers\Institute\InstitutePublicContentController;
+use App\Http\Controllers\Institute\InstitutePublicPageController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
 use App\Http\Controllers\Educator\EducatorNoticeController;
 use App\Http\Controllers\Educator\EducatorProfileController;
@@ -198,10 +202,15 @@ Route::post('/consultant/{slug}/enquiry', [ConsultantStoreController::class, 'se
 Route::post('/service/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');
 Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
 
-Route::get('/schools', [InstituteListingController::class, 'index'])->name('institute.index');
-Route::get('/schools/listings', [InstituteListingController::class, 'listings'])->name('institute.listings');
-Route::get('/schools/{slug}', [InstituteProfileController::class, 'show'])->name('institute.show');
-Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'enquiry'])->middleware('auth')->name('institute.enquiry');
+Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name('schools.index');
+Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
+Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
+Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
+
+Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
+Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
+Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
+Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
@@ -375,14 +384,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/educator/pending', [EducatorPendingController::class, 'show'])->name('educator.pending');
 
+    Route::get('/school/pending', [InstitutePendingController::class, 'show'])->name('school.pending');
     Route::get('/institute/pending', [InstitutePendingController::class, 'show'])->name('institute.pending');
 
-    Route::prefix('institute')->name('institute.')->middleware(['institute.account'])->group(function () {
-        Route::get('/dashboard', [InstituteDashboardController::class, 'dashboard'])->middleware('institute')->name('dashboard');
-        Route::get('/profile', [PortalInstituteProfileController::class, 'edit'])->middleware('institute')->name('profile.edit');
-        Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware('institute')->name('profile.update');
-        Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('institute')->name('enquiries.index');
-    });
+    $registerSchoolInstitutePortal = function (string $prefix, string $name, string $accountMiddleware, string $approvedMiddleware): void {
+        Route::prefix($prefix)->name($name)->middleware([$accountMiddleware])->group(function () use ($approvedMiddleware): void {
+            Route::get('/dashboard', [InstituteDashboardController::class, 'dashboard'])->middleware($approvedMiddleware)->name('dashboard');
+            Route::get('/profile', [PortalInstituteProfileController::class, 'edit'])->middleware($approvedMiddleware)->name('profile.edit');
+            Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware($approvedMiddleware)->name('profile.update');
+            Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware($approvedMiddleware)->name('public-page.edit');
+            Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware($approvedMiddleware)->name('enquiries.index');
+            Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware($approvedMiddleware)->name('notices.store');
+            Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware($approvedMiddleware)->name('notices.destroy');
+            Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware($approvedMiddleware)->name('achievements.store');
+            Route::delete('/achievements/{achievement}', [InstitutePublicContentController::class, 'destroyAchievement'])->middleware($approvedMiddleware)->name('achievements.destroy');
+            Route::post('/performers', [InstitutePublicContentController::class, 'storePerformer'])->middleware($approvedMiddleware)->name('performers.store');
+            Route::delete('/performers/{performer}', [InstitutePublicContentController::class, 'destroyPerformer'])->middleware($approvedMiddleware)->name('performers.destroy');
+            Route::post('/classes', [InstitutePublicContentController::class, 'storeClass'])->middleware($approvedMiddleware)->name('classes.store');
+            Route::delete('/classes/{class}', [InstitutePublicContentController::class, 'destroyClass'])->middleware($approvedMiddleware)->name('classes.destroy');
+            Route::post('/books', [InstitutePublicContentController::class, 'storeBook'])->middleware($approvedMiddleware)->name('books.store');
+            Route::delete('/books/{book}', [InstitutePublicContentController::class, 'destroyBook'])->middleware($approvedMiddleware)->name('books.destroy');
+        });
+    };
+
+    $registerSchoolInstitutePortal('school', 'school', 'school.account', 'school');
+    $registerSchoolInstitutePortal('institute', 'institute', 'institute.account', 'institute');
 
     Route::prefix('educator')->name('educator.')->middleware(['educator.account'])->group(function () {
         Route::get('/dashboard', [EducatorDashboardController::class, 'dashboard'])->middleware('educator')->name('dashboard');
@@ -750,6 +776,15 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{educator}/approve', [EducatorController::class, 'approve'])->name('approve');
             Route::post('/{educator}/reject', [EducatorController::class, 'reject'])->name('reject');
             Route::delete('/{educator}', [EducatorController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('schools')->name('schools.')->group(function () {
+            Route::get('/', [SchoolController::class, 'index'])->name('index');
+            Route::get('/data', [SchoolController::class, 'data'])->name('data');
+            Route::get('/{institute}', [SchoolController::class, 'show'])->name('show');
+            Route::post('/{institute}/approve', [SchoolController::class, 'approve'])->name('approve');
+            Route::post('/{institute}/reject', [SchoolController::class, 'reject'])->name('reject');
+            Route::delete('/{institute}', [SchoolController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('institutes')->name('institutes.')->group(function () {

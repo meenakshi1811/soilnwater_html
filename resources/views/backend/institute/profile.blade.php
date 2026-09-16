@@ -12,13 +12,25 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
-    <div class="ems-hero mb-4">
-        <p class="ems-kicker mb-1">{{ $institute->roleLabel() }} Profile</p>
-        <h2 class="admin-title mb-1">Edit your public profile</h2>
-        <p class="mb-0 text-secondary">Update your school details visible on the public listing and profile page.</p>
+    <div class="ems-hero mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <p class="ems-kicker mb-1">{{ $institute->roleLabel() }} Profile</p>
+            <h2 class="admin-title mb-1">Edit your public profile</h2>
+            <p class="mb-0 text-secondary">Update your school details visible on the public listing and profile page.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route($portalPrefix.'.public-page.edit') }}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-globe me-1"></i> Manage public page
+            </a>
+            @if($institute->isApproved())
+                <a href="{{ $institute->publicUrl() }}" target="_blank" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View live page
+                </a>
+            @endif
+        </div>
     </div>
 
-    <form method="POST" action="{{ route('institute.profile.update') }}" enctype="multipart/form-data" class="js-ajax-form chart-card" data-success-redirect="{{ route('institute.profile.edit') }}">
+    <form method="POST" action="{{ route($portalPrefix.'.profile.update') }}" enctype="multipart/form-data" class="js-ajax-form chart-card" data-success-redirect="{{ route($portalPrefix.'.profile.edit') }}">
         @csrf
         @method('PUT')
 
@@ -37,7 +49,12 @@
                         <label class="form-label" for="institution_type">Institution type</label>
                         <select class="form-select" id="institution_type" name="institution_type">
                             <option value="">Select type</option>
-                            @foreach (['school' => 'School', 'college' => 'College', 'university' => 'University', 'coaching' => 'Coaching Institute', 'other' => 'Other'] as $value => $label)
+                            @php
+                                $institutionTypes = auth()->user()?->isSchool()
+                                    ? ['school' => 'School', 'college' => 'College', 'university' => 'University']
+                                    : ['coaching' => 'Coaching Institute', 'other' => 'Other'];
+                            @endphp
+                            @foreach ($institutionTypes as $value => $label)
                                 <option value="{{ $value }}" @selected(old('institution_type', $institute->institution_type) === $value)>{{ $label }}</option>
                             @endforeach
                         </select>

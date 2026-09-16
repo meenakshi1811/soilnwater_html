@@ -57,12 +57,12 @@ class RegisterController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,student,institute'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,institute', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,student,school,institute'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,student,institute', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,student,school,institute', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
@@ -71,10 +71,10 @@ class RegisterController extends Controller
             'phone_number.unique' => 'This phone number is already registered.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
-            'pan_number.required_if' => 'PAN number is required for vendor, consultant, service, and school / institute registrations.',
+            'pan_number.required_if' => 'PAN number is required for vendor, consultant, service, school, and institute registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
-            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, teacher / tutor, student, and school / institute registrations.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, service, teacher / tutor, student, school, and institute registrations.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
 
@@ -194,7 +194,7 @@ class RegisterController extends Controller
         }
 
         $institute = null;
-        if ($user->isInstitute()) {
+        if ($user->isSchoolOrInstitute()) {
             $institute = InstituteRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
@@ -271,8 +271,14 @@ class RegisterController extends Controller
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor account', $vendor->company_name, route('admin.vendors.show', $vendor));
             } elseif ($institute) {
                 Mail::to($user->email)->send(InstituteStatusMail::forInstitute($institute, 'pending'));
-                $message = 'Thank you for registering. Your school / institute profile is under observation. Admin will check and approve it soon.';
-                PortalNotificationService::notifyAdminsOfApprovalRequest('School / Institute account', $institute->institution_name, route('admin.institutes.show', $institute));
+                $message = $user->isSchool()
+                    ? 'Thank you for registering. Your school profile is under observation. Admin will check and approve it soon.'
+                    : 'Thank you for registering. Your institute profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest(
+                    $user->isSchool() ? 'School account' : 'Institute account',
+                    $institute->institution_name,
+                    \App\Support\SchoolInstituteHelper::adminShowRoute($institute)
+                );
             } elseif ($consultant) {
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';

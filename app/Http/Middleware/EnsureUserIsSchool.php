@@ -6,27 +6,27 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureUserIsInstitute
+class EnsureUserIsSchool
 {
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user || $user->role !== 'institute') {
-            abort(403, 'Institute access only.');
+        if (! $user || $user->role !== 'school') {
+            abort(403, 'School access only.');
         }
 
         $institute = $user->institute;
 
         if (! $institute) {
-            abort(403, 'Institute profile not found.');
+            abort(403, 'School profile not found.');
         }
 
         if (! $institute->isApproved()) {
             auth()->logout();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Your institute account is pending admin approval. You will be notified once approved.',
+                'email' => 'Your school account is pending admin approval. You will be notified once approved.',
             ]);
         }
 

@@ -12,12 +12,12 @@ class InstitutePendingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user?->isInstitute()) {
+        if (! $user?->isSchoolOrInstitute()) {
             return redirect()->route('login');
         }
 
         if ($user->institute?->isApproved()) {
-            return redirect()->route('institute.dashboard');
+            return redirect()->route($user->portalRoutePrefix().'.dashboard');
         }
 
         return view('backend.institute.pending', [

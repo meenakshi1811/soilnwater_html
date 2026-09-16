@@ -6,18 +6,18 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureInstituteAccount
+class EnsureSchoolAccount
 {
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user || $user->role !== 'institute') {
-            abort(403, 'Institute access only.');
+        if (! $user || $user->role !== 'school') {
+            abort(403, 'School access only.');
         }
 
         if (! $user->institute) {
-            abort(403, 'Institute profile not found.');
+            abort(403, 'School profile not found.');
         }
 
         return $next($request);

@@ -69,6 +69,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'consultant.account' => EnsureConsultantIsApproved::class,
             'service_provider.account' => EnsureServiceProviderIsApproved::class,
             'educator.account' => EnsureEducatorAccount::class,
+            'school.account' => \App\Http\Middleware\EnsureSchoolAccount::class,
+            'school' => \App\Http\Middleware\EnsureUserIsSchool::class,
             'institute.account' => EnsureInstituteAccount::class,
             'institute' => EnsureUserIsInstitute::class,
             'student.account' => EnsureStudentAccount::class,

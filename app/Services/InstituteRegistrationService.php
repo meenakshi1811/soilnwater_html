@@ -30,6 +30,9 @@ class InstituteRegistrationService
             ? InstituteFileUploader::storeImage($profileImage, 'logos')
             : ($registrationData['profile_image_path'] ?? null);
 
+        $institutionType = $registrationData['institution_type']
+            ?? \App\Support\SchoolInstituteHelper::defaultInstitutionTypeForRole((string) $user->role);
+
         return Institute::create([
             'user_id' => $user->id,
             'institution_name' => $institutionName,
@@ -43,6 +46,7 @@ class InstituteRegistrationService
             'address' => $address,
             'city' => $city,
             'pincode' => $pincode,
+            'institution_type' => $institutionType,
             'pan_number' => $panNumber,
             'gst_number' => $gstNumber,
             'government_certificate_number' => $governmentCertificateNumber,

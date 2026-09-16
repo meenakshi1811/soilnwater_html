@@ -121,10 +121,10 @@ class InstituteProfileController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'message' => $message,
-                'redirect' => route('institute.profile.edit'),
+                'redirect' => $request->user()->portalRoute('profile.edit'),
             ]);
         }
 
-        return redirect()->route('institute.profile.edit')->with('status', $message);
+        return redirect()->route($request->user()->portalRoutePrefix().'.profile.edit')->with('status', $message);
     }
 }
