@@ -28,24 +28,30 @@
   $aboutText = trim((string) $educator->about);
   $aboutNeedsToggle = strlen($aboutText) > 280;
   $isTutorProfile = $educator->isTutor();
+  $tuitionPointLabel = $educator->tuitionPointAddressLabel();
+  $showLocationSidebar = $educator->locationLabel()
+    || filled($educator->residential_address)
+    || filled($educator->associated_institute)
+    || filled($tuitionPointLabel)
+    || filled($educator->tuition_timings);
 
   $navItems = collect([
     ['id' => 'edu-overview', 'label' => 'Profile Overview', 'icon' => 'fa-user'],
+  ])
+    ->when($notices->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn']))
+    ->push(
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
     ['id' => 'edu-experience', 'label' => 'Experience & Education', 'icon' => 'fa-briefcase'],
     ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap'],
     ['id' => 'edu-notes', 'label' => 'Notes & Materials', 'icon' => 'fa-file-lines'],
     ['id' => 'edu-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
-    ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
-    ['id' => 'edu-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy'],
     ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper'],
     ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
-    ['id' => 'edu-availability', 'label' => $isTutorProfile ? 'Availability & Tuition' : 'Availability & Locations', 'icon' => 'fa-calendar-check'],
     ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'tutor_only' => true],
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
-    ['id' => 'edu-contact', 'label' => 'Contact & Enquiry', 'icon' => 'fa-envelope'],
-  ])->filter(fn ($item) => empty($item['tutor_only']) || $isTutorProfile)->values()->all();
+    ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
+    )->filter(fn ($item) => empty($item['tutor_only']) || $isTutorProfile)->values()->all();
 @endphp
 
 <div
@@ -90,9 +96,6 @@
         <div class="edu-profile-banner__overlay"></div>
       </div>
 
-      @if($notices->isNotEmpty())
-        @include('frontend.educator.partials.notice-board', ['notices' => $notices])
-      @endif
     </div>
 
     <div class="edu-grid">
@@ -226,6 +229,15 @@
             </div>
           </div>
         </section>
+
+        @if($notices->isNotEmpty())
+        {{-- Notice Board --}}
+        <section class="edu-section edu-notice-section" id="edu-notices" aria-label="Notice Board">
+          <div class="edu-notice-section__frame">
+            @include('frontend.educator.partials.notice-board', ['notices' => $notices, 'featured' => true])
+          </div>
+        </section>
+        @endif
 
         {{-- 2. About Me --}}
         <section class="edu-section" id="edu-about">
@@ -414,194 +426,7 @@
           @endif
         </section>
 
-        {{-- 9. Students & Reviews --}}
-        <section class="edu-section" id="edu-reviews" data-review-url="{{ route('educator.review', $educator->slug) }}">
-          <h2 class="edu-section__title"><i class="fa-solid fa-star" aria-hidden="true"></i> Students &amp; Reviews</h2>
-
-          <div class="edu-testimonials js-edu-testimonial-carousel {{ $testimonials->isEmpty() ? 'is-empty' : '' }}" id="eduTestimonialCarousel">
-            <div class="edu-testimonials__head">
-              <h3 class="h6 mb-0">What Students Say</h3>
-              <div class="edu-testimonials__nav">
-                <button type="button" class="edu-testimonials__btn js-edu-testimonial-prev" aria-label="Previous testimonial">
-                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="edu-testimonials__btn js-edu-testimonial-next" aria-label="Next testimonial">
-                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
-            <div class="edu-testimonials__viewport">
-              <div class="edu-testimonials__track js-edu-testimonial-track" id="eduTestimonialTrack">
-                @foreach($testimonials as $item)
-                  @include('frontend.educator.partials.testimonial-item', ['item' => $item])
-                @endforeach
-              </div>
-            </div>
-          </div>
-
-          <div
-            id="educatorReviewsSection"
-            data-review-url="{{ route('educator.review', $educator->slug) }}"
-            data-reviews-url="{{ route('educator.reviews', $educator->slug) }}"
-            data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
-          >
-            <div class="edu-reviews-summary">
-              <div class="edu-reviews-summary__score">
-                <strong class="edu-reviews-summary__value js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
-                <span class="edu-reviews-summary__out-of">out of 5</span>
-              </div>
-              <div class="edu-reviews-summary__stars" aria-label="{{ number_format((float) $educator->average_rating, 1) }} out of 5 stars">
-                @for($s = 1; $s <= 5; $s++)
-                  <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
-                @endfor
-              </div>
-              <p class="edu-reviews-summary__meta mb-0">
-                Based on <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews
-                <span class="edu-reviews-summary__note">(profile + study materials)</span>
-              </p>
-            </div>
-
-            <h3 class="edu-reviews-list__title">All Reviews</h3>
-
-            <div id="educatorReviewsList">
-              @forelse(($profileReviews ?? collect()) as $item)
-                @include('frontend.educator.partials.review-item', ['item' => $item])
-              @empty
-                <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
-              @endforelse
-            </div>
-
-            @if(($profileReviewsHasMore ?? false))
-              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
-                <button
-                  type="button"
-                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
-                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
-                >
-                  <span class="btn-text">See more reviews</span>
-                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
-                </button>
-              </div>
-            @endif
-
-            @if(! auth()->check() || ($canWriteReview ?? false))
-            <div class="edu-review-compose" id="educatorReviewCompose">
-            @auth
-              @php
-                $selectedRating = (int) old('rating', $userReview?->rating ?: 5);
-                $ratingLabels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'];
-                $reviewText = old('review', $userReview?->review ?? '');
-              @endphp
-              <form id="educatorReviewForm" class="edu-review-form" novalidate>
-                @csrf
-                <div class="edu-review-form__header">
-                  <div class="edu-review-form__icon" aria-hidden="true">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                  </div>
-                  <div>
-                    <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
-                    <p class="edu-review-form__hint">Share your experience as a parent or student and help others choose the right {{ strtolower($educator->roleLabel()) }}.</p>
-                  </div>
-                </div>
-
-                <div class="edu-review-form__rating-block">
-                  <span class="edu-review-form__label">How would you rate them?</span>
-                  <div class="edu-review-form__rating-row">
-                    <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
-                      <input type="hidden" name="rating" id="educatorReviewRating" value="{{ $selectedRating }}">
-                      @foreach (range(1, 5) as $stars)
-                        <button
-                          type="button"
-                          class="edu-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
-                          data-rating="{{ $stars }}"
-                          aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
-                        >
-                          <i class="fa-solid fa-star" aria-hidden="true"></i>
-                        </button>
-                      @endforeach
-                    </div>
-                    <span class="edu-review-form__rating-label js-edu-rating-label">{{ $ratingLabels[$selectedRating] ?? 'Excellent' }}</span>
-                  </div>
-                </div>
-
-                <div class="edu-review-form__fields">
-                  <div class="edu-review-form__field">
-                    <label class="edu-review-form__label" for="educatorStudentClass">Class / Course <span class="edu-review-form__optional">(optional)</span></label>
-                    <div class="edu-review-form__input-wrap">
-                      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-                      <input
-                        type="text"
-                        id="educatorStudentClass"
-                        name="student_class"
-                        class="edu-review-form__input"
-                        value="{{ old('student_class', $userReview?->student_class) }}"
-                        placeholder="e.g. Class 12, B.Sc Physics"
-                      >
-                    </div>
-                  </div>
-
-                  <div class="edu-review-form__field edu-review-form__field--wide">
-                    <label class="edu-review-form__label" for="educatorReviewText">Your feedback</label>
-                    <textarea
-                      id="educatorReviewText"
-                      name="review"
-                      class="edu-review-form__textarea"
-                      rows="4"
-                      maxlength="2000"
-                      placeholder="What did you learn? How was their teaching style, clarity, and support?"
-                    >{{ $reviewText }}</textarea>
-                    <div class="edu-review-form__field-footer">
-                      <span class="edu-review-form__char-count"><span class="js-edu-review-char-count">{{ strlen($reviewText) }}</span> / 2000</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="edu-review-form__actions">
-                  <p class="edu-review-form__note">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    Reviews are visible on this profile and may appear in testimonials.
-                  </p>
-                  <button type="submit" class="edu-btn edu-btn-primary edu-review-form__submit" id="educatorReviewSubmitBtn">
-                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-                    <span class="btn-text">{{ ($userReview ?? null) ? 'Update review' : 'Submit review' }}</span>
-                  </button>
-                </div>
-              </form>
-            @else
-              <div class="edu-review-login">
-                <div class="edu-review-login__icon" aria-hidden="true">
-                  <i class="fa-solid fa-star"></i>
-                </div>
-                <div class="edu-review-login__body">
-                  <h4 class="edu-review-login__title">Share your experience</h4>
-                  <p class="edu-review-login__text">Parents and students can sign in to rate this {{ strtolower($educator->roleLabel()) }} and help others make informed choices.</p>
-                  <button type="button" class="edu-btn edu-btn-primary edu-review-login__btn js-edu-guest-action" data-action="review">
-                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
-                    Login to review
-                  </button>
-                </div>
-              </div>
-            @endauth
-            </div>
-            @endif
-          </div>
-        </section>
-
-        {{-- 10. Achievements --}}
-        <section class="edu-section" id="edu-achievements">
-          <h2 class="edu-section__title"><i class="fa-solid fa-trophy" aria-hidden="true"></i> Achievements</h2>
-          @if($achievements->isNotEmpty())
-            <ul class="edu-achievement-list">
-              @foreach($achievements as $item)
-                <li><i class="fa-solid fa-trophy" aria-hidden="true"></i> {{ $item }}</li>
-              @endforeach
-            </ul>
-          @else
-            <p class="edu-empty">No achievements listed.</p>
-          @endif
-        </section>
-
-        {{-- 11. Articles --}}
+        {{-- Articles --}}
         <section class="edu-section" id="edu-articles">
           <h2 class="edu-section__title"><i class="fa-solid fa-newspaper" aria-hidden="true"></i> Articles</h2>
           <p class="edu-empty">No articles published yet.</p>
@@ -611,81 +436,6 @@
         <section class="edu-section" id="edu-gallery">
           <h2 class="edu-section__title"><i class="fa-solid fa-images" aria-hidden="true"></i> Gallery</h2>
           <p class="edu-empty">No gallery photos yet.</p>
-        </section>
-
-        {{-- 13. Availability & Locations --}}
-        <section class="edu-section" id="edu-availability">
-          <h2 class="edu-section__title"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> {{ $isTutorProfile ? 'Availability & Tuition' : 'Availability & Locations' }}</h2>
-
-          @if($educator->is_available_now)
-            <span class="edu-available-now"><i class="fa-solid fa-circle" aria-hidden="true"></i> Available now</span>
-          @endif
-
-          @if($availability->isNotEmpty())
-            <table class="edu-schedule-table mb-3">
-              <tbody>
-                @foreach($availability as $slot)
-                  <tr>
-                    <td>{{ $slot['day'] ?? '—' }}</td>
-                    <td>{{ $slot['slots'] ?? '—' }}</td>
-                  </tr>
-                @endforeach
-              </tbody>
-            </table>
-          @else
-            <p class="edu-empty">Availability schedule not set.</p>
-          @endif
-
-          @if($modes->isNotEmpty())
-            <p class="edu-classes-label">Teaching Modes</p>
-            @foreach($modes as $mode)
-              <span class="edu-mode-label"><i class="fa-solid fa-check" aria-hidden="true"></i> {{ $mode }}</span>
-            @endforeach
-          @endif
-
-          @if($educator->locationLabel() || $educator->residential_address)
-            <p class="edu-classes-label mt-3">Location</p>
-            @if($educator->locationLabel())
-              <p class="mb-1"><i class="fa-solid fa-location-dot text-primary me-1" aria-hidden="true"></i> {{ $educator->locationLabel() }}</p>
-            @endif
-            @if($educator->residential_address)
-              <p class="mb-0 text-muted small">{{ $educator->residential_address }}</p>
-            @endif
-          @endif
-
-          @if($educator->associated_institute)
-            <p class="edu-classes-label mt-3">Institute</p>
-            <p class="mb-0"><i class="fa-solid fa-school text-primary me-1" aria-hidden="true"></i> {{ $educator->associated_institute }}</p>
-          @endif
-
-          @if($isTutorProfile)
-            @if($educator->tuitionPointAddressLabel())
-              <p class="edu-classes-label mt-3">Tuition point</p>
-              <p class="mb-2"><i class="fa-solid fa-location-dot text-primary me-1" aria-hidden="true"></i> {{ $educator->tuitionPointAddressLabel() }}</p>
-              @if($educator->hasTuitionPointMap())
-                <div class="edu-tuition-map">
-                  @include('community.partials.location-map-embed', [
-                    'lat' => $educator->tuition_latitude,
-                    'lng' => $educator->tuition_longitude,
-                    'title' => 'Tuition point map for '.$educator->display_name,
-                    'wrapperClass' => 'edu-tuition-map__embed',
-                  ])
-                  <a
-                    href="https://www.google.com/maps/search/?api=1&query={{ $educator->tuition_latitude }},{{ $educator->tuition_longitude }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="edu-tuition-map__link"
-                  >
-                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open in Google Maps
-                  </a>
-                </div>
-              @endif
-            @endif
-            @if($educator->tuition_timings)
-              <p class="edu-classes-label mt-3">Tuition timings</p>
-              <p class="mb-0"><i class="fa-solid fa-clock text-primary me-1" aria-hidden="true"></i> {{ $educator->tuition_timings }}</p>
-            @endif
-          @endif
         </section>
 
         @if($isTutorProfile)
@@ -872,33 +622,177 @@
           @endauth
         </section>
 
-        {{-- 16. Contact & Enquiry --}}
-        <section class="edu-section" id="edu-contact">
-          <h2 class="edu-section__title"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h2>
-          <ul class="edu-sidebar-list mb-3">
-            @if($educator->phone)
-              <li><span>Phone</span><span>{{ $educator->phone }}</span></li>
-            @endif
-            @if($educator->email)
-              <li><span>Email</span><span>{{ $educator->email }}</span></li>
-            @endif
-            @if($educator->whatsapp)
-              <li><span>WhatsApp</span><span>{{ $educator->whatsapp }}</span></li>
-            @endif
-            @if($educator->residential_address)
-              <li><span>Address</span><span>{{ $educator->residential_address }}</span></li>
-            @endif
-          </ul>
+        {{-- Students & Reviews --}}
+        <section class="edu-section" id="edu-reviews" data-review-url="{{ route('educator.review', $educator->slug) }}">
+          <h2 class="edu-section__title"><i class="fa-solid fa-star" aria-hidden="true"></i> Students &amp; Reviews</h2>
 
-          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && !$educator->residential_address && ! $educator->hasSocialLinks())
-            <p class="edu-empty">Contact details not published.</p>
-          @endif
+          <div class="edu-testimonials js-edu-testimonial-carousel {{ $testimonials->isEmpty() ? 'is-empty' : '' }}" id="eduTestimonialCarousel">
+            <div class="edu-testimonials__head">
+              <h3 class="h6 mb-0">What Students Say</h3>
+              <div class="edu-testimonials__nav">
+                <button type="button" class="edu-testimonials__btn js-edu-testimonial-prev" aria-label="Previous testimonial">
+                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="edu-testimonials__btn js-edu-testimonial-next" aria-label="Next testimonial">
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <div class="edu-testimonials__viewport">
+              <div class="edu-testimonials__track js-edu-testimonial-track" id="eduTestimonialTrack">
+                @foreach($testimonials as $item)
+                  @include('frontend.educator.partials.testimonial-item', ['item' => $item])
+                @endforeach
+              </div>
+            </div>
+          </div>
 
-          @include('frontend.educator.partials.social-links', ['educator' => $educator])
+          <div
+            id="educatorReviewsSection"
+            data-review-url="{{ route('educator.review', $educator->slug) }}"
+            data-reviews-url="{{ route('educator.reviews', $educator->slug) }}"
+            data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
+          >
+            <div class="edu-reviews-summary">
+              <div class="edu-reviews-summary__score">
+                <strong class="edu-reviews-summary__value js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
+                <span class="edu-reviews-summary__out-of">out of 5</span>
+              </div>
+              <div class="edu-reviews-summary__stars" aria-label="{{ number_format((float) $educator->average_rating, 1) }} out of 5 stars">
+                @for($s = 1; $s <= 5; $s++)
+                  <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
+                @endfor
+              </div>
+              <p class="edu-reviews-summary__meta mb-0">
+                Based on <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews
+                <span class="edu-reviews-summary__note">(profile + study materials)</span>
+              </p>
+            </div>
 
-          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
-            <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
-          </button>
+            <h3 class="edu-reviews-list__title">All Reviews</h3>
+
+            <div id="educatorReviewsList">
+              @forelse(($profileReviews ?? collect()) as $item)
+                @include('frontend.educator.partials.review-item', ['item' => $item])
+              @empty
+                <p class="edu-empty mb-0" id="educatorReviewsEmpty">No reviews yet. Be the first to share your experience.</p>
+              @endforelse
+            </div>
+
+            @if(($profileReviewsHasMore ?? false))
+              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
+                <button
+                  type="button"
+                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
+                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
+                >
+                  <span class="btn-text">See more reviews</span>
+                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
+                </button>
+              </div>
+            @endif
+
+            @if(! auth()->check() || ($canWriteReview ?? false))
+            <div class="edu-review-compose" id="educatorReviewCompose">
+            @auth
+              @php
+                $selectedRating = (int) old('rating', $userReview?->rating ?: 5);
+                $ratingLabels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'];
+                $reviewText = old('review', $userReview?->review ?? '');
+              @endphp
+              <form id="educatorReviewForm" class="edu-review-form" novalidate>
+                @csrf
+                <div class="edu-review-form__header">
+                  <div class="edu-review-form__icon" aria-hidden="true">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </div>
+                  <div>
+                    <h4 class="edu-review-form__title">{{ ($userReview ?? null) ? 'Update your review' : 'Write a review' }}</h4>
+                    <p class="edu-review-form__hint">Share your experience as a parent or student and help others choose the right {{ strtolower($educator->roleLabel()) }}.</p>
+                  </div>
+                </div>
+
+                <div class="edu-review-form__rating-block">
+                  <span class="edu-review-form__label">How would you rate them?</span>
+                  <div class="edu-review-form__rating-row">
+                    <div class="edu-star-picker" role="radiogroup" aria-label="Your rating">
+                      <input type="hidden" name="rating" id="educatorReviewRating" value="{{ $selectedRating }}">
+                      @foreach (range(1, 5) as $stars)
+                        <button
+                          type="button"
+                          class="edu-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
+                          data-rating="{{ $stars }}"
+                          aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
+                        >
+                          <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        </button>
+                      @endforeach
+                    </div>
+                    <span class="edu-review-form__rating-label js-edu-rating-label">{{ $ratingLabels[$selectedRating] ?? 'Excellent' }}</span>
+                  </div>
+                </div>
+
+                <div class="edu-review-form__fields">
+                  <div class="edu-review-form__field">
+                    <label class="edu-review-form__label" for="educatorStudentClass">Class / Course <span class="edu-review-form__optional">(optional)</span></label>
+                    <div class="edu-review-form__input-wrap">
+                      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                      <input
+                        type="text"
+                        id="educatorStudentClass"
+                        name="student_class"
+                        class="edu-review-form__input"
+                        value="{{ old('student_class', $userReview?->student_class) }}"
+                        placeholder="e.g. Class 12, B.Sc Physics"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="edu-review-form__field edu-review-form__field--wide">
+                    <label class="edu-review-form__label" for="educatorReviewText">Your feedback</label>
+                    <textarea
+                      id="educatorReviewText"
+                      name="review"
+                      class="edu-review-form__textarea"
+                      rows="4"
+                      maxlength="2000"
+                      placeholder="What did you learn? How was their teaching style, clarity, and support?"
+                    >{{ $reviewText }}</textarea>
+                    <div class="edu-review-form__field-footer">
+                      <span class="edu-review-form__char-count"><span class="js-edu-review-char-count">{{ strlen($reviewText) }}</span> / 2000</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-review-form__actions">
+                  <p class="edu-review-form__note">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    Reviews are visible on this profile and may appear in testimonials.
+                  </p>
+                  <button type="submit" class="edu-btn edu-btn-primary edu-review-form__submit" id="educatorReviewSubmitBtn">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                    <span class="btn-text">{{ ($userReview ?? null) ? 'Update review' : 'Submit review' }}</span>
+                  </button>
+                </div>
+              </form>
+            @else
+              <div class="edu-review-login">
+                <div class="edu-review-login__icon" aria-hidden="true">
+                  <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="edu-review-login__body">
+                  <h4 class="edu-review-login__title">Share your experience</h4>
+                  <p class="edu-review-login__text">Parents and students can sign in to rate this {{ strtolower($educator->roleLabel()) }} and help others make informed choices.</p>
+                  <button type="button" class="edu-btn edu-btn-primary edu-review-login__btn js-edu-guest-action" data-action="review">
+                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                    Login to review
+                  </button>
+                </div>
+              </div>
+            @endauth
+            </div>
+            @endif
+          </div>
         </section>
       </main>
 
@@ -926,15 +820,73 @@
           @endif
         </div>
 
+        @if($showLocationSidebar)
+        <div class="edu-sidebar-card edu-sidebar-card--location">
+          @if($educator->locationLabel() || filled($educator->residential_address))
+            <div class="edu-sidebar-detail">
+              <h4 class="edu-sidebar-detail__label">Location</h4>
+              @if($educator->locationLabel())
+                <p class="edu-sidebar-detail__value">
+                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                  {{ $educator->locationLabel() }}
+                </p>
+              @endif
+              @if(filled($educator->residential_address))
+                <p class="edu-sidebar-detail__sub">{{ $educator->residential_address }}</p>
+              @endif
+            </div>
+          @endif
+
+          @if(filled($educator->associated_institute))
+            <div class="edu-sidebar-detail">
+              <h4 class="edu-sidebar-detail__label">Institute</h4>
+              <p class="edu-sidebar-detail__value">
+                <i class="fa-solid fa-school" aria-hidden="true"></i>
+                {{ $educator->associated_institute }}
+              </p>
+            </div>
+          @endif
+
+          @if(filled($tuitionPointLabel))
+            <div class="edu-sidebar-detail">
+              <h4 class="edu-sidebar-detail__label">Tuition point</h4>
+              <p class="edu-sidebar-detail__value">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                {{ $tuitionPointLabel }}
+              </p>
+              @if($educator->hasTuitionPointMap())
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query={{ $educator->tuition_latitude }},{{ $educator->tuition_longitude }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="edu-sidebar-detail__link"
+                >
+                  <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open in Google Maps
+                </a>
+              @endif
+            </div>
+          @endif
+
+          @if(filled($educator->tuition_timings))
+            <div class="edu-sidebar-detail">
+              <h4 class="edu-sidebar-detail__label">Tuition timings</h4>
+              <p class="edu-sidebar-detail__value">
+                <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                {{ $educator->tuition_timings }}
+              </p>
+            </div>
+          @endif
+        </div>
+        @endif
+
         <div class="edu-sidebar-card edu-sidebar-card--contact">
           <h3><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h3>
           <ul class="edu-sidebar-list">
             @if($educator->phone)<li><span>Phone</span><span>{{ $educator->phone }}</span></li>@endif
             @if($educator->email)<li><span>Email</span><span>{{ $educator->email }}</span></li>@endif
             @if($educator->whatsapp)<li><span>WhatsApp</span><span>{{ $educator->whatsapp }}</span></li>@endif
-            @if($educator->residential_address)<li><span>Address</span><span>{{ $educator->residential_address }}</span></li>@endif
           </ul>
-          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && !$educator->residential_address && ! $educator->hasSocialLinks())
+          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && ! $educator->hasSocialLinks())
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
           @include('frontend.educator.partials.social-links', ['educator' => $educator])
