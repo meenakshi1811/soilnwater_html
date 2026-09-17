@@ -11,17 +11,11 @@ class ParentProfileService
     {
         return ParentProfile::query()->firstOrCreate(
             ['user_id' => $user->id],
-            ['is_enabled' => false]
+            [
+                'is_enabled' => false,
+                'status' => 'pending',
+            ]
         );
-    }
-
-    public function setEnabled(User $user, bool $enabled): ParentProfile
-    {
-        $profile = $this->ensureProfile($user);
-        $profile->update(['is_enabled' => $enabled]);
-        $profile->recalculateCompletion();
-
-        return $profile->fresh();
     }
 
     public function updateProfile(User $user, array $data): ParentProfile

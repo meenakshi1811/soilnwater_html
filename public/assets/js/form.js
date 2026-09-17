@@ -441,6 +441,7 @@
         bindRegisterPlaceAutocomplete: function (options) {
             var addressInput = document.getElementById(options.addressInputId);
             var cityInput = options.cityInputId ? document.getElementById(options.cityInputId) : null;
+            var stateInput = options.stateInputId ? document.getElementById(options.stateInputId) : null;
             var pincodeInput = options.pincodeInputId ? document.getElementById(options.pincodeInputId) : null;
             var latitudeInput = options.latitudeInputId ? document.getElementById(options.latitudeInputId) : null;
             var longitudeInput = options.longitudeInputId ? document.getElementById(options.longitudeInputId) : null;
@@ -479,11 +480,17 @@
                     }
 
                     var city = window.SoilnWaterGooglePlaces.getCity(components);
+                    var state = window.SoilnWaterGooglePlaces.getState(components);
                     var pincode = window.SoilnWaterGooglePlaces.getPincode(components);
 
                     if (cityInput && city) {
                         cityInput.value = city;
                         $(cityInput).trigger('input').trigger('change');
+                    }
+
+                    if (stateInput && state) {
+                        stateInput.value = state;
+                        $(stateInput).trigger('input').trigger('change');
                     }
 
                     if (pincodeInput && pincode) {
@@ -672,6 +679,22 @@
                 latitudeInputId: 'createLatitude',
                 longitudeInputId: 'createLongitude',
                 retryMethod: 'initAdminCreateUserPlaceAutocomplete'
+            });
+        },
+
+        initUserProfilePlaceAutocomplete: function () {
+            if (!document.getElementById('userProfileForm') || !document.getElementById('address')) {
+                return;
+            }
+
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'address',
+                cityInputId: 'city',
+                stateInputId: 'state',
+                pincodeInputId: 'pincode',
+                latitudeInputId: 'latitude',
+                longitudeInputId: 'longitude',
+                retryMethod: 'initUserProfilePlaceAutocomplete'
             });
         },
 
@@ -1329,8 +1352,14 @@
                 whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                 address: { required: true, minlength: 5, maxlength: 500 },
                 city: { required: true, maxlength: 120 },
+                state: { maxlength: 120 },
                 pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
-                date_of_birth: { required: true, date: true },
+                date_of_birth: {
+                    required: function () {
+                        return !document.getElementById('date_of_birth_display');
+                    },
+                    date: true
+                },
                 password: { minlength: 8 },
                 password_confirmation: {
                     required: function () {

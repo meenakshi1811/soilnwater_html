@@ -327,9 +327,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('offers.categories.subcategories');
     Route::get('/post-offer', [PostOfferController::class, 'index'])->middleware('marketplace.approved')->name('post-offer');
 
+    Route::get('/parent/pending', [\App\Http\Controllers\Parent\ParentPendingController::class, 'show'])->name('parent.pending');
+
     Route::prefix('parent')->name('parent.')->group(function () {
         Route::get('/dashboard', [ParentProfileController::class, 'dashboard'])->name('dashboard');
-        Route::post('/profile/toggle', [ParentProfileController::class, 'toggle'])->name('profile.toggle');
         Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
         Route::post('/children', [ParentProfileController::class, 'storeChild'])->name('children.store');
         Route::delete('/children/{childProfile}', [ParentProfileController::class, 'destroyChild'])->name('children.destroy');
@@ -424,16 +425,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile', [ServiceProviderProfileController::class, 'update'])->middleware('service_provider')->name('profile.update');
     });
 
-    Route::prefix('user')->name('user.')->middleware('user')->group(function () {
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::middleware('user.profile')->group(function () {
+            Route::get('/profile', [UserDashboardController::class, 'editProfile'])->name('profile.edit');
+            Route::put('/profile', [UserDashboardController::class, 'updateProfile'])->name('profile.update');
+        });
+
+        Route::middleware('user')->group(function () {
         Route::get('/dashboard', [UserDashboardController::class, 'dashboard'])->name('dashboard');
-        Route::get('/profile', [UserDashboardController::class, 'editProfile'])->name('profile.edit');
-        Route::put('/profile', [UserDashboardController::class, 'updateProfile'])->name('profile.update');
         Route::post('/convert-to-vendor', [UserDashboardController::class, 'convertToVendor'])->name('convert-to-vendor');
         Route::post('/convert-to-consultant', [UserDashboardController::class, 'convertToConsultant'])->name('convert-to-consultant');
         Route::post('/convert-to-service-provider', [UserDashboardController::class, 'convertToServiceProvider'])->name('convert-to-service-provider');
+        Route::post('/convert-to-parent', [UserDashboardController::class, 'convertToParent'])->name('convert-to-parent');
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');
+        });
     });
 
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
@@ -778,6 +785,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
         Route::prefix('parent-profiles')->name('parent-profiles.')->group(function () {
             Route::get('/', [AdminParentProfileController::class, 'index'])->name('index');
             Route::get('/data', [AdminParentProfileController::class, 'data'])->name('data');
+            Route::post('/{parentProfile}/approve', [AdminParentProfileController::class, 'approve'])->name('approve');
+            Route::post('/{parentProfile}/reject', [AdminParentProfileController::class, 'reject'])->name('reject');
             Route::delete('/{parentProfile}', [AdminParentProfileController::class, 'destroy'])->name('destroy');
         });
 

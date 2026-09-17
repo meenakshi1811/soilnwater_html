@@ -180,7 +180,7 @@
                     <th>Location</th>
                     <th>DOB / Incorporation</th>
                     <th>Status</th>
-                    <th class="text-center">Toggle</th>
+                    <th class="text-center">Account Active</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
                 </tr>

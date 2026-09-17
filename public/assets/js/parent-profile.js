@@ -20,40 +20,6 @@
         return $('meta[name="csrf-token"]').attr('content') || window.ParentProfileConfig?.csrfToken || '';
     }
 
-    // Toggle on profile pages
-    $(document).on('change', '#parentProfileEnabledSwitch', function () {
-        var $switch = $(this);
-        var enabled = $switch.is(':checked');
-        var url = $switch.data('toggle-url');
-
-        var token = csrfToken();
-
-        $.ajax({
-            url: url,
-            method: 'POST',
-            data: { _token: token, enabled: enabled ? 1 : 0 },
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': token,
-            },
-        })
-            .done(function (response) {
-                toast('success', response.message || 'Parent profile updated.');
-                if (enabled && response.dashboard_url) {
-                    setTimeout(function () {
-                        window.location.href = response.dashboard_url;
-                    }, 700);
-                } else {
-                    window.location.reload();
-                }
-            })
-            .fail(function (xhr) {
-                $switch.prop('checked', !enabled);
-                toast('error', xhr.responseJSON?.message || 'Unable to update parent profile setting.');
-            });
-    });
-
     function calculateAgeFromDob(day, month, year) {
         if (!day || !month || !year) {
             return null;

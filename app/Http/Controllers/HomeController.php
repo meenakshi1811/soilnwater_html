@@ -70,6 +70,14 @@ class HomeController extends Controller
             return redirect()->route('educator.pending');
         }
 
+        if ($user?->isParent()) {
+            if ($user->hasParentProfileEnabled()) {
+                return redirect()->route('parent.dashboard');
+            }
+
+            return redirect()->route('parent.pending');
+        }
+
         return view('home');
     }
 }

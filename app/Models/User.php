@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'whatsapp_number',
         'address',
         'city',
+        'state',
         'pincode',
         'latitude',
         'longitude',
@@ -226,6 +227,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'student';
     }
 
+    public function isParent(): bool
+    {
+        return $this->role === 'parent';
+    }
+
     public function isParentManagedChild(): bool
     {
         if (! $this->isStudent()) {
@@ -296,6 +302,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return 'Institute Dashboard';
         }
 
+        if ($this->isParent()) {
+            return 'Parent Dashboard';
+        }
+
         return 'User Dashboard';
     }
 
@@ -333,6 +343,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return request()->routeIs('institute.dashboard');
         }
 
+        if ($this->isParent() || $this->hasParentProfileEnabled()) {
+            return request()->routeIs('parent.dashboard');
+        }
+
         if ($this->isEmployee()) {
             return request()->routeIs('employee.dashboard') || request()->routeIs('modules.show');
         }
@@ -361,7 +375,19 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasParentProfileEnabled(): bool
     {
-        return (bool) $this->parentProfile?->is_enabled;
+        $profile = $this->parentProfile;
+
+        return $profile !== null
+            && $profile->isApproved()
+            && $profile->is_enabled;
+    }
+
+    public function hasPendingOrApprovedParentProfile(): bool
+    {
+        $profile = $this->parentProfile;
+
+        return $profile !== null
+            && in_array($profile->status, ['pending', 'approved'], true);
     }
 
     public function canWriteEducatorReview(?Educator $educator = null): bool

@@ -11,14 +11,14 @@
     $dashboardUrl = $user->dashboardUrl();
     $dashboardActive = $user->isDashboardRouteActive();
     $panelTitle = $user->panelTitle();
-    $profileUrl = $isGeneralUser
+    $profileUrl = $isGeneralUser || $isStudent
         ? route('user.profile.edit')
         : ($isVendor ? route('vendor.profile.edit')
             : ($isConsultant ? route('consultant.profile.edit')
                 : ($isServiceProvider ? route('service_provider.profile.edit')
                     : ($isEducator ? route('educator.profile.edit')
                         : ($isEmployee ? route('employee.profile.edit') : route('admin.profile.edit'))))));
-    $profileActive = $isGeneralUser
+    $profileActive = ($isGeneralUser || $isStudent)
         ? request()->routeIs('user.profile.*')
         : ($isVendor ? request()->routeIs('vendor.profile.*')
             : ($isConsultant ? request()->routeIs('consultant.profile.*')

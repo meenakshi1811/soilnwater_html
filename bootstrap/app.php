@@ -15,6 +15,7 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureUserIsEducator;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
+use App\Http\Middleware\EnsureUserOrStudentProfileAccess;
 use App\Http\Middleware\EnsureStudentAccount;
 use App\Http\Middleware\EnsureUserIsServiceProvider;
 use App\Http\Middleware\EnsureUserIsVendor;
@@ -61,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'employee.or.admin' => EnsureEmployeeOrAdmin::class,
             'chat.not_blocked' => EnsureChatNotBlocked::class,
             'user' => EnsureUserIsGeneralUser::class,
+            'user.profile' => EnsureUserOrStudentProfileAccess::class,
             'vendor' => EnsureUserIsVendor::class,
             'consultant' => EnsureUserIsConsultant::class,
             'service_provider' => EnsureUserIsServiceProvider::class,

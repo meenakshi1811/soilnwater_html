@@ -21,7 +21,7 @@ class ChildProfileService
     {
         if (! $parent->hasParentProfileEnabled()) {
             throw ValidationException::withMessages([
-                'parent_profile' => 'Enable your parent profile before adding a child.',
+                'parent_profile' => 'Your parent profile must be approved before adding a child.',
             ]);
         }
 

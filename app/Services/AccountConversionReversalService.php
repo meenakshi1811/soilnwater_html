@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Consultant;
+use App\Models\ParentProfile;
 use App\Models\ServiceProvider;
 use App\Models\Vendor;
 use App\Support\ConsultantFileUploader;
@@ -12,9 +13,24 @@ use Illuminate\Support\Facades\DB;
 
 class AccountConversionReversalService
 {
-    public static function shouldRevertOnRejection(Vendor|Consultant|ServiceProvider $profile, bool $wasNeverApproved): bool
+    public static function shouldRevertOnRejection(Vendor|Consultant|ServiceProvider|ParentProfile $profile, bool $wasNeverApproved): bool
     {
         return (bool) $profile->converted_from_user && $wasNeverApproved;
+    }
+
+    public static function revertParentOnRejection(ParentProfile $parentProfile, bool $wasNeverApproved): bool
+    {
+        if (! self::shouldRevertOnRejection($parentProfile, $wasNeverApproved)) {
+            return false;
+        }
+
+        DB::transaction(function () use ($parentProfile): void {
+            $user = $parentProfile->user;
+            $parentProfile->delete();
+            $user?->forceFill(['role' => 'user'])->save();
+        });
+
+        return true;
     }
 
     public static function revertVendorOnRejection(Vendor $vendor, bool $wasNeverApproved): bool

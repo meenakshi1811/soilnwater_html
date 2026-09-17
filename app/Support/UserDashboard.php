@@ -31,6 +31,9 @@ class UserDashboard
             $user->isSchoolOrInstitute() => $user->institute?->isApproved()
                 ? $user->portalRoute('dashboard')
                 : $user->portalRoute('pending'),
+            $user->isParent() => $user->hasParentProfileEnabled()
+                ? route('parent.dashboard')
+                : route('parent.pending'),
             default => route('user.dashboard'),
         };
     }

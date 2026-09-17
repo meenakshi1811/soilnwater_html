@@ -21,9 +21,17 @@ class ParentProfileController extends Controller
     ) {
     }
 
-    public function dashboard(Request $request): View
+    public function dashboard(Request $request): View|RedirectResponse
     {
         $user = $request->user()->load(['parentProfile', 'childProfiles.childUser']);
+
+        if ($user->isParent() && $user->parentProfile?->isPending()) {
+            return redirect()->route('parent.pending');
+        }
+
+        if ($user->isParent() && $user->parentProfile?->isRejected()) {
+            return redirect()->route('parent.pending');
+        }
 
         abort_unless($user->hasParentProfileEnabled(), 403);
 
@@ -47,26 +55,6 @@ class ParentProfileController extends Controller
                 'discussions' => 0,
                 'following' => 0,
             ],
-        ]);
-    }
-
-    public function toggle(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'enabled' => ['required', 'boolean'],
-        ]);
-
-        $profile = $this->parentProfileService->setEnabled(
-            $request->user(),
-            (bool) $validated['enabled']
-        );
-
-        return response()->json([
-            'message' => $profile->is_enabled
-                ? 'Parent profile enabled successfully.'
-                : 'Parent profile disabled successfully.',
-            'enabled' => $profile->is_enabled,
-            'dashboard_url' => route('parent.dashboard'),
         ]);
     }
 

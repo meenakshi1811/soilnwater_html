@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ParentProfileStatusMail;
 use App\Services\ConsultantRegistrationService;
+use App\Services\ParentRegistrationService;
+use App\Services\PortalNotificationService;
 use App\Services\ServiceProviderRegistrationService;
 use App\Services\VendorRegistrationService;
 use App\Support\UserFileUploader;
@@ -12,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class UserDashboardController extends Controller
@@ -36,8 +40,76 @@ class UserDashboardController extends Controller
     public function editProfile(Request $request): View
     {
         return view('backend.user-profile', [
-            'user' => $request->user(),
+            'user' => $request->user()->loadMissing('childProfile'),
         ]);
+    }
+
+    public function convertToParent(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isGeneralUser()) {
+            $message = 'Only user accounts can create a parent profile.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('home')->with('status', $message);
+        }
+
+        if ($user->hasPendingOrApprovedParentProfile()) {
+            $message = 'You already have a parent profile that is pending or approved.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('user.profile.edit')->with('status', $message);
+        }
+
+        $parentProfile = null;
+
+        DB::transaction(function () use ($user, &$parentProfile): void {
+            $user->forceFill(['role' => 'parent'])->save();
+
+            $parentProfile = ParentRegistrationService::createProfileForUser($user->fresh(), [
+                'converted_from_user' => true,
+            ]);
+            $parentProfile->forceFill([
+                'status' => 'pending',
+                'is_enabled' => false,
+                'approved_at' => null,
+                'approved_by' => null,
+                'rejection_reason' => null,
+            ])->save();
+        });
+
+        $parentProfile = $parentProfile?->fresh(['user']);
+        $displayName = ParentRegistrationService::displayName($user);
+
+        if ($parentProfile) {
+            PortalNotificationService::notifyAdminsOfApprovalRequest(
+                'Parent profile',
+                $displayName,
+                route('admin.parent-profiles.index')
+            );
+
+            if ($user->email) {
+                Mail::to($user->email)->send(ParentProfileStatusMail::forProfile($parentProfile, 'pending'));
+            }
+        }
+
+        $message = 'Your parent profile has been created and sent to admin for approval.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('parent.pending'),
+            ]);
+        }
+
+        return redirect()->route('parent.pending')->with('status', $message);
     }
 
     public function convertToVendor(Request $request): RedirectResponse|JsonResponse
@@ -164,17 +236,27 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
+            'state' => ['nullable', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ], [
+        ];
+
+        if ($user->isStudent()) {
+            $rules['date_of_birth'] = ['nullable', 'date'];
+        } else {
+            $rules['date_of_birth'] = ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()];
+        }
+
+        $validated = $request->validate($rules, [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
@@ -189,8 +271,14 @@ class UserDashboardController extends Controller
         $user->whatsapp_number = $validated['whatsapp_number'];
         $user->address = $validated['address'];
         $user->city = $validated['city'];
+        $user->state = $validated['state'] ?? null;
         $user->pincode = $validated['pincode'];
-        $user->date_of_birth = $validated['date_of_birth'];
+        $user->latitude = $validated['latitude'] ?? null;
+        $user->longitude = $validated['longitude'] ?? null;
+
+        if (! $user->isStudent()) {
+            $user->date_of_birth = $validated['date_of_birth'];
+        }
 
         if ($phoneChanged) {
             $user->phone_verified_at = null;

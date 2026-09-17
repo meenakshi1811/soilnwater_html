@@ -1,7 +1,12 @@
 @php
     $profile = $profile ?? null;
     $showMarketplaceFields = $showMarketplaceFields ?? false;
+    $enableAddressAutocomplete = $enableAddressAutocomplete ?? false;
+    $isStudentProfile = $isStudentProfile ?? ($user->isStudent() ?? false);
     $hasGstValue = old('has_gst', $profile?->gst_number ? '1' : '0');
+    $dobSource = $user->date_of_birth ?? $user->childProfile?->date_of_birth ?? null;
+    $dobValue = old('date_of_birth', $dobSource ? $dobSource->format('Y-m-d') : '');
+    $dobDisplay = $dobValue ? \Illuminate\Support\Carbon::parse($dobValue)->format('d M Y') : '—';
 @endphp
 
 <div class="col-md-6">
@@ -37,11 +42,19 @@
 
 <div class="col-12">
     <label for="address" class="form-label">Address</label>
-    <input id="address" name="address" type="text" class="form-control @error('address') is-invalid @enderror" value="{{ old('address', $user->address) }}" required autocomplete="street-address">
+    <input id="address" name="address" type="text" class="form-control @error('address') is-invalid @enderror" value="{{ old('address', $user->address) }}" required autocomplete="off" @if($enableAddressAutocomplete) placeholder="Search and select your address" @endif>
+    @if($enableAddressAutocomplete)
+        <small class="text-muted">Start typing and choose a Google address to auto-fill city, state, and pincode.</small>
+    @endif
     @error('address')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
+
+@if($enableAddressAutocomplete)
+    <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $user->latitude) }}">
+    <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $user->longitude) }}">
+@endif
 
 <div class="col-md-4">
     <label for="city" class="form-label">City</label>
@@ -50,6 +63,16 @@
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
+
+@if($enableAddressAutocomplete)
+<div class="col-md-4">
+    <label for="state" class="form-label">State</label>
+    <input id="state" name="state" type="text" class="form-control @error('state') is-invalid @enderror" value="{{ old('state', $user->state) }}" autocomplete="address-level1">
+    @error('state')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+@endif
 
 <div class="col-md-4">
     <label for="pincode" class="form-label">Pincode</label>
@@ -61,7 +84,13 @@
 
 <div class="col-md-4">
     <label for="date_of_birth" class="form-label">Date of Birth</label>
-    <input id="date_of_birth" name="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth', optional($user->date_of_birth)->format('Y-m-d')) }}" max="{{ now()->subYears(18)->toDateString() }}" required>
+    @if($isStudentProfile)
+        <input id="date_of_birth_display" type="text" class="form-control" value="{{ $dobDisplay }}" readonly>
+        <input id="date_of_birth" name="date_of_birth" type="hidden" value="{{ $dobValue }}">
+        <small class="text-muted">Date of birth cannot be changed for student accounts.</small>
+    @else
+        <input id="date_of_birth" name="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ $dobValue }}" max="{{ now()->subYears(18)->toDateString() }}" required>
+    @endif
     @error('date_of_birth')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror

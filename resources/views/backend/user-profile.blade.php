@@ -10,8 +10,11 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
-    @include('backend.partials.parent-profile-toggle', ['user' => $user])
+    @if($user->isGeneralUser())
+        @include('backend.partials.parent-profile-create', ['user' => $user])
+    @endif
 
+    @if($user->isGeneralUser())
     <div class="card admin-table-card mb-4">
         <div class="card-body">
             <div class="mb-3">
@@ -43,6 +46,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="card admin-table-card">
         <div class="card-body">
@@ -66,10 +70,14 @@
                     @enderror
                 </div>
 
-                @include('backend.partials.registration-profile-fields', ['showMarketplaceFields' => false])
+                @include('backend.partials.registration-profile-fields', [
+                    'showMarketplaceFields' => false,
+                    'enableAddressAutocomplete' => true,
+                    'isStudentProfile' => $user->isStudent(),
+                ])
 
                 <div class="col-12 d-flex justify-content-end gap-2">
-                    <a href="{{ route('user.dashboard') }}" class="btn btn-outline-secondary">Back</a>
+                    <a href="{{ $user->isStudent() ? route('child.dashboard') : route('user.dashboard') }}" class="btn btn-outline-secondary">Back</a>
                     <button id="userProfileSubmitBtn" type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
@@ -82,6 +90,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
+    .pac-container { z-index: 2000 !important; }
+
     .user-profile-become-actions {
         display: flex;
         flex-wrap: wrap;
@@ -120,7 +130,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
-<script src="{{ asset('assets/js/parent-profile.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+    window.initUserProfilePlacesAutocomplete = function () {
+        if (window.FormHelper && typeof window.FormHelper.initUserProfilePlaceAutocomplete === 'function') {
+            window.FormHelper.initUserProfilePlaceAutocomplete();
+        }
+    };
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initUserProfilePlacesAutocomplete"></script>
 <script>
     $(function () {
         toastr.options = {

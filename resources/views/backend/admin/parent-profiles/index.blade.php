@@ -13,7 +13,7 @@
         <div>
             <p class="ems-kicker mb-1">Parent Management</p>
             <h2 class="admin-title mb-1">Parent Profiles</h2>
-            <p class="mb-0 text-secondary">Users who enabled parent/guardian profiles and manage child accounts.</p>
+            <p class="mb-0 text-secondary">Review parent/guardian profile requests and manage approved parent accounts.</p>
         </div>
     </div>
 
@@ -29,7 +29,8 @@
                     <th>Location</th>
                     <th>Children</th>
                     <th>Completion</th>
-                    <th>Enabled</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>
@@ -65,16 +66,71 @@
             { data: 'location_display', orderable: false },
             { data: 'children_display', orderable: false, searchable: false },
             { data: 'completion_display', orderable: false, searchable: false },
+            { data: 'status_badge', name: 'status', orderable: false },
             { data: 'created_at', name: 'created_at' },
             { data: 'actions', orderable: false, searchable: false }
         ],
-        order: [[7, 'desc']]
+        order: [[8, 'desc']]
+    });
+
+    $(document).on('click', '.js-approve-parent-profile', function () {
+        var id = $(this).data('id');
+        $.post(@json(url('/admin/parent-profiles')) + '/' + id + '/approve', {
+            _token: $('meta[name="csrf-token"]').attr('content')
+        }).done(function (r) {
+            toast('success', r.message);
+            table.ajax.reload(null, false);
+        }).fail(function (xhr) {
+            toast('error', xhr.responseJSON?.message || 'Unable to approve parent profile.');
+        });
+    });
+
+    $(document).on('click', '.js-reject-parent-profile', function () {
+        var id = $(this).data('id');
+        Swal.fire({
+            title: 'Reject parent profile?',
+            input: 'textarea',
+            inputLabel: 'Reason for rejection',
+            inputPlaceholder: 'Enter the reason (minimum 5 characters)...',
+            inputAttributes: { 'aria-label': 'Rejection reason' },
+            showCancelButton: true,
+            confirmButtonText: 'Reject',
+            confirmButtonColor: '#dc3545',
+            preConfirm: function (reason) {
+                if (!reason || reason.trim().length < 5) {
+                    Swal.showValidationMessage('Please enter at least 5 characters.');
+                }
+                return reason ? reason.trim() : null;
+            }
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            $.post(@json(url('/admin/parent-profiles')) + '/' + id + '/reject', {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                reason: result.value
+            }).done(function (r) {
+                toast('success', r.message);
+                table.ajax.reload(null, false);
+            }).fail(function (xhr) {
+                toast('error', xhr.responseJSON?.message || 'Unable to reject parent profile.');
+            });
+        });
     });
 
     $(document).on('click', '.js-delete-parent-profile', function () {
         var id = $(this).data('id');
         var url = @json(url('/admin/parent-profiles')) + '/' + id;
-        var submit = function () {
+
+        Swal.fire({
+            title: 'Disable parent profile?',
+            text: 'This will disable the parent profile for this user.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, disable',
+            confirmButtonColor: '#dc3545'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
             $.ajax({
                 url: url,
                 method: 'POST',
@@ -86,17 +142,6 @@
             }).fail(function () {
                 toast('error', 'Unable to disable parent profile.');
             });
-        };
-
-        Swal.fire({
-            title: 'Disable parent profile?',
-            text: 'This will disable the parent profile for this user.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, disable',
-            confirmButtonColor: '#dc3545'
-        }).then(function (result) {
-            if (result.isConfirmed) submit();
         });
     });
 })(window.jQuery);
