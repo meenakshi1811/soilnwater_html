@@ -373,16 +373,19 @@ class TeacherDemoSeeder extends Seeder
                 'email' => 'student1.demo@soilnwater.test',
                 'name' => 'Rohan Patel',
                 'phone' => '9123456780',
+                'date_of_birth' => '2008-04-12',
             ],
             [
                 'email' => 'student2.demo@soilnwater.test',
                 'name' => 'Meera Desai',
                 'phone' => '9123456781',
+                'date_of_birth' => '2010-08-21',
             ],
             [
                 'email' => 'student3.demo@soilnwater.test',
                 'name' => 'Kabir Mehta',
                 'phone' => '9123456782',
+                'date_of_birth' => '2009-01-05',
             ],
         ];
 
@@ -398,7 +401,8 @@ class TeacherDemoSeeder extends Seeder
                     'address' => 'Demo Student Address '.$i,
                     'city' => 'Surat',
                     'pincode' => '395009',
-                    'role' => 'user',
+                    'date_of_birth' => $student['date_of_birth'],
+                    'role' => 'student',
                     'is_active' => true,
                     'password' => Hash::make('Student@123'),
                     'email_verified_at' => now(),

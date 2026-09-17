@@ -12,10 +12,22 @@ class EnsureUserIsGeneralUser
     {
         $user = $request->user();
 
-        if (! $user?->isGeneralUser()) {
-            abort(403, 'This area is only available to user accounts.');
+        if ($user?->isGeneralUser()) {
+            return $next($request);
         }
 
-        return $next($request);
+        if ($user?->isStudent()) {
+            return redirect()->route('child.dashboard');
+        }
+
+        if ($user?->isTeacher()) {
+            return redirect()->route($user->educator?->isApproved() ? 'educator.dashboard' : 'educator.pending');
+        }
+
+        if ($user?->isParent()) {
+            return redirect()->route($user->hasParentProfileEnabled() ? 'parent.dashboard' : 'parent.pending');
+        }
+
+        abort(403, 'This area is only available to user accounts.');
     }
 }
