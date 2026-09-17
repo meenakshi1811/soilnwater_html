@@ -48,6 +48,8 @@
   $worksheetSolvedEditorLanguage = old('meta.solved_worksheet_editor_language', data_get($meta, 'solved_worksheet_editor_language', 'en'));
   $existingSolvedWorksheetFileName = data_get($meta, 'solved_worksheet_file_name');
   $authorRightsConfirmed = filter_var(old('meta.author_rights_confirmed', data_get($meta, 'author_rights_confirmed')), FILTER_VALIDATE_BOOLEAN);
+  $materialRoutePrefix = $materialRoutePrefix ?? 'educator.materials';
+  $portalKicker = $portalKicker ?? 'Educator Portal';
 @endphp
 @extends('backend.layouts.app')
 @section('title', $isEdit ? 'Edit '.$typeConfig['title'] : $typeConfig['title'])
@@ -61,8 +63,8 @@
 @section('content')
 <div class="admin-panel ems-page sm-upload-page" data-active-type="{{ $uploadType }}">
   <div class="mb-3">
-    <p class="ems-kicker mb-1">Educator Portal</p>
-    <a href="{{ route('educator.materials.index') }}" class="text-decoration-none small"><i class="fa-solid fa-arrow-left me-1"></i> Back to my materials</a>
+    <p class="ems-kicker mb-1">{{ $portalKicker }}</p>
+    <a href="{{ route($materialRoutePrefix.'.index') }}" class="text-decoration-none small"><i class="fa-solid fa-arrow-left me-1"></i> Back to my materials</a>
   </div>
 
   <div class="sm-upload-layout">
@@ -85,7 +87,7 @@
       <form
         id="studyMaterialForm"
         method="POST"
-        action="{{ $isEdit ? route('educator.materials.update', $material) : route('educator.materials.store') }}"
+        action="{{ $isEdit ? route($materialRoutePrefix.'.update', $material) : route($materialRoutePrefix.'.store') }}"
         enctype="multipart/form-data"
         novalidate
       >
@@ -745,7 +747,7 @@
         </div>
 
         <div class="sm-upload-footer">
-          <a href="{{ route('educator.materials.index') }}" class="btn btn-light">Cancel</a>
+          <a href="{{ route($materialRoutePrefix.'.index') }}" class="btn btn-light">Cancel</a>
           <div class="sm-upload-footer__actions">
             <button type="button" id="studyMaterialPrevBtn" class="btn btn-outline-secondary d-none">
               <i class="fa-solid fa-arrow-left me-1"></i> Back
@@ -842,8 +844,8 @@
         worksheetSolvedMode: @json($worksheetSolvedMode),
         hiddenOptions: @json(StudyMaterialUploadConfig::hiddenOptionsForRole($selectedRole)),
         roleHiddenOptions: @json(collect(array_keys(StudyMaterialUploadConfig::UPLOADER_ROLES))->mapWithKeys(fn ($roleKey) => [$roleKey => StudyMaterialUploadConfig::hiddenOptionsForRole($roleKey)])->all()),
-        indexUrl: @json(route('educator.materials.index')),
-        typeConfigUrl: @json(route('educator.materials.type-config', ['type' => '__TYPE__'])),
+        indexUrl: @json(route($materialRoutePrefix.'.index')),
+        typeConfigUrl: @json(route($materialRoutePrefix.'.type-config', ['type' => '__TYPE__'])),
         noteEditorConfig: {
           instanceKey: 'noteMaterial',
           textareaId: 'noteBodyEditor',

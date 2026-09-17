@@ -24,7 +24,7 @@ class StudyMaterialStatusMail extends Mailable
 
     public static function forMaterial(StudyMaterial $material, string $action, ?string $reason = null): self
     {
-        $material->loadMissing('educator');
+        $material->loadMissing(['educator', 'user']);
 
         $status = match ($action) {
             'approved' => 'Approved',
@@ -35,10 +35,10 @@ class StudyMaterialStatusMail extends Mailable
         return new self(
             details: [
                 'title' => $material->title,
-                'educator_name' => $material->educator?->display_name ?: 'Educator',
+                'educator_name' => $material->educator?->display_name ?: ($material->user?->name ?: 'Uploader'),
                 'status' => $status,
                 'reason' => filled($reason) ? trim($reason) : null,
-                'materials_url' => $action === 'approved' ? route('educator.materials.index') : route('educator.materials.index'),
+                'materials_url' => $material->ownerMaterialsUrl(),
             ],
             action: $action,
             subjectLine: match ($action) {

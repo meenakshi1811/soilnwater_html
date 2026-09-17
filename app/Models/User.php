@@ -141,6 +141,32 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isGeneralUser();
     }
 
+    public function studyMaterialRoutePrefix(): string
+    {
+        if ($this->isStudent()) {
+            return 'child.materials';
+        }
+
+        if (\App\Support\ActiveChildSession::belongsToParent($this->id)) {
+            return 'child.materials';
+        }
+
+        return 'educator.materials';
+    }
+
+    public function canPublishStudyMaterials(): bool
+    {
+        if ($this->isTeacher() && $this->educator?->isApproved()) {
+            return true;
+        }
+
+        if ($this->isStudent()) {
+            return $this->isSelfRegisteredStudent() || $this->childProfile?->isApproved();
+        }
+
+        return $this->hasParentProfileEnabled();
+    }
+
     public function hasVerifiedContact(): bool
     {
         return ! is_null($this->email_verified_at) && ! is_null($this->phone_verified_at);

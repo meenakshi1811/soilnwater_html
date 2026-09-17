@@ -148,7 +148,7 @@ class StudyMaterialApprovalController extends Controller
             'Study material',
             $study_material->title,
             'approved',
-            route('educator.materials.index')
+            $study_material->ownerMaterialsUrl()
         );
 
         EducatorFollowerNotifier::notifyFollowersOfNewMaterial($study_material->fresh(['educator.followers', 'educator.user']));
@@ -176,7 +176,7 @@ class StudyMaterialApprovalController extends Controller
             'Study material',
             $study_material->title,
             'rejected',
-            route('educator.materials.index'),
+            $study_material->ownerMaterialsUrl(),
             'Declined by admin.'
         );
 

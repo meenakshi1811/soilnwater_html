@@ -342,7 +342,7 @@ class StudyMaterialLibraryController extends Controller
                 $owner,
                 'New review on your study material',
                 $reviewerName.' left a '.$validated['rating'].'-star review on "'.$material->title.'".',
-                route('educator.materials.show', $material),
+                $material->ownerShowUrl(),
                 'engagement'
             );
         }

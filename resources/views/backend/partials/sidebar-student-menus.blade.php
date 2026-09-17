@@ -1,21 +1,23 @@
 <li>
     <a href="{{ route('study-materials.library') }}" target="_blank" rel="noopener">
         <i class="fa-solid fa-book-open"></i>
-        <span>Study Materials</span>
+        <span>Browse Study Materials</span>
+    </a>
+</li>
+@if($user->canPublishStudyMaterials())
+<li>
+    <a class="{{ request()->routeIs('child.materials.*') ? 'active' : '' }}" href="{{ route('child.materials.index') }}">
+        <i class="fa-solid fa-folder-open"></i>
+        <span>My Study Materials</span>
     </a>
 </li>
 <li>
-    <a href="{{ route('frontend.index') }}" target="_blank" rel="noopener">
-        <i class="fa-solid fa-graduation-cap"></i>
-        <span>Courses &amp; Learning</span>
+    <a class="{{ request()->routeIs('child.materials.create') ? 'active' : '' }}" href="{{ route('child.materials.create') }}">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>Upload Study Material</span>
     </a>
 </li>
-<li>
-    <a href="{{ route('frontend.index') }}" target="_blank" rel="noopener">
-        <i class="fa-solid fa-file-circle-check"></i>
-        <span>Tests &amp; Assessments</span>
-    </a>
-</li>
+@endif
 <li>
     <a href="{{ route('community.posts.create') }}">
         <i class="fa-solid fa-circle-question"></i>
@@ -26,18 +28,6 @@
     <a href="{{ route('educator.index') }}" target="_blank" rel="noopener">
         <i class="fa-solid fa-chalkboard-user"></i>
         <span>Teachers &amp; Guidance</span>
-    </a>
-</li>
-<li>
-    <a class="{{ request()->routeIs('child.*') ? 'active' : '' }}" href="{{ route('child.dashboard') }}">
-        <i class="fa-solid fa-bullseye"></i>
-        <span>Goals &amp; Progress</span>
-    </a>
-</li>
-<li>
-    <a class="{{ request()->routeIs('child.*') ? 'active' : '' }}" href="{{ route('child.dashboard') }}">
-        <i class="fa-solid fa-medal"></i>
-        <span>Achievements</span>
     </a>
 </li>
 <li>

@@ -15,6 +15,7 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureUserIsEducator;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
+use App\Http\Middleware\EnsureStudyMaterialPublisher;
 use App\Http\Middleware\EnsureUserOrStudentProfileAccess;
 use App\Http\Middleware\EnsureStudentAccount;
 use App\Http\Middleware\EnsureUserIsServiceProvider;
@@ -63,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'chat.not_blocked' => EnsureChatNotBlocked::class,
             'user' => EnsureUserIsGeneralUser::class,
             'user.profile' => EnsureUserOrStudentProfileAccess::class,
+            'study_material.publisher' => EnsureStudyMaterialPublisher::class,
             'vendor' => EnsureUserIsVendor::class,
             'consultant' => EnsureUserIsConsultant::class,
             'service_provider' => EnsureUserIsServiceProvider::class,

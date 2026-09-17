@@ -21,18 +21,17 @@ class StudyMaterialController extends Controller
 
     public function index(): View
     {
-        return view('backend.educator.materials.index');
+        return view('backend.educator.materials.index', $this->viewContext());
     }
 
     public function data(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 404);
 
-        $educatorId = auth()->user()->educator?->id;
-        abort_unless($educatorId, 403);
+        $routePrefix = $this->materialRoutePrefix();
 
         $query = StudyMaterial::query()
-            ->where('educator_id', $educatorId)
+            ->where('user_id', auth()->id())
             ->select([
                 'id',
                 'title',
@@ -65,9 +64,9 @@ class StudyMaterialController extends Controller
                 return '<span class="badge bg-'.$badge.'">'.ucfirst($status).'</span>';
             })
             ->addColumn('downloads_display', fn (StudyMaterial $material): string => number_format((int) $material->downloads_count))
-            ->addColumn('actions', function (StudyMaterial $material): string {
-                $view = '<a href="'.route('educator.materials.show', $material).'" class="btn btn-sm btn-outline-secondary">View</a>';
-                $edit = '<a href="'.route('educator.materials.edit', $material).'" class="btn btn-sm btn-outline-primary">Edit</a>';
+            ->addColumn('actions', function (StudyMaterial $material) use ($routePrefix): string {
+                $view = '<a href="'.route($routePrefix.'.show', $material).'" class="btn btn-sm btn-outline-secondary">View</a>';
+                $edit = '<a href="'.route($routePrefix.'.edit', $material).'" class="btn btn-sm btn-outline-primary">Edit</a>';
                 $delete = '<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$material->id.'">Delete</button>';
 
                 return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$edit.$delete.'</div>';
@@ -88,10 +87,10 @@ class StudyMaterialController extends Controller
             $type = 'notes';
         }
 
-        return view('backend.educator.materials.form', [
+        return view('backend.educator.materials.form', array_merge($this->viewContext(), [
             'material' => new StudyMaterial(['material_type' => $type]),
             'uploadType' => $type,
-        ]);
+        ]));
     }
 
     public function typeConfig(string $type): JsonResponse
@@ -131,10 +130,10 @@ class StudyMaterialController extends Controller
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
-        $educator = auth()->user()->educator;
+        $routePrefix = $this->materialRoutePrefix();
         $data = $this->validated($request);
-        $data['educator_id'] = $educator->id;
         $data['user_id'] = auth()->id();
+        $data['educator_id'] = auth()->user()->educator?->id;
         $data['slug'] = StudyMaterial::generateUniqueSlug($data['title']);
         $data['status'] = 'pending';
 
@@ -155,7 +154,7 @@ class StudyMaterialController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest(
             'Study material',
-            $material->title.' (by '.($educator->display_name ?: 'Teacher / Tutor').')',
+            $material->title.' (by '.$this->publisherDisplayName().')',
             route('admin.approvals.index', ['module' => 'study-materials'])
         );
 
@@ -165,12 +164,12 @@ class StudyMaterialController extends Controller
             return response()->json([
                 'ok' => true,
                 'message' => $message,
-                'redirect' => route('educator.materials.index'),
+                'redirect' => route($routePrefix.'.index'),
             ]);
         }
 
         return redirect()
-            ->route('educator.materials.index')
+            ->route($routePrefix.'.index')
             ->with('success', $message);
     }
 
@@ -178,7 +177,7 @@ class StudyMaterialController extends Controller
     {
         $this->authorizeOwner($material);
 
-        return view('backend.educator.materials.show', compact('material'));
+        return view('backend.educator.materials.show', array_merge($this->viewContext(), compact('material')));
     }
 
     public function download(StudyMaterial $material): BinaryFileResponse
@@ -225,16 +224,16 @@ class StudyMaterialController extends Controller
     {
         $this->authorizeOwner($material);
 
-        return view('backend.educator.materials.form', [
+        return view('backend.educator.materials.form', array_merge($this->viewContext(), [
             'material' => $material,
             'uploadType' => $material->material_type ?: 'notes',
-        ]);
+        ]));
     }
 
     public function update(Request $request, StudyMaterial $material): RedirectResponse|JsonResponse
     {
         $this->authorizeOwner($material);
-        $educator = auth()->user()->educator;
+        $routePrefix = $this->materialRoutePrefix();
         $data = $this->validated($request, $material);
 
         if ($data['title'] !== $material->title) {
@@ -266,7 +265,7 @@ class StudyMaterialController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest(
             'Updated study material',
-            $material->title.' (by '.($educator->display_name ?: 'Teacher / Tutor').')',
+            $material->title.' (by '.$this->publisherDisplayName().')',
             route('admin.approvals.index', ['module' => 'study-materials'])
         );
 
@@ -276,12 +275,12 @@ class StudyMaterialController extends Controller
             return response()->json([
                 'ok' => true,
                 'message' => $message,
-                'redirect' => route('educator.materials.index'),
+                'redirect' => route($routePrefix.'.index'),
             ]);
         }
 
         return redirect()
-            ->route('educator.materials.index')
+            ->route($routePrefix.'.index')
             ->with('success', $message);
     }
 
@@ -299,7 +298,47 @@ class StudyMaterialController extends Controller
 
     private function authorizeOwner(StudyMaterial $material): void
     {
-        abort_unless($material->educator_id === auth()->user()->educator?->id, 403);
+        abort_unless($material->isOwnedBy(auth()->user()), 403);
+    }
+
+    private function materialRoutePrefix(): string
+    {
+        if (request()->routeIs('child.materials.*')) {
+            return 'child.materials';
+        }
+
+        return auth()->user()->studyMaterialRoutePrefix();
+    }
+
+    private function portalKicker(): string
+    {
+        return auth()->user()->isStudent() ? 'Student Portal' : 'Educator Portal';
+    }
+
+    private function publisherDisplayName(): string
+    {
+        $user = auth()->user();
+
+        if ($user->isTeacher()) {
+            return $user->educator?->display_name ?: 'Teacher / Tutor';
+        }
+
+        if ($user->isStudent()) {
+            return $user->name ?: 'Student';
+        }
+
+        return $user->name ?: 'Uploader';
+    }
+
+    /**
+     * @return array{materialRoutePrefix: string, portalKicker: string}
+     */
+    private function viewContext(): array
+    {
+        return [
+            'materialRoutePrefix' => $this->materialRoutePrefix(),
+            'portalKicker' => $this->portalKicker(),
+        ];
     }
 
     /**

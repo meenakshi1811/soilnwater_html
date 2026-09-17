@@ -341,6 +341,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('child')->name('child.')->middleware(['child.portal'])->group(function () {
         Route::get('/dashboard', [ChildPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('study_material.publisher')->name('materials.data');
+        Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('study_material.publisher')->name('materials.type-config');
+        Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('study_material.publisher')->name('materials.download');
+        Route::get('/materials/{material}/solution-download', [StudyMaterialController::class, 'downloadSolution'])->middleware('study_material.publisher')->name('materials.solution-download');
+        Route::get('/materials/{material}/solved-worksheet-download', [StudyMaterialController::class, 'downloadSolvedWorksheet'])->middleware('study_material.publisher')->name('materials.solved-worksheet-download');
+        Route::resource('materials', StudyMaterialController::class)->middleware('study_material.publisher');
     });
 
     Route::get('/vendor/pending', [VendorPendingController::class, 'show'])->name('vendor.pending');

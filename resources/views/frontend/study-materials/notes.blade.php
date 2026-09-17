@@ -36,11 +36,11 @@
         'Computer Science' => 'fa-laptop-code',
     ];
 
-    $uploadUrl = auth()->check() && auth()->user()->isEducator()
-        ? route('educator.materials.create')
+    $uploadUrl = auth()->check() && auth()->user()->canPublishStudyMaterials()
+        ? route(auth()->user()->studyMaterialRoutePrefix().'.create')
         : route('login');
-    $myNotesUrl = auth()->check() && auth()->user()->isEducator()
-        ? route('educator.materials.index')
+    $myNotesUrl = auth()->check() && auth()->user()->canPublishStudyMaterials()
+        ? route(auth()->user()->studyMaterialRoutePrefix().'.index')
         : route('login');
 
     $queryWithoutPage = request()->except('page');

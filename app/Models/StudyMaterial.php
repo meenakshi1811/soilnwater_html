@@ -284,6 +284,28 @@ class StudyMaterial extends Model
         return $user && (int) $this->user_id === (int) $user->id;
     }
 
+    public function ownerMaterialsUrl(): string
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        if ($owner?->isStudent()) {
+            return route('child.materials.index');
+        }
+
+        return route('educator.materials.index');
+    }
+
+    public function ownerShowUrl(): string
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        if ($owner?->isStudent()) {
+            return route('child.materials.show', $this);
+        }
+
+        return route('educator.materials.show', $this);
+    }
+
     public function hasPurchasedBy(?User $user): bool
     {
         if (! $user) {

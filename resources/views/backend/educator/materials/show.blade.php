@@ -3,6 +3,8 @@
 
 @section('content')
 @php
+  $materialRoutePrefix = $materialRoutePrefix ?? 'educator.materials';
+  $portalKicker = $portalKicker ?? 'Educator Portal';
   $status = $material->status ?? 'pending';
   $contents = collect($material->contents ?? []);
   $tags = collect($material->tags ?? []);
@@ -10,17 +12,17 @@
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
     <div>
-      <p class="ems-kicker mb-1">Educator Portal</p>
+      <p class="ems-kicker mb-1">{{ $portalKicker }}</p>
       <h2 class="admin-title mb-1">{{ $material->title }}</h2>
       <span class="badge bg-{{ $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($status) }}</span>
       <span class="badge bg-light text-dark border">{{ $material->materialTypeLabel() }}</span>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="{{ route('educator.materials.edit', $material) }}" class="btn btn-primary">Edit</a>
+      <a href="{{ route($materialRoutePrefix.'.edit', $material) }}" class="btn btn-primary">Edit</a>
       @if($material->isApproved())
         <a href="{{ $material->publicUrl() }}" target="_blank" rel="noopener" class="btn btn-outline-primary">Public page</a>
       @endif
-      <a href="{{ route('educator.materials.index') }}" class="btn btn-light">Back to list</a>
+      <a href="{{ route($materialRoutePrefix.'.index') }}" class="btn btn-light">Back to list</a>
     </div>
   </div>
 
@@ -71,7 +73,7 @@
           <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
             <h5 class="mb-0">Solved Worksheet</h5>
             @if($material->solvedWorksheetFileUrl())
-              <a href="{{ route('educator.materials.solved-worksheet-download', $material) }}" class="btn btn-sm btn-outline-primary">
+              <a href="{{ route($materialRoutePrefix.'.solved-worksheet-download', $material) }}" class="btn btn-sm btn-outline-primary">
                 <i class="fa-solid fa-download me-1"></i> Download solved worksheet
               </a>
             @endif
@@ -100,7 +102,7 @@
           <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
             <h5 class="mb-0">Board Paper Solution</h5>
             @if($material->solutionFileUrl())
-              <a href="{{ route('educator.materials.solution-download', $material) }}" class="btn btn-sm btn-outline-primary">
+              <a href="{{ route($materialRoutePrefix.'.solution-download', $material) }}" class="btn btn-sm btn-outline-primary">
                 <i class="fa-solid fa-download me-1"></i> Download solution file
               </a>
             @endif
@@ -143,7 +145,7 @@
         <p class="mb-1 fw-semibold">{{ $material->file_name ?: 'Study file' }}</p>
         <p class="small text-muted mb-3">{{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}</p>
         @if($material->file_path)
-          <a href="{{ route('educator.materials.download', $material) }}" class="btn btn-primary w-100">
+          <a href="{{ route($materialRoutePrefix.'.download', $material) }}" class="btn btn-primary w-100">
             <i class="fa-solid fa-download me-1"></i> Download file
           </a>
         @elseif($material->hasCustomWrittenContent())

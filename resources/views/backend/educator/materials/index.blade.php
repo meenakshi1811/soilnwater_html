@@ -6,14 +6,19 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
+@php
+  $materialRoutePrefix = $materialRoutePrefix ?? 'educator.materials';
+  $portalKicker = $portalKicker ?? 'Educator Portal';
+@endphp
+
 @section('content')
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-      <p class="ems-kicker mb-1">Educator Portal</p>
+      <p class="ems-kicker mb-1">{{ $portalKicker }}</p>
       <h2 class="admin-title mb-0">Study Materials</h2>
     </div>
-    <a href="{{ route('educator.materials.create') }}" class="btn btn-primary ems-btn-primary">
+    <a href="{{ route($materialRoutePrefix.'.create') }}" class="btn btn-primary ems-btn-primary">
       <i class="fa-solid fa-plus me-1"></i>Upload material
     </a>
   </div>
@@ -71,7 +76,7 @@
     order: [[5, 'desc']],
     language: { emptyTable: 'No study materials yet.' },
     ajax: {
-      url: @json(route('educator.materials.data')),
+      url: @json(route($materialRoutePrefix.'.data')),
       data: function (d) {
         d.status = $('#statusFilter').val() || '';
       }
@@ -109,7 +114,7 @@
     }).then(function (result) {
       if (!result.isConfirmed) return;
 
-      fetch(@json(url('/educator/materials')) + '/' + id, {
+      fetch(@json(rtrim(route($materialRoutePrefix.'.index'), '/')) + '/' + id, {
         method: 'DELETE',
         headers: {
           'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
