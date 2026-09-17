@@ -19,12 +19,6 @@
 </li>
 @endif
 <li>
-    <a href="{{ route('community.posts.create') }}">
-        <i class="fa-solid fa-circle-question"></i>
-        <span>Questions &amp; Answers</span>
-    </a>
-</li>
-<li>
     <a href="{{ route('educator.index') }}" target="_blank" rel="noopener">
         <i class="fa-solid fa-chalkboard-user"></i>
         <span>Teachers &amp; Guidance</span>

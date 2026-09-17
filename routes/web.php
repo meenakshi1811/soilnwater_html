@@ -407,6 +407,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/materials/{material}/solved-worksheet-download', [StudyMaterialController::class, 'downloadSolvedWorksheet'])->middleware('educator')->name('materials.solved-worksheet-download');
         Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
+        Route::post('/enquiries/{enquiry}/answer', [EducatorEnquiryController::class, 'answer'])->middleware('educator')->name('enquiries.answer');
         Route::post('/notices', [EducatorNoticeController::class, 'store'])->middleware('educator')->name('notices.store');
         Route::delete('/notices/{notice}', [EducatorNoticeController::class, 'destroy'])->middleware('educator')->name('notices.destroy');
     });

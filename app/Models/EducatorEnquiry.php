@@ -15,8 +15,29 @@ class EducatorEnquiry extends Model
         'phone',
         'subject',
         'message',
+        'answer',
+        'answered_at',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'answered_at' => 'datetime',
+        ];
+    }
+
+    public function isAnswered(): bool
+    {
+        return filled($this->answer) && $this->answered_at !== null;
+    }
+
+    public function profileUrl(): string
+    {
+        $this->loadMissing('educator');
+
+        return route('educator.show', $this->educator->slug).'#edu-question';
+    }
 
     public function educator(): BelongsTo
     {

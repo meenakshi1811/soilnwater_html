@@ -562,7 +562,7 @@ class EducatorProfileController extends Controller
             }
         }
 
-        $message = 'Enquiry sent successfully.'
+        $message = 'Your question was sent successfully. You will be notified by email and portal when the teacher responds.'
             .($emailSent ? ' The educator has been notified by email and portal.' : ' The educator has been notified in the portal.');
 
         if ($request->expectsJson() || $request->ajax()) {
