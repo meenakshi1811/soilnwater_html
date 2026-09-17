@@ -132,6 +132,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'user';
     }
 
+    public function canShowAccountGrowthOptions(): bool
+    {
+        if ($this->isParent() || $this->isStudent() || $this->isTeacher() || $this->isParentManagedChild()) {
+            return false;
+        }
+
+        return $this->isGeneralUser();
+    }
+
     public function hasVerifiedContact(): bool
     {
         return ! is_null($this->email_verified_at) && ! is_null($this->phone_verified_at);

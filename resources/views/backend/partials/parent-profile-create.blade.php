@@ -4,7 +4,8 @@
     $hasPendingOrApprovedRequest = $parentProfile && in_array($parentProfile->status, ['pending', 'approved'], true);
 @endphp
 
-@if($hasActiveParentProfile)
+@if(! $user->canShowAccountGrowthOptions())
+@elseif($hasActiveParentProfile)
     <div class="card admin-table-card mb-4">
         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>

@@ -11,6 +11,7 @@
         </div>
         <div class="user-dashboard-hero__actions">
             <a href="{{ route('user.profile.edit') }}" class="btn btn-primary user-dashboard-hero__profile-btn">Update Profile</a>
+            @if($user->canShowAccountGrowthOptions())
             <div class="user-dashboard-hero__convert-actions">
                 <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-account-form"
                     data-title="Become a vendor?"
@@ -34,6 +35,7 @@
                     <button type="submit" class="btn btn-outline-primary">Become a Service Provider</button>
                 </form>
             </div>
+            @endif
         </div>
     </div>
 

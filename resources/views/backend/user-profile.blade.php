@@ -10,11 +10,11 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
-    @if($user->isGeneralUser())
+    @if($user->canShowAccountGrowthOptions())
         @include('backend.partials.parent-profile-create', ['user' => $user])
     @endif
 
-    @if($user->isGeneralUser())
+    @if($user->canShowAccountGrowthOptions())
     <div class="card admin-table-card mb-4">
         <div class="card-body">
             <div class="mb-3">

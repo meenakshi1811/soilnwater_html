@@ -31,6 +31,7 @@ class UserDashboardController extends Controller
         $totalProducts = (int) (($id * 5) % 32);
 
         return view('backend.user-dashboard', compact(
+            'user',
             'totalAds',
             'totalOffers',
             'totalProducts'
@@ -48,8 +49,8 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isGeneralUser()) {
-            $message = 'Only user accounts can create a parent profile.';
+        if (! $user->canShowAccountGrowthOptions()) {
+            $message = 'Only general user accounts can create a parent profile.';
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
@@ -116,8 +117,8 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isGeneralUser()) {
-            $message = 'Only user accounts can be converted to vendor accounts.';
+        if (! $user->canShowAccountGrowthOptions()) {
+            $message = 'Only general user accounts can be converted to vendor accounts.';
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
@@ -156,8 +157,8 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isGeneralUser()) {
-            $message = 'Only user accounts can be converted to consultant accounts.';
+        if (! $user->canShowAccountGrowthOptions()) {
+            $message = 'Only general user accounts can be converted to consultant accounts.';
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
@@ -196,8 +197,8 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isGeneralUser()) {
-            $message = 'Only user accounts can be converted to service provider accounts.';
+        if (! $user->canShowAccountGrowthOptions()) {
+            $message = 'Only general user accounts can be converted to service provider accounts.';
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
