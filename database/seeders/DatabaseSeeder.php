@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call(AdTemplateSeeder::class);
         $this->call(FoulWordSeeder::class);
         $this->call(TeacherDemoSeeder::class);
+        $this->call(ParentDemoSeeder::class);
         $this->call(InstituteDemoSeeder::class);
 
         // User::factory(10)->create();

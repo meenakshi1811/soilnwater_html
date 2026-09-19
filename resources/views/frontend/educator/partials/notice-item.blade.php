@@ -10,13 +10,21 @@
   data-notice-expires="{{ $notice->expires_at?->format('d M Y') }}"
 >
   <div class="edu-notice__head">
-    <span class="edu-notice__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+    @if(empty($featured))
+      <span class="edu-notice__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+    @endif
     <div>
       <h3 class="edu-notice__title">{{ $notice->displayTitle() }}</h3>
       <p class="edu-notice__meta mb-0">Valid until {{ $notice->expires_at?->format('d M Y') }}</p>
     </div>
   </div>
-  <p class="edu-notice__text">&ldquo;{{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}&rdquo;</p>
+  <p class="edu-notice__text">
+    @if(!empty($featured))
+      {{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}
+    @else
+      &ldquo;{{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}&rdquo;
+    @endif
+  </p>
   @if($needsReadMore)
     <button type="button" class="edu-notice__read-more js-edu-notice-read-more">
       Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
