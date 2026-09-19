@@ -112,43 +112,96 @@
     </aside>
 
     <main class="vendors-main">
-      <div class="vendors-main__head">
-        <div>
-          <h1>School Listing</h1>
-          <p class="vendors-main__lead">Discover schools and institutes registered on SoilnWater.</p>
+      <section class="vendors-hero">
+        <div class="vendors-hero__intro">
+          <span class="vendors-hero__eyebrow">
+            <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
+            {{ $pageTitle }} Marketplace
+          </span>
+          <h1>{{ $isSchoolListing ? 'Discover Trusted Schools Near You' : 'Discover Trusted Institutes Near You' }}</h1>
+          <p>Explore verified {{ strtolower($pageTitle) }} by city, board, and institution type on SoilnWater.</p>
         </div>
-        <div class="vendors-main__actions">
-          <select id="institutesMarketSort" class="form-select">
-            <option value="recent" @selected(request('sort', 'recent') === 'recent')>Recently approved</option>
-            <option value="name" @selected(request('sort') === 'name')>Name A–Z</option>
-            @if($hasLocation)
-              <option value="distance" @selected(request('sort') === 'distance')>Nearest first</option>
-            @endif
-          </select>
-          <a href="{{ $joinUrl }}" class="btn btn-outline-primary">Register your institute</a>
+        <div class="vendors-hero__stats">
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
+            <div class="vendors-stat__text">
+              <strong>{{ number_format($instituteStats['total']) }}</strong>
+              <span>{{ $isSchoolListing ? 'Schools listed' : 'Institutes listed' }}</span>
+            </div>
+          </div>
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+            <div class="vendors-stat__text">
+              <strong>{{ number_format($instituteStats['verified']) }}</strong>
+              <span>Verified profiles</span>
+            </div>
+          </div>
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+            <div class="vendors-stat__text">
+              <strong>{{ number_format($instituteStats['cities']) }}</strong>
+              <span>Cities covered</span>
+            </div>
+          </div>
+          <div class="vendors-stat">
+            <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+            <div class="vendors-stat__text">
+              <strong>{{ number_format($boards->count()) }}</strong>
+              <span>Boards &amp; affiliations</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="institutes-stats-row">
-        <span><strong>{{ number_format($instituteStats['total']) }}</strong> institutes</span>
-        <span><strong>{{ number_format($instituteStats['verified']) }}</strong> verified</span>
-        <span><strong>{{ number_format($instituteStats['cities']) }}</strong> cities</span>
-      </div>
+      <section class="vendors-section" id="institutesAllSection">
+        <div class="vendors-section__head">
+          <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> {{ $isSchoolListing ? 'School Listing' : 'Institute Listing' }}</h2>
+          <a href="{{ route($listingContext.'.listings', request()->query()) }}" class="vendors-section__link" id="institutesViewAllLink">
+            View all listings <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+          </a>
+        </div>
 
-      <p id="institutesSummaryText" class="vendors-summary-text {{ $institutes->total() ? '' : 'd-none' }}">
-        Showing {{ $institutes->lastItem() ?? 0 }} of {{ $institutes->total() }} institutes
-      </p>
-      <p id="institutesLoadingText" class="vendors-loading-text d-none">Loading...</p>
+        <div class="vendors-all__toolbar institutes-toolbar">
+          <p class="institutes-toolbar__summary mb-0">
+            Browse approved {{ strtolower($pageTitle) }} and use filters on the left to narrow results.
+          </p>
+          <div class="vendors-all__controls">
+            <select id="institutesMarketSort" class="form-select" aria-label="Sort listings">
+              <option value="recent" @selected(request('sort', 'recent') === 'recent')>Recently approved</option>
+              <option value="name" @selected(request('sort') === 'name')>Name A–Z</option>
+              @if($hasLocation)
+                <option value="distance" @selected(request('sort') === 'distance')>Nearest first</option>
+              @endif
+            </select>
+            <a href="{{ $joinUrl }}" class="institutes-register-btn">
+              Register your {{ $isSchoolListing ? 'school' : 'institute' }}
+            </a>
+          </div>
+        </div>
 
-      <div id="institutesGrid" class="vendors-grid institutes-grid" data-next-page-url="{{ $institutes->nextPageUrl() }}">
-        @include('frontend.institutes.partials.cards', ['institutes' => $institutes, 'hasLocation' => $hasLocation])
-      </div>
+        <p id="institutesSummaryText" class="vendors-summary-text {{ $institutes->total() ? '' : 'd-none' }}">
+          Showing {{ $institutes->lastItem() ?? 0 }} of {{ $institutes->total() }} {{ strtolower($pageTitle) }}
+        </p>
+        <p id="institutesLoadingText" class="vendors-loading-text d-none">Loading...</p>
 
-      <div id="institutesScrollSentinel" class="vendors-scroll-sentinel" aria-hidden="true"></div>
+        <div id="institutesGrid" class="vendors-grid institutes-grid" data-next-page-url="{{ $institutes->nextPageUrl() }}">
+          @include('frontend.institutes.partials.cards', ['institutes' => $institutes, 'hasLocation' => $hasLocation])
+        </div>
 
-      <div class="vendors-view-all-wrap">
-        <a href="{{ route($listingContext.'.listings', request()->query()) }}" id="institutesViewAllLink" class="btn btn-outline-secondary">View all listings</a>
-      </div>
+        <div id="institutesScrollSentinel" class="vendors-scroll-sentinel" aria-hidden="true"></div>
+      </section>
+
+      <section class="vendors-cta">
+        <div class="vendors-cta__icon" aria-hidden="true"><i class="fa-solid fa-school"></i></div>
+        <div class="vendors-cta__copy">
+          <h3>Run a {{ $isSchoolListing ? 'school' : 'institute' }}?</h3>
+          <p>List your institution on SoilnWater, share updates, and connect with parents and students.</p>
+        </div>
+        <div class="vendors-cta__actions">
+          <a href="{{ $joinUrl }}" class="vendors-cta__primary">Register your {{ $isSchoolListing ? 'school' : 'institute' }}</a>
+          <a href="{{ route($listingContext.'.listings', request()->query()) }}" class="vendors-cta__secondary">Browse all listings</a>
+        </div>
+      </section>
     </main>
   </div>
 </div>

@@ -16,15 +16,65 @@
   line-height: 1.45;
 }
 
-.institutes-stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  color: #475569;
-  font-size: 0.95rem;
+.institutes-page .institutes-toolbar {
+  margin-bottom: 0.85rem;
 }
 
-.institutes-stats-row strong {
-  color: #0f172a;
+.institutes-page .institutes-toolbar__summary {
+  flex: 1 1 220px;
+  min-width: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.institutes-page .vendors-all__controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.institutes-page .institutes-register-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 0.95rem;
+  border: 1px solid var(--vendors-green, #2e7d32);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--vendors-green, #2e7d32);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.institutes-page .institutes-register-btn:hover {
+  background: var(--vendors-green, #2e7d32);
+  color: #fff;
+}
+
+.institutes-page .vendors-summary-text {
+  margin-bottom: 0.85rem;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 767.98px) {
+  .institutes-page .institutes-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .institutes-page .vendors-all__controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .institutes-page .vendors-all__controls .form-select,
+  .institutes-page .institutes-register-btn {
+    flex: 1 1 auto;
+    width: 100%;
+  }
 }

@@ -31,30 +31,51 @@
     @include('frontend.institutes.partials.filters-sidebar', compact('cities', 'boards', 'hasLocation', 'locationDisplay'))
 
     <main class="vendors-main">
-      <div class="vendors-main__head">
-        <div>
+      <section class="vendors-hero vendors-hero--compact">
+        <div class="vendors-hero__intro">
+          <span class="vendors-hero__eyebrow">
+            <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
+            {{ $pageTitle }} Marketplace
+          </span>
           <h1>All {{ $pageTitle }}</h1>
-          <p class="vendors-main__lead"><a href="{{ route($listingContext.'.index') }}">&larr; Back to {{ strtolower($pageTitle) }} listing</a></p>
+          <p>Browse every approved {{ strtolower($pageTitle) }} listing on SoilnWater.</p>
         </div>
-        <select id="institutesMarketSort" class="form-select">
-          <option value="recent" @selected(request('sort', 'recent') === 'recent')>Recently approved</option>
-          <option value="name" @selected(request('sort') === 'name')>Name A–Z</option>
-          @if($hasLocation)
-            <option value="distance" @selected(request('sort') === 'distance')>Nearest first</option>
-          @endif
-        </select>
-      </div>
+      </section>
 
-      <p id="institutesSummaryText" class="vendors-summary-text {{ $institutes->total() ? '' : 'd-none' }}">
-        Showing 1 to {{ $institutes->lastItem() ?? 0 }} of {{ $institutes->total() }} results
-      </p>
-      <p id="institutesLoadingText" class="vendors-loading-text d-none">Loading...</p>
+      <section class="vendors-section" id="institutesAllSection">
+        <div class="vendors-section__head">
+          <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> All {{ $pageTitle }}</h2>
+          <a href="{{ route($listingContext.'.index') }}" class="vendors-section__link">
+            Back to marketplace <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
+          </a>
+        </div>
 
-      <div id="institutesGrid" class="vendors-grid institutes-grid" data-next-page-url="{{ $institutes->nextPageUrl() }}">
-        @include('frontend.institutes.partials.cards', ['institutes' => $institutes, 'hasLocation' => $hasLocation])
-      </div>
+        <div class="vendors-all__toolbar institutes-toolbar">
+          <p class="institutes-toolbar__summary mb-0">
+            Showing {{ number_format($institutes->total()) }} approved {{ strtolower($pageTitle) }}.
+          </p>
+          <div class="vendors-all__controls">
+            <select id="institutesMarketSort" class="form-select" aria-label="Sort listings">
+              <option value="recent" @selected(request('sort', 'recent') === 'recent')>Recently approved</option>
+              <option value="name" @selected(request('sort') === 'name')>Name A–Z</option>
+              @if($hasLocation)
+                <option value="distance" @selected(request('sort') === 'distance')>Nearest first</option>
+              @endif
+            </select>
+          </div>
+        </div>
 
-      <div id="institutesScrollSentinel" class="vendors-scroll-sentinel" aria-hidden="true"></div>
+        <p id="institutesSummaryText" class="vendors-summary-text {{ $institutes->total() ? '' : 'd-none' }}">
+          Showing 1 to {{ $institutes->lastItem() ?? 0 }} of {{ $institutes->total() }} results
+        </p>
+        <p id="institutesLoadingText" class="vendors-loading-text d-none">Loading...</p>
+
+        <div id="institutesGrid" class="vendors-grid institutes-grid" data-next-page-url="{{ $institutes->nextPageUrl() }}">
+          @include('frontend.institutes.partials.cards', ['institutes' => $institutes, 'hasLocation' => $hasLocation])
+        </div>
+
+        <div id="institutesScrollSentinel" class="vendors-scroll-sentinel" aria-hidden="true"></div>
+      </section>
     </main>
   </div>
 </div>
