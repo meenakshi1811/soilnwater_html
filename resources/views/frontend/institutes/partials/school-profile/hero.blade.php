@@ -21,8 +21,13 @@
 
       <div class="sch-hero__title-row">
         <h1>{{ $profile->displayName() }}</h1>
-        <button type="button" class="sch-bookmark js-sch-bookmark" aria-label="Bookmark school">
-          <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+        <button
+          type="button"
+          class="sch-bookmark js-sch-bookmark {{ !empty($engagement['is_bookmarked']) ? 'is-active' : '' }}"
+          aria-label="Bookmark school"
+          data-url="{{ route(($listingContext ?? 'schools').'.bookmark', $institute->slug) }}"
+        >
+          <i class="{{ !empty($engagement['is_bookmarked']) ? 'fa-solid' : 'fa-regular' }} fa-bookmark" aria-hidden="true"></i>
         </button>
       </div>
 

@@ -111,6 +111,13 @@
 
                 showFeedback(feedback, 'success', payload.message || 'Enquiry sent successfully.');
                 clearEnquiryFields(form);
+
+                var modalEl = form.closest('.modal');
+                if (modalEl && window.bootstrap?.Modal) {
+                    window.setTimeout(function () {
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    }, 1200);
+                }
             } catch (error) {
                 showFeedback(feedback, 'error', error.message || 'Unable to send enquiry.');
             } finally {

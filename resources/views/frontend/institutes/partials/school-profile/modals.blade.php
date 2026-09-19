@@ -1,3 +1,52 @@
+<div class="modal fade" id="schoolEnquiryModal" tabindex="-1" aria-labelledby="schoolEnquiryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" id="schoolEnquiryModalLabel">Send enquiry</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-2">
+        @guest
+          <p class="mb-0">Please <a href="{{ route('login') }}">log in</a> to send an enquiry.</p>
+        @else
+          <form id="schoolEnquiryModalForm" method="post" action="{{ route('schools.enquiry', $institute->slug) }}" novalidate>
+            @csrf
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="school_modal_enquiry_name">Your name</label>
+                <input type="text" class="form-control" id="school_modal_enquiry_name" name="name" value="{{ auth()->user()->name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="school_modal_enquiry_email">Email</label>
+                <input type="email" class="form-control" id="school_modal_enquiry_email" name="email" value="{{ auth()->user()->email }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="school_modal_enquiry_phone">Phone</label>
+                <input type="text" class="form-control" id="school_modal_enquiry_phone" name="phone" value="{{ auth()->user()->phone_number }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="school_modal_enquiry_subject">Subject</label>
+                <input type="text" class="form-control" id="school_modal_enquiry_subject" name="subject" placeholder="Admission enquiry">
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="school_modal_enquiry_message">Message</label>
+                <textarea class="form-control" id="school_modal_enquiry_message" name="message" rows="4" required placeholder="Tell us about your enquiry..."></textarea>
+              </div>
+              <div class="col-12">
+                <div id="schoolEnquiryModalFeedback" class="alert d-none" role="alert"></div>
+                <button type="submit" class="sch-btn sch-btn-primary js-school-enquiry-submit">
+                  <span class="js-enquiry-btn-text">Send enquiry</span>
+                  <span class="js-enquiry-btn-sending d-none">Sending...</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        @endguest
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="schoolShareModal" tabindex="-1" aria-labelledby="schoolShareModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">

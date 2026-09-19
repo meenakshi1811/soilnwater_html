@@ -116,12 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('.js-sch-brochure, .js-sch-compare, .js-sch-follow, .js-sch-bookmark').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            alert('This feature will be available soon.');
-        });
-    });
-
     document.querySelectorAll('.js-sch-helpful').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.js-sch-helpful').forEach(function (item) {

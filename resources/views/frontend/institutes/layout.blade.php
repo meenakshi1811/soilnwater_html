@@ -19,6 +19,10 @@
 @endphp
 <div class="vendor-store-page" id="instituteProfilePage"
     data-enquiry-url="{{ route($listingContext.'.enquiry', $institute->slug) }}"
+    data-follow-url="{{ route($listingContext.'.follow', $institute->slug) }}"
+    data-bookmark-url="{{ route($listingContext.'.bookmark', $institute->slug) }}"
+    data-compare-url="{{ route($listingContext.'.compare.toggle', $institute->slug) }}"
+    data-brochure-url="{{ route($listingContext.'.brochure', $institute->slug) }}"
     data-login-url="{{ route('login') }}"
     data-is-auth="{{ auth()->check() ? '1' : '0' }}"
     data-share-url="{{ $institute->publicUrl() }}"
@@ -55,6 +59,7 @@
 @push('scripts')
 <script src="{{ asset('assets/js/vendor-store.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/school-profile-actions.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/institute-profile.js') }}?v={{ now()->timestamp }}" defer></script>
 @stack('institute_scripts')
 @endpush

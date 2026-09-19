@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Institute\InstituteDashboardController;
+use App\Http\Controllers\Institute\InstituteEngagementPortalController;
 use App\Http\Controllers\Institute\InstituteEnquiryController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
@@ -14,6 +15,7 @@ Route::prefix('school')->name('school.')->middleware(['school.account'])->group(
     Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware('school')->name('profile.update');
     Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('school')->name('public-page.edit');
     Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('school')->name('enquiries.index');
+    Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('school')->name('engagement.index');
     Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('school')->name('notices.store');
     Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('school')->name('notices.destroy');
     Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('school')->name('achievements.store');
@@ -32,6 +34,7 @@ Route::prefix('institute')->name('institute.')->middleware(['institute.account']
     Route::put('/profile', [PortalInstituteProfileController::class, 'update'])->middleware('institute')->name('profile.update');
     Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('institute')->name('public-page.edit');
     Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('institute')->name('enquiries.index');
+    Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('institute')->name('engagement.index');
     Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('institute')->name('notices.store');
     Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('institute')->name('notices.destroy');
     Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('institute')->name('achievements.store');

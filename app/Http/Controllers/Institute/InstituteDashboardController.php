@@ -12,7 +12,7 @@ class InstituteDashboardController extends Controller
     {
         $user = auth()->user();
         $institute = $user->institute;
-        $institute->loadCount(['enquiries', 'notices', 'achievements', 'topPerformers', 'schoolClasses', 'books']);
+        $institute->loadCount(['enquiries', 'notices', 'achievements', 'topPerformers', 'schoolClasses', 'books', 'followers', 'bookmarks']);
 
         $completeness = $this->profileCompleteness($institute);
         $portalPrefix = $user->portalRoutePrefix();
@@ -28,6 +28,13 @@ class InstituteDashboardController extends Controller
                     'detail' => 'Messages from students and parents',
                     'url' => SchoolInstituteHelper::routeForPrefix($portalPrefix, 'enquiries.index'),
                     'icon' => 'fa-envelope-open-text',
+                ],
+                [
+                    'label' => 'Followers',
+                    'value' => $institute->followers_count,
+                    'detail' => 'People following your profile',
+                    'url' => SchoolInstituteHelper::routeForPrefix($portalPrefix, 'engagement.index'),
+                    'icon' => 'fa-user-plus',
                 ],
                 [
                     'label' => 'Public page items',

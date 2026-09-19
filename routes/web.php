@@ -90,6 +90,8 @@ use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Frontend\EducatorProfileController as FrontendEducatorProfileController;
 use App\Http\Controllers\Frontend\EducatorListingController;
 use App\Http\Controllers\Frontend\InstituteListingController;
+use App\Http\Controllers\Frontend\InstituteEngagementController;
+use App\Http\Controllers\Frontend\InstituteEngagementController;
 use App\Http\Controllers\Frontend\InstituteProfileController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\StudyMaterialLibraryController;
@@ -206,11 +208,21 @@ Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
+Route::post('/schools/{slug}/follow', [InstituteEngagementController::class, 'schoolFollow'])->middleware('auth')->name('schools.follow');
+Route::post('/schools/{slug}/bookmark', [InstituteEngagementController::class, 'schoolBookmark'])->middleware('auth')->name('schools.bookmark');
+Route::post('/schools/{slug}/compare', [InstituteEngagementController::class, 'schoolCompare'])->middleware('auth')->name('schools.compare.toggle');
+Route::post('/schools/{slug}/brochure', [InstituteEngagementController::class, 'schoolBrochure'])->middleware('auth')->name('schools.brochure');
+Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolComparePage'])->middleware('auth')->name('schools.compare');
 
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
+Route::post('/institutes/{slug}/follow', [InstituteEngagementController::class, 'instituteFollow'])->middleware('auth')->name('institutes.follow');
+Route::post('/institutes/{slug}/bookmark', [InstituteEngagementController::class, 'instituteBookmark'])->middleware('auth')->name('institutes.bookmark');
+Route::post('/institutes/{slug}/compare', [InstituteEngagementController::class, 'instituteCompare'])->middleware('auth')->name('institutes.compare.toggle');
+Route::post('/institutes/{slug}/brochure', [InstituteEngagementController::class, 'instituteBrochure'])->middleware('auth')->name('institutes.brochure');
+Route::get('/institutes/compare', [InstituteEngagementController::class, 'instituteComparePage'])->middleware('auth')->name('institutes.compare');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');

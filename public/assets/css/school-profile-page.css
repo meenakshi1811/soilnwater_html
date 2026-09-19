@@ -312,6 +312,15 @@
   border-radius: 10px;
   background: #fff;
   color: var(--sch-muted);
+  cursor: pointer;
+}
+
+.sch-bookmark.is-active,
+.sch-btn.js-sch-follow.is-following,
+.sch-btn.js-sch-compare.is-active {
+  border-color: var(--sch-primary);
+  color: var(--sch-primary-dark);
+  background: var(--sch-primary-soft);
 }
 
 .sch-hero__meta {

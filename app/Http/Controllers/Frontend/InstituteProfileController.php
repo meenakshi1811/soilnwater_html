@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Mail\InstituteEnquiryReceivedMail;
 use App\Models\Institute;
+use App\Models\InstituteCompareItem;
 use App\Models\InstituteEnquiry;
 use App\Services\PortalNotificationService;
 use App\Support\SchoolInstituteHelper;
@@ -36,12 +37,16 @@ class InstituteProfileController extends Controller
             ? 'frontend.institutes.show-school'
             : 'frontend.institutes.show';
 
+        $authUser = auth()->user();
+        $engagement = $this->engagementState($institute, $authUser);
+
         return view($view, [
             'institute' => $institute,
             'profile' => $ownerRole === 'school' ? new SchoolProfilePresenter($institute) : null,
             'ownerRole' => $ownerRole,
             'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
             'activeNav' => 'home',
+            'engagement' => $engagement,
         ]);
     }
 
@@ -118,6 +123,38 @@ class InstituteProfileController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    /** @return array{is_following: bool, is_bookmarked: bool, in_compare: bool, has_brochure: bool, followers_count: int, compare_count: int, compare_url: string} */
+    private function engagementState(Institute $institute, ?\App\Models\User $user): array
+    {
+        $listingContext = $institute->user?->isSchool() ? 'schools' : 'institutes';
+        $compareUrl = $listingContext === 'schools' ? route('schools.compare') : route('institutes.compare');
+
+        if (! $user) {
+            return [
+                'is_following' => false,
+                'is_bookmarked' => false,
+                'in_compare' => false,
+                'has_brochure' => filled($institute->brochure_path),
+                'followers_count' => $institute->followers()->count(),
+                'compare_count' => 0,
+                'compare_url' => $compareUrl,
+            ];
+        }
+
+        return [
+            'is_following' => $institute->followers()->where('user_id', $user->id)->exists(),
+            'is_bookmarked' => $institute->bookmarks()->where('user_id', $user->id)->exists(),
+            'in_compare' => InstituteCompareItem::query()
+                ->where('user_id', $user->id)
+                ->where('institute_id', $institute->id)
+                ->exists(),
+            'has_brochure' => filled($institute->brochure_path),
+            'followers_count' => $institute->followers()->count(),
+            'compare_count' => InstituteCompareItem::query()->where('user_id', $user->id)->count(),
+            'compare_url' => $compareUrl,
+        ];
     }
 
     private function findApprovedProfile(string $slug, string $ownerRole): Institute

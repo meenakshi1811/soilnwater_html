@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -40,6 +41,7 @@ class Institute extends Model
         'description',
         'gallery',
         'website_url',
+        'brochure_path',
         'facebook_url',
         'instagram_url',
         'youtube_url',
@@ -108,6 +110,26 @@ class Institute extends Model
     public function books(): HasMany
     {
         return $this->hasMany(InstituteBook::class)->orderBy('sort_order')->orderBy('title');
+    }
+
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'institute_followers')->withTimestamps();
+    }
+
+    public function bookmarks(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'institute_bookmarks')->withTimestamps();
+    }
+
+    public function engagements(): HasMany
+    {
+        return $this->hasMany(InstituteEngagement::class)->latest();
+    }
+
+    public function brochureUrl(): ?string
+    {
+        return filled($this->brochure_path) ? asset($this->brochure_path) : null;
     }
 
     public function galleryUrls(): array

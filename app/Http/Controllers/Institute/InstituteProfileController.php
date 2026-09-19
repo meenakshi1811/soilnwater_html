@@ -39,6 +39,8 @@ class InstituteProfileController extends Controller
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'logo' => [$institute->logo ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'brochure' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'remove_brochure' => ['nullable', 'boolean'],
             'institution_type' => ['nullable', 'string', 'in:school,college,university,coaching,other'],
             'board_affiliation' => ['nullable', 'string', 'max:255'],
             'grades_offered' => ['nullable', 'array'],
@@ -62,6 +64,16 @@ class InstituteProfileController extends Controller
             $validated['logo'] = InstituteFileUploader::storeImage($request->file('logo'), 'logos');
         } else {
             unset($validated['logo']);
+        }
+
+        $brochurePath = $institute->brochure_path;
+        if ($request->boolean('remove_brochure')) {
+            InstituteFileUploader::deleteIfExists($brochurePath);
+            $brochurePath = null;
+        }
+        if ($request->hasFile('brochure')) {
+            InstituteFileUploader::deleteIfExists($brochurePath);
+            $brochurePath = InstituteFileUploader::storeDocument($request->file('brochure'), 'brochures');
         }
 
         $slug = Institute::generateUniqueSlug($validated['institution_name'], $institute->id);
@@ -89,6 +101,7 @@ class InstituteProfileController extends Controller
             'about' => $validated['about'] ?? null,
             'description' => $validated['description'] ?? null,
             'website_url' => $validated['website_url'] ?? null,
+            'brochure_path' => $brochurePath,
             'facebook_url' => $validated['facebook_url'] ?? null,
             'instagram_url' => $validated['instagram_url'] ?? null,
             'youtube_url' => $validated['youtube_url'] ?? null,

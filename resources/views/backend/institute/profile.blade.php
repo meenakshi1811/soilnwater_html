@@ -139,6 +139,20 @@
                     <input type="url" class="form-control" id="website_url" name="website_url" value="{{ old('website_url', $institute->website_url) }}">
                 </div>
                 <div class="mb-3">
+                    <label class="form-label" for="brochure">Profile brochure (PDF)</label>
+                    @if($institute->brochureUrl())
+                        <div class="small mb-2">
+                            <a href="{{ $institute->brochureUrl() }}" target="_blank" rel="noopener">View current brochure</a>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" value="1" id="remove_brochure" name="remove_brochure">
+                            <label class="form-check-label" for="remove_brochure">Remove brochure</label>
+                        </div>
+                    @endif
+                    <input type="file" class="form-control" id="brochure" name="brochure" accept="application/pdf">
+                    <div class="form-text">Used by the “Download Brochure” button on your public profile.</div>
+                </div>
+                <div class="mb-3">
                     <label class="form-label" for="date_of_birth">Date of birth (account holder) *</label>
                     <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth', optional($user->date_of_birth)->format('Y-m-d')) }}" required>
                 </div>

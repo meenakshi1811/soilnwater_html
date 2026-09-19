@@ -8,6 +8,20 @@ use Illuminate\Support\Str;
 
 class InstituteFileUploader
 {
+    public static function storeDocument(UploadedFile $file, string $folder = 'brochures'): string
+    {
+        $directory = public_path('uploads/institutes/'.$folder);
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: 'pdf');
+        $filename = Str::uuid()->toString().'.'.$extension;
+        $file->move($directory, $filename);
+
+        return 'uploads/institutes/'.$folder.'/'.$filename;
+    }
+
     public static function storeImage(UploadedFile $file, string $folder = 'logos'): string
     {
         $directory = public_path('uploads/institutes/'.$folder);

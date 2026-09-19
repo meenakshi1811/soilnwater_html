@@ -32,6 +32,10 @@
   class="sch-page"
   id="schoolProfilePage"
   data-enquiry-url="{{ route('schools.enquiry', $institute->slug) }}"
+  data-follow-url="{{ route('schools.follow', $institute->slug) }}"
+  data-bookmark-url="{{ route('schools.bookmark', $institute->slug) }}"
+  data-compare-url="{{ route('schools.compare.toggle', $institute->slug) }}"
+  data-brochure-url="{{ route('schools.brochure', $institute->slug) }}"
   data-login-url="{{ route('login') }}"
   data-is-auth="{{ auth()->check() ? '1' : '0' }}"
   data-share-url="{{ $shareUrl }}"
@@ -67,7 +71,7 @@
       @include('frontend.institutes.partials.school-profile.nav', ['navItems' => $navItems, 'institute' => $institute, 'shareUrl' => $shareUrl])
 
       <div class="sch-body">
-        @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle'))
+        @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle', 'engagement', 'listingContext'))
 
         <div class="sch-card sch-quick-stats">
           @foreach($profile->quickStats() as $index => $stat)
@@ -124,5 +128,19 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/school-profile-actions.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+  var pageRoot = document.getElementById('schoolProfilePage');
+  if (!pageRoot || typeof window.initInstituteEnquiryForm !== 'function') return;
+  window.initInstituteEnquiryForm({
+    form: document.getElementById('schoolEnquiryModalForm'),
+    enquiryUrl: pageRoot.dataset.enquiryUrl,
+    loginUrl: pageRoot.dataset.loginUrl,
+    feedbackEl: document.getElementById('schoolEnquiryModalFeedback'),
+    submitBtn: document.querySelector('#schoolEnquiryModalForm .js-school-enquiry-submit'),
+  });
+});
+</script>
 @endpush
