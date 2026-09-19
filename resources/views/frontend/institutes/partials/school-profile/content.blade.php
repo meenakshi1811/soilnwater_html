@@ -8,8 +8,7 @@
   $reviews = $profile->reviews();
 @endphp
 
-<div class="sch-content-grid">
-  <div class="sch-content-main">
+<div class="sch-content-main">
     @if($aboutText)
       <section id="sch-about" class="sch-card sch-section">
         <h2 class="sch-section__title">About the School</h2>
@@ -320,36 +319,4 @@
         </form>
       @endguest
     </section>
-  </div>
-
-  <div class="sch-content-aside">
-    <div class="sch-card sch-glance-card">
-      <h2>At a Glance</h2>
-      <ul class="sch-glance-list">
-        @foreach($profile->atAGlance() as $item)
-          <li>
-            <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
-            <div>
-              <span>{{ $item['label'] }}</span>
-              <strong>{{ $item['value'] }}</strong>
-            </div>
-          </li>
-        @endforeach
-      </ul>
-    </div>
-
-    @if($profile->mapEmbedUrl())
-      <div class="sch-card sch-map-card">
-        <h2>Location Map</h2>
-        <div class="sch-map-wrap">
-          <iframe src="{{ $profile->mapEmbedUrl() }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="School location map"></iframe>
-        </div>
-        @if($profile->directionsUrl())
-          <a href="{{ $profile->directionsUrl() }}" target="_blank" rel="noopener" class="sch-btn sch-btn-outline sch-btn-block">
-            <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Get Directions
-          </a>
-        @endif
-      </div>
-    @endif
-  </div>
 </div>

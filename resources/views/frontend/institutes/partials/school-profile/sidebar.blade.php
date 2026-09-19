@@ -1,4 +1,33 @@
 <aside class="sch-sidebar" aria-label="School contact and highlights">
+  <div class="sch-card sch-glance-card">
+    <h2>At a Glance</h2>
+    <ul class="sch-glance-list">
+      @foreach($profile->atAGlance() as $item)
+        <li>
+          <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
+          <div>
+            <span>{{ $item['label'] }}</span>
+            <strong>{{ $item['value'] }}</strong>
+          </div>
+        </li>
+      @endforeach
+    </ul>
+  </div>
+
+  @if($profile->mapEmbedUrl())
+    <div class="sch-card sch-map-card">
+      <h2>Location Map</h2>
+      <div class="sch-map-wrap">
+        <iframe src="{{ $profile->mapEmbedUrl() }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="School location map"></iframe>
+      </div>
+      @if($profile->directionsUrl())
+        <a href="{{ $profile->directionsUrl() }}" target="_blank" rel="noopener" class="sch-btn sch-btn-outline sch-btn-block">
+          <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Get Directions
+        </a>
+      @endif
+    </div>
+  @endif
+
   <div class="sch-card sch-contact-card">
     <h2>Contact Information</h2>
     @if($institute->formattedAddress())
