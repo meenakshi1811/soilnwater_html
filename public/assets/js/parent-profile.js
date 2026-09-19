@@ -145,15 +145,36 @@
         var token = csrfToken();
         syncChildDobFields($form);
 
+        var day = $form.find('.js-dob-day').val();
+        var month = $form.find('.js-dob-month').val();
+        var year = $form.find('.js-dob-year').val();
+        var age = $form.find('.js-child-age').val();
+
+        if (!day || !month || !year) {
+            toast('error', 'Please select the full date of birth.');
+            return;
+        }
+
+        if (!age) {
+            toast('error', 'Age could not be calculated from the date of birth.');
+            return;
+        }
+
         var formData = new FormData(this);
         formData.set('_token', token);
+        formData.set('dob_day', day);
+        formData.set('dob_month', month);
+        formData.set('dob_year', year);
+        formData.set('age', age);
         formData.set('is_primary', $('#child_is_primary').is(':checked') ? '1' : '0');
         formData.set('has_board', $('#child_has_board').is(':checked') ? '1' : '0');
+        formData.delete('phone_number');
 
         if (!$('#child_has_board').is(':checked')) {
             formData.delete('board');
         }
 
+        $('#addChildAlert').addClass('d-none').text('');
         $btn.prop('disabled', true);
 
         $.ajax({
@@ -181,6 +202,7 @@
                 if (xhr.responseJSON?.errors) {
                     message = Object.values(xhr.responseJSON.errors).flat().join(' ');
                 }
+                $('#addChildAlert').removeClass('d-none alert-success').addClass('alert-danger').text(message);
                 toast('error', message);
             })
             .always(function () {

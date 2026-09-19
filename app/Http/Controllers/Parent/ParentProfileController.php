@@ -82,13 +82,16 @@ class ParentProfileController extends Controller
         $user = $request->user();
         abort_unless($user->hasParentProfileEnabled(), 403);
 
+        $request->merge([
+            'has_board' => $request->boolean('has_board'),
+            'is_primary' => $request->boolean('is_primary'),
+        ]);
+
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'dob_day' => ['required', 'integer', 'min:1', 'max:31'],
             'dob_month' => ['required', 'integer', 'min:1', 'max:12'],
             'dob_year' => ['required', 'integer', 'min:'.(now()->year - 25), 'max:'.now()->year],
-            'age' => ['required', 'integer', 'min:1', 'max:25'],
             'gender' => ['nullable', 'in:male,female,other'],
             'class_grade' => ['nullable', 'string', 'max:100'],
             'has_board' => ['nullable', 'boolean'],
@@ -98,7 +101,6 @@ class ParentProfileController extends Controller
             'is_primary' => ['nullable', 'boolean'],
             'profile_image' => ['nullable', 'image', 'max:2048'],
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'board.required_if' => 'Please enter the board name when board is enabled.',
         ]);
 
@@ -126,15 +128,9 @@ class ParentProfileController extends Controller
             ], 422);
         }
 
-        $calculatedAge = $dateOfBirth->age;
-        if (abs($calculatedAge - (int) $validated['age']) > 1) {
-            return response()->json([
-                'message' => 'Age does not match the selected date of birth.',
-                'errors' => ['age' => ['Age does not match the selected date of birth.']],
-            ], 422);
-        }
-
         $validated['date_of_birth'] = $dateOfBirth->toDateString();
+        $validated['age'] = $dateOfBirth->age;
+        $validated['phone_number'] = $user->phone_number ?: '';
 
         $childProfile = $this->childProfileService->createForParent(
             $user,

@@ -21,17 +21,6 @@
                                 <input type="text" class="form-control" id="child_full_name" name="full_name" required placeholder="Enter child's full name">
                             </div>
                             <div class="col-md-6">
-                                <label for="child_phone_number" class="form-label">Phone number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="child_phone_number" name="phone_number" required maxlength="15" placeholder="10-digit mobile number">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="child_age" class="form-label">Age <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control js-child-age" id="child_age" name="age" min="1" max="25" required placeholder="Age in years">
-                            </div>
-                            <div class="col-md-6">
-                                @include('backend.partials.date-of-birth-dropdown', ['prefix' => 'child'])
-                            </div>
-                            <div class="col-md-6">
                                 <label for="child_gender" class="form-label">Gender</label>
                                 <select class="form-select" id="child_gender" name="gender">
                                     <option value="">Select gender</option>
@@ -39,6 +28,14 @@
                                     <option value="female">Female</option>
                                     <option value="other">Other</option>
                                 </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="child_age" class="form-label">Age <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control js-child-age" id="child_age" name="age" min="1" max="25" required readonly placeholder="Auto from DOB">
+                                <small class="parent-child-field-hint">Calculated from date of birth.</small>
+                            </div>
+                            <div class="col-md-8">
+                                @include('backend.partials.date-of-birth-dropdown', ['prefix' => 'child'])
                             </div>
                             <div class="col-md-6">
                                 <label for="child_class_grade" class="form-label">Class / Grade</label>

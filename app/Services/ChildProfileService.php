@@ -31,7 +31,7 @@ class ChildProfileService
                 'name' => $data['full_name'],
                 'full_name' => $data['full_name'],
                 'email' => $childEmail,
-                'phone_number' => $data['phone_number'],
+                'phone_number' => null,
                 'date_of_birth' => $data['date_of_birth'],
                 'role' => 'student',
                 'password' => Hash::make(Str::random(32)),
