@@ -42,13 +42,31 @@
         return age >= 0 ? age : null;
     }
 
+    function resolveChildForm($scope) {
+        var $form = $scope && $scope.length ? $scope : $();
+        if ($form.length && ($form.is('form') || $form.hasClass('parent-child-modal__form'))) {
+            return $form;
+        }
+        if ($form.length) {
+            var $closestForm = $form.closest('#addChildForm, .parent-child-modal__form, form');
+            if ($closestForm.length) {
+                return $closestForm;
+            }
+        }
+        return $('#addChildForm');
+    }
+
     function syncChildDobFields($scope) {
-        var $root = $scope && $scope.length ? $scope : $(document);
-        var day = $root.find('.js-dob-day').val();
-        var month = $root.find('.js-dob-month').val();
-        var year = $root.find('.js-dob-year').val();
-        var $combined = $root.find('.js-dob-combined');
-        var $age = $root.find('.js-child-age');
+        var $form = resolveChildForm($scope);
+        if (!$form.length) {
+            return;
+        }
+
+        var day = $form.find('.js-dob-day').val();
+        var month = $form.find('.js-dob-month').val();
+        var year = $form.find('.js-dob-year').val();
+        var $combined = $form.find('.js-dob-combined');
+        var $age = $form.find('.js-child-age');
 
         if (day && month && year) {
             var paddedMonth = String(month).padStart(2, '0');
@@ -61,18 +79,31 @@
             }
         } else {
             $combined.val('');
+            if ($age.length) {
+                $age.val('');
+            }
         }
     }
 
     $(document).on('change', '.js-dob-day, .js-dob-month, .js-dob-year', function () {
-        syncChildDobFields($(this).closest('.date-of-birth-dropdown, .parent-child-modal__form, form'));
+        syncChildDobFields($(this).closest('#addChildForm, .parent-child-modal__form, form'));
     });
 
     function initChildSchoolAutocomplete() {
         var modal = document.getElementById('addChildModal');
 
-        if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
-            window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(modal || document);
+        if (!modal || !window.SoilnWaterGooglePlaces) {
+            return;
+        }
+
+        modal.querySelectorAll('.js-school-institute-search').forEach(function (input) {
+            if (typeof window.SoilnWaterGooglePlaces.unbindAutocomplete === 'function') {
+                window.SoilnWaterGooglePlaces.unbindAutocomplete(input);
+            }
+        });
+
+        if (typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
+            window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(modal);
         }
     }
 
@@ -104,9 +135,9 @@
     $(document).on('change', '.js-child-has-board', syncChildBoardField);
 
     $(document).on('shown.bs.modal', '#addChildModal', function () {
-        hideGooglePlacesDropdown();
         initChildSchoolAutocomplete();
         syncChildBoardField();
+        syncChildDobFields($('#addChildForm'));
     });
 
     function hideGooglePlacesDropdown() {

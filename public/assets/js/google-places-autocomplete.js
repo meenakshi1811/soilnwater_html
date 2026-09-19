@@ -120,6 +120,21 @@
 
     var activePacInput = null;
 
+    function isInputVisibleForPlaces(input) {
+        if (!input || !input.isConnected) {
+            return false;
+        }
+
+        var modal = input.closest('.modal');
+        if (modal && !modal.classList.contains('show')) {
+            return false;
+        }
+
+        var rect = input.getBoundingClientRect();
+
+        return rect.width > 0 && rect.height > 0;
+    }
+
     function hidePacContainers() {
         document.querySelectorAll('.pac-container').forEach(function (container) {
             container.style.display = 'none';
@@ -143,23 +158,57 @@
         });
     }
 
-    function reparentPacContainerForInput(input) {
+    function positionActivePacContainer(input) {
         if (!input) {
             return;
         }
 
-        var modal = input.closest('.modal');
-
         window.requestAnimationFrame(function () {
+            var rect = input.getBoundingClientRect();
+
             document.querySelectorAll('.pac-container').forEach(function (pac) {
-                if (modal && pac.parentNode !== modal) {
-                    modal.appendChild(pac);
+                if (pac.style.display === 'none' || pac.style.visibility === 'hidden') {
+                    return;
                 }
 
-                pac.style.zIndex = '2000';
-                pac.style.position = 'absolute';
+                if (document.body && pac.parentNode !== document.body) {
+                    document.body.appendChild(pac);
+                }
+
+                pac.style.position = 'fixed';
+                pac.style.top = Math.round(rect.bottom) + 'px';
+                pac.style.left = Math.round(rect.left) + 'px';
+                pac.style.width = Math.max(Math.round(rect.width), 240) + 'px';
+                pac.style.zIndex = '20000';
             });
         });
+    }
+
+    function schedulePacReposition(input) {
+        positionActivePacContainer(input);
+        [50, 150, 350].forEach(function (delay) {
+            window.setTimeout(function () {
+                positionActivePacContainer(input);
+            }, delay);
+        });
+    }
+
+    function watchPacPositionWhileActive(input) {
+        if (!input) {
+            return;
+        }
+
+        var modalBody = input.closest('.modal-body');
+        if (!modalBody || modalBody.dataset.pacScrollBound === 'true') {
+            return;
+        }
+
+        modalBody.dataset.pacScrollBound = 'true';
+        modalBody.addEventListener('scroll', function () {
+            if (activePacInput === input) {
+                positionActivePacContainer(input);
+            }
+        }, { passive: true });
     }
 
     function trackPacInput(input) {
@@ -179,12 +228,13 @@
                 pac.style.pointerEvents = '';
             });
 
-            reparentPacContainerForInput(input);
+            schedulePacReposition(input);
+            watchPacPositionWhileActive(input);
         });
 
         input.addEventListener('input', function () {
             activePacInput = input;
-            reparentPacContainerForInput(input);
+            schedulePacReposition(input);
         });
 
         input.addEventListener('blur', function () {
@@ -234,8 +284,34 @@
         }, true);
     }
 
+    function unbindAutocomplete(input) {
+        if (!input) {
+            return;
+        }
+
+        var autocomplete = input._soilnwaterPlacesAutocomplete;
+
+        if (autocomplete && window.google && google.maps && google.maps.event) {
+            google.maps.event.clearInstanceListeners(autocomplete);
+        }
+
+        delete input._soilnwaterPlacesAutocomplete;
+        input.dataset.googlePlacesReady = 'false';
+        input.dataset.googlePlacesPending = 'false';
+        input.dataset.googlePlacesAttempts = '0';
+    }
+
     function bindSchoolInstituteInput(input) {
-        if (!input || input.dataset.googlePlacesReady === 'true') {
+        if (!input) {
+            return;
+        }
+
+        if (!isInputVisibleForPlaces(input)) {
+            input.dataset.googlePlacesPending = 'true';
+            return;
+        }
+
+        if (input.dataset.googlePlacesReady === 'true') {
             return;
         }
 
@@ -297,6 +373,10 @@
         var scope = root && typeof root.querySelectorAll === 'function' ? root : document;
 
         scope.querySelectorAll('.js-school-institute-search, .js-experience-organization').forEach(function (input) {
+            if (input.dataset.googlePlacesPending === 'true' && isInputVisibleForPlaces(input)) {
+                unbindAutocomplete(input);
+            }
+
             bindSchoolInstituteInput(input);
         });
     }
@@ -343,8 +423,10 @@
         buildFields: buildFields,
         buildOptions: buildOptions,
         bindAutocomplete: bindAutocomplete,
+        unbindAutocomplete: unbindAutocomplete,
         initSchoolInstituteSearchFields: initSchoolInstituteSearchFields,
         dismissPacDropdown: dismissPacDropdown,
         hidePacContainers: hidePacContainers,
+        positionActivePacContainer: positionActivePacContainer,
     };
 })(window);

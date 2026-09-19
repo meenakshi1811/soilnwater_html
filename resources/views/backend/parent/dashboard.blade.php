@@ -285,8 +285,13 @@ window.ParentProfileConfig = {
 @if(config('services.google.maps_api_key'))
 <script>
 window.initParentChildSchoolPlacesAutocomplete = function () {
-    if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
-        window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields(document.getElementById('addChildModal') || document);
+    window.googleMapsPlacesReady = true;
+
+    if (window.ParentProfile && typeof window.ParentProfile.initChildSchoolAutocomplete === 'function') {
+        var modal = document.getElementById('addChildModal');
+        if (modal && modal.classList.contains('show')) {
+            window.ParentProfile.initChildSchoolAutocomplete();
+        }
     }
 };
 </script>

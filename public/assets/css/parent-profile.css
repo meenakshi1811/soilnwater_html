@@ -732,12 +732,13 @@
 }
 
 .pac-container {
-    z-index: 2000 !important;
+    z-index: 20000 !important;
     border-radius: 12px;
     border: 1px solid #dbe4f2;
     box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
     margin-top: 4px;
     font-family: inherit;
+    pointer-events: auto !important;
 }
 
 .pac-item {
