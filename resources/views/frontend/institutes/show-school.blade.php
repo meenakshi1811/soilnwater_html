@@ -15,6 +15,17 @@
   $shareUrl = $institute->publicUrl();
   $aboutText = $profile->aboutText();
   $aboutNeedsToggle = strlen($aboutText) > 320;
+  $tabItems = [
+    ['id' => 'sch-overview', 'label' => 'Overview'],
+    ['id' => 'sch-courses', 'label' => 'Courses'],
+    ['id' => 'sch-facilities', 'label' => 'Facilities'],
+    ['id' => 'sch-faculty', 'label' => 'Faculty'],
+    ['id' => 'sch-admission', 'label' => 'Admission'],
+    ['id' => 'sch-results', 'label' => 'Results'],
+    ['id' => 'sch-gallery', 'label' => 'Gallery'],
+    ['id' => 'sch-reviews', 'label' => 'Reviews'],
+  ];
+  $tabItems = array_values(array_filter($tabItems, fn ($tab) => collect($navItems)->contains(fn ($item) => $item['id'] === $tab['id'])));
 @endphp
 
 <div
@@ -55,7 +66,7 @@
     <div class="sch-grid">
       @include('frontend.institutes.partials.school-profile.nav', ['navItems' => $navItems, 'institute' => $institute, 'shareUrl' => $shareUrl])
 
-      <main class="sch-main">
+      <div class="sch-body">
         @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle'))
 
         <div class="sch-card sch-quick-stats">
@@ -71,14 +82,14 @@
         </div>
 
         <div class="sch-tabs" role="tablist" aria-label="School profile sections">
-          @foreach(array_slice($navItems, 0, 8) as $index => $item)
+          @foreach($tabItems as $index => $item)
             <a href="#{{ $item['id'] }}" class="sch-tab js-sch-nav-link {{ $index === 0 ? 'is-active' : '' }}">{{ $item['label'] }}</a>
           @endforeach
-          @if(count($navItems) > 8)
+          @if(count($navItems) > count($tabItems))
             <div class="dropdown sch-tab-more">
               <button class="sch-tab sch-tab--more dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">More</button>
               <ul class="dropdown-menu">
-                @foreach(array_slice($navItems, 8) as $item)
+                @foreach(array_slice($navItems, count($tabItems)) as $item)
                   <li><a class="dropdown-item js-sch-nav-link" href="#{{ $item['id'] }}">{{ $item['label'] }}</a></li>
                 @endforeach
               </ul>
@@ -86,10 +97,14 @@
           @endif
         </div>
 
-        @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle'))
-      </main>
+        <div class="sch-lower-grid">
+          <main class="sch-main">
+            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle'))
+          </main>
 
-      @include('frontend.institutes.partials.school-profile.sidebar', compact('profile', 'institute', 'shareUrl'))
+          @include('frontend.institutes.partials.school-profile.sidebar', compact('profile', 'institute', 'shareUrl'))
+        </div>
+      </div>
     </div>
 
     @include('frontend.institutes.partials.school-profile.footer-bar')

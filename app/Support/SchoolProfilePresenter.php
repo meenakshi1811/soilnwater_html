@@ -98,8 +98,13 @@ final class SchoolProfilePresenter
     public function heroImage(): string
     {
         $gallery = collect($this->institute->galleryUrls());
+        $logoUrl = $this->institute->logoUrl();
 
-        return $gallery->first() ?: ($this->institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp'));
+        $campusPhoto = $gallery->first(function ($url) use ($logoUrl) {
+            return $logoUrl === null || $url !== $logoUrl;
+        });
+
+        return $campusPhoto ?: ($logoUrl ?: asset('assets/images/logo_soilnwater.webp'));
     }
 
     public function galleryImages(): Collection
