@@ -1420,6 +1420,19 @@
 .sch-footer-bar__report {
   color: #c0392b;
   border-color: #f0c7c2;
+  cursor: pointer;
+}
+
+.sch-footer-bar__report--link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.sch-footer-bar__report:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1199.98px) {

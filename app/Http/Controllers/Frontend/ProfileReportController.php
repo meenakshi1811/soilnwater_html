@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultant;
+use App\Models\Institute;
 use App\Models\ProfileReport;
 use App\Models\ServiceProvider;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,29 @@ class ProfileReportController extends Controller
         return $this->store($request, $service_provider, 'Service provider');
     }
 
+    public function school(Request $request, string $slug): JsonResponse
+    {
+        $institute = $this->findApprovedInstitute($slug, 'school');
+
+        return $this->store($request, $institute, 'School profile');
+    }
+
+    public function institute(Request $request, string $slug): JsonResponse
+    {
+        $institute = $this->findApprovedInstitute($slug, 'institute');
+
+        return $this->store($request, $institute, 'Institute profile');
+    }
+
+    private function findApprovedInstitute(string $slug, string $ownerRole): Institute
+    {
+        return Institute::query()
+            ->approved()
+            ->forOwnerRole($ownerRole)
+            ->where('slug', $slug)
+            ->firstOrFail();
+    }
+
     private function store(Request $request, Model $reportable, string $label): JsonResponse
     {
         abort_if((int) $request->user()->id === (int) $reportable->user_id, 403, 'You cannot report your own profile.');
@@ -42,6 +66,7 @@ class ProfileReportController extends Controller
         ]);
 
         return response()->json([
+            'ok' => true,
             'message' => $label.' reported successfully.',
         ]);
     }

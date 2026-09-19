@@ -29,6 +29,18 @@
                 <div class="fs-3 fw-bold">{{ number_format($brochureDownloads) }}</div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="chart-card h-100 p-3">
+                <div class="text-secondary small">Helpful votes — Yes</div>
+                <div class="fs-3 fw-bold">{{ number_format($helpfulYes) }}</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card h-100 p-3">
+                <div class="text-secondary small">Helpful votes — No</div>
+                <div class="fs-3 fw-bold">{{ number_format($helpfulNo) }}</div>
+            </div>
+        </div>
     </div>
 
     <div class="row g-4">

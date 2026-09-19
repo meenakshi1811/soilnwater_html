@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
 class Institute extends Model
@@ -125,6 +126,16 @@ class Institute extends Model
     public function engagements(): HasMany
     {
         return $this->hasMany(InstituteEngagement::class)->latest();
+    }
+
+    public function profileFeedbacks(): HasMany
+    {
+        return $this->hasMany(InstituteProfileFeedback::class);
+    }
+
+    public function profileReports(): MorphMany
+    {
+        return $this->morphMany(ProfileReport::class, 'reportable');
     }
 
     public function brochureUrl(): ?string

@@ -7,6 +7,7 @@ use App\Mail\InstituteEnquiryReceivedMail;
 use App\Models\Institute;
 use App\Models\InstituteCompareItem;
 use App\Models\InstituteEnquiry;
+use App\Models\InstituteProfileFeedback;
 use App\Services\PortalNotificationService;
 use App\Support\SchoolInstituteHelper;
 use App\Support\SchoolProfilePresenter;
@@ -125,11 +126,19 @@ class InstituteProfileController extends Controller
         return back()->with('status', $message);
     }
 
-    /** @return array{is_following: bool, is_bookmarked: bool, in_compare: bool, has_brochure: bool, followers_count: int, compare_count: int, compare_url: string} */
+    /** @return array<string, mixed> */
     private function engagementState(Institute $institute, ?\App\Models\User $user): array
     {
         $listingContext = $institute->user?->isSchool() ? 'schools' : 'institutes';
         $compareUrl = $listingContext === 'schools' ? route('schools.compare') : route('institutes.compare');
+        $helpfulVote = null;
+
+        if ($user) {
+            $helpfulVote = InstituteProfileFeedback::query()
+                ->where('institute_id', $institute->id)
+                ->where('user_id', $user->id)
+                ->value('vote');
+        }
 
         if (! $user) {
             return [
@@ -140,6 +149,8 @@ class InstituteProfileController extends Controller
                 'followers_count' => $institute->followers()->count(),
                 'compare_count' => 0,
                 'compare_url' => $compareUrl,
+                'helpful_vote' => null,
+                'can_report' => false,
             ];
         }
 
@@ -154,6 +165,8 @@ class InstituteProfileController extends Controller
             'followers_count' => $institute->followers()->count(),
             'compare_count' => InstituteCompareItem::query()->where('user_id', $user->id)->count(),
             'compare_url' => $compareUrl,
+            'helpful_vote' => $helpfulVote,
+            'can_report' => (int) $institute->user_id !== (int) $user->id,
         ];
     }
 

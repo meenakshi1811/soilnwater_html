@@ -36,6 +36,7 @@
   data-bookmark-url="{{ route('schools.bookmark', $institute->slug) }}"
   data-compare-url="{{ route('schools.compare.toggle', $institute->slug) }}"
   data-brochure-url="{{ route('schools.brochure', $institute->slug) }}"
+  data-helpful-url="{{ route('schools.helpful', $institute->slug) }}"
   data-login-url="{{ route('login') }}"
   data-is-auth="{{ auth()->check() ? '1' : '0' }}"
   data-share-url="{{ $shareUrl }}"
@@ -119,11 +120,11 @@
       </div>
     </div>
 
-    @include('frontend.institutes.partials.school-profile.footer-bar')
+    @include('frontend.institutes.partials.school-profile.footer-bar', compact('engagement', 'listingContext'))
   </div>
 </div>
 
-@include('frontend.institutes.partials.school-profile.modals', compact('institute', 'shareUrl', 'profile'))
+@include('frontend.institutes.partials.school-profile.modals', compact('institute', 'shareUrl', 'profile', 'engagement', 'listingContext'))
 @endsection
 
 @push('scripts')

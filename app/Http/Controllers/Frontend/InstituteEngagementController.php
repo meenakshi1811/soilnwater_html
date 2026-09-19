@@ -7,6 +7,7 @@ use App\Mail\InstituteNewFollowerMail;
 use App\Models\Institute;
 use App\Models\InstituteCompareItem;
 use App\Models\InstituteEngagement;
+use App\Models\InstituteProfileFeedback;
 use App\Services\PortalNotificationService;
 use App\Support\SchoolInstituteHelper;
 use Illuminate\Http\JsonResponse;
@@ -67,6 +68,62 @@ class InstituteEngagementController extends Controller
     public function instituteComparePage(Request $request): View
     {
         return $this->comparePage($request, 'institute');
+    }
+
+    public function schoolHelpful(Request $request, string $slug): JsonResponse
+    {
+        return $this->helpful($request, $slug, 'school');
+    }
+
+    public function instituteHelpful(Request $request, string $slug): JsonResponse
+    {
+        return $this->helpful($request, $slug, 'institute');
+    }
+
+    public function helpful(Request $request, string $slug, string $ownerRole): JsonResponse
+    {
+        $institute = $this->findProfile($slug, $ownerRole);
+        $userId = (int) auth()->id();
+
+        abort_if((int) $institute->user_id === $userId, 422, 'You cannot rate your own profile.');
+
+        $validated = $request->validate([
+            'vote' => ['required', 'in:yes,no'],
+        ]);
+
+        $vote = $validated['vote'];
+        $existing = InstituteProfileFeedback::query()
+            ->where('institute_id', $institute->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existing && $existing->vote === $vote) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Thanks — your feedback is already recorded.',
+                'vote' => $vote,
+            ]);
+        }
+
+        InstituteProfileFeedback::query()->updateOrCreate(
+            [
+                'institute_id' => $institute->id,
+                'user_id' => $userId,
+            ],
+            ['vote' => $vote]
+        );
+
+        $this->logEngagement(
+            $institute,
+            $userId,
+            $vote === 'yes' ? InstituteEngagement::ACTION_HELPFUL_YES : InstituteEngagement::ACTION_HELPFUL_NO
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => $vote === 'yes' ? 'Thanks for your feedback!' : 'Thanks — we will use this to improve listings.',
+            'vote' => $vote,
+        ]);
     }
 
     public function follow(Request $request, string $slug, string $ownerRole): JsonResponse

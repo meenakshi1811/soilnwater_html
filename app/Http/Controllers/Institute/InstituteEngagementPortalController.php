@@ -30,11 +30,16 @@ class InstituteEngagementPortalController extends Controller
             ->where('action', InstituteEngagement::ACTION_BROCHURE_DOWNLOAD)
             ->count();
 
+        $helpfulYes = $institute->profileFeedbacks()->where('vote', 'yes')->count();
+        $helpfulNo = $institute->profileFeedbacks()->where('vote', 'no')->count();
+
         return view('backend.institute.engagement.index', compact(
             'institute',
             'followers',
             'recentActivity',
             'brochureDownloads',
+            'helpfulYes',
+            'helpfulNo',
         ));
     }
 }

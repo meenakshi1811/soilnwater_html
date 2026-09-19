@@ -23,6 +23,7 @@
     data-bookmark-url="{{ route($listingContext.'.bookmark', $institute->slug) }}"
     data-compare-url="{{ route($listingContext.'.compare.toggle', $institute->slug) }}"
     data-brochure-url="{{ route($listingContext.'.brochure', $institute->slug) }}"
+    data-helpful-url="{{ route($listingContext.'.helpful', $institute->slug) }}"
     data-login-url="{{ route('login') }}"
     data-is-auth="{{ auth()->check() ? '1' : '0' }}"
     data-share-url="{{ $institute->publicUrl() }}"

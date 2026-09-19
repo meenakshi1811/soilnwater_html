@@ -116,18 +116,119 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    function schNotify(type, message) {
+        if (window.toastr) {
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 4000,
+            };
+            toastr[type](message);
+            return;
+        }
+        alert(message);
+    }
+
     document.querySelectorAll('.js-sch-helpful').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.js-sch-helpful').forEach(function (item) {
-                item.classList.remove('is-selected');
-            });
-            btn.classList.add('is-selected');
+        btn.addEventListener('click', async function () {
+            var helpfulUrl = pageRoot.dataset.helpfulUrl;
+            var isAuth = pageRoot.dataset.isAuth === '1';
+            var loginUrl = pageRoot.dataset.loginUrl;
+
+            if (!isAuth) {
+                if (loginUrl) {
+                    window.location.href = loginUrl + (loginUrl.indexOf('?') >= 0 ? '&' : '?') + 'redirect=' + encodeURIComponent(window.location.href);
+                }
+                return;
+            }
+
+            if (!helpfulUrl) {
+                return;
+            }
+
+            var vote = btn.getAttribute('data-vote');
+            btn.disabled = true;
+
+            try {
+                var response = await fetch(helpfulUrl, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ vote: vote }),
+                });
+
+                var payload = await response.json().catch(function () {
+                    return {};
+                });
+
+                if (!response.ok || payload.ok === false) {
+                    throw new Error(payload.message || 'Unable to save your feedback.');
+                }
+
+                document.querySelectorAll('.js-sch-helpful').forEach(function (item) {
+                    item.classList.remove('is-selected');
+                });
+                btn.classList.add('is-selected');
+                schNotify('success', payload.message || 'Thanks for your feedback!');
+            } catch (error) {
+                schNotify('error', error.message || 'Unable to save your feedback.');
+            } finally {
+                btn.disabled = false;
+            }
         });
     });
 
-    document.querySelectorAll('.js-sch-report').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            alert('Thank you. Our team will review this profile.');
+    document.querySelectorAll('.profile-report-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var submitBtn = form.querySelector('button[type="submit"]');
+            var originalText = submitBtn ? submitBtn.textContent : '';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: new FormData(form),
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (payload) {
+                        if (!response.ok) {
+                            var errors = payload.errors ? Object.values(payload.errors).flat().join(' ') : '';
+                            throw new Error(errors || payload.message || 'Unable to submit report.');
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    var modalEl = form.closest('.modal');
+                    form.reset();
+                    if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    }
+                    schNotify('success', payload.message || 'Report submitted successfully.');
+                })
+                .catch(function (error) {
+                    schNotify('error', error.message || 'Unable to submit report.');
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
         });
     });
 

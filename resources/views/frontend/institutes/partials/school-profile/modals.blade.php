@@ -47,6 +47,15 @@
   </div>
 </div>
 
+@if(! empty($engagement['can_report']))
+  @include('frontend.partials.profile-report-modal', [
+    'reportModalId' => 'schoolProfileReportModal',
+    'reportFormId' => 'schoolProfileReportForm',
+    'reportLabel' => ($listingContext ?? 'schools') === 'schools' ? 'School profile' : 'Institute profile',
+    'reportAction' => route(($listingContext ?? 'schools').'.report', $institute->slug),
+  ])
+@endif
+
 <div class="modal fade" id="schoolShareModal" tabindex="-1" aria-labelledby="schoolShareModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">

@@ -5,24 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class InstituteEngagement extends Model
+class InstituteProfileFeedback extends Model
 {
-    public const ACTION_BROCHURE_DOWNLOAD = 'brochure_download';
-
-    public const ACTION_FOLLOW = 'follow';
-
-    public const ACTION_BOOKMARK = 'bookmark';
-
-    public const ACTION_COMPARE_ADD = 'compare_add';
-
-    public const ACTION_HELPFUL_YES = 'helpful_yes';
-
-    public const ACTION_HELPFUL_NO = 'helpful_no';
+    protected $table = 'institute_profile_feedback';
 
     protected $fillable = [
         'institute_id',
         'user_id',
-        'action',
+        'vote',
     ];
 
     public function institute(): BelongsTo
