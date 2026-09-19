@@ -25,5 +25,11 @@
         </tr>
     </table>
 
+    @if ($enquiriesPortalUrl ?? null)
+        <p style="margin: 0 0 20px;">
+            <a href="{{ $enquiriesPortalUrl }}" style="display: inline-block; padding: 12px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">View in portal</a>
+        </p>
+    @endif
+
     <p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.7;">Regards,<br><strong>{{ config('app.name', 'SoilNWater') }} Team</strong></p>
 @endsection

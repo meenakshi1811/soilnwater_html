@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/institute-portal.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/educator-portal-profile.css') }}?v={{ now()->timestamp }}">
 @endpush
 
 @section('content')
@@ -31,16 +32,15 @@
     <a href="#inst-section-books" class="sch-portal-nav__link"><i class="fa-solid fa-book"></i> Books</a>
   </nav>
 
-  <section id="inst-section-notices" class="chart-card sch-portal-section mb-4">
-    <header class="sch-portal-section__head">
-      <span class="sch-portal-section__icon"><i class="fa-solid fa-bullhorn"></i></span>
+  <section id="inst-section-notices" class="chart-card sch-portal-section edu-notice-manage mb-4">
+    <header class="edu-profile-section__head mb-3">
       <div>
-        <h3 class="mb-1">Notice board</h3>
-        <p class="text-secondary mb-0">Publish announcements for parents and students. Active notices appear on your public profile.</p>
+        <h3 class="edu-profile-section__title mb-1"><i class="fa-solid fa-bullhorn me-2"></i>Notice board</h3>
+        <p class="edu-profile-section__desc mb-0">Publish notices for students and parents. Active notices appear on your public profile carousel, same as the teacher module.</p>
       </div>
     </header>
 
-    <form id="instNoticeForm" class="sch-portal-form mb-4" novalidate>
+    <form id="instNoticeForm" class="edu-notice-manage-form sch-portal-form" novalidate>
       @csrf
       <div class="row g-3">
         <div class="col-md-4">
@@ -59,16 +59,16 @@
         </div>
         <div class="col-12">
           <label for="instNoticeMessage" class="form-label">Notice message</label>
-          <textarea id="instNoticeMessage" name="message" class="form-control" rows="3" maxlength="5000" required placeholder="Share exam dates, holidays, admission updates, or events."></textarea>
+          <textarea id="instNoticeMessage" name="message" class="form-control" rows="4" maxlength="5000" required placeholder="Share exam dates, holiday schedules, admission updates, or important announcements."></textarea>
         </div>
       </div>
     </form>
 
-    <div class="sch-manage-list" id="instNoticeList" data-empty-text="No notices published yet.">
+    <div class="edu-notice-manage-list sch-manage-list" id="instNoticeList" data-empty-text="No notices published yet.">
       @forelse($institute->notices as $notice)
         @include('backend.institute.partials.notice-item', ['notice' => $notice])
       @empty
-        <p class="sch-manage-empty mb-0" id="instNoticeEmpty">No notices published yet.</p>
+        <p class="edu-notice-manage-empty sch-manage-empty mb-0" id="instNoticeEmpty">No notices published yet.</p>
       @endforelse
     </div>
   </section>

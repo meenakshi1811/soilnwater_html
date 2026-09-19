@@ -10,13 +10,21 @@
   data-notice-expires="{{ $notice->expires_at?->format('d M Y') }}"
 >
   <div class="sch-notice__head">
-    <span class="sch-notice__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+    @if(empty($featured))
+      <span class="sch-notice__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+    @endif
     <div>
       <h3 class="sch-notice__title">{{ $notice->displayTitle() }}</h3>
       <p class="sch-notice__meta mb-0">Valid until {{ $notice->expires_at?->format('d M Y') }}</p>
     </div>
   </div>
-  <p class="sch-notice__text">&ldquo;{{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}&rdquo;</p>
+  <p class="sch-notice__text">
+    @if(!empty($featured))
+      {{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}
+    @else
+      &ldquo;{{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}&rdquo;
+    @endif
+  </p>
   @if($needsReadMore)
     <button type="button" class="sch-notice__read-more js-sch-notice-read-more">
       Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>

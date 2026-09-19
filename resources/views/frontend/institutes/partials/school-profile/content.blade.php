@@ -120,25 +120,30 @@
     @endif
 
     @if($achievements->isNotEmpty())
-      <section id="sch-achievements" class="sch-card sch-section">
+      <section id="sch-achievements" class="sch-card sch-section sch-achievements-section">
         <h2 class="sch-section__title">Achievements</h2>
-        <div class="row g-3">
+        <div class="sch-achievements-grid">
           @foreach($achievements as $achievement)
-            <div class="col-md-6">
-              <article class="sch-achievement-card">
-                @if($achievement->imageUrl())
-                  <img src="{{ $achievement->imageUrl() }}" alt="">
-                @endif
-                <div>
-                  <div class="sch-achievement-card__meta">
-                    @if($achievement->category)<span>{{ $achievement->category }}</span>@endif
-                    @if($achievement->year)<span>{{ $achievement->year }}</span>@endif
-                  </div>
-                  <h3>{{ $achievement->title }}</h3>
-                  @if($achievement->description)<p>{{ $achievement->description }}</p>@endif
+            @php
+              $achievementImage = $achievement->imageUrl();
+              $metaParts = array_filter([$achievement->category, $achievement->year]);
+            @endphp
+            <article class="sch-achievement-card {{ $achievementImage ? 'sch-achievement-card--with-image' : 'sch-achievement-card--text-only' }}">
+              @if($achievementImage)
+                <div class="sch-achievement-card__media">
+                  <img src="{{ $achievementImage }}" alt="{{ $achievement->title }}">
                 </div>
-              </article>
-            </div>
+              @endif
+              <div class="sch-achievement-card__body">
+                @if($metaParts !== [])
+                  <p class="sch-achievement-card__meta">{{ implode(' ', $metaParts) }}</p>
+                @endif
+                <h3 class="sch-achievement-card__title">{{ $achievement->title }}</h3>
+                @if($achievement->description)
+                  <p class="sch-achievement-card__desc">{{ $achievement->description }}</p>
+                @endif
+              </div>
+            </article>
           @endforeach
         </div>
       </section>
@@ -172,27 +177,58 @@
     @endif
 
     @if($books->isNotEmpty())
-      <section id="sch-books" class="sch-card sch-section">
-        <h2 class="sch-section__title">Students Corner</h2>
-        <div class="row g-3">
-          @foreach($books as $book)
-            <div class="col-md-6 col-lg-4">
-              <article class="sch-book-card">
+      <section id="sch-books" class="sch-card sch-section sch-books-section">
+        <div class="sch-section__head sch-books-section__head">
+          <div>
+            <h2 class="sch-section__title mb-1">Students Corner</h2>
+            <p class="sch-section__lead mb-0">Textbooks and study resources used across classes.</p>
+          </div>
+        </div>
+        <div class="sch-books-grid">
+          @foreach($books as $index => $book)
+            @php
+              $subjectKey = strtolower((string) $book->subject);
+              $bookIcon = match (true) {
+                str_contains($subjectKey, 'math') => 'fa-calculator',
+                str_contains($subjectKey, 'phys') => 'fa-atom',
+                str_contains($subjectKey, 'chem') => 'fa-flask',
+                str_contains($subjectKey, 'bio') => 'fa-dna',
+                str_contains($subjectKey, 'english') => 'fa-feather-pointed',
+                str_contains($subjectKey, 'science') => 'fa-microscope',
+                default => 'fa-book-open',
+              };
+              $metaParts = array_filter([$book->class_name, $book->subject]);
+            @endphp
+            <article class="sch-book-card sch-book-card--row sch-book-card--tone-{{ ($index % 6) + 1 }}">
+              <div class="sch-book-card__media">
                 @if($book->coverUrl())
-                  <img src="{{ $book->coverUrl() }}" alt="{{ $book->title }}">
+                  <img src="{{ $book->coverUrl() }}" alt="" class="sch-book-card__cover-img">
+                @else
+                  <span class="sch-book-card__cover-icon" aria-hidden="true">
+                    <i class="fa-solid {{ $bookIcon }}"></i>
+                  </span>
                 @endif
-                <div>
-                  <h3>{{ $book->title }}</h3>
-                  <p>By {{ $book->author }}</p>
-                  @if($book->class_name || $book->subject)
-                    <div class="sch-book-card__tags">
-                      @if($book->class_name)<span>{{ $book->class_name }}</span>@endif
-                      @if($book->subject)<span>{{ $book->subject }}</span>@endif
-                    </div>
-                  @endif
-                </div>
-              </article>
-            </div>
+              </div>
+              <div class="sch-book-card__body">
+                @if($metaParts !== [])
+                  <p class="sch-book-card__meta">{{ implode(' · ', $metaParts) }}</p>
+                @endif
+                <h3 class="sch-book-card__title">{{ $book->title }}</h3>
+                <p class="sch-book-card__author">
+                  <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+                  <span>{{ $book->author }}</span>
+                </p>
+                @if($book->publisher)
+                  <p class="sch-book-card__publisher">{{ $book->publisher }}</p>
+                @endif
+                @if($book->class_name || $book->subject)
+                  <div class="sch-book-card__tags">
+                    @if($book->class_name)<span>{{ $book->class_name }}</span>@endif
+                    @if($book->subject)<span>{{ $book->subject }}</span>@endif
+                  </div>
+                @endif
+              </div>
+            </article>
           @endforeach
         </div>
       </section>
@@ -285,7 +321,13 @@
       @guest
         <p class="mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry to this school.</p>
       @else
-        <form id="schoolEnquiryForm" class="sch-enquiry-form">
+        <form
+          id="schoolEnquiryForm"
+          class="sch-enquiry-form"
+          method="post"
+          action="{{ route('schools.enquiry', $institute->slug) }}"
+          novalidate
+        >
           @csrf
           <div class="row g-3">
             <div class="col-md-6">

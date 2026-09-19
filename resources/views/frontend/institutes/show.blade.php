@@ -82,9 +82,11 @@
 </section>
 
 @if($notices->isNotEmpty())
-    <section class="vendor-store-section school-notice-section">
+    <section class="vendor-store-section school-notice-section" id="sch-notices" aria-label="Notice Board">
         <div class="container">
-            @include('frontend.institutes.partials.notice-board', ['notices' => $notices])
+            <div class="sch-notice-section__frame">
+                @include('frontend.institutes.partials.notice-board', ['notices' => $notices, 'featured' => true])
+            </div>
         </div>
     </section>
 @endif
@@ -409,7 +411,12 @@
                         @guest
                             <p class="text-secondary mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry.</p>
                         @else
-                            <form id="instituteEnquiryForm">
+                            <form
+                                id="instituteEnquiryForm"
+                                method="post"
+                                action="{{ route('institutes.enquiry', $institute->slug) }}"
+                                novalidate
+                            >
                                 @csrf
                                 <div class="row g-3">
                                     <div class="col-md-6">

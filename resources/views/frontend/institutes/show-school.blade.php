@@ -81,6 +81,14 @@
           @endforeach
         </div>
 
+        @if($institute->activeNotices->isNotEmpty())
+          <section class="sch-notice-section" id="sch-notices" aria-label="Notice Board">
+            <div class="sch-notice-section__frame sch-card">
+              @include('frontend.institutes.partials.notice-board', ['notices' => $institute->activeNotices, 'featured' => true])
+            </div>
+          </section>
+        @endif
+
         <div class="sch-tabs" role="tablist" aria-label="School profile sections">
           @foreach($tabItems as $index => $item)
             <a href="#{{ $item['id'] }}" class="sch-tab js-sch-nav-link {{ $index === 0 ? 'is-active' : '' }}">{{ $item['label'] }}</a>
@@ -115,5 +123,6 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
 @endpush

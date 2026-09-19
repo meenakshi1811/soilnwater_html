@@ -54,6 +54,7 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/vendor-store.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/institute-profile.js') }}?v={{ now()->timestamp }}" defer></script>
 @stack('institute_scripts')
 @endpush

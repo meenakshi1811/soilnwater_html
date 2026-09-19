@@ -15,16 +15,18 @@ class InstituteEnquiryReceivedMail extends Mailable
     public function __construct(
         public InstituteEnquiry $enquiry,
         public string $institutionName,
+        public string $enquiriesPortalUrl,
     ) {
     }
 
-    public static function forEnquiry(InstituteEnquiry $enquiry): self
+    public static function forEnquiry(InstituteEnquiry $enquiry, string $enquiriesPortalUrl): self
     {
         $enquiry->loadMissing('institute');
 
         return new self(
             enquiry: $enquiry,
             institutionName: $enquiry->institute?->displayName() ?? 'Institute',
+            enquiriesPortalUrl: $enquiriesPortalUrl,
         );
     }
 

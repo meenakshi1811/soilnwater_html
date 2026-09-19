@@ -1,8 +1,8 @@
-<div class="sch-manage-item" data-item-id="{{ $notice->id }}">
-  <div class="sch-manage-item__head">
+<div class="edu-notice-manage-item sch-manage-item" data-notice-id="{{ $notice->id }}" data-item-id="{{ $notice->id }}">
+  <div class="edu-notice-manage-item__head sch-manage-item__head">
     <div>
       <strong>{{ $notice->displayTitle() }}</strong>
-      <div class="sch-manage-item__meta">
+      <div class="edu-notice-manage-item__meta sch-manage-item__meta">
         Expires {{ $notice->expires_at?->format('d M Y') }}
         @if($notice->isExpired())
           <span class="badge text-bg-secondary ms-1">Expired</span>
@@ -15,5 +15,5 @@
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>
-  <p class="mb-0 text-secondary">{{ $notice->message }}</p>
+  <p class="edu-notice-manage-item__message mb-0">{{ $notice->message }}</p>
 </div>

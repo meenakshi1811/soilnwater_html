@@ -110,10 +110,14 @@
             $.ajax(ajaxOptions)
                 .done(function (response) {
                     notify('success', response.message || 'Saved successfully.');
-                    if (response.item_html) {
-                        prependItem(listSelector, emptySelector, response.item_html);
-                    }
-                    $form[0].reset();
+                if (response.item_html) {
+                    prependItem(listSelector, emptySelector, response.item_html);
+                }
+                $form[0].reset();
+                var expiresField = $form.find('input[name="expires_at"]');
+                if (expiresField.length) {
+                    expiresField.attr('min', new Date().toISOString().slice(0, 10));
+                }
                 })
                 .fail(showValidationErrors)
                 .always(function () {

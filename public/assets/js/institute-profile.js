@@ -195,65 +195,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    var form = document.getElementById('instituteEnquiryForm');
-    if (!form) {
-        return;
+    if (typeof window.initInstituteEnquiryForm === 'function') {
+        window.initInstituteEnquiryForm({
+            form: document.getElementById('instituteEnquiryForm'),
+            enquiryUrl: pageRoot.dataset.enquiryUrl,
+            loginUrl: pageRoot.dataset.loginUrl,
+            feedbackEl: document.getElementById('instituteEnquiryFeedback'),
+            submitBtn: document.querySelector('.js-institute-enquiry-submit'),
+        });
     }
-
-    var enquiryUrl = pageRoot.dataset.enquiryUrl;
-    var feedback = document.getElementById('instituteEnquiryFeedback');
-    var submitBtn = form.querySelector('.js-institute-enquiry-submit');
-    var btnText = submitBtn?.querySelector('.js-enquiry-btn-text');
-    var btnSending = submitBtn?.querySelector('.js-enquiry-btn-sending');
-
-    form.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        if (!enquiryUrl || !submitBtn) {
-            return;
-        }
-
-        submitBtn.disabled = true;
-        if (btnText) btnText.classList.add('d-none');
-        if (btnSending) btnSending.classList.remove('d-none');
-        if (feedback) {
-            feedback.classList.add('d-none');
-            feedback.classList.remove('alert-success', 'alert-danger');
-        }
-
-        try {
-            var response = await fetch(enquiryUrl, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: new FormData(form),
-            });
-
-            var payload = await response.json().catch(function () { return {}; });
-
-            if (!response.ok) {
-                throw new Error(payload.message || 'Unable to send enquiry.');
-            }
-
-            if (feedback) {
-                feedback.textContent = payload.message || 'Enquiry sent successfully.';
-                feedback.classList.remove('d-none');
-                feedback.classList.add('alert-success');
-            }
-
-            form.reset();
-        } catch (error) {
-            if (feedback) {
-                feedback.textContent = error.message || 'Unable to send enquiry.';
-                feedback.classList.remove('d-none');
-                feedback.classList.add('alert-danger');
-            }
-        } finally {
-            submitBtn.disabled = false;
-            if (btnText) btnText.classList.remove('d-none');
-            if (btnSending) btnSending.classList.add('d-none');
-        }
-    });
 });

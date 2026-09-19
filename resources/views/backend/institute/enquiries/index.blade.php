@@ -16,6 +16,7 @@
                 <thead>
                 <tr>
                     <th>Date</th>
+                    <th>Status</th>
                     <th>From</th>
                     <th>Subject</th>
                     <th>Message</th>
@@ -26,7 +27,19 @@
                 @forelse($enquiries as $enquiry)
                     <tr>
                         <td>{{ $enquiry->created_at?->format('Y-m-d H:i') }}</td>
-                        <td>{{ $enquiry->name }}</td>
+                        <td>
+                            @if($enquiry->status === 'new')
+                                <span class="badge bg-warning text-dark">New</span>
+                            @else
+                                <span class="badge bg-light text-secondary border">Seen</span>
+                            @endif
+                        </td>
+                        <td>
+                            {{ $enquiry->name }}
+                            @if($enquiry->user)
+                                <div class="small text-muted">Account: {{ $enquiry->user->name }}</div>
+                            @endif
+                        </td>
                         <td>{{ $enquiry->subject ?: '—' }}</td>
                         <td style="white-space:pre-wrap">{{ $enquiry->message }}</td>
                         <td>
@@ -35,7 +48,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-secondary py-4">No enquiries yet.</td></tr>
+                    <tr><td colspan="6" class="text-center text-secondary py-4">No enquiries yet.</td></tr>
                 @endforelse
                 </tbody>
             </table>

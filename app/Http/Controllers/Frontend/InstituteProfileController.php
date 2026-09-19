@@ -7,6 +7,7 @@ use App\Mail\InstituteEnquiryReceivedMail;
 use App\Models\Institute;
 use App\Models\InstituteEnquiry;
 use App\Services\PortalNotificationService;
+use App\Support\SchoolInstituteHelper;
 use App\Support\SchoolProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -79,12 +80,15 @@ class InstituteProfileController extends Controller
 
         $owner = $institute->user;
         $fromName = $enquiry->name ?: 'Someone';
+        $portalPrefix = $ownerRole === 'school' ? 'school' : 'institute';
+        $enquiriesPortalUrl = $owner?->portalRoute('enquiries.index')
+            ?? SchoolInstituteHelper::routeForPrefix($portalPrefix, 'enquiries.index');
 
         PortalNotificationService::notifyUser(
             $owner,
             'New enquiry received',
             $fromName.' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.'),
-            $institute->user?->portalRoute('enquiries.index') ?? \App\Support\SchoolInstituteHelper::routeForPrefix('school', 'enquiries.index'),
+            $enquiriesPortalUrl,
             'engagement'
         );
 
@@ -92,7 +96,7 @@ class InstituteProfileController extends Controller
         $recipient = $institute->email ?: $owner?->email;
         if ($recipient) {
             try {
-                Mail::to($recipient)->send(InstituteEnquiryReceivedMail::forEnquiry($enquiry));
+                Mail::to($recipient)->send(InstituteEnquiryReceivedMail::forEnquiry($enquiry, $enquiriesPortalUrl));
                 $emailSent = true;
             } catch (\Throwable $e) {
                 Log::error('Failed to send institute enquiry mail', [
@@ -106,7 +110,7 @@ class InstituteProfileController extends Controller
         $message = 'Enquiry sent successfully.'
             .($emailSent ? ' The institute has been notified by email and portal.' : ' The institute has been notified in the portal.');
 
-        if ($request->expectsJson() || $request->ajax()) {
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'ok' => true,
                 'message' => $message,
