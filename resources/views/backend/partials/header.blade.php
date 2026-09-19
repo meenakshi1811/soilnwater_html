@@ -117,7 +117,7 @@
                 </div>
             </div>
             @endif
-            @if(! $isStudent)
+            @if(! $isStudent && ! $isActingAsChild)
                 <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
             @endif
             <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}">
