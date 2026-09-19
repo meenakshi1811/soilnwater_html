@@ -45,7 +45,7 @@ class EducatorProfileController extends Controller
         $questionPapersTotal = (clone $questionPapersQuery)->count();
         $questionPapers = $questionPapersQuery->latest()->limit(3)->get();
 
-        $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 100);
+        $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 5);
         $profileReviews = $profileReviewsPage['items'];
         $profileReviewsTotal = $profileReviewsPage['total'];
         $profileReviewsHasMore = $profileReviewsPage['has_more'];

@@ -675,90 +675,185 @@ document.addEventListener('DOMContentLoaded', function () {
     paintStars(ratingInput?.value || 5);
 
     var reviewsListUrl = reviewSection.dataset.reviewsUrl;
+    var reviewsPreviewLimit = parseInt(reviewSection.dataset.reviewsPreviewLimit || '5', 10);
     var reviewsList = document.getElementById('educatorReviewsList');
-    var loadMoreWrap = document.getElementById('educatorReviewsLoadMore');
-    var loadMoreBtn = document.querySelector('.js-edu-reviews-load-more');
+    var seeAllWrap = document.getElementById('educatorReviewsSeeAll');
+    var seeAllBtn = document.querySelector('.js-edu-reviews-see-all');
+    var reviewsModalEl = document.getElementById('educatorReviewsModal');
+    var reviewsModalList = document.getElementById('educatorReviewsModalList');
+    var reviewsModalSentinel = document.getElementById('educatorReviewsModalSentinel');
+    var reviewsModalLoading = document.getElementById('educatorReviewsModalLoading');
+    var reviewsModalEmpty = document.getElementById('educatorReviewsModalEmpty');
+    var reviewsModalBody = reviewsModalEl?.querySelector('.edu-reviews-modal__body');
 
-    function updateLoadMoreButton(loadedCount, totalCount, hasMore) {
-        if (!loadMoreBtn) {
+    var modalReviewsState = {
+        offset: 0,
+        hasMore: true,
+        isLoading: false,
+        initialized: false,
+    };
+
+    function formatReviewCount(count) {
+        return Number(count || 0).toLocaleString();
+    }
+
+    function updateSeeAllVisibility(totalCount) {
+        if (!seeAllWrap) {
             return;
         }
 
-        loadMoreBtn.dataset.offset = String(loadedCount);
+        seeAllWrap.classList.toggle('d-none', Number(totalCount || 0) <= reviewsPreviewLimit);
 
-        var meta = loadMoreBtn.querySelector('.btn-meta');
-        var remaining = Math.max(0, totalCount - loadedCount);
+        seeAllWrap.querySelectorAll('.js-edu-see-all-count').forEach(function (el) {
+            el.textContent = formatReviewCount(totalCount);
+        });
 
-        if (meta) {
-            meta.textContent = remaining > 0 ? '(' + remaining + ' remaining)' : '';
+        document.querySelectorAll('.js-edu-modal-reviews-count').forEach(function (el) {
+            el.textContent = formatReviewCount(totalCount);
+        });
+    }
+
+    function trimMainReviewsList(maxCount) {
+        if (!reviewsList) {
+            return;
         }
 
-        if (!hasMore && loadMoreWrap) {
-            loadMoreWrap.remove();
+        var items = reviewsList.querySelectorAll('.edu-review');
+        for (var i = maxCount; i < items.length; i += 1) {
+            items[i].remove();
         }
     }
 
-    async function loadMoreReviews() {
-        if (!loadMoreBtn || !reviewsListUrl || loadMoreBtn.classList.contains('is-loading')) {
+    function resetModalReviewsState() {
+        modalReviewsState.offset = 0;
+        modalReviewsState.hasMore = true;
+        modalReviewsState.isLoading = false;
+        modalReviewsState.initialized = false;
+
+        if (reviewsModalList) {
+            reviewsModalList.innerHTML = '';
+        }
+
+        reviewsModalEmpty?.classList.add('d-none');
+        reviewsModalLoading?.classList.add('d-none');
+    }
+
+    async function fetchReviewsPage(offset) {
+        if (!reviewsListUrl) {
+            throw new Error('Reviews endpoint unavailable.');
+        }
+
+        var url = new URL(reviewsListUrl, window.location.origin);
+        url.searchParams.set('offset', String(offset));
+
+        var response = await fetch(url.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                Accept: 'application/json',
+            },
+        });
+
+        var data = await response.json().catch(function () {
+            return {};
+        });
+
+        if (!response.ok || data.ok === false) {
+            throw new Error(data.message || 'Unable to load reviews.');
+        }
+
+        return data;
+    }
+
+    async function loadModalReviews(reset) {
+        if (modalReviewsState.isLoading) {
             return;
         }
 
-        var offset = parseInt(loadMoreBtn.dataset.offset || '0', 10);
-        var btnText = loadMoreBtn.querySelector('.btn-text');
+        if (!reset && !modalReviewsState.hasMore) {
+            return;
+        }
 
-        loadMoreBtn.classList.add('is-loading');
-        if (reviewsList) {
-            reviewsList.classList.add('is-loading');
-        }
-        if (btnText) {
-            btnText.textContent = 'Loading...';
-        }
+        modalReviewsState.isLoading = true;
+        reviewsModalLoading?.classList.remove('d-none');
 
         try {
-            var url = new URL(reviewsListUrl, window.location.origin);
-            url.searchParams.set('offset', String(offset));
+            var offset = reset ? 0 : modalReviewsState.offset;
+            var data = await fetchReviewsPage(offset);
 
-            var response = await fetch(url.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    Accept: 'application/json',
-                },
-            });
-
-            var data = await response.json().catch(function () {
-                return {};
-            });
-
-            if (!response.ok || data.ok === false) {
-                throw new Error(data.message || 'Unable to load more reviews.');
+            if (reset && reviewsModalList) {
+                reviewsModalList.innerHTML = '';
             }
 
-            if (data.reviews_html && reviewsList) {
-                reviewsList.insertAdjacentHTML('beforeend', data.reviews_html);
+            if (data.reviews_html && reviewsModalList) {
+                reviewsModalList.insertAdjacentHTML('beforeend', data.reviews_html);
             }
 
-            updateLoadMoreButton(
-                data.loaded_count || 0,
-                data.total_count || 0,
-                !!data.has_more
-            );
+            modalReviewsState.offset = data.loaded_count || 0;
+            modalReviewsState.hasMore = !!data.has_more;
+            modalReviewsState.initialized = true;
 
-            reviewSection.dataset.reviewsTotal = String(data.total_count || 0);
+            var totalCount = data.total_count || 0;
+            reviewSection.dataset.reviewsTotal = String(totalCount);
+            updateSeeAllVisibility(totalCount);
+
+            if (totalCount === 0) {
+                reviewsModalEmpty?.classList.remove('d-none');
+            } else {
+                reviewsModalEmpty?.classList.add('d-none');
+            }
         } catch (error) {
-            notify('error', error.message || 'Unable to load more reviews.');
+            notify('error', error.message || 'Unable to load reviews.');
         } finally {
-            loadMoreBtn.classList.remove('is-loading');
-            if (reviewsList) {
-                reviewsList.classList.remove('is-loading');
-            }
-            if (btnText && loadMoreBtn.isConnected) {
-                btnText.textContent = 'See more reviews';
-            }
+            modalReviewsState.isLoading = false;
+            reviewsModalLoading?.classList.add('d-none');
         }
     }
 
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadMoreReviews);
+    function openReviewsModal() {
+        if (!reviewsModalEl || !window.bootstrap) {
+            return;
+        }
+
+        var modal = window.bootstrap.Modal.getOrCreateInstance(reviewsModalEl);
+
+        if (!modalReviewsState.initialized) {
+            loadModalReviews(true);
+        }
+
+        modal.show();
+    }
+
+    if (seeAllBtn) {
+        seeAllBtn.addEventListener('click', openReviewsModal);
+    }
+
+    if (reviewsModalEl) {
+        reviewsModalEl.addEventListener('hidden.bs.modal', function () {
+            resetModalReviewsState();
+        });
+    }
+
+    if (reviewsModalSentinel && reviewsModalBody && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting && modalReviewsState.initialized) {
+                    loadModalReviews(false);
+                }
+            });
+        }, {
+            root: reviewsModalBody,
+            rootMargin: '120px 0px',
+        }).observe(reviewsModalSentinel);
+    } else if (reviewsModalBody) {
+        reviewsModalBody.addEventListener('scroll', function () {
+            if (!modalReviewsState.initialized || modalReviewsState.isLoading || !modalReviewsState.hasMore) {
+                return;
+            }
+
+            if (reviewsModalBody.scrollTop + reviewsModalBody.clientHeight >= reviewsModalBody.scrollHeight - 120) {
+                loadModalReviews(false);
+            }
+        }, { passive: true });
     }
 
     var reviewForm = document.getElementById('educatorReviewForm');
@@ -826,26 +921,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 var existing = data.review_key
                     ? list.querySelector('[data-review-id="' + data.review_key + '"]')
                     : null;
-                var isNewReview = !existing;
 
                 if (existing) {
                     existing.remove();
                 }
+
                 list.insertAdjacentHTML('afterbegin', data.review_html);
+                trimMainReviewsList(reviewsPreviewLimit);
+            }
 
-                if (loadMoreBtn && isNewReview) {
-                    var loadedOffset = parseInt(loadMoreBtn.dataset.offset || String(list.querySelectorAll('.edu-review').length - 1), 10);
-                    loadMoreBtn.dataset.offset = String(loadedOffset + 1);
+            var totalCount = Number(data.reviews_count || reviewSection.dataset.reviewsTotal || 0);
+            reviewSection.dataset.reviewsTotal = String(totalCount);
+            updateSeeAllVisibility(totalCount);
 
-                    var totalCount = parseInt(reviewSection.dataset.reviewsTotal || '0', 10) + 1;
-                    reviewSection.dataset.reviewsTotal = String(totalCount);
-
-                    var remaining = Math.max(0, totalCount - parseInt(loadMoreBtn.dataset.offset || '0', 10));
-                    var meta = loadMoreBtn.querySelector('.btn-meta');
-                    if (meta) {
-                        meta.textContent = remaining > 0 ? '(' + remaining + ' remaining)' : '';
-                    }
-                }
+            if (reviewsModalEl?.classList.contains('show')) {
+                loadModalReviews(true);
+            } else {
+                resetModalReviewsState();
             }
 
             if (data.testimonial_html) {

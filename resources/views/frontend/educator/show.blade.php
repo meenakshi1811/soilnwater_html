@@ -652,6 +652,7 @@
             data-review-url="{{ route('educator.review', $educator->slug) }}"
             data-reviews-url="{{ route('educator.reviews', $educator->slug) }}"
             data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
+            data-reviews-preview-limit="5"
           >
             <div class="edu-reviews-summary">
               <div class="edu-reviews-summary__score">
@@ -679,18 +680,16 @@
               @endforelse
             </div>
 
-            @if(($profileReviewsHasMore ?? false))
-              <div class="edu-reviews-load-more" id="educatorReviewsLoadMore">
-                <button
-                  type="button"
-                  class="edu-btn edu-btn-outline edu-reviews-load-more__btn js-edu-reviews-load-more"
-                  data-offset="{{ ($profileReviews ?? collect())->count() }}"
-                >
-                  <span class="btn-text">See more reviews</span>
-                  <span class="btn-meta">({{ max(0, (int) ($profileReviewsTotal ?? 0) - ($profileReviews ?? collect())->count()) }} remaining)</span>
-                </button>
-              </div>
-            @endif
+            <div class="edu-reviews-see-all {{ ($profileReviewsTotal ?? 0) > 5 ? '' : 'd-none' }}" id="educatorReviewsSeeAll">
+              <button
+                type="button"
+                class="edu-btn edu-btn-outline edu-reviews-see-all__btn js-edu-reviews-see-all"
+                aria-controls="educatorReviewsModal"
+              >
+                <span class="btn-text">See all reviews</span>
+                <span class="btn-meta">(<span class="js-edu-see-all-count">{{ number_format($profileReviewsTotal ?? 0) }}</span> total)</span>
+              </button>
+            </div>
 
             @if(! auth()->check() || ($canWriteReview ?? false))
             <div class="edu-review-compose" id="educatorReviewCompose">
@@ -942,6 +941,51 @@
           @endforelse
         </div>
       </aside>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="educatorReviewsModal" tabindex="-1" aria-labelledby="educatorReviewsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable edu-reviews-modal__dialog">
+    <div class="modal-content edu-reviews-modal">
+      <div class="modal-header edu-reviews-modal__header">
+        <div class="edu-reviews-modal__header-copy">
+          <h5 class="modal-title" id="educatorReviewsModalLabel">
+            <i class="fa-solid fa-star" aria-hidden="true"></i> All Reviews
+          </h5>
+          <p class="edu-reviews-modal__subtitle mb-0">
+            <span class="js-edu-modal-reviews-count">{{ number_format($profileReviewsTotal ?? 0) }}</span> reviews for {{ $educator->display_name }}
+          </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body edu-reviews-modal__body">
+        <div class="edu-reviews-modal__summary">
+          <div class="edu-reviews-modal__score">
+            <strong class="js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
+            <span>out of 5</span>
+          </div>
+          <div class="edu-reviews-modal__stars" aria-hidden="true">
+            @for($s = 1; $s <= 5; $s++)
+              <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star"></i>
+            @endfor
+          </div>
+          <p class="edu-reviews-modal__summary-note mb-0">Profile and study material reviews</p>
+        </div>
+        <div id="educatorReviewsModalList" class="edu-reviews-modal__list"></div>
+        <div id="educatorReviewsModalSentinel" class="edu-reviews-modal__sentinel" aria-hidden="true"></div>
+        <div id="educatorReviewsModalLoading" class="edu-reviews-modal__loading d-none" aria-live="polite">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <span>Loading more reviews...</span>
+        </div>
+        <div id="educatorReviewsModalEmpty" class="edu-reviews-modal__empty d-none">
+          <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
+          <p class="mb-0">No reviews yet.</p>
+        </div>
+      </div>
+      <div class="modal-footer edu-reviews-modal__footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>
