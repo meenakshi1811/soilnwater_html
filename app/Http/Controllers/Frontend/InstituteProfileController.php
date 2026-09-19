@@ -7,6 +7,7 @@ use App\Mail\InstituteEnquiryReceivedMail;
 use App\Models\Institute;
 use App\Models\InstituteEnquiry;
 use App\Services\PortalNotificationService;
+use App\Support\SchoolProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,8 +31,13 @@ class InstituteProfileController extends Controller
     {
         $institute = $this->findApprovedProfile($slug, $ownerRole);
 
-        return view('frontend.institutes.show', [
+        $view = $ownerRole === 'school'
+            ? 'frontend.institutes.show-school'
+            : 'frontend.institutes.show';
+
+        return view($view, [
             'institute' => $institute,
+            'profile' => $ownerRole === 'school' ? new SchoolProfilePresenter($institute) : null,
             'ownerRole' => $ownerRole,
             'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
             'activeNav' => 'home',
