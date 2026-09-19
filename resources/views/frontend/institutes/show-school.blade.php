@@ -58,9 +58,9 @@
       <main class="sch-main">
         @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle'))
 
-        <div class="sch-quick-stats">
-          @foreach($profile->quickStats() as $stat)
-            <article class="sch-quick-stat">
+        <div class="sch-card sch-quick-stats">
+          @foreach($profile->quickStats() as $index => $stat)
+            <article class="sch-quick-stat sch-quick-stat--tone-{{ ($index % 6) + 1 }}">
               <span class="sch-quick-stat__icon"><i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i></span>
               <div>
                 <strong>{{ $stat['value'] }}</strong>

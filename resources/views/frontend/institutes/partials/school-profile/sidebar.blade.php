@@ -1,12 +1,4 @@
-<aside class="sch-sidebar" aria-label="School actions and contact">
-  <div class="sch-sidebar__stack">
-    <a href="#sch-contact" class="sch-btn sch-btn-primary sch-btn-block js-sch-nav-link">Enquire Now</a>
-    <button type="button" class="sch-btn sch-btn-outline sch-btn-block js-sch-brochure">Download Brochure</button>
-    <button type="button" class="sch-btn sch-btn-outline sch-btn-block js-sch-compare">Compare</button>
-    <button type="button" class="sch-btn sch-btn-outline sch-btn-block js-sch-follow">Follow School</button>
-    <button type="button" class="sch-btn sch-btn-outline sch-btn-block js-sch-share">Share Profile</button>
-  </div>
-
+<aside class="sch-sidebar" aria-label="School contact and highlights">
   <div class="sch-card sch-contact-card">
     <h2>Contact Information</h2>
     @if($institute->formattedAddress())
