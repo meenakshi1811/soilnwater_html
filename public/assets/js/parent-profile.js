@@ -110,8 +110,14 @@
     });
 
     function hideGooglePlacesDropdown() {
+        if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.dismissPacDropdown === 'function') {
+            window.SoilnWaterGooglePlaces.dismissPacDropdown();
+            return;
+        }
+
         document.querySelectorAll('.pac-container').forEach(function (container) {
             container.style.display = 'none';
+            container.style.visibility = 'hidden';
         });
     }
 

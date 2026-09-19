@@ -118,16 +118,86 @@
         }
     }
 
+    var activePacInput = null;
+
+    function hidePacContainers() {
+        document.querySelectorAll('.pac-container').forEach(function (container) {
+            container.style.display = 'none';
+            container.style.visibility = 'hidden';
+            container.style.opacity = '0';
+            container.style.pointerEvents = 'none';
+        });
+    }
+
     function dismissPacDropdown(input) {
-        if (input && typeof input.blur === 'function') {
-            input.blur();
+        var target = input || activePacInput;
+
+        if (target && typeof target.blur === 'function') {
+            target.blur();
         }
 
-        window.setTimeout(function () {
-            document.querySelectorAll('.pac-container').forEach(function (container) {
-                container.style.display = 'none';
+        hidePacContainers();
+
+        [50, 150, 350].forEach(function (delay) {
+            window.setTimeout(hidePacContainers, delay);
+        });
+    }
+
+    function reparentPacContainerForInput(input) {
+        if (!input) {
+            return;
+        }
+
+        var modal = input.closest('.modal');
+
+        window.requestAnimationFrame(function () {
+            document.querySelectorAll('.pac-container').forEach(function (pac) {
+                if (modal && pac.parentNode !== modal) {
+                    modal.appendChild(pac);
+                }
+
+                pac.style.zIndex = '2000';
+                pac.style.position = 'absolute';
             });
-        }, 0);
+        });
+    }
+
+    function trackPacInput(input) {
+        if (!input || input.dataset.pacInputTrackingBound === 'true') {
+            return;
+        }
+
+        input.dataset.pacInputTrackingBound = 'true';
+
+        input.addEventListener('focus', function () {
+            activePacInput = input;
+
+            document.querySelectorAll('.pac-container').forEach(function (pac) {
+                pac.style.display = '';
+                pac.style.visibility = '';
+                pac.style.opacity = '';
+                pac.style.pointerEvents = '';
+            });
+
+            reparentPacContainerForInput(input);
+        });
+
+        input.addEventListener('input', function () {
+            activePacInput = input;
+            reparentPacContainerForInput(input);
+        });
+
+        input.addEventListener('blur', function () {
+            window.setTimeout(function () {
+                var active = document.activeElement;
+
+                if (active && active.closest && active.closest('.pac-container')) {
+                    return;
+                }
+
+                dismissPacDropdown(input);
+            }, 200);
+        });
     }
 
     function ensurePacContainerModalSupport() {
@@ -147,6 +217,20 @@
             if (event.target.closest('.pac-container')) {
                 event.stopPropagation();
             }
+        }, true);
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.pac-item')) {
+                return;
+            }
+
+            var input = activePacInput;
+            window.setTimeout(function () {
+                dismissPacDropdown(input);
+            }, 50);
+            window.setTimeout(function () {
+                dismissPacDropdown(input);
+            }, 250);
         }, true);
     }
 
@@ -175,6 +259,7 @@
         var usesCoordinates = Boolean(latitudeInput && longitudeInput);
 
         ensurePacContainerModalSupport();
+        trackPacInput(input);
 
         bindAutocomplete(input, {
             types: ['establishment'],
@@ -231,6 +316,7 @@
 
         input.dataset.googlePlacesReady = 'true';
         input._soilnwaterPlacesAutocomplete = autocomplete;
+        trackPacInput(input);
 
         autocomplete.addListener('place_changed', function () {
             var place = autocomplete.getPlace();
@@ -258,5 +344,7 @@
         buildOptions: buildOptions,
         bindAutocomplete: bindAutocomplete,
         initSchoolInstituteSearchFields: initSchoolInstituteSearchFields,
+        dismissPacDropdown: dismissPacDropdown,
+        hidePacContainers: hidePacContainers,
     };
 })(window);

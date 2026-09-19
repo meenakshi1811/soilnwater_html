@@ -804,6 +804,7 @@
 
 .parent-child-field-with-icon {
     position: relative;
+    z-index: 2;
 }
 
 .parent-child-field-with-icon i {
@@ -830,35 +831,57 @@
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
-    padding: 0.9rem 1rem;
+    margin-top: 0.35rem;
+    padding: 1rem 1.05rem;
     border: 1px dashed #cbd5e1;
     border-radius: 12px;
     background: #f8fafc;
+    position: relative;
+    z-index: 1;
 }
 
-.parent-child-board-panel__toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    margin: 0;
-    min-height: auto;
-    padding: 0;
+.parent-child-board-panel__toggle.form-check.form-switch {
+    min-height: 2.75rem;
+    padding-left: 3.1rem;
+    margin-bottom: 0;
 }
 
 .parent-child-board-panel__toggle .form-check-input {
-    width: 2.5rem;
+    width: 2.6rem;
     height: 1.35rem;
-    margin-top: 0;
+    margin-left: -3.1rem;
+    margin-top: 0.15rem;
+    cursor: pointer;
 }
 
 .parent-child-board-panel__toggle .form-check-label {
-    font-size: 0.9rem;
+    display: block;
+    padding-top: 0.05rem;
+    cursor: pointer;
+}
+
+.parent-child-board-panel__label {
+    display: block;
+    font-size: 0.92rem;
     font-weight: 600;
     color: #334155;
+    line-height: 1.35;
+}
+
+.parent-child-board-panel__help {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #64748b;
+    line-height: 1.4;
 }
 
 .parent-child-board-panel__field {
     padding-top: 0.15rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.15rem;
+    padding-top: 0.85rem;
 }
 
 .parent-child-primary-check {

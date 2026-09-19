@@ -70,7 +70,10 @@
                                 <div class="parent-child-board-panel">
                                     <div class="form-check form-switch parent-child-board-panel__toggle">
                                         <input class="form-check-input js-child-has-board" type="checkbox" role="switch" value="1" id="child_has_board" name="has_board">
-                                        <label class="form-check-label" for="child_has_board">This child follows a board syllabus</label>
+                                        <label class="form-check-label" for="child_has_board">
+                                            <span class="parent-child-board-panel__label">This child follows a board syllabus</span>
+                                            <small class="parent-child-board-panel__help">Turn on for CBSE, ICSE, State Board, etc.</small>
+                                        </label>
                                     </div>
                                     <div class="js-child-board-wrap parent-child-board-panel__field d-none">
                                         <label for="child_board" class="form-label">Board <span class="text-danger">*</span></label>
