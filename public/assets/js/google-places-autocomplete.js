@@ -118,6 +118,38 @@
         }
     }
 
+    function dismissPacDropdown(input) {
+        if (input && typeof input.blur === 'function') {
+            input.blur();
+        }
+
+        window.setTimeout(function () {
+            document.querySelectorAll('.pac-container').forEach(function (container) {
+                container.style.display = 'none';
+            });
+        }, 0);
+    }
+
+    function ensurePacContainerModalSupport() {
+        if (window._soilnwaterPacContainerBound) {
+            return;
+        }
+
+        window._soilnwaterPacContainerBound = true;
+
+        document.addEventListener('mousedown', function (event) {
+            if (event.target.closest('.pac-container')) {
+                event.stopPropagation();
+            }
+        }, true);
+
+        document.addEventListener('touchstart', function (event) {
+            if (event.target.closest('.pac-container')) {
+                event.stopPropagation();
+            }
+        }, true);
+    }
+
     function bindSchoolInstituteInput(input) {
         if (!input || input.dataset.googlePlacesReady === 'true') {
             return;
@@ -141,6 +173,8 @@
         var latitudeInput = resolveInputTarget(input, 'latitudeTarget');
         var longitudeInput = resolveInputTarget(input, 'longitudeTarget');
         var usesCoordinates = Boolean(latitudeInput && longitudeInput);
+
+        ensurePacContainerModalSupport();
 
         bindAutocomplete(input, {
             types: ['establishment'],
@@ -203,6 +237,10 @@
 
             if (typeof options.onPlaceChanged === 'function') {
                 options.onPlaceChanged(place, autocomplete);
+            }
+
+            if (!options.skipDismissPacDropdown) {
+                dismissPacDropdown(input);
             }
         });
 

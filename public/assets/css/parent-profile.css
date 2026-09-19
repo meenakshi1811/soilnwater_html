@@ -686,7 +686,7 @@
     }
 }
 
-/* ── Add child modal scroll fix ── */
+/* ── Add child modal ── */
 .parent-child-modal .modal-dialog {
     max-height: calc(100dvh - 2rem);
     margin: 1rem auto;
@@ -697,6 +697,30 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+}
+
+.parent-child-modal__header {
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--parent-border);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.parent-child-modal__header .modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.parent-child-modal__subtitle {
+    margin-top: 0.25rem;
+    font-size: 0.86rem;
+    color: #64748b;
+    max-width: 38rem;
 }
 
 .parent-child-modal__form {
@@ -709,11 +733,22 @@
 
 .pac-container {
     z-index: 2000 !important;
+    border-radius: 12px;
+    border: 1px solid #dbe4f2;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    margin-top: 4px;
+    font-family: inherit;
 }
 
-.parent-board-toggle {
-    min-height: 38px;
-    padding-bottom: 0.25rem;
+.pac-item {
+    padding: 0.65rem 0.85rem;
+    line-height: 1.45;
+    cursor: pointer;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+    background: #eff6ff;
 }
 
 .parent-child-modal__body {
@@ -721,13 +756,138 @@
     flex: 1 1 auto;
     min-height: 0;
     max-height: none !important;
+    padding: 1.25rem 1.5rem;
+    background: #f8fafc;
     -webkit-overflow-scrolling: touch;
 }
 
-.parent-child-modal .modal-footer {
+.parent-child-form-section {
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.parent-child-form-section--last {
+    margin-bottom: 0;
+}
+
+.parent-child-form-section__title {
+    margin: 0 0 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.parent-child-form-section .form-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.35rem;
+}
+
+.parent-child-form-section .form-control,
+.parent-child-form-section .form-select {
+    min-height: 42px;
+    border-color: #dbe4f2;
+    border-radius: 10px;
+}
+
+.parent-child-form-section .form-control:focus,
+.parent-child-form-section .form-select:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
+}
+
+.parent-child-field-with-icon {
+    position: relative;
+}
+
+.parent-child-field-with-icon i {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
+}
+
+.parent-child-field-with-icon .form-control {
+    padding-left: 2.35rem;
+}
+
+.parent-child-field-hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.parent-child-board-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 0.9rem 1rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.parent-child-board-panel__toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0;
+    min-height: auto;
+    padding: 0;
+}
+
+.parent-child-board-panel__toggle .form-check-input {
+    width: 2.5rem;
+    height: 1.35rem;
+    margin-top: 0;
+}
+
+.parent-child-board-panel__toggle .form-check-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.parent-child-board-panel__field {
+    padding-top: 0.15rem;
+}
+
+.parent-child-primary-check {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.parent-child-primary-check .form-check-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.parent-child-modal__footer {
     flex-shrink: 0;
     border-top: 1px solid var(--parent-border);
     background: #fff;
+    padding: 0.9rem 1.5rem 1.15rem;
+}
+
+.parent-child-modal__footer .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
 }
 
 @media (max-width: 767.98px) {

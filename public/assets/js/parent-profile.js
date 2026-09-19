@@ -104,13 +104,31 @@
     $(document).on('change', '.js-child-has-board', syncChildBoardField);
 
     $(document).on('shown.bs.modal', '#addChildModal', function () {
+        hideGooglePlacesDropdown();
         initChildSchoolAutocomplete();
         syncChildBoardField();
     });
 
-    $(document).on('hidden.bs.modal', '#addChildModal', function () {
+    function hideGooglePlacesDropdown() {
+        document.querySelectorAll('.pac-container').forEach(function (container) {
+            container.style.display = 'none';
+        });
+    }
+
+    function resetAddChildForm() {
+        var form = document.getElementById('addChildForm');
+
+        if (form) {
+            form.reset();
+        }
+
         $('#child_has_board').prop('checked', false);
         syncChildBoardField();
+        hideGooglePlacesDropdown();
+    }
+
+    $(document).on('hidden.bs.modal', '#addChildModal', function () {
+        resetAddChildForm();
     });
 
     // Add child form
