@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Institute\InstituteDashboardController;
+use App\Http\Controllers\Institute\InstituteDiaryController;
+use App\Http\Controllers\Institute\InstituteDiaryHolidayController;
 use App\Http\Controllers\Institute\InstituteEngagementPortalController;
 use App\Http\Controllers\Institute\InstituteEnquiryController;
+use App\Http\Controllers\Institute\InstituteLeaveRuleController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
 use App\Http\Controllers\Institute\InstitutePublicContentController;
@@ -16,6 +19,13 @@ Route::prefix('school')->name('school.')->middleware(['school.account'])->group(
     Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('school')->name('public-page.edit');
     Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('school')->name('enquiries.index');
     Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('school')->name('engagement.index');
+    Route::get('/diary', [InstituteDiaryController::class, 'index'])->middleware('school')->name('diary.index');
+    Route::post('/diary/holidays', [InstituteDiaryHolidayController::class, 'store'])->middleware('school')->name('diary.holidays.store');
+    Route::put('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'update'])->middleware('school')->name('diary.holidays.update');
+    Route::delete('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'destroy'])->middleware('school')->name('diary.holidays.destroy');
+    Route::post('/diary/leave-rules', [InstituteLeaveRuleController::class, 'store'])->middleware('school')->name('diary.leave-rules.store');
+    Route::put('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'update'])->middleware('school')->name('diary.leave-rules.update');
+    Route::delete('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'destroy'])->middleware('school')->name('diary.leave-rules.destroy');
     Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('school')->name('notices.store');
     Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('school')->name('notices.destroy');
     Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('school')->name('achievements.store');
@@ -35,6 +45,13 @@ Route::prefix('institute')->name('institute.')->middleware(['institute.account']
     Route::get('/public-page', [InstitutePublicPageController::class, 'edit'])->middleware('institute')->name('public-page.edit');
     Route::get('/enquiries', [InstituteEnquiryController::class, 'index'])->middleware('institute')->name('enquiries.index');
     Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('institute')->name('engagement.index');
+    Route::get('/diary', [InstituteDiaryController::class, 'index'])->middleware('institute')->name('diary.index');
+    Route::post('/diary/holidays', [InstituteDiaryHolidayController::class, 'store'])->middleware('institute')->name('diary.holidays.store');
+    Route::put('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'update'])->middleware('institute')->name('diary.holidays.update');
+    Route::delete('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'destroy'])->middleware('institute')->name('diary.holidays.destroy');
+    Route::post('/diary/leave-rules', [InstituteLeaveRuleController::class, 'store'])->middleware('institute')->name('diary.leave-rules.store');
+    Route::put('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'update'])->middleware('institute')->name('diary.leave-rules.update');
+    Route::delete('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'destroy'])->middleware('institute')->name('diary.leave-rules.destroy');
     Route::post('/notices', [InstituteNoticeController::class, 'store'])->middleware('institute')->name('notices.store');
     Route::delete('/notices/{notice}', [InstituteNoticeController::class, 'destroy'])->middleware('institute')->name('notices.destroy');
     Route::post('/achievements', [InstitutePublicContentController::class, 'storeAchievement'])->middleware('institute')->name('achievements.store');

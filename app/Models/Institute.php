@@ -88,6 +88,16 @@ class Institute extends Model
         return $this->hasMany(InstituteNotice::class)->latest();
     }
 
+    public function diaryHolidays(): HasMany
+    {
+        return $this->hasMany(InstituteDiaryHoliday::class)->orderBy('start_date');
+    }
+
+    public function leaveRules(): HasMany
+    {
+        return $this->hasMany(InstituteLeaveRule::class)->orderBy('sort_order');
+    }
+
     public function activeNotices(): HasMany
     {
         return $this->notices()->active();

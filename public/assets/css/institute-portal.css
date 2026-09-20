@@ -121,3 +121,57 @@
   color: #64748b;
   font-size: 0.9rem;
 }
+
+.inst-diary-calendar {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.inst-diary-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.inst-diary-calendar__weekday {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  color: #64748b;
+  padding: 0.25rem 0;
+}
+
+.inst-diary-calendar__cell {
+  min-height: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  position: relative;
+  background: #fafbfc;
+}
+
+.inst-diary-calendar__cell.is-outside {
+  opacity: 0.45;
+}
+
+.inst-diary-calendar__cell.has-holiday {
+  background: #e8f5ee;
+  border-color: #b8e0cc;
+}
+
+.inst-diary-calendar__date {
+  font-weight: 600;
+  color: #334155;
+}
+
+.inst-diary-calendar__dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #12824e;
+  margin-top: 2px;
+}

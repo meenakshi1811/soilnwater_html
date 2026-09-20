@@ -37,8 +37,8 @@
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
-    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.engagement.*');
-    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.engagement.*');
+    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.engagement.*') || request()->routeIs('school.diary.*');
+    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
     $parentDashboardActive = request()->routeIs('parent.*');
     $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
@@ -744,6 +744,12 @@
                                 <span>Engagement</span>
                             </a>
                         </li>
+                        <li>
+                            <a class="{{ request()->routeIs('school.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
+                                <i class="fa-solid fa-book-bookmark"></i>
+                                <span>Diary</span>
+                            </a>
+                        </li>
                     </ul>
                 </details>
             </li>
@@ -781,6 +787,12 @@
                             <a class="{{ request()->routeIs('institute.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
                                 <i class="fa-solid fa-chart-line"></i>
                                 <span>Engagement</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('institute.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
+                                <i class="fa-solid fa-book-bookmark"></i>
+                                <span>Diary</span>
                             </a>
                         </li>
                     </ul>
