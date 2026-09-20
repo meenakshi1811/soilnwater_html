@@ -125,9 +125,11 @@
 </div>
 
 @include('frontend.institutes.partials.school-profile.modals', compact('institute', 'shareUrl', 'profile', 'engagement', 'listingContext'))
+@include('community.partials.toastr-assets')
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/school-profile-notify.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-actions.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>

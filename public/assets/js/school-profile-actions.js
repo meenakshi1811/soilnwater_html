@@ -1,17 +1,13 @@
 (function () {
     function notify(type, message) {
-        if (window.toastr) {
-            toastr.options = {
-                closeButton: true,
-                progressBar: true,
-                positionClass: 'toast-top-right',
-                timeOut: 4000,
-            };
-            toastr[type](message);
+        if (typeof window.schoolProfileNotify === 'function') {
+            window.schoolProfileNotify(type, message);
             return;
         }
 
-        alert(message);
+        if (window.toastr && typeof window.toastr[type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'error'] === 'function') {
+            window.toastr[type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'error'](message);
+        }
     }
 
     function requireAuth(pageRoot, actionLabel) {
@@ -173,7 +169,7 @@
                     }
                     notify('success', payload.message || 'Compare list updated.');
                     if (payload.in_compare && payload.compare_url && payload.compare_count >= 2) {
-                        setTimeout(function () {
+                        window.setTimeout(function () {
                             if (window.confirm('Open your compare list now?')) {
                                 window.location.href = payload.compare_url;
                             }

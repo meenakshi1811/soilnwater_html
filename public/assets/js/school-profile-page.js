@@ -94,7 +94,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(function () {
-                alert('Profile link copied to clipboard.');
+                if (typeof window.schoolProfileNotify === 'function') {
+                    window.schoolProfileNotify('success', 'Profile link copied to clipboard.');
+                }
             });
         }
     }
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(function () {
                     btn.textContent = 'Copied';
+                    schNotify('success', 'Link copied to clipboard.');
                     window.setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
                 });
             }
@@ -117,17 +120,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function schNotify(type, message) {
-        if (window.toastr) {
-            toastr.options = {
-                closeButton: true,
-                progressBar: true,
-                positionClass: 'toast-top-right',
-                timeOut: 4000,
-            };
-            toastr[type](message);
-            return;
+        if (typeof window.schoolProfileNotify === 'function') {
+            window.schoolProfileNotify(type, message);
         }
-        alert(message);
     }
 
     document.querySelectorAll('.js-sch-helpful').forEach(function (btn) {

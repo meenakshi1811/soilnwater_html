@@ -16,15 +16,15 @@
         return Array.isArray(first) ? first[0] : first;
     }
 
-    function showFeedback(feedback, type, message) {
-        if (!feedback) {
+    function notify(type, message) {
+        if (typeof window.schoolProfileNotify === 'function') {
+            window.schoolProfileNotify(type, message);
             return;
         }
 
-        feedback.textContent = message;
-        feedback.classList.remove('d-none', 'alert-success', 'alert-danger');
-        feedback.classList.add(type === 'success' ? 'alert-success' : 'alert-danger');
-        feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (window.toastr && typeof window.toastr[type === 'success' ? 'success' : 'error'] === 'function') {
+            window.toastr[type === 'success' ? 'success' : 'error'](message);
+        }
     }
 
     function setSubmitting(submitBtn, btnText, btnSending, isSubmitting) {
@@ -75,10 +75,6 @@
             }
 
             setSubmitting(submitBtn, btnText, btnSending, true);
-            if (feedback) {
-                feedback.classList.add('d-none');
-                feedback.classList.remove('alert-success', 'alert-danger');
-            }
 
             try {
                 var response = await fetch(enquiryUrl, {
@@ -109,17 +105,15 @@
                     );
                 }
 
-                showFeedback(feedback, 'success', payload.message || 'Enquiry sent successfully.');
+                notify('success', payload.message || 'Enquiry sent successfully.');
                 clearEnquiryFields(form);
 
                 var modalEl = form.closest('.modal');
                 if (modalEl && window.bootstrap?.Modal) {
-                    window.setTimeout(function () {
-                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-                    }, 1200);
+                    window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
                 }
             } catch (error) {
-                showFeedback(feedback, 'error', error.message || 'Unable to send enquiry.');
+                notify('error', error.message || 'Unable to send enquiry.');
             } finally {
                 setSubmitting(submitBtn, btnText, btnSending, false);
             }
