@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['institute_id', 'academic_year', 'start_date']);
+            $table->index(['institute_id', 'academic_year', 'start_date'], 'inst_diary_holidays_list_idx');
         });
 
         Schema::create('institute_leave_rules', function (Blueprint $table) {
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->index(['institute_id', 'sort_order']);
+            $table->index(['institute_id', 'sort_order'], 'inst_leave_rules_list_idx');
         });
     }
 
