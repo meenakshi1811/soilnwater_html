@@ -89,12 +89,16 @@ class InstituteProfileController extends Controller
         $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
         $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
 
+        $profile = $ownerRole === 'school' ? new SchoolProfilePresenter($institute) : null;
+
         return view('frontend.institutes.diary', [
             'institute' => $institute,
+            'profile' => $profile,
+            'navItems' => $profile?->navItems() ?? [],
             'ownerRole' => $ownerRole,
             'listingContext' => $listingContext,
             'entityLabel' => $entityLabel,
-            'activeNav' => 'diary',
+            'activeNavId' => 'sch-diary',
             'engagement' => $this->engagementState($institute, $authUser),
             'holidays' => $holidays,
             'leaveRules' => $leaveRules,
@@ -105,6 +109,7 @@ class InstituteProfileController extends Controller
             'holidayTypes' => InstituteDiaryConfig::holidayTypes(),
             'audiences' => $audiences,
             'diaryUrl' => route($listingContext.'.diary', $institute->slug),
+            'shareUrl' => $institute->publicUrl(),
         ]);
     }
 

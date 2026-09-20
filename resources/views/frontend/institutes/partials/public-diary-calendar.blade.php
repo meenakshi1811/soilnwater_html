@@ -22,31 +22,40 @@
         'academic_year' => $academicYear ?? null,
     ]);
 @endphp
-<div class="inst-diary-calendar">
-  <div class="inst-diary-calendar__head d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h3 class="h6 mb-0">{{ $monthStart->format('F Y') }}</h3>
-    <div class="btn-group btn-group-sm">
-      <a class="btn btn-outline-secondary" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $prev])) }}">&larr;</a>
-      <a class="btn btn-outline-secondary" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $monthStart->format('Y-m')])) }}">Today</a>
-      <a class="btn btn-outline-secondary" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $next])) }}">&rarr;</a>
+<div class="sch-diary-calendar">
+  <div class="sch-diary-calendar__head">
+    <h3 class="sch-diary-calendar__month">{{ $monthStart->format('F Y') }}</h3>
+    <div class="sch-diary-calendar__nav">
+      <a class="sch-diary-calendar__nav-btn" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $prev])) }}" aria-label="Previous month">&larr;</a>
+      <a class="sch-diary-calendar__nav-btn" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $monthStart->format('Y-m')])) }}">Today</a>
+      <a class="sch-diary-calendar__nav-btn" href="{{ $diaryUrl.'?'.http_build_query(array_merge($baseQuery, ['calendar_month' => $next])) }}" aria-label="Next month">&rarr;</a>
     </div>
   </div>
-  <div class="inst-diary-calendar__grid">
+  <div class="sch-diary-calendar__grid">
     @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $weekday)
-      <div class="inst-diary-calendar__weekday">{{ $weekday }}</div>
+      <div class="sch-diary-calendar__weekday">{{ $weekday }}</div>
     @endforeach
     @for($day = $gridStart->copy(); $day->lte($gridEnd); $day->addDay())
       @php
           $key = $day->format('Y-m-d');
           $inMonth = $day->month === $monthStart->month;
           $marks = $holidayDays[$key] ?? [];
+          $isToday = $day->isToday();
       @endphp
-      <div class="inst-diary-calendar__cell {{ $inMonth ? '' : 'is-outside' }} {{ count($marks) ? 'has-holiday' : '' }}" title="{{ implode(', ', $marks) }}">
-        <span class="inst-diary-calendar__date">{{ $day->format('j') }}</span>
+      <div
+        class="sch-diary-calendar__cell {{ $inMonth ? '' : 'is-outside' }} {{ count($marks) ? 'has-holiday' : '' }} {{ $isToday ? 'is-today' : '' }}"
+        @if(count($marks)) title="{{ implode(', ', $marks) }}" @endif
+      >
+        <span class="sch-diary-calendar__date">{{ $day->format('j') }}</span>
         @if(count($marks))
-          <span class="inst-diary-calendar__dot" aria-hidden="true"></span>
+          <span class="sch-diary-calendar__dots" aria-hidden="true">
+            @for($i = 0; $i < min(3, count($marks)); $i++)
+              <span class="sch-diary-calendar__dot"></span>
+            @endfor
+          </span>
         @endif
       </div>
     @endfor
   </div>
+  <p class="sch-diary-calendar__hint">Green dates indicate scheduled holidays for the selected academic year.</p>
 </div>
