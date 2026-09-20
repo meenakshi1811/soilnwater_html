@@ -8,6 +8,8 @@
     $hasGallery = count($institute->galleryUrls()) > 1;
     $hasFacilities = collect($institute->facilities ?? [])->isNotEmpty();
     $entityLabel = ($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute';
+    $listingContext = $listingContext ?? (($ownerRole ?? 'school') === 'school' ? 'schools' : 'institutes');
+    $diaryUrl = route($listingContext.'.diary', $institute->slug);
 @endphp
 
 <header class="vendor-store-header">
@@ -62,6 +64,8 @@
                 @endif
 
                 <a href="#sch-contact" class="vendor-store-nav-link js-sch-nav-link">Contact</a>
+
+                <a href="{{ $diaryUrl }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'diary' ? 'is-active' : '' }}">Diary</a>
 
                 <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#schoolShareModal">
                     <i class="fa-solid fa-qrcode"></i>

@@ -218,6 +218,15 @@ class Institute extends Model
             : route('institutes.show', $this->slug);
     }
 
+    public function publicDiaryUrl(): string
+    {
+        $this->loadMissing('user');
+
+        return $this->user?->isSchool()
+            ? route('schools.diary', $this->slug)
+            : route('institutes.diary', $this->slug);
+    }
+
     public function scopeForOwnerRole(Builder $query, string $role): Builder
     {
         return $query->whereHas('user', fn (Builder $userQuery) => $userQuery->where('role', $role));

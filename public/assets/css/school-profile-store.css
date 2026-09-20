@@ -1,5 +1,42 @@
 /* School / institute public profile — vendor-store layout supplement */
 
+.public-diary-page__head {
+  max-width: 42rem;
+}
+
+.public-diary-card {
+  padding: 1.25rem 1.35rem;
+}
+
+.public-diary-holiday-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.public-diary-holiday-list__item {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e8edf3;
+}
+
+.public-diary-holiday-list__item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.public-diary-holiday-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.public-diary-leave-table th {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 .school-hero-badges {
     display: flex;
     flex-wrap: wrap;

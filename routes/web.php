@@ -205,6 +205,7 @@ Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, '
 
 Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name('schools.index');
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
+Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
 Route::post('/schools/{slug}/follow', [InstituteEngagementController::class, 'schoolFollow'])->middleware('auth')->name('schools.follow');
@@ -217,6 +218,7 @@ Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolCom
 
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
+Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
 Route::post('/institutes/{slug}/follow', [InstituteEngagementController::class, 'instituteFollow'])->middleware('auth')->name('institutes.follow');

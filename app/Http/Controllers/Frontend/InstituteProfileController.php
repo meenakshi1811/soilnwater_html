@@ -9,8 +9,10 @@ use App\Models\InstituteCompareItem;
 use App\Models\InstituteEnquiry;
 use App\Models\InstituteProfileFeedback;
 use App\Services\PortalNotificationService;
+use App\Support\InstituteDiaryConfig;
 use App\Support\SchoolInstituteHelper;
 use App\Support\SchoolProfilePresenter;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +30,82 @@ class InstituteProfileController extends Controller
     public function instituteShow(string $slug): View
     {
         return $this->show($slug, 'institute');
+    }
+
+    public function schoolDiary(string $slug): View
+    {
+        return $this->diaryShow($slug, 'school');
+    }
+
+    public function instituteDiary(string $slug): View
+    {
+        return $this->diaryShow($slug, 'institute');
+    }
+
+    public function diaryShow(string $slug, string $ownerRole = 'school'): View
+    {
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+        $institute->loadMissing('user');
+
+        $academicYear = (string) request()->query('academic_year', InstituteDiaryConfig::defaultAcademicYear());
+
+        $holidays = $institute->diaryHolidays()
+            ->where('is_active', true)
+            ->where('academic_year', $academicYear)
+            ->orderBy('start_date')
+            ->get();
+
+        $academicYears = $institute->diaryHolidays()
+            ->where('is_active', true)
+            ->select('academic_year')
+            ->distinct()
+            ->orderByDesc('academic_year')
+            ->pluck('academic_year')
+            ->all();
+
+        if (! in_array($academicYear, $academicYears, true)) {
+            array_unshift($academicYears, $academicYear);
+            $academicYears = array_values(array_unique($academicYears));
+        }
+
+        $calendarMonth = (string) request()->query('calendar_month', now()->format('Y-m'));
+        try {
+            $calendarStart = Carbon::createFromFormat('Y-m', $calendarMonth)->startOfMonth();
+        } catch (\Throwable) {
+            $calendarStart = now()->startOfMonth();
+            $calendarMonth = $calendarStart->format('Y-m');
+        }
+
+        $leaveRules = $institute->leaveRules()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        abort_unless($institute->user, 404);
+        $audiences = InstituteDiaryConfig::applicableAudiences($institute->user);
+
+        $authUser = auth()->user();
+        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
+        $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
+
+        return view('frontend.institutes.diary', [
+            'institute' => $institute,
+            'ownerRole' => $ownerRole,
+            'listingContext' => $listingContext,
+            'entityLabel' => $entityLabel,
+            'activeNav' => 'diary',
+            'engagement' => $this->engagementState($institute, $authUser),
+            'holidays' => $holidays,
+            'leaveRules' => $leaveRules,
+            'academicYear' => $academicYear,
+            'academicYears' => $academicYears,
+            'calendarStart' => $calendarStart,
+            'calendarMonth' => $calendarMonth,
+            'holidayTypes' => InstituteDiaryConfig::holidayTypes(),
+            'audiences' => $audiences,
+            'diaryUrl' => route($listingContext.'.diary', $institute->slug),
+        ]);
     }
 
     public function show(string $slug, string $ownerRole = 'school'): View
