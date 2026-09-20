@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(TeacherDemoSeeder::class);
         $this->call(ParentDemoSeeder::class);
         $this->call(InstituteDemoSeeder::class);
+        $this->call(InstituteDiaryDemoSeeder::class);
 
         // User::factory(10)->create();
 
