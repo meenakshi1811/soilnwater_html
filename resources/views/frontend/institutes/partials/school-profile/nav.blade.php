@@ -4,8 +4,9 @@
       @foreach($navItems as $loopIndex => $item)
         <li>
           <a
-            href="#{{ $item['id'] }}"
-            class="sch-nav__link js-sch-nav-link {{ $loopIndex === 0 ? 'is-active' : '' }}"
+            href="{{ $item['href'] ?? '#'.$item['id'] }}"
+            class="sch-nav__link {{ empty($item['href']) ? 'js-sch-nav-link' : 'sch-nav__link--page' }} {{ $loopIndex === 0 && empty($item['href']) ? 'is-active' : '' }}"
+            @if(! empty($item['href'])) aria-current="false" @endif
           >
             <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
             {{ $item['label'] }}

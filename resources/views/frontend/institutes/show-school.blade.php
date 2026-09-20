@@ -60,7 +60,7 @@
     <div class="sch-nav-mobile">
       <div class="sch-nav-mobile__inner">
         @foreach($navItems as $item)
-          <a href="#{{ $item['id'] }}" class="sch-nav-mobile__link js-sch-nav-link">
+          <a href="{{ $item['href'] ?? '#'.$item['id'] }}" class="sch-nav-mobile__link {{ empty($item['href']) ? 'js-sch-nav-link' : '' }}">
             <i class="fa-solid {{ $item['icon'] }}" aria-hidden="true"></i>
             {{ $item['label'] }}
           </a>

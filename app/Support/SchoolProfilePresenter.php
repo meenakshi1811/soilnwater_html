@@ -455,6 +455,12 @@ final class SchoolProfilePresenter
             ['id' => 'sch-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
             ['id' => 'sch-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy'],
             ['id' => 'sch-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn'],
+            [
+                'id' => 'sch-diary',
+                'label' => 'Diary',
+                'icon' => 'fa-book-bookmark',
+                'href' => $this->institute->publicDiaryUrl(),
+            ],
             ['id' => 'sch-events', 'label' => 'Events', 'icon' => 'fa-calendar-days'],
             ['id' => 'sch-news', 'label' => 'News & Announcements', 'icon' => 'fa-newspaper'],
             ['id' => 'sch-reviews', 'label' => 'Reviews & Ratings', 'icon' => 'fa-star'],

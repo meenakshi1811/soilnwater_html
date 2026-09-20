@@ -11,6 +11,9 @@
   <button type="button" class="sch-btn sch-btn-primary sch-btn-block js-sch-open-enquiry">
     <i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Enquire Now
   </button>
+  <a href="{{ $institute->publicDiaryUrl() }}" class="sch-btn sch-btn-outline sch-btn-block">
+    <i class="fa-solid fa-book-bookmark" aria-hidden="true"></i> View Diary
+  </a>
   <button
     type="button"
     class="sch-btn sch-btn-outline sch-btn-block js-sch-brochure {{ $engagement['has_brochure'] ? '' : 'is-disabled' }}"
