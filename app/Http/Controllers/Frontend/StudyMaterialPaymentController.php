@@ -27,7 +27,7 @@ class StudyMaterialPaymentController extends Controller
             ->publiclyListed()
             ->findOrFail((int) $validated['study_material_id']);
 
-        abort_unless($material->isPaidNote(), 422, 'This note is free and does not require payment.');
+        abort_unless($material->isPaidMaterial(), 422, 'This material is free and does not require payment.');
         abort_if($material->isOwnedBy($user), 422, 'You already own this note.');
         abort_if($material->hasPurchasedBy($user), 422, 'You already have access to this note.');
 

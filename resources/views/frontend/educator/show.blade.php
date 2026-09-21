@@ -6,6 +6,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-profile.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/educator-study-materials.css') }}?v={{ now()->timestamp }}">
 @endpush
 
 @section('content')
@@ -44,8 +45,7 @@
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
     ['id' => 'edu-experience', 'label' => 'Experience & Education', 'icon' => 'fa-briefcase'],
     ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap'],
-    ['id' => 'edu-notes', 'label' => 'Notes & Materials', 'icon' => 'fa-file-lines'],
-    ['id' => 'edu-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
+    ['id' => 'edu-study-materials', 'label' => 'Study Material', 'icon' => 'fa-folder-open'],
     ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper'],
     ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
     ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'tutor_only' => true],
@@ -384,45 +384,31 @@
           @endif
         </section>
 
-        {{-- 6. Notes & Materials --}}
-        <section class="edu-section" id="edu-notes">
+        {{-- Study Material --}}
+        <section class="edu-section" id="edu-study-materials">
           <div class="edu-section__head">
-            <h2 class="edu-section__title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Notes &amp; Materials</h2>
-            @if(($notesTotal ?? $notes->count()) > 3)
-              <a href="{{ route('educator.notes', $educator->slug) }}" class="edu-section__link">
-                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            <h2 class="edu-section__title"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Study Material</h2>
+            @if(($studyMaterialsTotal ?? $studyMaterials->count()) > 0)
+              <a href="{{ route('educator.study-materials', $educator->slug) }}" class="edu-section__link edu-section__link--cta">
+                Browse all materials <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
             @endif
           </div>
-          @if($notes->isNotEmpty())
-            <div class="edu-notes-grid edu-notes-grid--preview">
-              @foreach($notes as $note)
-                @include('frontend.educator.partials.note-card', ['note' => $note])
+          @if(($studyMaterials ?? collect())->isNotEmpty())
+            <div class="edu-sm-grid edu-sm-grid--preview">
+              @foreach($studyMaterials as $material)
+                @include('frontend.educator.partials.study-material-card', ['material' => $material, 'showActions' => false])
               @endforeach
             </div>
-          @else
-            <p class="edu-empty">No notes published yet.</p>
-          @endif
-        </section>
-
-        {{-- 7. Question Papers --}}
-        <section class="edu-section" id="edu-papers">
-          <div class="edu-section__head">
-            <h2 class="edu-section__title"><i class="fa-solid fa-file-circle-question" aria-hidden="true"></i> Question Papers</h2>
-            @if(($questionPapersTotal ?? $questionPapers->count()) > 3)
-              <a href="{{ route('educator.question-papers', $educator->slug) }}" class="edu-section__link">
-                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-              </a>
+            @if(($studyMaterialsTotal ?? 0) > 6)
+              <div class="edu-section__footer mt-3">
+                <a href="{{ route('educator.study-materials', $educator->slug) }}" class="btn btn-outline-primary btn-sm">
+                  View all {{ number_format($studyMaterialsTotal) }} materials
+                </a>
+              </div>
             @endif
-          </div>
-          @if($questionPapers->isNotEmpty())
-            <div class="edu-notes-grid edu-notes-grid--preview">
-              @foreach($questionPapers as $paper)
-                @include('frontend.educator.partials.note-card', ['note' => $paper, 'materialLabel' => 'Question Paper'])
-              @endforeach
-            </div>
           @else
-            <p class="edu-empty">No question papers published yet.</p>
+            <p class="edu-empty">No study materials published yet.</p>
           @endif
         </section>
 

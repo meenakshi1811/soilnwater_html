@@ -232,6 +232,7 @@ Route::get('/institutes/compare', [InstituteEngagementController::class, 'instit
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
 Route::get('/teachers-tutors/{slug}/courses', [FrontendEducatorProfileController::class, 'courses'])->name('educator.courses');
+Route::get('/teachers-tutors/{slug}/study-materials', [FrontendEducatorProfileController::class, 'studyMaterials'])->name('educator.study-materials');
 Route::get('/teachers-tutors/{slug}/notes', [FrontendEducatorProfileController::class, 'notes'])->name('educator.notes');
 Route::get('/teachers-tutors/{slug}/question-papers', [FrontendEducatorProfileController::class, 'questionPapers'])->name('educator.question-papers');
 Route::get('/teachers-tutors/{slug}/reviews', [FrontendEducatorProfileController::class, 'reviews'])->name('educator.reviews');

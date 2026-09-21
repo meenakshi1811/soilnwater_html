@@ -159,6 +159,14 @@ class Educator extends Model
             ->questionPapers();
     }
 
+    public function approvedStudyMaterialsQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return StudyMaterial::query()
+            ->where('educator_id', $this->id)
+            ->approved()
+            ->publiclyListed();
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(EducatorReview::class)->latest();

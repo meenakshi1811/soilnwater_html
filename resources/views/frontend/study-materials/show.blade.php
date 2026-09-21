@@ -95,7 +95,7 @@
                     <a href="{{ $downloadUrl }}" class="sm-show-contents__download">
                         <i class="fa-solid fa-download" aria-hidden="true"></i> Download Full Notes
                     </a>
-                @elseif($material->isPaidNote() && ! $canAccessContent)
+                @elseif($material->isPaidMaterial() && ! $canAccessContent)
                     <button type="button" class="sm-show-contents__download sm-show-contents__download--buy" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
                         <i class="fa-solid fa-lock" aria-hidden="true"></i> Buy to unlock
                     </button>
@@ -142,7 +142,7 @@
                         </button>
 
                         <div class="sm-show-viewer-canvas js-sm-viewer-canvas">
-                            @if(! $canAccessContent && $material->isPaidNote())
+                            @if(! $canAccessContent && $material->isPaidMaterial())
                                 <div class="sm-show-paywall">
                                     <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
                                     <h3>Paid note — purchase to unlock</h3>
@@ -506,7 +506,7 @@
 
                     <div class="sm-show-summary__badges">
                         <span class="sm-show-badge sm-show-badge--type">{{ $material->materialTypeLabel() }}</span>
-                        @if($material->isPaidNote())
+                        @if($material->isPaidMaterial())
                             <span class="sm-show-badge sm-show-badge--paid">{{ $material->formattedPrice() }}</span>
                         @elseif($material->is_free)
                             <span class="sm-show-badge sm-show-badge--free">Free</span>
@@ -556,7 +556,7 @@
                                     Read Online
                                 </a>
                             @endif
-                        @elseif($material->isPaidNote())
+                        @elseif($material->isPaidMaterial())
                             @if(($paymentState['mode'] ?? '') === 'login_required')
                                 <a href="{{ route('login') }}" class="sm-btn sm-btn-primary w-100">Login to purchase</a>
                             @elseif(($paymentState['mode'] ?? '') === 'pending')
@@ -644,7 +644,7 @@
     </div>
 </div>
 
-@if($material->isPaidNote() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
+@if($material->isPaidMaterial() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
     @include('frontend.study-materials.partials.payment-modal')
 @endif
 @endsection
@@ -652,7 +652,7 @@
 @push('scripts')
 @include('community.partials.toastr-assets')
 <script src="{{ asset('assets/js/study-materials-show.js') }}?v={{ now()->timestamp }}" defer></script>
-@if($material->isPaidNote() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
+@if($material->isPaidMaterial() && ! $canAccessContent && ($paymentState['mode'] ?? '') !== 'login_required')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('studyMaterialPaymentForm');

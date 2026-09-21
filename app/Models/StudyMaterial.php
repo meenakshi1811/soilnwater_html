@@ -267,11 +267,15 @@ class StudyMaterial extends Model
             || data_get($this->meta, 'visibility', 'public') === 'public';
     }
 
+    public function isPaidMaterial(): bool
+    {
+        return ! $this->is_free && (float) ($this->price ?? 0) > 0;
+    }
+
+    /** @deprecated Use isPaidMaterial() */
     public function isPaidNote(): bool
     {
-        return $this->material_type === 'notes'
-            && ! $this->is_free
-            && (float) ($this->price ?? 0) > 0;
+        return $this->isPaidMaterial();
     }
 
     public function formattedPrice(): string
@@ -327,11 +331,59 @@ class StudyMaterial extends Model
             return true;
         }
 
-        if ($this->isPaidNote()) {
+        if ($this->isPaidMaterial()) {
             return $this->hasPurchasedBy($user);
         }
 
         return true;
+    }
+
+    /**
+     * @return array{mode: string, submitted_at: ?\Illuminate\Support\Carbon, last_rejected_note: ?string}
+     */
+    public function resolvePaymentStateFor(?User $user): array
+    {
+        if (! $this->isPaidMaterial()) {
+            return ['mode' => 'free', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        if ($this->canAccessContent($user)) {
+            return ['mode' => 'purchased', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        if (! $user) {
+            return ['mode' => 'login_required', 'submitted_at' => null, 'last_rejected_note' => null];
+        }
+
+        $pending = ListingPaymentSubmission::query()
+            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
+            ->where('listing_id', $this->id)
+            ->where('user_id', $user->id)
+            ->where('status', ListingPaymentSubmission::STATUS_PENDING)
+            ->latest('submitted_at')
+            ->first();
+
+        if ($pending) {
+            return [
+                'mode' => 'pending',
+                'submitted_at' => $pending->submitted_at,
+                'last_rejected_note' => null,
+            ];
+        }
+
+        $rejected = ListingPaymentSubmission::query()
+            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
+            ->where('listing_id', $this->id)
+            ->where('user_id', $user->id)
+            ->where('status', ListingPaymentSubmission::STATUS_REJECTED)
+            ->latest('reviewed_at')
+            ->first();
+
+        return [
+            'mode' => 'payment_required',
+            'submitted_at' => null,
+            'last_rejected_note' => $rejected?->admin_note,
+        ];
     }
 
     public function isCustomNote(): bool

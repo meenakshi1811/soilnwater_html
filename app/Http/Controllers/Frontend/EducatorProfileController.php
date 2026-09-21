@@ -35,15 +35,12 @@ class EducatorProfileController extends Controller
         $isFollowing = auth()->check()
             && $educator->followers()->where('user_id', auth()->id())->exists();
 
-        $notesQuery = $educator->notesQuery();
-        $notesTotal = (clone $notesQuery)->count();
-        $notes = $notesQuery->latest()->limit(3)->get();
+        $studyMaterialsQuery = $educator->approvedStudyMaterialsQuery();
+        $studyMaterialsTotal = (clone $studyMaterialsQuery)->count();
+        $studyMaterials = $studyMaterialsQuery->latest()->limit(6)->get();
         $coursesQuery = $educator->coursesQuery();
         $coursesTotal = (clone $coursesQuery)->count();
         $courses = $coursesQuery->latest()->limit(3)->get();
-        $questionPapersQuery = $educator->questionPapersQuery();
-        $questionPapersTotal = (clone $questionPapersQuery)->count();
-        $questionPapers = $questionPapersQuery->latest()->limit(3)->get();
 
         $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 5);
         $profileReviews = $profileReviewsPage['items'];
@@ -66,12 +63,10 @@ class EducatorProfileController extends Controller
         return view('frontend.educator.show', compact(
             'educator',
             'isFollowing',
-            'notes',
-            'notesTotal',
+            'studyMaterials',
+            'studyMaterialsTotal',
             'courses',
             'coursesTotal',
-            'questionPapers',
-            'questionPapersTotal',
             'profileReviews',
             'profileReviewsTotal',
             'profileReviewsHasMore',
@@ -126,6 +121,27 @@ class EducatorProfileController extends Controller
         return view('frontend.educator.courses', $data);
     }
 
+    public function studyMaterials(Request $request, string $slug): View|JsonResponse
+    {
+        $educator = Educator::query()
+            ->approved()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $data = $this->buildStudyMaterialsPageData($request, $educator);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'results_html' => view('frontend.educator.partials.study-materials-results', $data)->render(),
+                'summary_html' => view('frontend.educator.partials.study-materials-summary', $data)->render(),
+                'url' => route('educator.study-materials', array_merge(['slug' => $educator->slug], $request->query())),
+            ]);
+        }
+
+        return view('frontend.educator.study-materials', $data);
+    }
+
     public function notes(Request $request, string $slug): View|JsonResponse
     {
         $educator = Educator::query()
@@ -166,6 +182,119 @@ class EducatorProfileController extends Controller
         }
 
         return view('frontend.educator.question-papers', $data);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildStudyMaterialsPageData(Request $request, Educator $educator): array
+    {
+        $base = $educator->approvedStudyMaterialsQuery();
+        $filters = [
+            'search' => trim($request->string('search')->toString()),
+            'material_type' => $request->string('material_type')->toString(),
+            'subject' => $request->string('subject')->toString(),
+            'class_course' => $request->string('class_course')->toString(),
+            'file_type' => $request->string('file_type')->toString(),
+            'pricing' => $request->string('pricing')->toString(),
+        ];
+
+        $filtered = clone $base;
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $filtered->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%')
+                    ->orWhere('subject', 'like', '%'.$search.'%')
+                    ->orWhere('topic_chapter', 'like', '%'.$search.'%')
+                    ->orWhere('exam_test', 'like', '%'.$search.'%');
+            });
+        }
+
+        if ($filters['material_type'] !== '') {
+            $filtered->where('material_type', $filters['material_type']);
+        }
+
+        if ($filters['subject'] !== '') {
+            $filtered->where('subject', $filters['subject']);
+        }
+
+        if ($filters['class_course'] !== '') {
+            $filtered->where('class_course', $filters['class_course']);
+        }
+
+        if ($filters['file_type'] !== '') {
+            $this->applyFileTypeFilter($filtered, $filters['file_type']);
+        }
+
+        if ($filters['pricing'] === 'free') {
+            $filtered->where('is_free', true);
+        } elseif ($filters['pricing'] === 'paid') {
+            $filtered->where('is_free', false)->where('price', '>', 0);
+        } elseif ($filters['pricing'] === 'premium') {
+            $filtered->where('is_free', false);
+        }
+
+        $sort = $request->string('sort')->toString() ?: 'recent';
+        match ($sort) {
+            'rating' => $filtered->orderByDesc('average_rating')->orderByDesc('reviews_count'),
+            'downloads' => $filtered->orderByDesc('downloads_count')->orderByDesc('created_at'),
+            'title' => $filtered->orderBy('title'),
+            default => $filtered->latest(),
+        };
+
+        if (auth()->check()) {
+            $filtered->withExists([
+                'bookmarkedBy as is_bookmarked' => fn ($query) => $query->where('user_id', auth()->id()),
+                'purchases as is_purchased' => fn ($query) => $query->where('user_id', auth()->id()),
+            ]);
+        }
+
+        $materials = $filtered->paginate(12)->withQueryString();
+
+        $materialTypes = (clone $base)
+            ->select('material_type', DB::raw('COUNT(*) as total'))
+            ->groupBy('material_type')
+            ->orderByDesc('total')
+            ->get();
+
+        $subjects = (clone $base)
+            ->whereNotNull('subject')
+            ->where('subject', '!=', '')
+            ->select('subject', DB::raw('COUNT(*) as total'))
+            ->groupBy('subject')
+            ->orderByDesc('total')
+            ->limit(20)
+            ->get();
+
+        $classOptions = (clone $base)
+            ->whereNotNull('class_course')
+            ->where('class_course', '!=', '')
+            ->distinct()
+            ->orderBy('class_course')
+            ->pluck('class_course');
+
+        $fileTypeCounts = $this->fileTypeCountsForMaterials($base);
+
+        $stats = [
+            'total' => (clone $base)->count(),
+            'free' => (clone $base)->where('is_free', true)->count(),
+            'paid' => (clone $base)->where('is_free', false)->where('price', '>', 0)->count(),
+            'downloads' => (int) (clone $base)->sum('downloads_count'),
+        ];
+
+        return compact(
+            'educator',
+            'materials',
+            'filters',
+            'sort',
+            'materialTypes',
+            'subjects',
+            'classOptions',
+            'fileTypeCounts',
+            'stats'
+        );
     }
 
     /**

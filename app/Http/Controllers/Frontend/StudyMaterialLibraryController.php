@@ -461,46 +461,6 @@ class StudyMaterialLibraryController extends Controller
      */
     private function resolvePaymentState(StudyMaterial $material): array
     {
-        if (! $material->isPaidNote()) {
-            return ['mode' => 'free', 'submitted_at' => null, 'last_rejected_note' => null];
-        }
-
-        if ($material->canAccessContent(auth()->user())) {
-            return ['mode' => 'purchased', 'submitted_at' => null, 'last_rejected_note' => null];
-        }
-
-        if (! auth()->check()) {
-            return ['mode' => 'login_required', 'submitted_at' => null, 'last_rejected_note' => null];
-        }
-
-        $pending = ListingPaymentSubmission::query()
-            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
-            ->where('listing_id', $material->id)
-            ->where('user_id', auth()->id())
-            ->where('status', ListingPaymentSubmission::STATUS_PENDING)
-            ->latest('submitted_at')
-            ->first();
-
-        if ($pending) {
-            return [
-                'mode' => 'pending',
-                'submitted_at' => $pending->submitted_at,
-                'last_rejected_note' => null,
-            ];
-        }
-
-        $rejected = ListingPaymentSubmission::query()
-            ->where('listing_type', ListingPaymentSubmission::TYPE_STUDY_MATERIAL)
-            ->where('listing_id', $material->id)
-            ->where('user_id', auth()->id())
-            ->where('status', ListingPaymentSubmission::STATUS_REJECTED)
-            ->latest('reviewed_at')
-            ->first();
-
-        return [
-            'mode' => 'payment_required',
-            'submitted_at' => null,
-            'last_rejected_note' => $rejected?->admin_note,
-        ];
+        return $material->resolvePaymentStateFor(auth()->user());
     }
 }
