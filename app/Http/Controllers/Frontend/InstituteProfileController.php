@@ -32,6 +32,37 @@ class InstituteProfileController extends Controller
         return $this->show($slug, 'institute');
     }
 
+    public function schoolSection(string $slug, string $section): View
+    {
+        return $this->sectionShow($slug, 'school', $section);
+    }
+
+    public function instituteSection(string $slug, string $section): View
+    {
+        return $this->sectionShow($slug, 'institute', $section);
+    }
+
+    public function sectionShow(string $slug, string $ownerRole, string $section): View
+    {
+        abort_unless(SchoolProfilePresenter::isValidSection($section), 404);
+
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+        $catalog = SchoolProfilePresenter::sectionCatalog()[$section];
+        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
+        $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
+
+        return view('frontend.institutes.section', [
+            'institute' => $institute,
+            'profile' => new SchoolProfilePresenter($institute),
+            'ownerRole' => $ownerRole,
+            'listingContext' => $listingContext,
+            'entityLabel' => $entityLabel,
+            'section' => $section,
+            'sectionTitle' => $catalog['title'],
+            'sectionLead' => $catalog['lead'],
+        ]);
+    }
+
     public function schoolDiary(string $slug): View
     {
         return $this->diaryShow($slug, 'school');

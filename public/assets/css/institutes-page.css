@@ -1,7 +1,69 @@
+/* Extra breathing room on listing index — layout unchanged */
+.institutes-page.vendors-page {
+  padding: 1.5rem 1.75rem 3rem;
+}
+
+.institutes-page .vendors-page__layout {
+  gap: 1.75rem;
+}
+
+.institutes-page .vendors-sidebar {
+  padding: 1.35rem 1.25rem;
+}
+
+.institutes-page .vendors-sidebar__head {
+  margin-bottom: 1.15rem;
+  padding-bottom: 1rem;
+}
+
+.institutes-page .vendors-filter-group {
+  margin-bottom: 1.05rem;
+}
+
+.institutes-page .vendors-filter-group label {
+  margin-bottom: 0.45rem;
+}
+
+.institutes-page .vendors-main {
+  gap: 1.375rem;
+}
+
+.institutes-page .vendors-hero {
+  gap: 1.15rem;
+  padding: 1.45rem 1.5rem 1.35rem;
+}
+
+.institutes-page .vendors-hero__intro h1 {
+  margin-bottom: 0.65rem;
+}
+
+.institutes-page .vendors-hero__eyebrow {
+  margin-bottom: 0.65rem;
+}
+
+.institutes-page .vendors-stat {
+  padding: 0.85rem 1rem;
+  gap: 0.75rem;
+}
+
+.institutes-page .vendors-section {
+  padding: 1.35rem 1.45rem 1.45rem;
+}
+
+.institutes-page .vendors-section__head {
+  margin-bottom: 1.15rem;
+}
+
+.institutes-page .vendors-all__toolbar {
+  margin-bottom: 1.1rem;
+  padding-bottom: 1rem;
+  gap: 1rem;
+}
+
 .institutes-page .institutes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
+  gap: 1.35rem;
 }
 
 .institutes-card__board {
@@ -17,7 +79,7 @@
 }
 
 .institutes-page .institutes-toolbar {
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.1rem;
 }
 
 .institutes-page .institutes-toolbar__summary {
@@ -56,9 +118,27 @@
 }
 
 .institutes-page .vendors-summary-text {
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.1rem;
   color: #64748b;
   font-size: 0.82rem;
+}
+
+.institutes-page .vendors-cta {
+  padding: 1.35rem 1.45rem;
+  gap: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.institutes-page .vendors-cta__copy h3 {
+  margin-bottom: 0.45rem;
+}
+
+.institutes-page .vendors-scroll-sentinel {
+  margin-top: 0.5rem;
+}
+
+.institutes-page #institutesFilterBar .btn {
+  margin-top: 0.35rem;
 }
 
 @media (max-width: 767.98px) {

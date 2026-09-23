@@ -227,6 +227,14 @@ class Institute extends Model
             : route('institutes.diary', $this->slug);
     }
 
+    public function publicSectionUrl(string $section): string
+    {
+        $this->loadMissing('user');
+        $routePrefix = $this->user?->isSchool() ? 'schools' : 'institutes';
+
+        return route($routePrefix.'.section', ['slug' => $this->slug, 'section' => $section]);
+    }
+
     public function scopeForOwnerRole(Builder $query, string $role): Builder
     {
         return $query->whereHas('user', fn (Builder $userQuery) => $userQuery->where('role', $role));

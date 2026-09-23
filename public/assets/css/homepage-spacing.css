@@ -1,0 +1,195 @@
+/**
+ * Homepage-only spacing tweaks (layout unchanged).
+ * Scoped to .homepage-root on the index page.
+ */
+
+.homepage-root .hero {
+  min-height: 188px;
+  padding-left: 48px;
+  padding-right: 48px;
+}
+
+.homepage-root .hero-content {
+  padding-top: 36px;
+  padding-bottom: 48px;
+}
+
+.homepage-root .hero-content h1 {
+  margin-bottom: 22px;
+}
+
+.homepage-root .cat-bar {
+  padding: 24px 36px 22px;
+}
+
+.homepage-root .cat-bar-inner {
+  gap: 14px;
+  padding: 10px 0 12px;
+}
+
+.homepage-root .cat-item {
+  gap: 12px;
+}
+
+.homepage-root .main-wrap {
+  padding: 32px 36px 36px;
+  gap: 28px;
+}
+
+.homepage-root .main-col {
+  gap: 32px;
+}
+
+.homepage-root .side-col {
+  gap: 22px;
+}
+
+.homepage-root .sec {
+  padding: 26px 24px;
+}
+
+.homepage-root .sec-head {
+  margin-bottom: 22px;
+}
+
+.homepage-root .top-fold-layout {
+  gap: 20px;
+}
+
+.homepage-root .top-fold-main {
+  gap: 20px;
+}
+
+.homepage-root .top-fold-upper {
+  --bs-gutter-y: 1.25rem;
+}
+
+.homepage-root .section-ad-rail,
+.homepage-root .section-side-ad,
+.homepage-root .top-sidebar-ads {
+  gap: 20px;
+}
+
+.homepage-root .content-with-ad-rail {
+  gap: 24px;
+}
+
+.homepage-root .adv-strip-dark {
+  padding: 20px 24px;
+}
+
+.homepage-root .section-with-side-ad {
+  --bs-gutter-y: 1.25rem;
+}
+
+.homepage-root .promo-slider-section .sec-head,
+.homepage-root .recent-ads-section .sec-head {
+  margin-bottom: 20px;
+}
+
+.homepage-root .card-carousel-track,
+.homepage-root .sponsored-grid {
+  gap: 18px;
+}
+
+@media (max-width: 992px) {
+  .homepage-root .hero {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .homepage-root .cat-bar {
+    padding: 18px 20px 16px;
+  }
+
+  .homepage-root .main-wrap {
+    padding: 24px 16px 28px;
+    gap: 24px;
+  }
+
+  .homepage-root .main-col {
+    gap: 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  .homepage-root .main-wrap {
+    padding: 20px 12px 24px;
+  }
+
+  .homepage-root .main-col {
+    gap: 22px;
+  }
+
+  .homepage-root .sec {
+    padding: 18px 16px;
+  }
+
+  .homepage-root .sec-head {
+    margin-bottom: 16px;
+  }
+}
+
+/* Community Hub — vendor-style carousel boxes */
+.homepage-root .homepage-community-hub-section .offer-coupon-wrap {
+  margin-bottom: 0;
+}
+
+.homepage-root .homepage-community-posts-wrap {
+  margin-top: 22px;
+}
+
+.homepage-root .homepage-community-posts__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f2f55;
+  margin: 0 0 12px;
+}
+
+.homepage-root .community-hub-offer-card__media {
+  align-items: center;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--hub-accent) 22%, #fff),
+    color-mix(in srgb, var(--hub-accent) 8%, #eef4fb)
+  );
+  display: flex;
+  justify-content: center;
+}
+
+.homepage-root .community-hub-offer-card__icon {
+  align-items: center;
+  color: var(--hub-accent);
+  display: inline-flex;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.homepage-root .homepage-community-posts-slider .card-carousel-item,
+.homepage-root .homepage-community-hub-sections-slider .card-carousel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.homepage-root .homepage-community-posts-slider .community-post-card__body {
+  padding: 0.75rem 0.85rem 0.85rem;
+}
+
+.homepage-root .homepage-community-posts-slider .community-post-card__title {
+  font-size: 0.95rem;
+  -webkit-line-clamp: 2;
+}
+
+.homepage-root .homepage-community-posts-slider .community-post-card__excerpt {
+  -webkit-line-clamp: 2;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 479.98px) {
+  .homepage-root .homepage-community-posts-slider .community-post-card__footer {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+}

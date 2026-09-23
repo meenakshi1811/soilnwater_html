@@ -8,6 +8,21 @@ use Illuminate\Support\Str;
 
 final class SchoolProfilePresenter
 {
+    /** @var array<string, int> */
+    public const PREVIEW_LIMITS = [
+        'notices' => 3,
+        'courses' => 4,
+        'facilities' => 4,
+        'faculty' => 6,
+        'gallery' => 6,
+        'achievements' => 4,
+        'results' => 6,
+        'books' => 6,
+        'news' => 3,
+        'events' => 3,
+        'reviews' => 3,
+    ];
+
     public function __construct(public Institute $institute)
     {
         $this->institute->loadMissing([
@@ -319,44 +334,64 @@ final class SchoolProfilePresenter
     }
 
     /** @return list<array{name: string, role: string, subject: string}> */
-    public function facultyMembers(): array
+    public function facultyMembers(?int $limit = null): array
     {
         $custom = $this->meta('faculty');
 
-        if (is_array($custom) && $custom !== []) {
-            return $custom;
+        $members = is_array($custom) && $custom !== []
+            ? $custom
+            : $this->institute->schoolClasses
+                ->filter(fn ($class) => filled($class->class_teacher))
+                ->unique('class_teacher')
+                ->map(fn ($class) => [
+                    'name' => $class->class_teacher,
+                    'role' => 'Class Teacher · '.$class->displayLabel(),
+                    'subject' => 'Academics',
+                ])
+                ->values()
+                ->all();
+
+        if ($limit !== null) {
+            return array_slice($members, 0, $limit);
         }
 
-        return $this->institute->schoolClasses
-            ->filter(fn ($class) => filled($class->class_teacher))
-            ->unique('class_teacher')
-            ->map(fn ($class) => [
-                'name' => $class->class_teacher,
-                'role' => 'Class Teacher · '.$class->displayLabel(),
-                'subject' => 'Academics',
-            ])
-            ->values()
-            ->all();
+        return $members;
+    }
+
+    public function facultyMembersCount(): int
+    {
+        return count($this->facultyMembers());
     }
 
     /** @return list<array{name: string, image: ?string}> */
-    public function facilityCards(): array
+    public function facilityCards(?int $limit = null): array
     {
         $gallery = $this->galleryImages();
         $facilities = collect($this->institute->facilities ?? []);
 
-        return $facilities->map(function ($facility, $index) use ($gallery) {
+        $cards = $facilities->map(function ($facility, $index) use ($gallery) {
             return [
                 'name' => $facility,
                 'image' => $gallery->get($index % max($gallery->count(), 1)),
             ];
-        })->take(8)->values()->all();
+        })->values();
+
+        if ($limit !== null) {
+            return $cards->take($limit)->all();
+        }
+
+        return $cards->all();
+    }
+
+    public function facilitiesCount(): int
+    {
+        return count($this->institute->facilities ?? []);
     }
 
     /** @return list<array{id: int, title: string, excerpt: string, day: string, month: string}> */
-    public function newsItems(): array
+    public function newsItems(?int $limit = null): array
     {
-        return $this->institute->activeNotices->map(function ($notice) {
+        $items = $this->institute->activeNotices->map(function ($notice) {
             $date = $notice->created_at ?? now();
 
             return [
@@ -366,19 +401,32 @@ final class SchoolProfilePresenter
                 'day' => $date->format('d'),
                 'month' => strtoupper($date->format('M')),
             ];
-        })->values()->all();
+        })->values();
+
+        if ($limit !== null) {
+            return $items->take($limit)->all();
+        }
+
+        return $items->all();
+    }
+
+    public function newsItemsCount(): int
+    {
+        return $this->institute->activeNotices->count();
     }
 
     /** @return list<array{id: int, title: string, schedule: string, day: string, month: string}> */
-    public function upcomingEvents(): array
+    public function upcomingEvents(?int $limit = null): array
     {
         $custom = $this->meta('events');
 
         if (is_array($custom) && $custom !== []) {
-            return $custom;
+            $events = $custom;
+
+            return $limit !== null ? array_slice($events, 0, $limit) : $events;
         }
 
-        return $this->institute->activeNotices->map(function ($notice) {
+        $items = $this->institute->activeNotices->map(function ($notice) {
             $date = $notice->expires_at ?? $notice->created_at ?? now();
 
             return [
@@ -388,11 +436,28 @@ final class SchoolProfilePresenter
                 'day' => $date->format('d'),
                 'month' => strtoupper($date->format('M')),
             ];
-        })->values()->all();
+        })->values();
+
+        if ($limit !== null) {
+            return $items->take($limit)->all();
+        }
+
+        return $items->all();
+    }
+
+    public function upcomingEventsCount(): int
+    {
+        $custom = $this->meta('events');
+
+        if (is_array($custom) && $custom !== []) {
+            return count($custom);
+        }
+
+        return $this->institute->activeNotices->count();
     }
 
     /** @return list<array{name: string, relation: string, rating: float, comment: string, ago: string, initial: string, tone: string}> */
-    public function reviews(): array
+    public function reviews(?int $limit = null): array
     {
         $custom = $this->meta('reviews');
 
@@ -400,7 +465,7 @@ final class SchoolProfilePresenter
             return [];
         }
 
-        return collect($custom)->map(function ($review) {
+        $items = collect($custom)->map(function ($review) {
             $name = (string) ($review['name'] ?? 'Parent');
 
             return [
@@ -412,7 +477,20 @@ final class SchoolProfilePresenter
                 'initial' => Str::upper(Str::substr($name, 0, 1)),
                 'tone' => (string) ($review['tone'] ?? 'blue'),
             ];
-        })->all();
+        });
+
+        if ($limit !== null) {
+            return $items->take($limit)->all();
+        }
+
+        return $items->all();
+    }
+
+    public function reviewsCount(): int
+    {
+        $custom = $this->meta('reviews');
+
+        return is_array($custom) ? count($custom) : 0;
     }
 
     public function operatingHours(): string
@@ -483,5 +561,61 @@ final class SchoolProfilePresenter
                 default => true,
             };
         }));
+    }
+
+    public static function isValidSection(string $section): bool
+    {
+        return array_key_exists($section, self::sectionCatalog());
+    }
+
+    /** @return array<string, array{title: string, lead: string}> */
+    public static function sectionCatalog(): array
+    {
+        return [
+            'notices' => [
+                'title' => 'Notice Board',
+                'lead' => 'All active notices and announcements from this institution.',
+            ],
+            'courses' => [
+                'title' => 'Courses & Programs',
+                'lead' => 'Browse all courses, streams, and class details.',
+            ],
+            'facilities' => [
+                'title' => 'Facilities',
+                'lead' => 'Explore campus facilities and infrastructure.',
+            ],
+            'faculty' => [
+                'title' => 'Faculty',
+                'lead' => 'Meet the teaching and academic team.',
+            ],
+            'gallery' => [
+                'title' => 'Gallery',
+                'lead' => 'Campus photos and gallery images.',
+            ],
+            'achievements' => [
+                'title' => 'Achievements',
+                'lead' => 'Awards, milestones, and institutional achievements.',
+            ],
+            'results' => [
+                'title' => 'Placement / Results',
+                'lead' => 'Top performers and result highlights.',
+            ],
+            'books' => [
+                'title' => 'Students Corner',
+                'lead' => 'Textbooks and study resources across classes.',
+            ],
+            'news' => [
+                'title' => 'News & Announcements',
+                'lead' => 'Latest news and updates.',
+            ],
+            'events' => [
+                'title' => 'Upcoming Events',
+                'lead' => 'Events and important dates.',
+            ],
+            'reviews' => [
+                'title' => 'Reviews & Ratings',
+                'lead' => 'What parents and students say.',
+            ],
+        ];
     }
 }

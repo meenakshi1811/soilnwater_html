@@ -9,13 +9,18 @@
         @endif
       </div>
     </div>
-    <div class="sch-notices__nav">
-      <button type="button" class="sch-notices__btn js-sch-notice-prev" aria-label="Previous notice">
-        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-      </button>
-      <button type="button" class="sch-notices__btn js-sch-notice-next" aria-label="Next notice">
-        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-      </button>
+    <div class="sch-notices__actions">
+      @if(!empty($viewAllUrl))
+        <a href="{{ $viewAllUrl }}" class="sch-notices__view-all">{{ $viewAllLabel ?? 'View all notices' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      @endif
+      <div class="sch-notices__nav">
+        <button type="button" class="sch-notices__btn js-sch-notice-prev" aria-label="Previous notice">
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="sch-notices__btn js-sch-notice-next" aria-label="Next notice">
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
   </div>
   <div class="sch-notices__viewport">

@@ -95,9 +95,18 @@
         </div>
 
         @if($institute->activeNotices->isNotEmpty())
+          @php
+            $noticesTotal = $institute->activeNotices->count();
+            $noticesPreviewLimit = \App\Support\SchoolProfilePresenter::PREVIEW_LIMITS['notices'];
+          @endphp
           <section class="sch-notice-section" id="sch-notices" aria-label="Notice Board">
             <div class="sch-notice-section__frame sch-card">
-              @include('frontend.institutes.partials.notice-board', ['notices' => $institute->activeNotices, 'featured' => true])
+              @include('frontend.institutes.partials.notice-board', [
+                'notices' => $institute->activeNotices->take($noticesPreviewLimit),
+                'featured' => true,
+                'viewAllUrl' => $noticesTotal > $noticesPreviewLimit ? $institute->publicSectionUrl('notices') : null,
+                'viewAllLabel' => 'View all notices',
+              ])
             </div>
           </section>
         @endif
@@ -120,7 +129,7 @@
 
         <div class="sch-lower-grid">
           <main class="sch-main">
-            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle', 'listingContext', 'entityLabel'))
+            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle', 'listingContext', 'entityLabel', 'engagement'))
           </main>
 
           @include('frontend.institutes.partials.school-profile.sidebar', compact('profile', 'institute', 'shareUrl'))

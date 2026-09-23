@@ -55,7 +55,14 @@
             $reportStatus ? [['label' => $reportStatus, 'class' => '']] : [],
         ), 0, 2);
     @endphp
-    <div class="col">
+    @php
+        $wrapper = $wrapper ?? 'col';
+    @endphp
+    @if ($wrapper === 'carousel-item')
+        <div class="card-carousel-item">
+    @elseif ($wrapper === 'col')
+        <div class="col">
+    @endif
         <article class="community-post-card h-100{{ $isSpotlight ? ' community-post-card--spotlight' : '' }}{{ $post->is_highlighted ? ' community-post-card--featured' : '' }}" style="--type-color: {{ $typeColor }};">
             <a href="{{ route('community.show', $post) }}" class="community-post-card__media-link" aria-label="Read {{ $post->title }}">
                 @if ($post->featuredImageUrl())
@@ -195,8 +202,23 @@
                 </div>
             </div>
         </article>
-    </div>
+    @if ($wrapper === 'carousel-item' || ($wrapper ?? 'col') === 'col')
+        </div>
+    @endif
 @empty
+    @if (($wrapper ?? 'col') === 'carousel-item')
+        <div class="card-carousel-item">
+            <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                <div class="card-body d-flex flex-column gap-2 justify-content-center text-center py-4">
+                    <div class="community-empty-state__icon mx-auto mb-2" aria-hidden="true">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h4 class="h6 mb-1">No posts yet</h4>
+                    <p class="small text-muted mb-0">{{ $emptyMessage ?? 'No posts found for this section yet. Try another category or be the first to publish.' }}</p>
+                </div>
+            </article>
+        </div>
+    @else
     <div class="col-12">
         <div class="community-empty-state">
             <div class="community-empty-state__icon" aria-hidden="true">
@@ -210,4 +232,5 @@
             </div>
         </div>
     </div>
+    @endif
 @endforelse
