@@ -319,13 +319,13 @@
     <section id="sch-contact" class="sch-card sch-section sch-enquiry-section">
       <h2 class="sch-section__title">Enquiry &amp; Contact</h2>
       @guest
-        <p class="mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry to this school.</p>
+        <p class="mb-0">Please <a href="{{ route('login') }}">login</a> to send an enquiry to this {{ strtolower($entityLabel ?? 'school') }}.</p>
       @else
         <form
           id="schoolEnquiryForm"
           class="sch-enquiry-form"
           method="post"
-          action="{{ route('schools.enquiry', $institute->slug) }}"
+          action="{{ route(($listingContext ?? 'schools').'.enquiry', $institute->slug) }}"
           novalidate
         >
           @csrf

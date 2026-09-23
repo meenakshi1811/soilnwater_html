@@ -89,7 +89,7 @@ class InstituteProfileController extends Controller
         $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
         $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
 
-        $profile = $ownerRole === 'school' ? new SchoolProfilePresenter($institute) : null;
+        $profile = new SchoolProfilePresenter($institute);
 
         return view('frontend.institutes.diary', [
             'institute' => $institute,
@@ -117,16 +117,12 @@ class InstituteProfileController extends Controller
     {
         $institute = $this->findApprovedProfile($slug, $ownerRole);
 
-        $view = $ownerRole === 'school'
-            ? 'frontend.institutes.show-school'
-            : 'frontend.institutes.show';
-
         $authUser = auth()->user();
         $engagement = $this->engagementState($institute, $authUser);
 
-        return view($view, [
+        return view('frontend.institutes.show-school', [
             'institute' => $institute,
-            'profile' => $ownerRole === 'school' ? new SchoolProfilePresenter($institute) : null,
+            'profile' => new SchoolProfilePresenter($institute),
             'ownerRole' => $ownerRole,
             'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
             'activeNav' => 'home',

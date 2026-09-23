@@ -1,7 +1,15 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', $profile->displayName().' · School | SoilnWater')
-@section('meta_description', \Illuminate\Support\Str::limit(strip_tags($profile->aboutText() ?: $institute->tagline ?: 'School profile on SoilnWater'), 160))
+@php
+  $listingContext = $listingContext ?? 'schools';
+  $entityLabel = ($ownerRole ?? ($listingContext === 'schools' ? 'school' : 'institute')) === 'school' ? 'School' : 'Institute';
+  $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
+  $listingSectionLabel = $listingContext === 'schools' ? 'Schools & Colleges' : 'Institutes';
+  $listingTypeLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
+@endphp
+
+@section('meta_title', $profile->displayName().' · '.$entityLabel.' | SoilnWater')
+@section('meta_description', \Illuminate\Support\Str::limit(strip_tags($profile->aboutText() ?: $institute->tagline ?: $entityLabel.' profile on SoilnWater'), 160))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">
@@ -31,12 +39,12 @@
 <div
   class="sch-page"
   id="schoolProfilePage"
-  data-enquiry-url="{{ route('schools.enquiry', $institute->slug) }}"
-  data-follow-url="{{ route('schools.follow', $institute->slug) }}"
-  data-bookmark-url="{{ route('schools.bookmark', $institute->slug) }}"
-  data-compare-url="{{ route('schools.compare.toggle', $institute->slug) }}"
-  data-brochure-url="{{ route('schools.brochure', $institute->slug) }}"
-  data-helpful-url="{{ route('schools.helpful', $institute->slug) }}"
+  data-enquiry-url="{{ route($listingContext.'.enquiry', $institute->slug) }}"
+  data-follow-url="{{ route($listingContext.'.follow', $institute->slug) }}"
+  data-bookmark-url="{{ route($listingContext.'.bookmark', $institute->slug) }}"
+  data-compare-url="{{ route($listingContext.'.compare.toggle', $institute->slug) }}"
+  data-brochure-url="{{ route($listingContext.'.brochure', $institute->slug) }}"
+  data-helpful-url="{{ route($listingContext.'.helpful', $institute->slug) }}"
   data-login-url="{{ route('login') }}"
   data-is-auth="{{ auth()->check() ? '1' : '0' }}"
   data-share-url="{{ $shareUrl }}"
@@ -50,9 +58,9 @@
     <nav class="sch-breadcrumb" aria-label="Breadcrumb">
       <a href="{{ route('frontend.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
       <span class="sch-breadcrumb__sep" aria-hidden="true">›</span>
-      <a href="{{ route('schools.index') }}">Schools &amp; Colleges</a>
+      <a href="{{ route($listingIndexRoute) }}">{{ $listingSectionLabel }}</a>
       <span class="sch-breadcrumb__sep" aria-hidden="true">›</span>
-      <a href="{{ route('schools.index') }}">Schools</a>
+      <a href="{{ route($listingIndexRoute) }}">{{ $listingTypeLabel }}</a>
       <span class="sch-breadcrumb__sep" aria-hidden="true">›</span>
       <span class="sch-breadcrumb__current" aria-current="page">{{ $profile->displayName() }}</span>
     </nav>
@@ -94,7 +102,7 @@
           </section>
         @endif
 
-        <div class="sch-tabs" role="tablist" aria-label="School profile sections">
+        <div class="sch-tabs" role="tablist" aria-label="{{ $entityLabel }} profile sections">
           @foreach($tabItems as $index => $item)
             <a href="#{{ $item['id'] }}" class="sch-tab js-sch-nav-link {{ $index === 0 ? 'is-active' : '' }}">{{ $item['label'] }}</a>
           @endforeach
@@ -112,7 +120,7 @@
 
         <div class="sch-lower-grid">
           <main class="sch-main">
-            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle'))
+            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle', 'listingContext', 'entityLabel'))
           </main>
 
           @include('frontend.institutes.partials.school-profile.sidebar', compact('profile', 'institute', 'shareUrl'))

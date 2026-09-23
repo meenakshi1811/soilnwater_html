@@ -9,7 +9,7 @@
         @guest
           <p class="mb-0">Please <a href="{{ route('login') }}">log in</a> to send an enquiry.</p>
         @else
-          <form id="schoolEnquiryModalForm" method="post" action="{{ route('schools.enquiry', $institute->slug) }}" novalidate>
+          <form id="schoolEnquiryModalForm" method="post" action="{{ route(($listingContext ?? 'schools').'.enquiry', $institute->slug) }}" novalidate>
             @csrf
             <div class="row g-3">
               <div class="col-md-6">
