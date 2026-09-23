@@ -15,7 +15,7 @@
 
   <p class="homepage-community-hub__subtitle">Discover stories, reports, news, poetry, and local voices from across India.</p>
 
-  <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
+  <div class="promo-layout row g-2 align-items-start">
     <div class="col-12 d-flex">
       <div class="offer-coupon-wrap w-100">
         <div

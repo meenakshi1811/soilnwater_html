@@ -132,18 +132,40 @@
 
 /* Community Hub — vendor-style carousel boxes */
 .homepage-root .homepage-community-hub-section .offer-coupon-wrap {
+  gap: 0;
+  height: auto !important;
   margin-bottom: 0;
 }
 
+.homepage-root .homepage-community-hub-section .promo-layout {
+  margin-bottom: 0;
+}
+
+.homepage-root .homepage-community-hub-sections-slider.card-carousel,
+.homepage-root .homepage-community-hub-sections-slider .card-carousel-track {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.homepage-root .homepage-community-hub-sections-slider .card-carousel-item {
+  align-self: flex-start;
+}
+
 .homepage-root .homepage-community-posts-wrap {
-  margin-top: 22px;
+  margin-top: 10px;
 }
 
 .homepage-root .homepage-community-posts__title {
   font-size: 15px;
   font-weight: 700;
   color: #0f2f55;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
+}
+
+.homepage-root .homepage-community-hub-section.promo-slider-section .offer-coupon-wrap .card-carousel-item > .community-hub-offer-card--compact {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
 }
 
 .homepage-root .homepage-community-hub-section .community-hub-offer-card--compact.offer-coupon-card {
@@ -153,8 +175,8 @@
   display: flex;
   flex-direction: column;
   height: auto !important;
-  max-height: none;
-  min-height: 0;
+  max-height: none !important;
+  min-height: 0 !important;
   overflow: hidden;
   padding: 0 !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -175,11 +197,11 @@
   );
   border: 0 !important;
   display: flex;
-  flex: 0 0 56px;
-  height: 56px;
+  flex: 0 0 56px !important;
+  height: 56px !important;
   justify-content: center;
-  max-height: 56px;
-  min-height: 56px;
+  max-height: 56px !important;
+  min-height: 56px !important;
   width: 100%;
 }
 
