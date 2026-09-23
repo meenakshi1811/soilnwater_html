@@ -21,7 +21,7 @@
         <div
           class="offer-coupon-grid-slider card-carousel auto-ad-slider homepage-community-hub-sections-slider"
           data-slide-by="card"
-          data-carousel-cols="5"
+          data-carousel-cols="6"
           data-show-arrows="true"
           data-show-dots="false"
           data-pause-on-hover="false"

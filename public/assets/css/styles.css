@@ -1657,7 +1657,8 @@
 [data-slide-by="card"] .card-carousel-item > .vendor-offer-card,
 [data-slide-by="card"] .card-carousel-item > .homepage-profile-card,
 [data-slide-by="card"] .card-carousel-item > .prod-card,
-[data-slide-by="card"] .card-carousel-item > .community-post-card {
+[data-slide-by="card"] .card-carousel-item > .community-post-card,
+[data-slide-by="card"] .card-carousel-item > .community-hub-offer-card {
     height: 100%;
   }
   [data-slide-by="card"] .card-carousel-item {
