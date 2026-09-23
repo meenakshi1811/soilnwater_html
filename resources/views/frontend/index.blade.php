@@ -1571,7 +1571,7 @@
   }
 
   .homepage-community-hub__subtitle {
-    margin: 0 0 16px;
+    margin: 0 0 12px;
     color: #4a6077;
     font-size: 14px;
   }
