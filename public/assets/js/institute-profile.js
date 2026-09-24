@@ -4,49 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    var navLinks = document.querySelectorAll('.js-sch-nav-link');
-    var sections = [];
-
-    navLinks.forEach(function (link) {
-        var targetId = link.getAttribute('href')?.replace('#', '');
-        if (!targetId) {
-            return;
-        }
-
-        var section = document.getElementById(targetId);
-        if (section) {
-            sections.push({ id: targetId, el: section, link: link });
-        }
-
-        link.addEventListener('click', function (event) {
-            event.preventDefault();
-            section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setActiveNav(targetId);
-        });
-    });
-
-    function setActiveNav(activeId) {
-        document.querySelectorAll('.js-sch-nav-link').forEach(function (link) {
-            var href = link.getAttribute('href')?.replace('#', '');
-            link.classList.toggle('is-active', href === activeId);
-        });
-    }
-
-    if (sections.length && 'IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    setActiveNav(entry.target.id);
-                }
-            });
-        }, {
-            rootMargin: '-30% 0px -55% 0px',
-            threshold: 0,
-        });
-
-        sections.forEach(function (item) {
-            observer.observe(item.el);
-        });
+    if (typeof window.initProfileSectionNav === 'function') {
+        window.initProfileSectionNav('.js-sch-nav-link');
     }
 
     document.querySelectorAll('.js-sch-read-more').forEach(function (btn) {

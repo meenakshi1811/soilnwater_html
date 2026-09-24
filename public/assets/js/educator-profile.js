@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     var page = document.getElementById('educatorProfilePage');
-    if (!page) {
+    var noticesPage = document.getElementById('eduNoticesPage');
+    if (!page && !noticesPage) {
         return;
     }
+
+    page = page || noticesPage;
 
     var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
     var shareUrl = page.dataset.shareUrl || window.location.href;
@@ -146,50 +149,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /* Nav scroll spy */
-    var navLinks = document.querySelectorAll('.js-edu-nav-link');
-    var sections = [];
-
-    navLinks.forEach(function (link) {
-        var targetId = link.getAttribute('href')?.replace('#', '');
-        if (!targetId) {
-            return;
-        }
-
-        var section = document.getElementById(targetId);
-        if (section) {
-            sections.push({ id: targetId, el: section, link: link });
-        }
-
-        link.addEventListener('click', function (event) {
-            event.preventDefault();
-            section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setActiveNav(targetId);
-        });
-    });
-
-    function setActiveNav(activeId) {
-        document.querySelectorAll('.js-edu-nav-link').forEach(function (link) {
-            var href = link.getAttribute('href')?.replace('#', '');
-            link.classList.toggle('is-active', href === activeId);
-        });
-    }
-
-    if (sections.length && 'IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    setActiveNav(entry.target.id);
-                }
-            });
-        }, {
-            rootMargin: '-30% 0px -55% 0px',
-            threshold: 0,
-        });
-
-        sections.forEach(function (item) {
-            observer.observe(item.el);
-        });
+    if (typeof window.initProfileSectionNav === 'function') {
+        window.initProfileSectionNav('.js-edu-nav-link');
     }
 
     document.querySelectorAll('.js-edu-read-more').forEach(function (btn) {
@@ -315,11 +276,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initTestimonialCarousel();
 
-    var noticeCarouselTimer = null;
+    function openNoticeModal(notice) {
+        var modalEl = document.getElementById('educatorNoticeModal');
+        if (!notice || !modalEl || !window.bootstrap) {
+            return;
+        }
+
+        var titleEl = modalEl.querySelector('#educatorNoticeModalLabel');
+        var bodyEl = modalEl.querySelector('#educatorNoticeModalBody');
+        var expiryEl = modalEl.querySelector('#educatorNoticeModalExpiry');
+        var imageWrap = modalEl.querySelector('#educatorNoticeModalImageWrap');
+        var imageEl = modalEl.querySelector('#educatorNoticeModalImage');
+        var noticeImage = notice.dataset.noticeImage || '';
+
+        if (titleEl) {
+            titleEl.textContent = notice.dataset.noticeTitle || 'Notice';
+        }
+
+        if (bodyEl) {
+            bodyEl.textContent = notice.dataset.noticeMessage || '';
+        }
+
+        if (expiryEl) {
+            expiryEl.textContent = notice.dataset.noticeExpires
+                ? 'Valid until ' + notice.dataset.noticeExpires
+                : '';
+        }
+
+        if (imageWrap && imageEl) {
+            if (noticeImage) {
+                imageEl.src = noticeImage;
+                imageEl.alt = notice.dataset.noticeTitle || 'Notice image';
+                imageWrap.classList.remove('d-none');
+            } else {
+                imageEl.removeAttribute('src');
+                imageEl.alt = '';
+                imageWrap.classList.add('d-none');
+            }
+        }
+
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
 
     function initNoticeCarousel() {
         var carousel = document.querySelector('.js-edu-notice-carousel');
-
         if (!carousel) {
             return;
         }
@@ -329,26 +329,61 @@ document.addEventListener('DOMContentLoaded', function () {
         var slides = carousel.querySelectorAll('.edu-notice');
         var prevBtn = carousel.querySelector('.js-edu-notice-prev');
         var nextBtn = carousel.querySelector('.js-edu-notice-next');
-        var currentIndex = 0;
+        var isGrid = carousel.dataset.noticeLayout === 'grid';
 
-        if (noticeCarouselTimer) {
-            clearInterval(noticeCarouselTimer);
-            noticeCarouselTimer = null;
+        if (!track || !viewport || !slides.length) {
+            return;
         }
 
-        function slideOffset() {
-            if (!viewport) {
-                return slides[0] ? slides[0].getBoundingClientRect().width : 0;
+        if (isGrid) {
+            track.style.transform = 'none';
+
+            function scrollStep(direction) {
+                var firstSlide = slides[0];
+                if (!firstSlide) {
+                    return;
+                }
+
+                var styles = window.getComputedStyle(track);
+                var gap = parseFloat(styles.columnGap || styles.gap) || 0;
+                var step = firstSlide.getBoundingClientRect().width + gap;
+                var maxScroll = viewport.scrollWidth - viewport.clientWidth;
+
+                if (direction > 0 && viewport.scrollLeft >= maxScroll - 2) {
+                    viewport.scrollTo({ left: 0, behavior: 'smooth' });
+                    return;
+                }
+
+                if (direction < 0 && viewport.scrollLeft <= 2) {
+                    viewport.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                    return;
+                }
+
+                viewport.scrollBy({ left: direction * step, behavior: 'smooth' });
             }
 
+            if (prevBtn) {
+                prevBtn.onclick = function () {
+                    scrollStep(-1);
+                };
+            }
+
+            if (nextBtn) {
+                nextBtn.onclick = function () {
+                    scrollStep(1);
+                };
+            }
+
+            return;
+        }
+
+        var currentIndex = 0;
+
+        function slideOffset() {
             return viewport.clientWidth;
         }
 
         function showSlide(index) {
-            if (!slides.length || !track) {
-                return;
-            }
-
             currentIndex = (index + slides.length) % slides.length;
             carousel.dataset.slideIndex = String(currentIndex);
             track.style.transform = 'translateX(-' + (currentIndex * slideOffset()) + 'px)';
@@ -367,64 +402,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         showSlide(0);
-
-        if (slides.length > 1) {
-            noticeCarouselTimer = setInterval(function () {
-                showSlide(currentIndex + 1);
-            }, 7000);
-        }
-
-        if (!carousel.dataset.resizeBound) {
-            carousel.dataset.resizeBound = '1';
-            window.addEventListener('resize', function () {
-                var carouselEl = document.getElementById('eduNoticeCarousel');
-                if (!carouselEl) {
-                    return;
-                }
-
-                var trackEl = carouselEl.querySelector('.js-edu-notice-track');
-                var viewportEl = carouselEl.querySelector('.edu-notices__viewport');
-                var idx = parseInt(carouselEl.dataset.slideIndex || '0', 10);
-
-                if (!trackEl || !viewportEl) {
-                    return;
-                }
-
-                trackEl.style.transform = 'translateX(-' + (idx * viewportEl.clientWidth) + 'px)';
-            });
-        }
     }
 
     initNoticeCarousel();
 
-    document.querySelectorAll('.js-edu-notice-read-more').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var notice = btn.closest('.edu-notice');
-            var modalEl = document.getElementById('educatorNoticeModal');
-            if (!notice || !modalEl || !window.bootstrap) {
-                return;
-            }
+    document.addEventListener('click', function (event) {
+        var readMoreBtn = event.target.closest('.js-edu-notice-read-more');
+        if (!readMoreBtn) {
+            return;
+        }
 
-            var titleEl = modalEl.querySelector('#educatorNoticeModalLabel');
-            var bodyEl = modalEl.querySelector('#educatorNoticeModalBody');
-            var expiryEl = modalEl.querySelector('#educatorNoticeModalExpiry');
-
-            if (titleEl) {
-                titleEl.textContent = notice.dataset.noticeTitle || 'Notice';
-            }
-
-            if (bodyEl) {
-                bodyEl.textContent = notice.dataset.noticeMessage || '';
-            }
-
-            if (expiryEl) {
-                expiryEl.textContent = notice.dataset.noticeExpires
-                    ? 'Valid until ' + notice.dataset.noticeExpires
-                    : '';
-            }
-
-            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        });
+        event.preventDefault();
+        openNoticeModal(readMoreBtn.closest('.edu-notice'));
     });
 
     document.querySelectorAll('.js-edu-share-profile').forEach(function (btn) {
