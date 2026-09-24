@@ -12,16 +12,18 @@ final class SchoolProfilePresenter
     public const PREVIEW_LIMITS = [
         'notices' => 8,
         'courses' => 4,
+        'class-details' => 6,
         'facilities' => 4,
-        'faculty' => 6,
+        'facilities-carousel' => 8,
+        'faculty' => 4,
         'gallery' => 6,
         'achievements' => 4,
         'results' => 6,
         'books' => 6,
         'notes-materials' => 6,
         'question-papers' => 6,
-        'news' => 3,
-        'articles' => 3,
+        'news' => 4,
+        'articles' => 4,
         'events' => 3,
         'reviews' => 3,
     ];
@@ -248,12 +250,29 @@ final class SchoolProfilePresenter
     }
 
     /** @return list<array{icon: string, title: string, grades: string, description: string}> */
-    public function courseWings(): array
+    public function courseWings(?int $limit = null): array
+    {
+        $wings = $this->allCourseWings();
+
+        if ($limit === null || count($wings) <= $limit) {
+            return $wings;
+        }
+
+        return array_slice($wings, -$limit);
+    }
+
+    public function courseWingsCount(): int
+    {
+        return count($this->allCourseWings());
+    }
+
+    /** @return list<array{icon: string, title: string, grades: string, description: string}> */
+    private function allCourseWings(): array
     {
         $custom = $this->meta('course_wings');
 
         if (is_array($custom) && $custom !== []) {
-            return $custom;
+            return array_values($custom);
         }
 
         return [
@@ -290,6 +309,74 @@ final class SchoolProfilePresenter
             'Strong focus on sports and co-curricular activities',
             'Regular parent engagement and progress tracking',
         ];
+    }
+
+    public function admissionLead(): string
+    {
+        $lead = trim((string) $this->meta('admission.lead', ''));
+
+        if ($lead !== '') {
+            return $lead;
+        }
+
+        return 'Admissions are open for select grades. Submit an enquiry below or contact the admission office during operating hours.';
+    }
+
+    /** @return list<string> */
+    public function admissionHighlights(): array
+    {
+        $custom = $this->meta('admission.highlights');
+
+        if (is_array($custom) && $custom !== []) {
+            return array_values(array_filter(array_map(
+                fn ($item) => trim((string) $item),
+                $custom
+            )));
+        }
+
+        return [
+            'Online enquiry and campus visit scheduling available',
+            'Document checklist shared after initial enquiry',
+            'Entrance assessment for senior grades where applicable',
+            'Age criteria and grade mapping explained during counselling',
+            'Fee plan, transport, and scholarship options shared after registration',
+        ];
+    }
+
+    /** @return list<string> */
+    public function admissionPreviewHighlights(): array
+    {
+        return array_slice($this->admissionHighlights(), 0, 2);
+    }
+
+    public function admissionDetailsText(): string
+    {
+        $details = trim((string) $this->meta('admission.details', ''));
+
+        if ($details !== '') {
+            return $details;
+        }
+
+        return implode("\n\n", [
+            'How to apply',
+            '1. Submit an online enquiry or visit the admission desk on working days.',
+            '2. Attend a counselling session to confirm grade eligibility and seat availability.',
+            '3. Complete the application form and upload required documents.',
+            '4. Appear for an interaction or assessment if applicable for the selected grade.',
+            '5. Pay the registration fee to confirm provisional admission.',
+            '',
+            'Documents usually required',
+            'Birth certificate, previous report cards, transfer certificate (if applicable), passport-size photographs, parent/guardian ID proof, and address proof.',
+            '',
+            'Need help?',
+            'Contact the admission office during campus operating hours or send an enquiry from this profile page.',
+        ]);
+    }
+
+    public function admissionHasMore(): bool
+    {
+        return count($this->admissionHighlights()) > count($this->admissionPreviewHighlights())
+            || trim($this->admissionDetailsText()) !== '';
     }
 
     /** @return list<array{icon: string, label: string, value: string}> */
@@ -355,7 +442,9 @@ final class SchoolProfilePresenter
                 ->all();
 
         if ($limit !== null) {
-            return array_slice($members, 0, $limit);
+            $count = count($members);
+
+            return $count <= $limit ? $members : array_slice($members, -$limit);
         }
 
         return $members;
@@ -431,7 +520,7 @@ final class SchoolProfilePresenter
         return count($this->institute->facilities ?? []);
     }
 
-    /** @return list<array{id: int, title: string, excerpt: string, day: string, month: string}> */
+    /** @return list<array{id: int, title: string, excerpt: string, message: string, day: string, month: string, expires: ?string, image: ?string}> */
     public function newsItems(?int $limit = null): array
     {
         $items = $this->institute->activeNotices->map(function ($notice) {
@@ -441,8 +530,11 @@ final class SchoolProfilePresenter
                 'id' => $notice->id,
                 'title' => $notice->displayTitle(),
                 'excerpt' => $notice->excerpt(120),
+                'message' => $notice->message,
                 'day' => $date->format('d'),
                 'month' => strtoupper($date->format('M')),
+                'expires' => $notice->expires_at?->format('d M Y'),
+                'image' => $notice->imageUrl(),
             ];
         })->values();
 

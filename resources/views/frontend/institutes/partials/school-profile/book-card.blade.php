@@ -11,8 +11,9 @@
   };
   $metaParts = array_filter([$book->class_name, $book->subject]);
   $tone = ($tone ?? (($index ?? 0) % 6) + 1);
+  $carousel = ! empty($carousel);
 @endphp
-<article class="sch-book-card sch-book-card--row sch-book-card--tone-{{ $tone }}">
+<article class="sch-book-card sch-book-card--row{{ $carousel ? ' sch-book-card--carousel' : '' }} sch-book-card--tone-{{ $tone }}">
   <div class="sch-book-card__media">
     @if($book->coverUrl())
       <img src="{{ $book->coverUrl() }}" alt="" class="sch-book-card__cover-img">

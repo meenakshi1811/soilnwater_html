@@ -374,6 +374,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
             }
 
+            var navWrap = carousel.querySelector('.edu-notices__nav');
+            if (typeof window.bindCarouselChromeSync === 'function') {
+                window.bindCarouselChromeSync(carousel, viewport, navWrap);
+            }
+
             return;
         }
 

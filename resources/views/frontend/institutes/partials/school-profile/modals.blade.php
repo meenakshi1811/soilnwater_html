@@ -77,6 +77,7 @@
 </div>
 
 @include('frontend.institutes.partials.notice-modal')
+@include('frontend.institutes.partials.school-profile.admission-modal', ['profile' => $profile])
 
 <div class="modal fade" id="schoolGalleryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">

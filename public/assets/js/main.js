@@ -1,5 +1,62 @@
 window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete || function initHeaderLocationAutocomplete() {};
 
+(function (global) {
+  global.carouselTrackOverflows = function (scrollEl) {
+    if (!scrollEl) {
+      return false;
+    }
+
+    return scrollEl.scrollWidth - scrollEl.clientWidth > 2;
+  };
+
+  global.syncCarouselChrome = function (config) {
+    var scrollEl = config.scrollEl;
+    var navEl = config.navEl;
+    var rootEl = config.rootEl;
+    var scrollable = global.carouselTrackOverflows(scrollEl);
+
+    if (rootEl) {
+      rootEl.classList.toggle('is-carousel-scrollable', scrollable);
+    }
+
+    if (navEl) {
+      navEl.hidden = !scrollable;
+    }
+
+    return scrollable;
+  };
+
+  global.bindCarouselChromeSync = function (rootEl, scrollEl, navEl) {
+    if (!scrollEl || !rootEl) {
+      return function () {};
+    }
+
+    var sync = function () {
+      return global.syncCarouselChrome({
+        scrollEl: scrollEl,
+        navEl: navEl,
+        rootEl: rootEl,
+      });
+    };
+
+    sync();
+    global.requestAnimationFrame(sync);
+
+    var resizeTimer;
+    global.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(sync, 120);
+    });
+    global.addEventListener('load', sync);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(sync).observe(scrollEl);
+    }
+
+    return sync;
+  };
+})(window);
+
 (function(){
   const scroller = document.getElementById('catScroller');
   const btnL = document.getElementById('catLeft');
@@ -262,10 +319,19 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       ? Number(slider.dataset.initialDelayMs)
       : (600 + ((sliderIndex % 7) * 300));
 
+    const canAutoScroll = () => {
+      if (items.length <= 1) return false;
+      return track.scrollWidth - track.clientWidth > 2;
+    };
+
     const startAuto = () => {
-      if (items.length <= 1) return;
+      if (!canAutoScroll()) return;
       stopAuto();
       autoTimer = setTimeout(function tick() {
+        if (!canAutoScroll()) {
+          stopAuto();
+          return;
+        }
         scrollByStep(1);
         autoTimer = setTimeout(tick, autoIntervalMs);
       }, initialDelayMs);
@@ -276,21 +342,23 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     };
 
     const showArrows = slider.dataset.showArrows !== 'false';
+    let controlsWrap = null;
 
     if (showArrows && items.length > 1) {
-      const controlsWrap = document.createElement('div');
+      controlsWrap = document.createElement('div');
       controlsWrap.className = 'ad-slider-arrows';
+      controlsWrap.hidden = true;
 
       const prevBtn = document.createElement('button');
       prevBtn.className = 'ad-slider-arrow ad-slider-arrow-prev';
       prevBtn.type = 'button';
-      prevBtn.setAttribute('aria-label', 'Previous ad');
+      prevBtn.setAttribute('aria-label', 'Previous slide');
       prevBtn.innerHTML = '&#10094;';
 
       const nextBtn = document.createElement('button');
       nextBtn.className = 'ad-slider-arrow ad-slider-arrow-next';
       nextBtn.type = 'button';
-      nextBtn.setAttribute('aria-label', 'Next ad');
+      nextBtn.setAttribute('aria-label', 'Next slide');
       nextBtn.innerHTML = '&#10095;';
 
       prevBtn.addEventListener('click', () => {
@@ -308,18 +376,44 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       slider.appendChild(controlsWrap);
     }
 
+    const syncCarouselUi = window.bindCarouselChromeSync(slider, track, controlsWrap);
+
     const pauseOnHover = slider.dataset.pauseOnHover !== 'false';
 
     if (pauseOnHover) {
       slider.addEventListener('mouseenter', stopAuto);
-      slider.addEventListener('mouseleave', startAuto);
+      slider.addEventListener('mouseleave', function () {
+        if (canAutoScroll()) {
+          startAuto();
+        }
+      });
     }
 
     slider.addEventListener('focusin', stopAuto);
-    slider.addEventListener('focusout', startAuto);
+    slider.addEventListener('focusout', function () {
+      if (canAutoScroll()) {
+        startAuto();
+      }
+    });
 
-    if (slider.classList.contains('auto-ad-slider')) {
-      startAuto();
+    const refreshAuto = function () {
+      syncCarouselUi();
+      if (slider.classList.contains('auto-ad-slider') && canAutoScroll()) {
+        restartAuto();
+      } else {
+        stopAuto();
+      }
+    };
+
+    refreshAuto();
+    window.requestAnimationFrame(refreshAuto);
+
+    if (!slider.dataset.carouselResizeBound) {
+      slider.dataset.carouselResizeBound = 'true';
+      window.addEventListener('resize', function () {
+        refreshAuto();
+      });
+      window.addEventListener('load', refreshAuto);
     }
   });
 })();

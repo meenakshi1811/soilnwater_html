@@ -1056,6 +1056,24 @@
   gap: 0.35rem;
 }
 
+.edu-notices:not(.is-carousel-scrollable) .edu-notices__nav {
+  display: none !important;
+}
+
+.edu-page .edu-profile-carousel[data-slide-by="card"] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.edu-page .edu-profile-carousel[data-slide-by="card"].is-carousel-scrollable {
+  padding-left: 2.65rem;
+  padding-right: 2.65rem;
+}
+
+.edu-page .edu-profile-carousel:not(.is-carousel-scrollable) .ad-slider-arrows {
+  display: none !important;
+}
+
 .edu-notices__btn,
 .edu-testimonials__btn {
   width: 32px;

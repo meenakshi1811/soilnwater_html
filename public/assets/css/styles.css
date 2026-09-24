@@ -1487,6 +1487,9 @@
     padding: 0 8px;
     pointer-events: none;
   }
+  .ad-slider-arrows[hidden] {
+    display: none !important;
+  }
   .ad-slider-arrow {
     width: 30px;
     height: 30px;
@@ -1647,6 +1650,12 @@
     min-width: 0;
     scroll-snap-align: start;
   }
+  [data-slide-by="card"][data-carousel-cols="3"] {
+    --carousel-visible: 3;
+  }
+  [data-slide-by="card"][data-carousel-cols="4"] {
+    --carousel-visible: 4;
+  }
   [data-slide-by="card"][data-carousel-cols="5"] {
     --carousel-visible: 5;
   }
@@ -1662,6 +1671,9 @@
 [data-slide-by="card"] .card-carousel-item > .sch-book-card,
 [data-slide-by="card"] .card-carousel-item > .sch-news-card,
 [data-slide-by="card"] .card-carousel-item > .sch-gallery-item,
+[data-slide-by="card"] .card-carousel-item > .sch-class-card,
+[data-slide-by="card"] .card-carousel-item > .sch-facility-card,
+[data-slide-by="card"] .card-carousel-item > .sch-achievement-card,
 [data-slide-by="card"] .card-carousel-item > .edu-course-card,
 [data-slide-by="card"] .card-carousel-item > .edu-sm-card {
     height: 100%;
@@ -1795,7 +1807,9 @@
     [data-slide-by="card"][data-carousel-cols="6"] .card-carousel-item,
     [data-slide-by="card"][data-carousel-cols="6"] .recent-ads-carousel-item,
     [data-slide-by="card"][data-carousel-cols="5"] .card-carousel-item,
-    [data-slide-by="card"][data-carousel-cols="5"] .recent-ads-carousel-item {
+    [data-slide-by="card"][data-carousel-cols="5"] .recent-ads-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="4"] .card-carousel-item,
+    [data-slide-by="card"][data-carousel-cols="3"] .card-carousel-item {
       flex-basis: calc((100% - (12px * 2)) / 3);
     }
     .recent-ads-grid {

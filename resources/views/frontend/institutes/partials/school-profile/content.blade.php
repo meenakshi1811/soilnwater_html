@@ -24,14 +24,21 @@
       'entityLabel' => $entityLabel ?? 'School',
     ])
 
-    <section id="sch-admission" class="sch-card sch-section">
+    <section id="sch-admission" class="sch-card sch-section sch-admission-section">
       <h2 class="sch-section__title">Admission Info</h2>
-      <p class="sch-section__lead">Admissions are open for select grades. Submit an enquiry below or contact the admission office during operating hours.</p>
-      <ul class="sch-check-list">
-        <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Online enquiry and campus visit scheduling available</li>
-        <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Document checklist shared after initial enquiry</li>
-        <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Entrance assessment for senior grades where applicable</li>
-      </ul>
+      <p class="sch-section__lead">{{ $profile->admissionLead() }}</p>
+      @if($profile->admissionPreviewHighlights() !== [])
+        <ul class="sch-check-list sch-admission-section__list">
+          @foreach($profile->admissionPreviewHighlights() as $point)
+            <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $point }}</li>
+          @endforeach
+        </ul>
+      @endif
+      @if($profile->admissionHasMore())
+        <button type="button" class="sch-read-more js-sch-admission-read-more">
+          Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      @endif
     </section>
 
     <section id="sch-contact" class="sch-card sch-section sch-enquiry-section">
