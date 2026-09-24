@@ -28,6 +28,10 @@
   $notices = collect($notices ?? []);
   $aboutText = trim((string) $educator->about);
   $aboutNeedsToggle = strlen($aboutText) > 280;
+  $studyMaterialsPreview = collect($studyMaterials ?? []);
+  $studyMaterialCarouselCols = min(max($studyMaterialsPreview->count(), 1), 3);
+  $coursesPreview = collect($courses ?? []);
+  $courseCarouselCols = min(max($coursesPreview->count(), 1), 3);
   $isTutorProfile = $educator->isTutor();
   $tuitionPointLabel = $educator->tuitionPointAddressLabel();
   $showLocationSidebar = $educator->locationLabel()
@@ -386,9 +390,9 @@
           </div>
           @if($courses->isNotEmpty())
             <div
-              class="edu-profile-carousel card-carousel auto-ad-slider"
+              class="edu-profile-carousel edu-courses-carousel card-carousel auto-ad-slider"
               data-slide-by="card"
-              data-carousel-cols="3"
+              data-carousel-cols="{{ $courseCarouselCols }}"
               data-show-arrows="true"
               data-show-dots="false"
               data-pause-on-hover="true"
@@ -419,9 +423,9 @@
           </div>
           @if(($studyMaterials ?? collect())->isNotEmpty())
             <div
-              class="edu-profile-carousel card-carousel auto-ad-slider"
+              class="edu-profile-carousel edu-study-materials-carousel card-carousel auto-ad-slider"
               data-slide-by="card"
-              data-carousel-cols="3"
+              data-carousel-cols="{{ $studyMaterialCarouselCols }}"
               data-show-arrows="true"
               data-show-dots="false"
               data-pause-on-hover="true"
@@ -430,7 +434,7 @@
               <div class="card-carousel-track">
                 @foreach($studyMaterials as $material)
                   <div class="card-carousel-item">
-                    @include('frontend.educator.partials.study-material-card', ['material' => $material, 'showActions' => false])
+                    @include('frontend.educator.partials.study-material-card', ['material' => $material, 'showActions' => false, 'carousel' => true])
                   </div>
                 @endforeach
               </div>

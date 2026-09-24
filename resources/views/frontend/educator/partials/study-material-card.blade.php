@@ -7,9 +7,10 @@
     $paymentState = $material->resolvePaymentStateFor($authUser);
     $description = \Illuminate\Support\Str::limit(strip_tags((string) $material->description), 120);
     $uploadedAt = $material->approved_at ?? $material->created_at;
+    $carousel = ! empty($carousel);
 @endphp
 
-<article class="edu-sm-card {{ $showActions ? 'edu-sm-card--interactive' : '' }}">
+<article class="edu-sm-card{{ $showActions ? ' edu-sm-card--interactive' : '' }}{{ $carousel ? ' edu-sm-card--carousel' : '' }}">
   <div class="edu-sm-card__top">
     <span class="edu-sm-card__icon edu-sm-card__icon--{{ $fileMeta['tone'] }}">
       <i class="fa-solid {{ $fileMeta['icon'] }}" aria-hidden="true"></i>

@@ -1061,17 +1061,142 @@
 }
 
 .edu-page .edu-profile-carousel[data-slide-by="card"] {
+  --carousel-gap: 12px;
+  --carousel-visible: 3;
+  box-sizing: border-box;
   padding-left: 0;
   padding-right: 0;
+  position: relative;
+}
+
+.edu-page .edu-profile-carousel[data-carousel-cols="1"] {
+  --carousel-visible: 1;
+}
+
+.edu-page .edu-profile-carousel[data-carousel-cols="2"] {
+  --carousel-visible: 2;
+}
+
+.edu-page .edu-profile-carousel[data-carousel-cols="3"] {
+  --carousel-visible: 3;
 }
 
 .edu-page .edu-profile-carousel[data-slide-by="card"].is-carousel-scrollable {
-  padding-left: 2.65rem;
-  padding-right: 2.65rem;
+  padding-left: 2.85rem;
+  padding-right: 2.85rem;
 }
 
 .edu-page .edu-profile-carousel:not(.is-carousel-scrollable) .ad-slider-arrows {
   display: none !important;
+}
+
+.edu-page .edu-profile-carousel .card-carousel-track {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--carousel-gap);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.edu-page .edu-profile-carousel .card-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.edu-page .edu-profile-carousel .card-carousel-item {
+  display: flex;
+  flex: 0 0 calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+  flex-direction: column;
+  max-width: calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.edu-page .edu-profile-carousel .card-carousel-item > .edu-sm-card,
+.edu-page .edu-profile-carousel .card-carousel-item > .edu-course-card {
+  box-sizing: border-box;
+  height: 100%;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.edu-page .edu-profile-carousel.is-carousel-scrollable.card-carousel .ad-slider-arrows {
+  box-sizing: border-box;
+  inset: 0;
+  justify-content: space-between;
+  padding: 0 0.2rem;
+  pointer-events: none;
+}
+
+.edu-page .edu-profile-carousel.is-carousel-scrollable.card-carousel .ad-slider-arrow {
+  pointer-events: auto;
+  position: relative;
+  z-index: 4;
+}
+
+.edu-study-materials-carousel:not(.is-carousel-scrollable) .card-carousel-item,
+.edu-courses-carousel:not(.is-carousel-scrollable) .card-carousel-item {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+.edu-study-materials-carousel:not(.is-carousel-scrollable) .card-carousel-track,
+.edu-courses-carousel:not(.is-carousel-scrollable) .card-carousel-track {
+  overflow-x: hidden;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel {
+  min-height: 220px;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__top {
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__title {
+  display: -webkit-box;
+  font-size: 0.92rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__title a {
+  color: inherit;
+  pointer-events: auto;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__meta {
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  margin-top: auto;
+  overflow: hidden;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__meta li {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edu-study-materials-carousel .edu-sm-card--carousel .edu-sm-card__meta li:nth-child(n + 3) {
+  display: none;
 }
 
 .edu-notices__btn,
@@ -1275,6 +1400,31 @@
 
 .edu-profile-carousel {
   margin-top: 0.15rem;
+}
+
+@media (max-width: 991.98px) {
+  .edu-page .edu-profile-carousel .card-carousel-item {
+    flex-basis: calc((100% - var(--carousel-gap)) / 2);
+    max-width: calc((100% - var(--carousel-gap)) / 2);
+  }
+
+  .edu-study-materials-carousel:not(.is-carousel-scrollable) .card-carousel-item,
+  .edu-courses-carousel:not(.is-carousel-scrollable) .card-carousel-item {
+    flex-basis: auto;
+    max-width: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .edu-page .edu-profile-carousel[data-slide-by="card"].is-carousel-scrollable {
+    padding-left: 2.35rem;
+    padding-right: 2.35rem;
+  }
+
+  .edu-page .edu-profile-carousel .card-carousel-item {
+    flex-basis: 88%;
+    max-width: 88%;
+  }
 }
 
 .edu-notices-page__hero {
