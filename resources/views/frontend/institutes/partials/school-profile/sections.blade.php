@@ -304,6 +304,7 @@
         'total' => $performers->count(),
         'limit' => $previewLimits['results'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
     <div class="row g-3">
@@ -327,14 +328,6 @@
         </div>
       @endforeach
     </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'results',
-      'total' => $performers->count(),
-      'limit' => $previewLimits['results'],
-      'label' => 'results',
-    ])
   </section>
 @endif
 
@@ -444,6 +437,7 @@
           'total' => $profile->newsItemsCount(),
           'limit' => $previewLimits['news'],
           'inHead' => true,
+          'alwaysShow' => true,
         ])
       @endif
     </div>
