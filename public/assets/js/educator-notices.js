@@ -58,10 +58,14 @@
 
         setSubmitting(true);
 
+        var formData = new FormData($form[0]);
+
         $.ajax({
             url: window.educatorNoticeStoreUrl || '/educator/notices',
             method: 'POST',
-            data: $form.serialize(),
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
         })
             .done(function (response) {

@@ -18,7 +18,10 @@ final class SchoolProfilePresenter
         'achievements' => 4,
         'results' => 6,
         'books' => 6,
+        'notes-materials' => 6,
+        'question-papers' => 6,
         'news' => 3,
+        'articles' => 3,
         'events' => 3,
         'reviews' => 3,
     ];
@@ -363,6 +366,46 @@ final class SchoolProfilePresenter
         return count($this->facultyMembers());
     }
 
+    public function isQuestionPaperBook(object $book): bool
+    {
+        $hay = strtolower(trim($book->title.' '.($book->subject ?? '').' '.($book->publisher ?? '')));
+
+        return str_contains($hay, 'question paper')
+            || str_contains($hay, 'question-paper')
+            || str_contains($hay, 'sample paper')
+            || str_contains($hay, 'previous year')
+            || (str_contains($hay, 'paper') && str_contains($hay, 'sample'));
+    }
+
+    /** @return \Illuminate\Support\Collection<int, \App\Models\InstituteBook> */
+    public function notesMaterialBooks(?int $limit = null): Collection
+    {
+        $books = $this->institute->books->reject(fn ($book): bool => $this->isQuestionPaperBook($book))->values();
+        if ($books->isEmpty()) {
+            $books = $this->institute->books;
+        }
+
+        return $limit !== null ? $books->take($limit) : $books;
+    }
+
+    public function notesMaterialBooksCount(): int
+    {
+        return $this->notesMaterialBooks()->count();
+    }
+
+    /** @return \Illuminate\Support\Collection<int, \App\Models\InstituteBook> */
+    public function questionPaperBooks(?int $limit = null): Collection
+    {
+        $books = $this->institute->books->filter(fn ($book): bool => $this->isQuestionPaperBook($book))->values();
+
+        return $limit !== null ? $books->take($limit) : $books;
+    }
+
+    public function questionPaperBooksCount(): int
+    {
+        return $this->questionPaperBooks()->count();
+    }
+
     /** @return list<array{name: string, image: ?string}> */
     public function facilityCards(?int $limit = null): array
     {
@@ -543,7 +586,8 @@ final class SchoolProfilePresenter
             ['id' => 'sch-news', 'label' => 'News & Announcements', 'icon' => 'fa-newspaper'],
             ['id' => 'sch-reviews', 'label' => 'Reviews & Ratings', 'icon' => 'fa-star'],
             ['id' => 'sch-results', 'label' => 'Placement / Results', 'icon' => 'fa-medal'],
-            ['id' => 'sch-books', 'label' => 'Students Corner', 'icon' => 'fa-book-open-reader'],
+            ['id' => 'sch-notes-material', 'label' => 'Notes & Material', 'icon' => 'fa-note-sticky'],
+            ['id' => 'sch-question-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
             ['id' => 'sch-contact', 'label' => 'Enquiry & Contact', 'icon' => 'fa-envelope'],
         ];
 
@@ -555,7 +599,8 @@ final class SchoolProfilePresenter
                 'sch-notices', 'sch-events', 'sch-news' => $this->institute->activeNotices->isNotEmpty(),
                 'sch-reviews' => $this->reviews() !== [],
                 'sch-results' => $this->institute->topPerformers->isNotEmpty(),
-                'sch-books' => $this->institute->books->isNotEmpty(),
+                'sch-notes-material' => $this->notesMaterialBooks()->isNotEmpty(),
+                'sch-question-papers' => $this->questionPaperBooks()->isNotEmpty(),
                 'sch-faculty' => $this->facultyMembers() !== [],
                 'sch-facilities' => collect($this->institute->facilities ?? [])->isNotEmpty(),
                 default => true,
@@ -604,9 +649,21 @@ final class SchoolProfilePresenter
                 'title' => 'Students Corner',
                 'lead' => 'Textbooks and study resources across classes.',
             ],
+            'notes-materials' => [
+                'title' => 'Notes & Study Material',
+                'lead' => 'Notes, textbooks, and study resources across classes.',
+            ],
+            'question-papers' => [
+                'title' => 'Question Papers',
+                'lead' => 'Sample papers and previous-year question papers.',
+            ],
             'news' => [
                 'title' => 'News & Announcements',
                 'lead' => 'Latest news and updates.',
+            ],
+            'articles' => [
+                'title' => 'Articles & News',
+                'lead' => 'Articles, stories, and announcements from the institution.',
             ],
             'events' => [
                 'title' => 'Upcoming Events',

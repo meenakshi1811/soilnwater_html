@@ -12,6 +12,7 @@ class EducatorNotice extends Model
         'educator_id',
         'title',
         'message',
+        'image',
         'expires_at',
     ];
 
@@ -41,6 +42,16 @@ class EducatorNotice extends Model
         }
 
         return 'Notice';
+    }
+
+    public function imageUrl(): ?string
+    {
+        return filled($this->image) ? asset($this->image) : null;
+    }
+
+    public function hasImage(): bool
+    {
+        return filled($this->image);
     }
 
     public function excerpt(int $limit = 180): string

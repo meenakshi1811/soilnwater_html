@@ -207,7 +207,7 @@ Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
 Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
 Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'schoolSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|news|events|reviews')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews')
     ->name('schools.section');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
@@ -223,7 +223,7 @@ Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
 Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
 Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, 'instituteSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|news|events|reviews')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews')
     ->name('institutes.section');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
@@ -239,6 +239,7 @@ Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->nam
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
 Route::get('/teachers-tutors/{slug}/courses', [FrontendEducatorProfileController::class, 'courses'])->name('educator.courses');
 Route::get('/teachers-tutors/{slug}/study-materials', [FrontendEducatorProfileController::class, 'studyMaterials'])->name('educator.study-materials');
+Route::get('/teachers-tutors/{slug}/notices', [FrontendEducatorProfileController::class, 'notices'])->name('educator.notices');
 Route::get('/teachers-tutors/{slug}/notes', [FrontendEducatorProfileController::class, 'notes'])->name('educator.notes');
 Route::get('/teachers-tutors/{slug}/question-papers', [FrontendEducatorProfileController::class, 'questionPapers'])->name('educator.question-papers');
 Route::get('/teachers-tutors/{slug}/reviews', [FrontendEducatorProfileController::class, 'reviews'])->name('educator.reviews');

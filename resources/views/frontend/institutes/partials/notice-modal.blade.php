@@ -10,6 +10,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body sch-notice-modal__body-wrap">
+        <div class="sch-notice-modal__image-wrap d-none" id="schNoticeModalImageWrap">
+          <img src="" alt="" class="sch-notice-modal__image" id="schNoticeModalImage">
+        </div>
         <div id="schNoticeModalBody" class="sch-notice-modal__body"></div>
       </div>
     </div>

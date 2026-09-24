@@ -231,6 +231,7 @@
 @if($profile)
 <script src="{{ asset('assets/js/school-profile-notify.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
 @endif
 @endpush

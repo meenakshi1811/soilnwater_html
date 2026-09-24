@@ -231,10 +231,21 @@
         </section>
 
         @if($notices->isNotEmpty())
+        @php
+          $noticesPreviewLimit = 8;
+          $noticesTotal = $notices->count();
+        @endphp
         {{-- Notice Board --}}
         <section class="edu-section edu-notice-section" id="edu-notices" aria-label="Notice Board">
           <div class="edu-notice-section__frame">
-            @include('frontend.educator.partials.notice-board', ['notices' => $notices, 'featured' => true])
+            @include('frontend.educator.partials.notice-board', [
+              'notices' => $notices->take($noticesPreviewLimit),
+              'featured' => true,
+              'layout' => 'grid',
+              'viewAllUrl' => $educator->publicNoticesUrl(),
+              'viewAllLabel' => 'View all notices',
+              'showViewAll' => $noticesTotal > 0,
+            ])
           </div>
         </section>
         @endif
@@ -367,17 +378,29 @@
         <section class="edu-section" id="edu-courses">
           <div class="edu-section__head">
             <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses</h2>
-            @if(($coursesTotal ?? $courses->count()) > 3)
+            @if(($coursesTotal ?? $courses->count()) > 0)
               <a href="{{ route('educator.courses', $educator->slug) }}" class="edu-section__link">
                 View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
             @endif
           </div>
           @if($courses->isNotEmpty())
-            <div class="edu-courses-grid edu-courses-grid--preview">
-              @foreach($courses as $course)
-                @include('frontend.educator.partials.course-card', ['course' => $course])
-              @endforeach
+            <div
+              class="edu-profile-carousel card-carousel auto-ad-slider"
+              data-slide-by="card"
+              data-carousel-cols="3"
+              data-show-arrows="true"
+              data-show-dots="false"
+              data-pause-on-hover="true"
+              aria-label="Courses slider"
+            >
+              <div class="card-carousel-track">
+                @foreach($courses as $course)
+                  <div class="card-carousel-item">
+                    @include('frontend.educator.partials.course-card', ['course' => $course])
+                  </div>
+                @endforeach
+              </div>
             </div>
           @else
             <p class="edu-empty">No courses published yet.</p>
@@ -395,18 +418,23 @@
             @endif
           </div>
           @if(($studyMaterials ?? collect())->isNotEmpty())
-            <div class="edu-sm-grid edu-sm-grid--preview">
-              @foreach($studyMaterials as $material)
-                @include('frontend.educator.partials.study-material-card', ['material' => $material, 'showActions' => false])
-              @endforeach
-            </div>
-            @if(($studyMaterialsTotal ?? 0) > 6)
-              <div class="edu-section__footer mt-3">
-                <a href="{{ route('educator.study-materials', $educator->slug) }}" class="btn btn-outline-primary btn-sm">
-                  View all {{ number_format($studyMaterialsTotal) }} materials
-                </a>
+            <div
+              class="edu-profile-carousel card-carousel auto-ad-slider"
+              data-slide-by="card"
+              data-carousel-cols="3"
+              data-show-arrows="true"
+              data-show-dots="false"
+              data-pause-on-hover="true"
+              aria-label="Study material slider"
+            >
+              <div class="card-carousel-track">
+                @foreach($studyMaterials as $material)
+                  <div class="card-carousel-item">
+                    @include('frontend.educator.partials.study-material-card', ['material' => $material, 'showActions' => false])
+                  </div>
+                @endforeach
               </div>
-            @endif
+            </div>
           @else
             <p class="edu-empty">No study materials published yet.</p>
           @endif
@@ -976,23 +1004,7 @@
   </div>
 </div>
 
-<div class="modal fade" id="educatorNoticeModal" tabindex="-1" aria-labelledby="educatorNoticeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="educatorNoticeModalLabel">Notice</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-muted small mb-2" id="educatorNoticeModalExpiry"></p>
-        <div id="educatorNoticeModalBody" class="edu-notice-modal__body"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+@include('frontend.educator.partials.notice-modal')
 
 <div class="modal fade" id="enquiryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -1031,5 +1043,6 @@
 
 @push('scripts')
 @include('community.partials.toastr-assets')
+<script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/educator-profile.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

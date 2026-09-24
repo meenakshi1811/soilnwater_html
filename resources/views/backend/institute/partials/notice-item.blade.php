@@ -1,14 +1,19 @@
 <div class="edu-notice-manage-item sch-manage-item" data-notice-id="{{ $notice->id }}" data-item-id="{{ $notice->id }}">
   <div class="edu-notice-manage-item__head sch-manage-item__head">
-    <div>
-      <strong>{{ $notice->displayTitle() }}</strong>
-      <div class="edu-notice-manage-item__meta sch-manage-item__meta">
-        Expires {{ $notice->expires_at?->format('d M Y') }}
-        @if($notice->isExpired())
-          <span class="badge text-bg-secondary ms-1">Expired</span>
-        @else
-          <span class="badge text-bg-success ms-1">Active</span>
-        @endif
+    <div class="d-flex align-items-start gap-3">
+      @if($notice->hasImage())
+        <img src="{{ $notice->imageUrl() }}" alt="" class="sch-notice-manage-thumb">
+      @endif
+      <div>
+        <strong>{{ $notice->displayTitle() }}</strong>
+        <div class="edu-notice-manage-item__meta sch-manage-item__meta">
+          Expires {{ $notice->expires_at?->format('d M Y') }}
+          @if($notice->isExpired())
+            <span class="badge text-bg-secondary ms-1">Expired</span>
+          @else
+            <span class="badge text-bg-success ms-1">Active</span>
+          @endif
+        </div>
       </div>
     </div>
     <button type="button" class="btn btn-outline-danger btn-sm js-inst-notice-delete" data-url="{{ $portalRoute('notices.destroy', $notice) }}" aria-label="Delete notice">

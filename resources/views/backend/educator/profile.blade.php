@@ -611,6 +611,10 @@
               <label for="noticeMessage" class="form-label">Notice message</label>
               <textarea id="noticeMessage" name="message" class="form-control" rows="4" maxlength="5000" required placeholder="Share exam dates, holiday schedules, batch updates, or important announcements."></textarea>
             </div>
+            <div class="col-md-6">
+              <label for="noticeImage" class="form-label">Notice image <span class="text-muted">(optional)</span></label>
+              <input type="file" id="noticeImage" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
+            </div>
           </div>
         </form>
 

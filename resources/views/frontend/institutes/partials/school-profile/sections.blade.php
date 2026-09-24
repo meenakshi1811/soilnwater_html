@@ -9,7 +9,6 @@
   $classes = $institute->schoolClasses;
   $achievements = $institute->achievements;
   $performers = $institute->topPerformers;
-  $books = $institute->books;
   $gallery = $profile->galleryImages();
   $classesLimit = $isProfilePreview ? ($previewLimits['courses'] ?? null) : null;
   $classesPreview = $classesLimit !== null ? $classes->take($classesLimit) : $classes;
@@ -21,8 +20,10 @@
   $achievementsPreview = $achievementsLimit !== null ? $achievements->take($achievementsLimit) : $achievements;
   $resultsLimit = $isProfilePreview ? ($previewLimits['results'] ?? null) : null;
   $performersPreview = $resultsLimit !== null ? $performers->take($resultsLimit) : $performers;
-  $booksLimit = $isProfilePreview ? ($previewLimits['books'] ?? null) : null;
-  $booksPreview = $booksLimit !== null ? $books->take($booksLimit) : $books;
+  $notesLimit = $isProfilePreview ? ($previewLimits['notes-materials'] ?? null) : null;
+  $questionPapersLimit = $isProfilePreview ? ($previewLimits['question-papers'] ?? null) : null;
+  $notesPreview = $profile->notesMaterialBooks($notesLimit);
+  $questionPapersPreview = $profile->questionPaperBooks($questionPapersLimit);
   $newsLimit = $isProfilePreview ? ($previewLimits['news'] ?? null) : null;
   $eventsLimit = $isProfilePreview ? ($previewLimits['events'] ?? null) : null;
   $reviewsLimit = $isProfilePreview ? ($previewLimits['reviews'] ?? null) : null;
@@ -115,14 +116,6 @@
         </article>
       @endforeach
     </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'facilities',
-      'total' => $profile->facilitiesCount(),
-      'limit' => $previewLimits['facilities'],
-      'label' => 'facilities',
-    ])
   </section>
 @endif
 
@@ -137,27 +130,34 @@
         'total' => $profile->facultyMembersCount(),
         'limit' => $previewLimits['faculty'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
-    <div class="sch-faculty-grid">
-      @foreach($profile->facultyMembers($facultyLimit) as $member)
-        <article class="sch-faculty-card">
-          <span class="sch-faculty-card__avatar">{{ strtoupper(substr($member['name'], 0, 1)) }}</span>
-          <div>
-            <h3>{{ $member['name'] }}</h3>
-            <p>{{ $member['role'] }}</p>
-          </div>
-        </article>
-      @endforeach
-    </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'faculty',
-      'total' => $profile->facultyMembersCount(),
-      'limit' => $previewLimits['faculty'],
-      'label' => 'faculty members',
-    ])
+    @if($isProfilePreview)
+      <div
+        class="sch-faculty-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="4"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Faculty slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($profile->facultyMembers($facultyLimit) as $member)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.faculty-card', ['member' => $member])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-faculty-grid sch-faculty-grid--full">
+        @foreach($profile->facultyMembers() as $member)
+          @include('frontend.institutes.partials.school-profile.faculty-card', ['member' => $member])
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 
@@ -172,23 +172,38 @@
         'total' => $gallery->count(),
         'limit' => $previewLimits['gallery'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
-    <div class="sch-gallery-grid">
-      @foreach($galleryPreview as $imageUrl)
-        <button type="button" class="sch-gallery-item js-sch-gallery-open" data-gallery-src="{{ $imageUrl }}">
-          <img src="{{ $imageUrl }}" alt="Campus gallery image">
-        </button>
-      @endforeach
-    </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'gallery',
-      'total' => $gallery->count(),
-      'limit' => $previewLimits['gallery'],
-      'label' => 'photos',
-    ])
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel sch-gallery-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="4"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Gallery slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($galleryPreview as $imageUrl)
+            <div class="card-carousel-item">
+              <button type="button" class="sch-gallery-item js-sch-gallery-open" data-gallery-src="{{ $imageUrl }}">
+                <img src="{{ $imageUrl }}" alt="Campus gallery image">
+              </button>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-gallery-grid sch-gallery-grid--full">
+        @foreach($gallery as $imageUrl)
+          <button type="button" class="sch-gallery-item js-sch-gallery-open" data-gallery-src="{{ $imageUrl }}">
+            <img src="{{ $imageUrl }}" alt="Campus gallery image">
+          </button>
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 
@@ -285,112 +300,135 @@
   </section>
 @endif
 
-@if($showSection('books') && $books->isNotEmpty())
-  <section id="sch-books" class="sch-card sch-section sch-books-section">
+@if($showSection('notes-materials') && $profile->notesMaterialBooksCount() > 0)
+  <section id="sch-notes-material" class="sch-card sch-section sch-books-section">
     <div class="sch-section__head sch-books-section__head">
       <div>
-        <h2 class="sch-section__title mb-1">Students Corner</h2>
-        <p class="sch-section__lead mb-0">Textbooks and study resources used across classes.</p>
+        <h2 class="sch-section__title mb-1">Notes &amp; Study Material</h2>
+        <p class="sch-section__lead mb-0">Textbooks, notes, and study resources used across classes.</p>
       </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
-        'sectionKey' => 'books',
-        'total' => $books->count(),
-        'limit' => $previewLimits['books'],
+        'sectionKey' => 'notes-materials',
+        'total' => $profile->notesMaterialBooksCount(),
+        'limit' => $previewLimits['notes-materials'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
-    <div class="sch-books-grid">
-      @foreach($booksPreview as $index => $book)
-        @php
-          $subjectKey = strtolower((string) $book->subject);
-          $bookIcon = match (true) {
-            str_contains($subjectKey, 'math') => 'fa-calculator',
-            str_contains($subjectKey, 'phys') => 'fa-atom',
-            str_contains($subjectKey, 'chem') => 'fa-flask',
-            str_contains($subjectKey, 'bio') => 'fa-dna',
-            str_contains($subjectKey, 'english') => 'fa-feather-pointed',
-            str_contains($subjectKey, 'science') => 'fa-microscope',
-            default => 'fa-book-open',
-          };
-          $metaParts = array_filter([$book->class_name, $book->subject]);
-        @endphp
-        <article class="sch-book-card sch-book-card--row sch-book-card--tone-{{ ($index % 6) + 1 }}">
-          <div class="sch-book-card__media">
-            @if($book->coverUrl())
-              <img src="{{ $book->coverUrl() }}" alt="" class="sch-book-card__cover-img">
-            @else
-              <span class="sch-book-card__cover-icon" aria-hidden="true">
-                <i class="fa-solid {{ $bookIcon }}"></i>
-              </span>
-            @endif
-          </div>
-          <div class="sch-book-card__body">
-            @if($metaParts !== [])
-              <p class="sch-book-card__meta">{{ implode(' · ', $metaParts) }}</p>
-            @endif
-            <h3 class="sch-book-card__title">{{ $book->title }}</h3>
-            <p class="sch-book-card__author">
-              <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
-              <span>{{ $book->author }}</span>
-            </p>
-            @if($book->publisher)
-              <p class="sch-book-card__publisher">{{ $book->publisher }}</p>
-            @endif
-            @if($book->class_name || $book->subject)
-              <div class="sch-book-card__tags">
-                @if($book->class_name)<span>{{ $book->class_name }}</span>@endif
-                @if($book->subject)<span>{{ $book->subject }}</span>@endif
-              </div>
-            @endif
-          </div>
-        </article>
-      @endforeach
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="3"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Notes and study material slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($notesPreview as $index => $book)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.book-card', ['book' => $book, 'index' => $index])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-books-grid sch-books-grid--full">
+        @foreach($profile->notesMaterialBooks() as $index => $book)
+          @include('frontend.institutes.partials.school-profile.book-card', ['book' => $book, 'index' => $index])
+        @endforeach
+      </div>
+    @endif
+  </section>
+@endif
+
+@if($showSection('question-papers') && $profile->questionPaperBooksCount() > 0)
+  <section id="sch-question-papers" class="sch-card sch-section sch-books-section">
+    <div class="sch-section__head sch-books-section__head">
+      <div>
+        <h2 class="sch-section__title mb-1">Question Papers</h2>
+        <p class="sch-section__lead mb-0">Sample papers and previous-year papers for exam preparation.</p>
+      </div>
+      @include('frontend.institutes.partials.school-profile.section-view-all', [
+        'institute' => $institute,
+        'isProfilePreview' => $isProfilePreview,
+        'sectionKey' => 'question-papers',
+        'total' => $profile->questionPaperBooksCount(),
+        'limit' => $previewLimits['question-papers'],
+        'inHead' => true,
+        'alwaysShow' => true,
+      ])
     </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'books',
-      'total' => $books->count(),
-      'limit' => $previewLimits['books'],
-      'label' => 'resources',
-    ])
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="3"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Question papers slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($questionPapersPreview as $index => $book)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.book-card', ['book' => $book, 'index' => $index])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-books-grid sch-books-grid--full">
+        @foreach($profile->questionPaperBooks() as $index => $book)
+          @include('frontend.institutes.partials.school-profile.book-card', ['book' => $book, 'index' => $index])
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 
 @if($showSection('news') && $profile->newsItemsCount() > 0)
   <section id="sch-news" class="sch-card sch-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Latest News &amp; Announcements</h2>
+      <h2 class="sch-section__title mb-0">Articles &amp; News</h2>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
-        'sectionKey' => 'news',
+        'sectionKey' => 'articles',
         'total' => $profile->newsItemsCount(),
         'limit' => $previewLimits['news'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
-    <div class="sch-news-list">
-      @foreach($newsItems as $news)
-        <article class="sch-news-item">
-          <div class="sch-news-item__date"><strong>{{ $news['day'] }}</strong><span>{{ $news['month'] }}</span></div>
-          <div>
-            <h3>{{ $news['title'] }}</h3>
-            <p>{{ $news['excerpt'] }}</p>
-          </div>
-        </article>
-      @endforeach
-    </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'news',
-      'total' => $profile->newsItemsCount(),
-      'limit' => $previewLimits['news'],
-      'label' => 'announcements',
-    ])
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="3"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Articles and news slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($newsItems as $news)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.news-card', ['news' => $news])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-news-list sch-news-list--full">
+        @foreach($profile->newsItems() as $news)
+          @include('frontend.institutes.partials.school-profile.news-card', ['news' => $news])
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 

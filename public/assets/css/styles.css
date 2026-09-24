@@ -1657,7 +1657,13 @@
 [data-slide-by="card"] .card-carousel-item > .vendor-offer-card,
 [data-slide-by="card"] .card-carousel-item > .homepage-profile-card,
 [data-slide-by="card"] .card-carousel-item > .prod-card,
-[data-slide-by="card"] .card-carousel-item > .community-post-card {
+[data-slide-by="card"] .card-carousel-item > .community-post-card,
+[data-slide-by="card"] .card-carousel-item > .sch-faculty-card,
+[data-slide-by="card"] .card-carousel-item > .sch-book-card,
+[data-slide-by="card"] .card-carousel-item > .sch-news-card,
+[data-slide-by="card"] .card-carousel-item > .sch-gallery-item,
+[data-slide-by="card"] .card-carousel-item > .edu-course-card,
+[data-slide-by="card"] .card-carousel-item > .edu-sm-card {
     height: 100%;
   }
   [data-slide-by="card"] .card-carousel-item > .community-hub-mini-card {

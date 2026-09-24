@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Institute;
 
 use App\Http\Controllers\Controller;
 use App\Models\InstituteNotice;
+use App\Support\InstituteFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,12 @@ class InstituteNoticeController extends Controller
             'title' => ['nullable', 'string', 'max:120'],
             'message' => ['required', 'string', 'max:5000'],
             'expires_at' => ['required', 'date', 'after_or_equal:'.now()->toDateString()],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = InstituteFileUploader::storeImage($request->file('image'), 'notices');
+        }
 
         $notice = $institute->notices()->create($validated);
 
@@ -34,6 +40,7 @@ class InstituteNoticeController extends Controller
         abort_unless($institute && (int) $notice->institute_id === (int) $institute->id, 403);
 
         $noticeId = $notice->id;
+        InstituteFileUploader::deleteIfExists($notice->image);
         $notice->delete();
 
         return response()->json([

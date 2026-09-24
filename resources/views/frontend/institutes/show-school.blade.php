@@ -34,6 +34,11 @@
     ['id' => 'sch-reviews', 'label' => 'Reviews'],
   ];
   $tabItems = array_values(array_filter($tabItems, fn ($tab) => collect($navItems)->contains(fn ($item) => $item['id'] === $tab['id'])));
+  $tabNavIds = collect($tabItems)->pluck('id')->all();
+  $moreNavItems = collect($navItems)
+    ->filter(fn ($item) => empty($item['href']) && ! in_array($item['id'], $tabNavIds, true))
+    ->values()
+    ->all();
 @endphp
 
 <div
@@ -117,11 +122,11 @@
           @foreach($tabItems as $index => $item)
             <a href="#{{ $item['id'] }}" class="sch-tab js-sch-nav-link {{ $index === 0 ? 'is-active' : '' }}">{{ $item['label'] }}</a>
           @endforeach
-          @if(count($navItems) > count($tabItems))
+          @if($moreNavItems !== [])
             <div class="dropdown sch-tab-more">
               <button class="sch-tab sch-tab--more dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">More</button>
               <ul class="dropdown-menu">
-                @foreach(array_slice($navItems, count($tabItems)) as $item)
+                @foreach($moreNavItems as $item)
                   <li><a class="dropdown-item js-sch-nav-link" href="#{{ $item['id'] }}">{{ $item['label'] }}</a></li>
                 @endforeach
               </ul>
@@ -149,6 +154,7 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/school-profile-notify.js') }}?v={{ now()->timestamp }}"></script>
+<script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-actions.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>

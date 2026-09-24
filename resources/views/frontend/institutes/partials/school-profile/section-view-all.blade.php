@@ -5,8 +5,9 @@
   $limit = (int) ($limit ?? 0);
   $label = $label ?? 'items';
   $inHead = ! empty($inHead);
+  $alwaysShow = ! empty($alwaysShow);
 @endphp
-@if($isProfilePreview && $total > $limit && $sectionKey !== '')
+@if($isProfilePreview && $sectionKey !== '' && ($alwaysShow || $total > $limit))
   @if($inHead)
     <a href="{{ $institute->publicSectionUrl($sectionKey) }}" class="sch-section__link">
       View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>

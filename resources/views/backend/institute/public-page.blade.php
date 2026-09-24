@@ -40,7 +40,7 @@
       </div>
     </header>
 
-    <form id="instNoticeForm" class="edu-notice-manage-form sch-portal-form" novalidate>
+    <form id="instNoticeForm" class="edu-notice-manage-form sch-portal-form" enctype="multipart/form-data" novalidate>
       @csrf
       <div class="row g-3">
         <div class="col-md-4">
@@ -57,9 +57,14 @@
             <span class="btn-loader d-none" aria-hidden="true"></span>
           </button>
         </div>
-        <div class="col-12">
+        <div class="col-md-8">
           <label for="instNoticeMessage" class="form-label">Notice message</label>
           <textarea id="instNoticeMessage" name="message" class="form-control" rows="4" maxlength="5000" required placeholder="Share exam dates, holiday schedules, admission updates, or important announcements."></textarea>
+        </div>
+        <div class="col-md-4">
+          <label for="instNoticeImage" class="form-label">Notice image <span class="text-muted">(optional)</span></label>
+          <input type="file" id="instNoticeImage" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
+          <p class="form-text mb-0">JPG, PNG, or WebP up to 2 MB. Shown on your public notice board.</p>
         </div>
       </div>
     </form>

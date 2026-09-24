@@ -40,7 +40,7 @@ class EducatorProfileController extends Controller
         $studyMaterials = $studyMaterialsQuery->latest()->limit(6)->get();
         $coursesQuery = $educator->coursesQuery();
         $coursesTotal = (clone $coursesQuery)->count();
-        $courses = $coursesQuery->latest()->limit(3)->get();
+        $courses = $coursesQuery->latest()->limit(6)->get();
 
         $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 5);
         $profileReviews = $profileReviewsPage['items'];
@@ -75,6 +75,18 @@ class EducatorProfileController extends Controller
             'userReview',
             'canWriteReview'
         ));
+    }
+
+    public function notices(string $slug): View
+    {
+        $educator = Educator::query()
+            ->approved()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $notices = $educator->activeNotices()->latest()->get();
+
+        return view('frontend.educator.notices', compact('educator', 'notices'));
     }
 
     public function reviews(Request $request, string $slug): JsonResponse

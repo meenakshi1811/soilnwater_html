@@ -385,6 +385,8 @@ class InstituteDemoSeeder extends Seeder
                 ['title' => 'Physics Part I – Class 12', 'author' => 'NCERT', 'class_name' => 'Class 12', 'subject' => 'Physics', 'publisher' => 'NCERT'],
                 ['title' => 'Chemistry Part I – Class 12', 'author' => 'NCERT', 'class_name' => 'Class 12', 'subject' => 'Chemistry', 'publisher' => 'NCERT'],
                 ['title' => 'Mathematics – Class 12', 'author' => 'NCERT', 'class_name' => 'Class 12', 'subject' => 'Mathematics', 'publisher' => 'NCERT'],
+                ['title' => 'CBSE Class 10 Science Sample Question Paper', 'author' => 'Green Valley Academic Team', 'class_name' => 'Class 10', 'subject' => 'Science', 'publisher' => 'School Publication'],
+                ['title' => 'Previous Year Mathematics Question Paper – Class 12', 'author' => 'Exam Cell', 'class_name' => 'Class 12', 'subject' => 'Mathematics', 'publisher' => 'Green Valley International School'],
             ],
             'enquiries' => [
                 [
@@ -511,6 +513,7 @@ class InstituteDemoSeeder extends Seeder
                 ['title' => 'Organic Chemistry', 'author' => 'Morrison & Boyd', 'class_name' => 'JEE Batch', 'subject' => 'Chemistry', 'publisher' => 'Pearson'],
                 ['title' => 'Objective Biology', 'author' => 'Dr. Ali', 'class_name' => 'NEET Batch', 'subject' => 'Biology', 'publisher' => 'Universal Books'],
                 ['title' => 'Cengage Mathematics', 'author' => 'G. Tewani', 'class_name' => 'JEE Batch', 'subject' => 'Mathematics', 'publisher' => 'Cengage'],
+                ['title' => 'JEE Main Physics Sample Question Paper', 'author' => 'Excel Academy', 'class_name' => 'JEE Batch', 'subject' => 'Physics', 'publisher' => 'Excel Academy'],
             ],
             'enquiries' => [
                 [

@@ -265,6 +265,11 @@ class Educator extends Model
         return route('educator.show', $this->slug);
     }
 
+    public function publicNoticesUrl(): string
+    {
+        return route('educator.notices', $this->slug);
+    }
+
     public function locationLabel(): string
     {
         return collect([$this->city, $this->state])->filter()->implode(', ');

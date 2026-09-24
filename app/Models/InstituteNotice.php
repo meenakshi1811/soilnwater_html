@@ -12,6 +12,7 @@ class InstituteNotice extends Model
         'institute_id',
         'title',
         'message',
+        'image',
         'expires_at',
     ];
 
@@ -37,6 +38,16 @@ class InstituteNotice extends Model
         $title = trim((string) $this->title);
 
         return $title !== '' ? $title : 'Notice';
+    }
+
+    public function imageUrl(): ?string
+    {
+        return filled($this->image) ? asset($this->image) : null;
+    }
+
+    public function hasImage(): bool
+    {
+        return filled($this->image);
     }
 
     public function excerpt(int $limit = 180): string
