@@ -130,9 +130,9 @@
               <small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Associated institute</label>
+              <label class="form-label">Associated institute <span class="text-secondary fw-normal">(optional text)</span></label>
               <input type="text" name="associated_institute" id="associated_institute" class="form-control js-school-institute-search" autocomplete="off" value="{{ old('associated_institute', $educator->associated_institute) }}" placeholder="Search school or institute name" data-latitude-target="institute_latitude" data-longitude-target="institute_longitude">
-              <small class="edu-field-hint">Start typing to search schools and institutes via Google.</small>
+              <small class="edu-field-hint">Free-text label for your sidebar. For cross-links on SoilnWater, use the optional linking section below.</small>
               <input type="hidden" name="institute_latitude" id="institute_latitude" value="{{ old('institute_latitude', $educator->institute_latitude) }}">
               <input type="hidden" name="institute_longitude" id="institute_longitude" value="{{ old('institute_longitude', $educator->institute_longitude) }}">
             </div>
@@ -150,6 +150,44 @@
               <label class="form-label">About teacher</label>
               <textarea name="about" class="form-control" rows="5" placeholder="Introduce yourself, teaching style, and specializations">{{ old('about', $educator->about) }}</textarea>
               <small class="text-muted">The first line is used as the short intro on your public profile.</small>
+            </div>
+          </div>
+
+          <div class="edu-profile-subsection edu-profile-subsection--affiliations">
+            <div class="edu-profile-subsection__head">
+              <div>
+                <h4 class="edu-profile-subsection__title">Link to school / institute on SoilnWater <span class="text-secondary fw-normal">(optional)</span></h4>
+                <p class="edu-profile-subsection__hint mb-0">Connect your teacher profile to a registered school or coaching institute. You will appear on their public faculty section with a link to your profile, and they will appear on yours.</p>
+              </div>
+            </div>
+            <div class="edu-affiliation-form chart-card border p-3 mb-3">
+              <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                  <label class="form-label" for="eduAffiliationSearch">Search institution</label>
+                  <input type="text" id="eduAffiliationSearch" class="form-control" autocomplete="off" placeholder="Type school or institute name…">
+                  <input type="hidden" id="eduAffiliationInstituteId" value="">
+                  <div id="eduAffiliationSearchResults" class="edu-affiliation-search-results d-none" role="listbox"></div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label" for="eduAffiliationRole">Your role</label>
+                  <input type="text" id="eduAffiliationRole" class="form-control" maxlength="255" placeholder="e.g. PGT Physics">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="eduAffiliationSubject">Subject</label>
+                  <input type="text" id="eduAffiliationSubject" class="form-control" maxlength="255" placeholder="Physics">
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-primary w-100 js-edu-affiliation-add" id="eduAffiliationAddBtn">Link profile</button>
+                </div>
+              </div>
+              <p class="small text-secondary mb-0 mt-2" id="eduAffiliationSelectedLabel">No institution selected.</p>
+            </div>
+            <div id="eduAffiliationList" class="edu-affiliation-list">
+              @forelse($instituteAffiliations ?? [] as $affiliation)
+                @include('backend.educator.partials.institute-affiliation-item', ['affiliation' => $affiliation])
+              @empty
+                <p class="text-secondary small mb-0" id="eduAffiliationEmpty">No linked schools or institutes yet.</p>
+              @endforelse
             </div>
           </div>
 
@@ -800,4 +838,11 @@ window.initEducatorExperiencePlacesAutocomplete = function () {
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initEducatorExperiencePlacesAutocomplete"></script>
 @endif
+<script>
+window.eduAffiliationRoutes = {
+  search: @json(route('educator.affiliations.search')),
+  store: @json(route('educator.affiliations.store')),
+};
+</script>
+<script src="{{ asset('assets/js/educator-institute-affiliations.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

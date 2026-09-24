@@ -28,6 +28,7 @@ class EducatorProfileController extends Controller
             ->where('slug', $slug)
             ->with([
                 'user:id,name,profile_image',
+                'affiliatedInstitutes' => fn ($query) => $query->approved()->with('user:id,role'),
             ])
             ->withCount(['followers', 'studyMaterials as approved_materials_count' => fn ($q) => $q->where('status', 'approved')])
             ->firstOrFail();

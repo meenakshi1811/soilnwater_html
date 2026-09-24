@@ -9,7 +9,7 @@
   $classes = $institute->schoolClasses;
   $achievements = $institute->achievements;
   $performers = $institute->topPerformers;
-  $gallery = $profile->galleryImages();
+  $gallery = $profile->galleryItems();
   $coursesLimit = $isProfilePreview ? ($previewLimits['courses'] ?? null) : null;
   $classDetailsLimit = $isProfilePreview ? ($previewLimits['class-details'] ?? null) : null;
   $courseWingsPreview = $profile->courseWings($coursesLimit);
@@ -32,13 +32,28 @@
   $questionPapersPreview = $profile->questionPaperBooks($questionPapersLimit);
   $newsLimit = $isProfilePreview ? ($previewLimits['news'] ?? null) : null;
   $eventsLimit = $isProfilePreview ? ($previewLimits['events'] ?? null) : null;
+  $allEvents = $profile->upcomingEvents();
   $reviewsLimit = $isProfilePreview ? ($previewLimits['reviews'] ?? null) : null;
   $allNewsItems = $profile->newsItems();
   $newsItems = $newsLimit !== null ? array_slice($allNewsItems, 0, $newsLimit) : $allNewsItems;
   $newsItemsOverflow = $newsLimit !== null ? array_slice($allNewsItems, $newsLimit) : [];
   $newsCarouselCols = min(max(count($newsItems), 1), 4);
   $events = $profile->upcomingEvents($eventsLimit);
+  $eventsCarouselCols = min(max(count($events), 1), 3);
   $reviews = $profile->reviews($reviewsLimit);
+  $jobsLimit = $isProfilePreview ? ($previewLimits['jobs'] ?? null) : null;
+  $openJobsTotal = $profile->openJobsCount();
+  $jobsPreview = $jobsLimit !== null ? $profile->openJobs($jobsLimit) : $profile->openJobs();
+  $jobsCarouselCols = min(max($jobsPreview->count(), 1), 3);
+  $listingContext = $listingContext ?? ($institute->user?->isSchool() ? 'schools' : 'institutes');
+  $appliedJobIds = [];
+  if (auth()->check()) {
+      $appliedJobIds = \App\Models\InstituteJobApplication::query()
+          ->whereHas('job', fn ($query) => $query->where('institute_id', $institute->id))
+          ->where('user_id', auth()->id())
+          ->pluck('institute_job_id')
+          ->all();
+  }
 @endphp
 
 @if($showSection('courses'))
@@ -204,8 +219,11 @@
 
 @if($showSection('gallery') && $gallery->count() > 1)
   <section id="sch-gallery" class="sch-card sch-section">
-    <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Gallery</h2>
+    <div class="sch-section__head sch-section__head--stack">
+      <div>
+        <h2 class="sch-section__title mb-1">Gallery</h2>
+        <p class="sch-section__lead mb-0">Campus photos and videos. Videos play only when you tap Play.</p>
+      </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -227,21 +245,17 @@
         aria-label="Gallery slider"
       >
         <div class="card-carousel-track">
-          @foreach($galleryPreview as $imageUrl)
+          @foreach($galleryPreview as $item)
             <div class="card-carousel-item">
-              <button type="button" class="sch-gallery-item js-sch-gallery-open" data-gallery-src="{{ $imageUrl }}">
-                <img src="{{ $imageUrl }}" alt="Campus gallery image">
-              </button>
+              @include('frontend.institutes.partials.school-profile.gallery-item', ['item' => $item])
             </div>
           @endforeach
         </div>
       </div>
     @else
       <div class="sch-gallery-grid sch-gallery-grid--full">
-        @foreach($gallery as $imageUrl)
-          <button type="button" class="sch-gallery-item js-sch-gallery-open" data-gallery-src="{{ $imageUrl }}">
-            <img src="{{ $imageUrl }}" alt="Campus gallery image">
-          </button>
+        @foreach($gallery as $item)
+          @include('frontend.institutes.partials.school-profile.gallery-item', ['item' => $item])
         @endforeach
       </div>
     @endif
@@ -296,7 +310,7 @@
 @if($showSection('results') && $performers->isNotEmpty())
   <section id="sch-results" class="sch-card sch-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Placement / Results</h2>
+      <h2 class="sch-section__title mb-0">Results</h2>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -328,6 +342,62 @@
         </div>
       @endforeach
     </div>
+  </section>
+@endif
+
+@if($showSection('jobs') && $openJobsTotal > 0)
+  <section id="sch-jobs" class="sch-card sch-section sch-jobs-section">
+    <div class="sch-section__head">
+      <div>
+        <h2 class="sch-section__title mb-1">Jobs &amp; Careers</h2>
+        <p class="sch-section__lead mb-0">Latest openings at this institution. Log in to apply online.</p>
+      </div>
+      @include('frontend.institutes.partials.school-profile.section-view-all', [
+        'institute' => $institute,
+        'isProfilePreview' => $isProfilePreview,
+        'sectionKey' => 'jobs',
+        'total' => $openJobsTotal,
+        'limit' => $previewLimits['jobs'],
+        'label' => 'open roles',
+        'inHead' => true,
+        'alwaysShow' => true,
+      ])
+    </div>
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel sch-jobs-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="{{ $jobsCarouselCols }}"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Job openings carousel"
+      >
+        <div class="card-carousel-track">
+          @foreach($jobsPreview as $job)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.job-card', [
+                'job' => $job,
+                'institute' => $institute,
+                'listingContext' => $listingContext,
+                'appliedJobIds' => $appliedJobIds,
+              ])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-jobs-grid sch-jobs-grid--full">
+        @foreach($jobsPreview as $job)
+          @include('frontend.institutes.partials.school-profile.job-card', [
+            'job' => $job,
+            'institute' => $institute,
+            'listingContext' => $listingContext,
+            'appliedJobIds' => $appliedJobIds,
+          ])
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 
@@ -473,9 +543,12 @@
 @endif
 
 @if($showSection('events') && $profile->upcomingEventsCount() > 0)
-  <section id="sch-events" class="sch-card sch-section">
+  <section id="sch-events" class="sch-card sch-section sch-events-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Upcoming Events</h2>
+      <div>
+        <h2 class="sch-section__title mb-1">Upcoming Events</h2>
+        <p class="sch-section__lead mb-0">Important dates and activities on campus.</p>
+      </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -483,28 +556,34 @@
         'total' => $profile->upcomingEventsCount(),
         'limit' => $previewLimits['events'],
         'inHead' => true,
+        'alwaysShow' => true,
       ])
     </div>
-    <div class="sch-event-list">
-      @foreach($events as $event)
-        <article class="sch-event-item">
-          <div class="sch-event-item__date"><strong>{{ $event['day'] }}</strong><span>{{ $event['month'] }}</span></div>
-          <i class="fa-solid fa-arrow-right-long sch-event-item__arrow" aria-hidden="true"></i>
-          <div>
-            <h3>{{ $event['title'] }}</h3>
-            <p>{{ $event['schedule'] }}</p>
-          </div>
-        </article>
-      @endforeach
-    </div>
-    @include('frontend.institutes.partials.school-profile.section-view-all', [
-      'institute' => $institute,
-      'isProfilePreview' => $isProfilePreview,
-      'sectionKey' => 'events',
-      'total' => $profile->upcomingEventsCount(),
-      'limit' => $previewLimits['events'],
-      'label' => 'events',
-    ])
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel sch-events-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="{{ $eventsCarouselCols }}"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Upcoming events slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($events as $event)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.event-card', ['event' => $event])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-events-grid sch-events-grid--full">
+        @foreach($allEvents as $event)
+          @include('frontend.institutes.partials.school-profile.event-card', ['event' => $event])
+        @endforeach
+      </div>
+    @endif
   </section>
 @endif
 

@@ -35,6 +35,20 @@ class InstituteFileUploader
         return 'uploads/institutes/'.$folder.'/'.$filename;
     }
 
+    public static function storeVideo(UploadedFile $file, string $folder = 'gallery/videos'): string
+    {
+        $directory = public_path('uploads/institutes/'.$folder);
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: 'mp4');
+        $filename = Str::uuid()->toString().'.'.$extension;
+        $file->move($directory, $filename);
+
+        return 'uploads/institutes/'.$folder.'/'.$filename;
+    }
+
     public static function deleteIfExists(?string $path): void
     {
         if (! $path) {

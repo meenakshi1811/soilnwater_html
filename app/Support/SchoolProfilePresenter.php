@@ -26,6 +26,7 @@ final class SchoolProfilePresenter
         'articles' => 4,
         'events' => 3,
         'reviews' => 3,
+        'jobs' => 4,
     ];
 
     public function __construct(public Institute $institute)
@@ -37,7 +38,30 @@ final class SchoolProfilePresenter
             'topPerformers',
             'schoolClasses',
             'books',
+            'jobs' => fn ($query) => $query->open()->latest('published_at')->latest('id'),
         ]);
+    }
+
+    public function openJobs(?int $limit = null): Collection
+    {
+        $jobs = $this->institute->relationLoaded('jobs')
+            ? $this->institute->jobs
+            : $this->institute->jobs()->open()->latest('published_at')->latest('id')->get();
+
+        if ($limit !== null) {
+            return $jobs->take($limit)->values();
+        }
+
+        return $jobs;
+    }
+
+    public function openJobsCount(): int
+    {
+        if ($this->institute->relationLoaded('jobs')) {
+            return $this->institute->jobs->count();
+        }
+
+        return (int) $this->institute->jobs()->open()->count();
     }
 
     public function meta(string $key, mixed $default = null): mixed
@@ -130,6 +154,12 @@ final class SchoolProfilePresenter
     public function galleryImages(): Collection
     {
         return collect($this->institute->galleryUrls());
+    }
+
+    /** @return Collection<int, array{type: string, path: string, url: string}> */
+    public function galleryItems(): Collection
+    {
+        return collect($this->institute->galleryMediaItems());
     }
 
     public function aboutText(): string
@@ -423,31 +453,68 @@ final class SchoolProfilePresenter
         ];
     }
 
-    /** @return list<array{name: string, role: string, subject: string}> */
+    /** @return list<array{name: string, role: string, subject: string, profile_url?: string, photo_url?: string|null}> */
     public function facultyMembers(?int $limit = null): array
     {
-        $custom = $this->meta('faculty');
-
-        $members = is_array($custom) && $custom !== []
-            ? $custom
-            : $this->institute->schoolClasses
-                ->filter(fn ($class) => filled($class->class_teacher))
-                ->unique('class_teacher')
-                ->map(fn ($class) => [
-                    'name' => $class->class_teacher,
-                    'role' => 'Class Teacher · '.$class->displayLabel(),
-                    'subject' => 'Academics',
-                ])
-                ->values()
-                ->all();
+        $members = array_merge($this->linkedFacultyMembers(), $this->manualFacultyMembers());
 
         if ($limit !== null) {
-            $count = count($members);
-
-            return $count <= $limit ? $members : array_slice($members, -$limit);
+            return array_slice($members, 0, $limit);
         }
 
         return $members;
+    }
+
+    /** @return list<array{name: string, role: string, subject: string, profile_url?: string, photo_url?: string|null}> */
+    private function linkedFacultyMembers(): array
+    {
+        $educators = $this->institute->relationLoaded('affiliatedEducators')
+            ? $this->institute->affiliatedEducators
+            : $this->institute->affiliatedEducators()->approved()->get();
+
+        return $educators->map(function ($educator) {
+            $role = trim((string) ($educator->pivot->role_title ?? ''));
+            if ($role === '') {
+                $role = trim((string) ($educator->professional_headline ?? ''));
+            }
+            if ($role === '') {
+                $role = $educator->roleLabel();
+            }
+
+            $subject = trim((string) ($educator->pivot->subject ?? ''));
+            if ($subject === '') {
+                $subject = $educator->primarySubject() ?? '';
+            }
+
+            return [
+                'name' => $educator->display_name,
+                'role' => $role,
+                'subject' => $subject,
+                'profile_url' => $educator->publicUrl(),
+                'photo_url' => $educator->photoUrl(),
+            ];
+        })->all();
+    }
+
+    /** @return list<array{name: string, role: string, subject: string}> */
+    private function manualFacultyMembers(): array
+    {
+        $custom = $this->meta('faculty');
+
+        if (is_array($custom) && $custom !== []) {
+            return $custom;
+        }
+
+        return $this->institute->schoolClasses
+            ->filter(fn ($class) => filled($class->class_teacher))
+            ->unique('class_teacher')
+            ->map(fn ($class) => [
+                'name' => $class->class_teacher,
+                'role' => 'Class Teacher · '.$class->displayLabel(),
+                'subject' => 'Academics',
+            ])
+            ->values()
+            ->all();
     }
 
     public function facultyMembersCount(): int
@@ -677,7 +744,8 @@ final class SchoolProfilePresenter
             ['id' => 'sch-events', 'label' => 'Events', 'icon' => 'fa-calendar-days'],
             ['id' => 'sch-news', 'label' => 'News & Announcements', 'icon' => 'fa-newspaper'],
             ['id' => 'sch-reviews', 'label' => 'Reviews & Ratings', 'icon' => 'fa-star'],
-            ['id' => 'sch-results', 'label' => 'Placement / Results', 'icon' => 'fa-medal'],
+            ['id' => 'sch-results', 'label' => 'Results', 'icon' => 'fa-medal'],
+            ['id' => 'sch-jobs', 'label' => 'Jobs & Careers', 'icon' => 'fa-briefcase'],
             ['id' => 'sch-notes-material', 'label' => 'Notes & Material', 'icon' => 'fa-note-sticky'],
             ['id' => 'sch-question-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
             ['id' => 'sch-contact', 'label' => 'Enquiry & Contact', 'icon' => 'fa-envelope'],
@@ -686,11 +754,12 @@ final class SchoolProfilePresenter
         return array_values(array_filter($items, function ($item) {
             return match ($item['id']) {
                 'sch-about' => filled($this->aboutText()),
-                'sch-gallery' => $this->galleryImages()->count() > 1,
+                'sch-gallery' => $this->galleryItems()->count() > 1,
                 'sch-achievements' => $this->institute->achievements->isNotEmpty(),
                 'sch-notices', 'sch-events', 'sch-news' => $this->institute->activeNotices->isNotEmpty(),
                 'sch-reviews' => $this->reviews() !== [],
                 'sch-results' => $this->institute->topPerformers->isNotEmpty(),
+                'sch-jobs' => $this->openJobsCount() > 0,
                 'sch-notes-material' => $this->notesMaterialBooks()->isNotEmpty(),
                 'sch-question-papers' => $this->questionPaperBooks()->isNotEmpty(),
                 'sch-faculty' => $this->facultyMembers() !== [],
@@ -734,8 +803,8 @@ final class SchoolProfilePresenter
                 'lead' => 'Awards, milestones, and institutional achievements.',
             ],
             'results' => [
-                'title' => 'Placement / Results',
-                'lead' => 'Top performers and result highlights.',
+                'title' => 'Results',
+                'lead' => 'Student results, toppers, and academic highlights.',
             ],
             'books' => [
                 'title' => 'Students Corner',
@@ -764,6 +833,10 @@ final class SchoolProfilePresenter
             'reviews' => [
                 'title' => 'Reviews & Ratings',
                 'lead' => 'What parents and students say.',
+            ],
+            'jobs' => [
+                'title' => 'Jobs & Careers',
+                'lead' => 'Open roles and career opportunities at this institution.',
             ],
         ];
     }

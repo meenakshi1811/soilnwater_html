@@ -14,7 +14,7 @@
         <p class="mb-0 mt-1">{{ $performer->achievement_title }}@if($performer->score) · {{ $performer->score }}@endif</p>
       </div>
     </div>
-    <button type="button" class="btn btn-outline-danger btn-sm js-inst-performer-delete" data-url="{{ $portalRoute('performers.destroy', $performer) }}" aria-label="Delete performer">
+    <button type="button" class="btn btn-outline-danger btn-sm js-inst-performer-delete" data-url="{{ $portalRoute('performers.destroy', $performer) }}" aria-label="Delete result">
       <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
     </button>
   </div>

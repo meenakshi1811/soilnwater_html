@@ -30,10 +30,15 @@ class EducatorProfileController extends Controller
             ? $educator->notices()->latest()->get()
             : collect();
 
+        $instituteAffiliations = $educator
+            ? $educator->instituteAffiliations()->with(['institute.user:id,role'])->get()
+            : collect();
+
         return view('backend.educator.profile', [
             'user' => $user,
             'educator' => $educator,
             'notices' => $notices,
+            'instituteAffiliations' => $instituteAffiliations,
         ]);
     }
 

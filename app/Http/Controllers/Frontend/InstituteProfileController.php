@@ -7,7 +7,10 @@ use App\Mail\InstituteEnquiryReceivedMail;
 use App\Models\Institute;
 use App\Models\InstituteCompareItem;
 use App\Models\InstituteEnquiry;
+use App\Models\InstituteJob;
+use App\Models\InstituteJobApplication;
 use App\Models\InstituteProfileFeedback;
+use App\Mail\InstituteJobApplicationReceivedMail;
 use App\Services\PortalNotificationService;
 use App\Support\InstituteDiaryConfig;
 use App\Support\SchoolInstituteHelper;
@@ -171,6 +174,89 @@ class InstituteProfileController extends Controller
         return $this->enquiry($request, $slug, 'institute');
     }
 
+    public function schoolJobApply(Request $request, string $slug, InstituteJob $job): JsonResponse
+    {
+        return $this->jobApply($request, $slug, $job, 'school');
+    }
+
+    public function instituteJobApply(Request $request, string $slug, InstituteJob $job): JsonResponse
+    {
+        return $this->jobApply($request, $slug, $job, 'institute');
+    }
+
+    public function jobApply(Request $request, string $slug, InstituteJob $job, string $ownerRole): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($user, 401);
+
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+
+        abort_unless((int) $job->institute_id === (int) $institute->id, 404);
+        abort_unless($job->isAcceptingApplications(), 422, 'This job is no longer accepting applications.');
+
+        if ((int) $institute->user_id === (int) $user->id) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'You cannot apply to your own institution\'s job posting.',
+            ], 422);
+        }
+
+        if (InstituteJobApplication::query()->where('institute_job_id', $job->id)->where('user_id', $user->id)->exists()) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'You have already applied for this job.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'cover_message' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $application = InstituteJobApplication::create([
+            'institute_job_id' => $job->id,
+            'user_id' => $user->id,
+            'cover_message' => $validated['cover_message'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        $owner = $institute->user;
+        $portalPrefix = $ownerRole === 'school' ? 'school' : 'institute';
+        $jobsPortalUrl = $owner?->portalRoute('jobs.index')
+            ?? SchoolInstituteHelper::routeForPrefix($portalPrefix, 'jobs.index');
+
+        PortalNotificationService::notifyUser(
+            $owner,
+            'New job application',
+            $user->name.' applied for '.$job->title.'.',
+            $jobsPortalUrl,
+            'engagement'
+        );
+
+        $emailSent = false;
+        $recipient = $institute->email ?: $owner?->email;
+        if ($recipient) {
+            try {
+                Mail::to($recipient)->send(InstituteJobApplicationReceivedMail::forApplication($application, $jobsPortalUrl));
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                Log::error('Failed to send institute job application mail', [
+                    'application_id' => $application->id,
+                    'email' => $recipient,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $message = 'Application submitted successfully.'
+            .($emailSent ? ' The institution has been notified by email and portal.' : ' The institution has been notified in the portal.');
+
+        return response()->json([
+            'ok' => true,
+            'message' => $message,
+            'job_id' => $job->id,
+        ]);
+    }
+
     public function enquiry(Request $request, string $slug, string $ownerRole = 'school'): RedirectResponse|JsonResponse
     {
         $institute = $this->findApprovedProfile($slug, $ownerRole);
@@ -293,6 +379,8 @@ class InstituteProfileController extends Controller
                 'topPerformers',
                 'schoolClasses',
                 'books',
+                'jobs' => fn ($query) => $query->open()->latest('published_at')->latest('id'),
+                'affiliatedEducators' => fn ($query) => $query->approved()->orderByPivot('sort_order'),
             ])
             ->firstOrFail();
     }

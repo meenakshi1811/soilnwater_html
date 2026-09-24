@@ -76,6 +76,7 @@
   </div>
 </div>
 
+@include('frontend.institutes.partials.school-profile.job-modal')
 @include('frontend.institutes.partials.notice-modal')
 @include('frontend.institutes.partials.school-profile.admission-modal', ['profile' => $profile])
 
@@ -87,7 +88,8 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-0 text-center">
-        <img id="schoolGalleryModalImg" src="" alt="Gallery image" class="img-fluid rounded" style="max-height:80vh;object-fit:contain;">
+        <img id="schoolGalleryModalImg" src="" alt="Gallery image" class="img-fluid rounded sch-gallery-modal__image" hidden>
+        <video id="schoolGalleryModalVideo" class="sch-gallery-modal__video rounded" controls playsinline preload="none" hidden></video>
       </div>
     </div>
   </div>

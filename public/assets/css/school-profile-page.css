@@ -1052,6 +1052,103 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 
+.sch-events-grid--full {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.sch-events-carousel {
+  --carousel-gap: 12px;
+  --carousel-visible: 3;
+}
+
+.sch-events-carousel[data-carousel-cols="1"] {
+  --carousel-visible: 1;
+}
+
+.sch-events-carousel[data-carousel-cols="2"] {
+  --carousel-visible: 2;
+}
+
+.sch-events-carousel[data-carousel-cols="3"] {
+  --carousel-visible: 3;
+}
+
+.sch-events-carousel .card-carousel-item {
+  flex: 0 0 calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+  max-width: calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+}
+
+.sch-events-carousel:not(.is-carousel-scrollable) .card-carousel-item {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+.sch-events-carousel:not(.is-carousel-scrollable) .card-carousel-track {
+  overflow-x: hidden;
+}
+
+.sch-events-carousel .sch-event-card {
+  min-height: 148px;
+}
+
+.sch-event-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #edf2f8;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 0.9rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.sch-event-card:hover {
+  box-shadow: 0 8px 22px rgba(15, 47, 85, 0.08);
+  transform: translateY(-2px);
+}
+
+.sch-event-card__date {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d7e3f1;
+  border-radius: 10px;
+  color: var(--sch-primary-dark);
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  padding: 0.35rem 0.55rem;
+  width: fit-content;
+}
+
+.sch-event-card__date strong {
+  font-size: 0.95rem;
+}
+
+.sch-event-card__title {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  margin: 0;
+  overflow: hidden;
+}
+
+.sch-event-card__schedule {
+  align-items: flex-start;
+  color: var(--sch-muted);
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.4rem;
+  line-height: 1.45;
+  margin: 0;
+  margin-top: auto;
+}
+
 .sch-news-carousel {
   --carousel-gap: 12px;
   --carousel-visible: 3;
@@ -1112,6 +1209,234 @@
   font-weight: 700;
   gap: 0.35rem;
   margin-top: auto;
+}
+
+.sch-jobs-grid--full {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.sch-jobs-carousel {
+  --carousel-gap: 12px;
+  --carousel-visible: 3;
+}
+
+.sch-jobs-carousel[data-carousel-cols="1"] {
+  --carousel-visible: 1;
+}
+
+.sch-jobs-carousel[data-carousel-cols="2"] {
+  --carousel-visible: 2;
+}
+
+.sch-jobs-carousel[data-carousel-cols="3"] {
+  --carousel-visible: 3;
+}
+
+.sch-jobs-carousel .card-carousel-item {
+  flex: 0 0 calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+  max-width: calc((100% - (var(--carousel-gap) * (var(--carousel-visible) - 1))) / var(--carousel-visible));
+}
+
+.sch-jobs-carousel:not(.is-carousel-scrollable) .card-carousel-item {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+.sch-job-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid var(--sch-border);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1rem 1.05rem;
+  position: relative;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  width: 100%;
+}
+
+.sch-job-card:hover,
+.sch-job-card:focus-visible {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.sch-job-card:focus-visible {
+  outline: 2px solid var(--sch-primary);
+  outline-offset: 2px;
+}
+
+.sch-job-card__badge {
+  align-self: flex-start;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 999px;
+  color: var(--sch-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.sch-job-card__applied {
+  color: #059669;
+  font-size: 0.75rem;
+  font-weight: 700;
+  position: absolute;
+  right: 0.85rem;
+  top: 0.85rem;
+}
+
+.sch-job-card__title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+  padding-right: 4rem;
+}
+
+.sch-job-card__dept {
+  color: var(--sch-muted);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.sch-job-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sch-job-card__meta li {
+  align-items: center;
+  color: #475569;
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.4rem;
+}
+
+.sch-job-card__excerpt {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: #64748b;
+  display: -webkit-box;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0;
+  overflow: hidden;
+}
+
+.sch-job-card__cta {
+  align-items: center;
+  color: var(--sch-primary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  margin-top: auto;
+}
+
+.sch-job-modal__content {
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.sch-job-modal__header {
+  align-items: flex-start;
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  border-bottom: 1px solid var(--sch-border);
+  gap: 1rem;
+  padding: 1.25rem 1.35rem;
+}
+
+.sch-job-modal__eyebrow {
+  color: var(--sch-primary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.sch-job-modal__title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.sch-job-modal__meta {
+  color: var(--sch-muted);
+  font-size: 0.86rem;
+}
+
+.sch-job-modal__body {
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+
+.sch-job-modal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.sch-job-chip {
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+}
+
+.sch-job-modal__section h6 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin-bottom: 0.45rem;
+}
+
+.sch-job-modal__text {
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  white-space: normal;
+}
+
+.sch-job-modal__apply {
+  background: #f8fafc;
+  border: 1px solid var(--sch-border);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  padding: 1rem;
+}
+
+.sch-job-modal__apply-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.sch-job-modal__applied-note {
+  color: #047857;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
 .sch-section__link.js-sch-articles-view-all {
@@ -1313,6 +1638,25 @@
   transform: translateY(-2px);
 }
 
+.sch-faculty-card--linked {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sch-faculty-card__avatar--photo {
+  object-fit: cover;
+}
+
+.sch-faculty-card__link-label {
+  align-items: center;
+  color: var(--sch-primary);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+
 .sch-faculty-card__body {
   flex: 1 1 auto;
   min-width: 0;
@@ -1377,12 +1721,19 @@
   font-size: 0.8rem;
 }
 
+.sch-section__head--stack {
+  align-items: flex-start;
+}
+
 .sch-gallery-item {
   border: 0;
+  cursor: pointer;
+  display: block;
   padding: 0;
   border-radius: 12px;
   overflow: hidden;
   background: transparent;
+  width: 100%;
 }
 
 .sch-gallery-item img {
@@ -1390,6 +1741,43 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
+}
+
+.sch-gallery-item--video {
+  background: linear-gradient(160deg, #edf4ff 0%, #dbeafe 100%);
+  width: 100%;
+}
+
+.sch-gallery-item__video-placeholder {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  color: var(--sch-primary-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.sch-gallery-item__video-placeholder i {
+  font-size: 2.35rem;
+  line-height: 1;
+}
+
+.sch-gallery-item__video-placeholder span {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.sch-gallery-modal__image,
+.sch-gallery-modal__video {
+  max-height: 80vh;
+  object-fit: contain;
+  width: 100%;
+}
+
+.sch-gallery-modal__video {
+  background: #000;
 }
 
 .sch-achievements-section:not(:has(.sch-section__head)) .sch-section__title {

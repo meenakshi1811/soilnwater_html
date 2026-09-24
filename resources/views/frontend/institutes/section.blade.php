@@ -14,7 +14,12 @@
   $listingTypeLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
 @endphp
 
-<div class="sch-page sch-section-list-page" id="schoolSectionPage">
+<div
+  class="sch-page sch-section-list-page"
+  id="schoolSectionPage"
+  data-login-url="{{ route('login') }}"
+  data-is-auth="{{ auth()->check() ? '1' : '0' }}"
+>
   <div class="container-fluid sch-container">
     <nav class="sch-breadcrumb" aria-label="Breadcrumb">
       <a href="{{ route('frontend.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
@@ -60,6 +65,7 @@
           'profile' => $profile,
           'institute' => $institute,
           'entityLabel' => $entityLabel,
+          'listingContext' => $listingContext,
         ])
       @endif
     </div>
@@ -67,9 +73,17 @@
 </div>
 
 @include('frontend.institutes.partials.notice-modal')
+@if($section === 'jobs')
+  @include('frontend.institutes.partials.school-profile.job-modal')
+  @include('community.partials.toastr-assets')
+@endif
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/school-profile-notify.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}" defer></script>
+@if($section === 'jobs')
+<script src="{{ asset('assets/js/school-profile-jobs.js') }}?v={{ now()->timestamp }}" defer></script>
+@endif
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
 @endpush

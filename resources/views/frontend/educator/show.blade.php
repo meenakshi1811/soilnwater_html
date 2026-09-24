@@ -34,9 +34,11 @@
   $courseCarouselCols = min(max($coursesPreview->count(), 1), 3);
   $isTutorProfile = $educator->isTutor();
   $tuitionPointLabel = $educator->tuitionPointAddressLabel();
+  $affiliatedInstitutes = $educator->affiliatedInstitutes ?? collect();
   $showLocationSidebar = $educator->locationLabel()
     || filled($educator->residential_address)
     || filled($educator->associated_institute)
+    || $affiliatedInstitutes->isNotEmpty()
     || filled($tuitionPointLabel)
     || filled($educator->tuition_timings);
 
@@ -44,6 +46,7 @@
     ['id' => 'edu-overview', 'label' => 'Profile Overview', 'icon' => 'fa-user'],
   ])
     ->when($notices->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn']))
+    ->when($affiliatedInstitutes->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-affiliations', 'label' => 'Schools & Institutes', 'icon' => 'fa-school']))
     ->push(
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
@@ -250,6 +253,39 @@
               'viewAllLabel' => 'View all notices',
               'showViewAll' => $noticesTotal > 0,
             ])
+          </div>
+        </section>
+        @endif
+
+        @if($affiliatedInstitutes->isNotEmpty())
+        <section class="edu-section" id="edu-affiliations">
+          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Schools &amp; Institutes</h2>
+          <p class="edu-section__lead">Registered institutions this teacher is associated with on SoilnWater.</p>
+          <div class="edu-affiliations-grid">
+            @foreach($affiliatedInstitutes as $institute)
+              <a href="{{ $institute->publicUrl() }}" class="edu-affiliation-card">
+                <span class="edu-affiliation-card__logo-wrap">
+                  @if($institute->logoUrl())
+                    <img src="{{ $institute->logoUrl() }}" alt="" class="edu-affiliation-card__logo">
+                  @else
+                    <span class="edu-affiliation-card__logo edu-affiliation-card__logo--placeholder"><i class="fa-solid fa-school" aria-hidden="true"></i></span>
+                  @endif
+                </span>
+                <span class="edu-affiliation-card__body">
+                  <span class="edu-affiliation-card__eyebrow">{{ $institute->user?->isSchool() ? 'School' : 'Institute' }}</span>
+                  <span class="edu-affiliation-card__name">{{ $institute->displayName() }}</span>
+                  @if($institute->pivot->role_title || $institute->pivot->subject)
+                    <span class="edu-affiliation-card__meta">
+                      {{ collect([$institute->pivot->role_title, $institute->pivot->subject])->filter()->implode(' · ') }}
+                    </span>
+                  @endif
+                  @if($institute->city)
+                    <span class="edu-affiliation-card__city"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $institute->city }}</span>
+                  @endif
+                </span>
+                <span class="edu-affiliation-card__cta">View profile <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              </a>
+            @endforeach
           </div>
         </section>
         @endif
@@ -854,7 +890,24 @@
             </div>
           @endif
 
-          @if(filled($educator->associated_institute))
+          @if($affiliatedInstitutes->isNotEmpty())
+            <div class="edu-sidebar-detail">
+              <h4 class="edu-sidebar-detail__label">Associated on SoilnWater</h4>
+              <ul class="edu-sidebar-affiliations list-unstyled mb-0">
+                @foreach($affiliatedInstitutes as $institute)
+                  <li>
+                    <a href="{{ $institute->publicUrl() }}" class="edu-sidebar-affiliations__link">
+                      <i class="fa-solid fa-school" aria-hidden="true"></i>
+                      {{ $institute->displayName() }}
+                    </a>
+                    @if($institute->pivot->role_title)
+                      <span class="edu-sidebar-affiliations__meta">{{ $institute->pivot->role_title }}</span>
+                    @endif
+                  </li>
+                @endforeach
+              </ul>
+            </div>
+          @elseif(filled($educator->associated_institute))
             <div class="edu-sidebar-detail">
               <h4 class="edu-sidebar-detail__label">Institute</h4>
               <p class="edu-sidebar-detail__value">

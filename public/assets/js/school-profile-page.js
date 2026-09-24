@@ -232,16 +232,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.js-sch-gallery-open').forEach(function (button) {
         button.addEventListener('click', function () {
-            var modalEl = document.getElementById('schoolGalleryModal');
-            var img = document.getElementById('schoolGalleryModalImg');
-            if (!modalEl || !img || !window.bootstrap) {
-                return;
-            }
-
-            img.src = button.getAttribute('data-gallery-src') || '';
-            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            openGalleryModal(button);
         });
     });
+
+    function resetGalleryModalMedia() {
+        var img = document.getElementById('schoolGalleryModalImg');
+        var video = document.getElementById('schoolGalleryModalVideo');
+        if (video) {
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            video.hidden = true;
+        }
+        if (img) {
+            img.removeAttribute('src');
+            img.hidden = true;
+        }
+    }
+
+    function openGalleryModal(button) {
+        var modalEl = document.getElementById('schoolGalleryModal');
+        var img = document.getElementById('schoolGalleryModalImg');
+        var video = document.getElementById('schoolGalleryModalVideo');
+        if (!modalEl || !img || !video || !window.bootstrap) {
+            return;
+        }
+
+        var mediaType = button.getAttribute('data-gallery-type') || 'image';
+        var mediaSrc = button.getAttribute('data-gallery-src') || '';
+        resetGalleryModalMedia();
+
+        if (mediaType === 'video') {
+            video.src = mediaSrc;
+            video.hidden = false;
+        } else {
+            img.src = mediaSrc;
+            img.hidden = false;
+        }
+
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    var galleryModalEl = document.getElementById('schoolGalleryModal');
+    if (galleryModalEl) {
+        galleryModalEl.addEventListener('hidden.bs.modal', resetGalleryModalMedia);
+    }
 
     function openShareModal() {
         var modalEl = document.getElementById('schoolShareModal');

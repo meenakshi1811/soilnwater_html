@@ -70,7 +70,7 @@ class InstitutePublicContentController extends Controller
         $performer = $institute->topPerformers()->create($validated);
 
         return response()->json([
-            'message' => 'Top performer added successfully.',
+            'message' => 'Result added successfully.',
             'item_html' => view('backend.institute.partials.performer-item', compact('performer'))->render(),
         ]);
     }
@@ -84,7 +84,7 @@ class InstitutePublicContentController extends Controller
         $id = $performer->id;
         $performer->delete();
 
-        return response()->json(['message' => 'Top performer removed.', 'id' => $id]);
+        return response()->json(['message' => 'Result removed.', 'id' => $id]);
     }
 
     public function storeClass(Request $request): JsonResponse

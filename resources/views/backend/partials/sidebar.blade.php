@@ -37,8 +37,8 @@
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
-    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.engagement.*') || request()->routeIs('school.diary.*');
-    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
+    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.jobs.*') || request()->routeIs('school.engagement.*') || request()->routeIs('school.diary.*');
+    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.jobs.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
     $parentDashboardActive = request()->routeIs('parent.*');
     $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
@@ -739,6 +739,12 @@
                             </a>
                         </li>
                         <li>
+                            <a class="{{ request()->routeIs('school.jobs.*') ? 'active' : '' }}" href="{{ $user->portalRoute('jobs.index') }}">
+                                <i class="fa-solid fa-briefcase"></i>
+                                <span>Jobs</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="{{ request()->routeIs('school.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
                                 <i class="fa-solid fa-chart-line"></i>
                                 <span>Engagement</span>
@@ -781,6 +787,12 @@
                             <a class="{{ request()->routeIs('institute.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Enquiries</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('institute.jobs.*') ? 'active' : '' }}" href="{{ $user->portalRoute('jobs.index') }}">
+                                <i class="fa-solid fa-briefcase"></i>
+                                <span>Jobs</span>
                             </a>
                         </li>
                         <li>

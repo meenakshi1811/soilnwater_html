@@ -119,7 +119,8 @@ class StudyMaterialLibraryController extends Controller
             ->with('educator:id,display_name,slug,profile_photo,is_verified,type,professional_headline')
             ->get();
 
-        $viewMode = $request->string('view')->toString() === 'grid' ? 'grid' : 'list';
+        $viewParam = $request->string('view')->toString();
+        $viewMode = $viewParam === 'list' ? 'list' : 'grid';
         $sort = $request->string('sort')->toString() ?: 'recent';
         $materials = $filtered->paginate(12)->withQueryString();
 

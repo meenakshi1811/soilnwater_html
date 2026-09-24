@@ -829,3 +829,80 @@
     width: 100%;
   }
 }
+
+.edu-profile-page .edu-affiliation-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.edu-profile-page .edu-affiliation-item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 12px;
+  display: flex;
+  gap: 0.85rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.edu-profile-page .edu-affiliation-item__main {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.edu-profile-page .edu-affiliation-item__logo {
+  border-radius: 10px;
+  height: 48px;
+  object-fit: cover;
+  width: 48px;
+}
+
+.edu-profile-page .edu-affiliation-item__logo--placeholder {
+  align-items: center;
+  background: var(--edu-pro-bg);
+  color: var(--edu-pro-primary);
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.edu-profile-page .edu-affiliation-search-results {
+  background: #fff;
+  border: 1px solid var(--edu-pro-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  margin-top: 0.35rem;
+  max-height: 240px;
+  overflow: auto;
+  position: relative;
+  z-index: 5;
+}
+
+.edu-profile-page .edu-affiliation-search-results__item {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  display: block;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.edu-profile-page .edu-affiliation-search-results__item:last-child {
+  border-bottom: 0;
+}
+
+.edu-profile-page .edu-affiliation-search-results__item strong {
+  display: block;
+  font-size: 0.88rem;
+}
+
+.edu-profile-page .edu-affiliation-search-results__item span {
+  color: var(--edu-pro-muted);
+  display: block;
+  font-size: 0.76rem;
+  margin-top: 0.1rem;
+}

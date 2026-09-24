@@ -22,6 +22,7 @@
       'profile' => $profile,
       'institute' => $institute,
       'entityLabel' => $entityLabel ?? 'School',
+      'listingContext' => $listingContext ?? 'schools',
     ])
 
     <section id="sch-admission" class="sch-card sch-section sch-admission-section">

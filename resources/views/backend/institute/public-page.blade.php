@@ -13,7 +13,7 @@
     <div>
       <p class="ems-kicker mb-1">School public website</p>
       <h2 class="admin-title mb-1">Manage public page content</h2>
-      <p class="mb-0 text-secondary">Add notices, classes, top performers, achievements, and books shown on your public school profile.</p>
+      <p class="mb-0 text-secondary">Add notices, classes, results, achievements, and books shown on your public profile.</p>
     </div>
     @if($institute->isApproved())
       <a href="{{ $institute->publicUrl() }}" target="_blank" class="btn btn-outline-primary">
@@ -27,7 +27,7 @@
   <nav class="sch-portal-nav mb-4" aria-label="Public page sections">
     <a href="#inst-section-notices" class="sch-portal-nav__link is-active"><i class="fa-solid fa-bullhorn"></i> Notices</a>
     <a href="#inst-section-classes" class="sch-portal-nav__link"><i class="fa-solid fa-chalkboard"></i> Classes</a>
-    <a href="#inst-section-performers" class="sch-portal-nav__link"><i class="fa-solid fa-medal"></i> Top performers</a>
+    <a href="#inst-section-performers" class="sch-portal-nav__link"><i class="fa-solid fa-medal"></i> Results</a>
     <a href="#inst-section-achievements" class="sch-portal-nav__link"><i class="fa-solid fa-trophy"></i> Achievements</a>
     <a href="#inst-section-books" class="sch-portal-nav__link"><i class="fa-solid fa-book"></i> Books</a>
   </nav>
@@ -136,8 +136,8 @@
     <header class="sch-portal-section__head">
       <span class="sch-portal-section__icon sch-portal-section__icon--gold"><i class="fa-solid fa-medal"></i></span>
       <div>
-        <h3 class="mb-1">Top performers</h3>
-        <p class="text-secondary mb-0">Showcase star students, toppers, and competition winners.</p>
+        <h3 class="mb-1">Results</h3>
+        <p class="text-secondary mb-0">Showcase toppers, board exam results, and academic highlights.</p>
       </div>
     </header>
 
@@ -153,8 +153,8 @@
           <input type="text" name="class_name" class="form-control" placeholder="Class 12">
         </div>
         <div class="col-md-3">
-          <label class="form-label">Achievement</label>
-          <input type="text" name="achievement_title" class="form-control" required placeholder="Board exam topper">
+          <label class="form-label">Result / highlight</label>
+          <input type="text" name="achievement_title" class="form-control" required placeholder="Class 10 board topper">
         </div>
         <div class="col-md-2">
           <label class="form-label">Score / marks</label>
@@ -174,18 +174,18 @@
         </div>
         <div class="col-md-3 d-flex align-items-end">
           <button type="submit" class="btn btn-primary w-100 js-inst-submit-btn">
-            <span class="btn-text">Add performer</span>
+            <span class="btn-text">Add result</span>
             <span class="btn-loader d-none" aria-hidden="true"></span>
           </button>
         </div>
       </div>
     </form>
 
-    <div class="sch-manage-list" id="instPerformerList" data-empty-text="No top performers added yet.">
+    <div class="sch-manage-list" id="instPerformerList" data-empty-text="No results added yet.">
       @forelse($institute->topPerformers as $performer)
         @include('backend.institute.partials.performer-item', ['performer' => $performer])
       @empty
-        <p class="sch-manage-empty mb-0" id="instPerformerEmpty">No top performers added yet.</p>
+        <p class="sch-manage-empty mb-0" id="instPerformerEmpty">No results added yet.</p>
       @endforelse
     </div>
   </section>

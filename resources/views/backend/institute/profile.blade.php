@@ -7,6 +7,10 @@
 @endpush
 
 @section('content')
+@php
+  use App\Support\InstituteGallery;
+  $galleryItems = InstituteGallery::entries($institute->gallery);
+@endphp
 <div class="admin-panel ems-page institute-portal">
     @if(session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
@@ -159,6 +163,56 @@
             </div>
         </div>
 
+        <div class="border-top pt-4 mt-2">
+            <h3 class="h5 mb-1">Gallery</h3>
+            <p class="text-secondary mb-3">
+                Add campus photos and videos for your public profile gallery.
+                Photos up to {{ InstituteGallery::imageLimitLabel() }} (JPG, PNG, WebP).
+                Videos up to {{ InstituteGallery::videoLimitLabel() }} (MP4, WebM, MOV).
+                Maximum {{ InstituteGallery::MAX_ITEMS }} items total.
+            </p>
+
+            @if($galleryItems->isNotEmpty())
+                <div class="row g-3 mb-3">
+                    @foreach($galleryItems as $item)
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <label class="inst-gallery-manage-card">
+                                <input type="checkbox" class="form-check-input" name="removed_gallery[]" value="{{ $item['path'] }}">
+                                <span class="inst-gallery-manage-card__frame">
+                                    @if($item['type'] === 'video')
+                                        <span class="inst-gallery-manage-card__video"><i class="fa-solid fa-circle-play" aria-hidden="true"></i> Video</span>
+                                    @else
+                                        <img src="{{ $item['url'] }}" alt="" loading="lazy" decoding="async">
+                                    @endif
+                                </span>
+                                <span class="inst-gallery-manage-card__label">Remove</span>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="mb-2">
+                <label class="form-label" for="gallery_uploads">Upload gallery files</label>
+                <input
+                    type="file"
+                    class="form-control js-inst-gallery-upload"
+                    id="gallery_uploads"
+                    name="gallery_uploads[]"
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                    multiple
+                    data-image-max="{{ InstituteGallery::imageMaxBytes() }}"
+                    data-video-max="{{ InstituteGallery::videoMaxBytes() }}"
+                    data-image-label="{{ InstituteGallery::imageLimitLabel() }}"
+                    data-video-label="{{ InstituteGallery::videoLimitLabel() }}"
+                >
+            </div>
+            <div class="form-text mb-0" id="instGalleryUploadHelp">
+                You can select multiple files. Large videos are checked before upload.
+            </div>
+            <div class="alert alert-warning d-none mt-2 mb-0 py-2" id="instGalleryUploadError" role="alert"></div>
+        </div>
+
         <div class="d-flex justify-content-end gap-2 mt-3">
             <button type="submit" class="btn btn-primary">Save profile</button>
         </div>
@@ -189,6 +243,38 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   bindRepeat('addGradeRow', 'gradesWrap', 'grades_offered[]', 'e.g. Class 1');
   bindRepeat('addFacilityRow', 'facilitiesWrap', 'facilities[]', 'e.g. Library');
+
+  var galleryInput = document.getElementById('gallery_uploads');
+  var galleryError = document.getElementById('instGalleryUploadError');
+  if (galleryInput) {
+    galleryInput.addEventListener('change', function () {
+      if (!galleryError) return;
+      var imageMax = Number(galleryInput.dataset.imageMax || 0);
+      var videoMax = Number(galleryInput.dataset.videoMax || 0);
+      var imageLabel = galleryInput.dataset.imageLabel || '2 MB';
+      var videoLabel = galleryInput.dataset.videoLabel || '20 MB';
+      var invalid = [];
+
+      Array.from(galleryInput.files || []).forEach(function (file) {
+        var isVideo = (file.type || '').indexOf('video/') === 0;
+        var maxBytes = isVideo ? videoMax : imageMax;
+        var label = isVideo ? videoLabel : imageLabel;
+        if (maxBytes > 0 && file.size > maxBytes) {
+          invalid.push(file.name + ' exceeds ' + label);
+        }
+      });
+
+      if (invalid.length) {
+        galleryError.textContent = invalid.join(' ');
+        galleryError.classList.remove('d-none');
+        galleryInput.value = '';
+        return;
+      }
+
+      galleryError.classList.add('d-none');
+      galleryError.textContent = '';
+    });
+  }
 });
 </script>
 @endpush

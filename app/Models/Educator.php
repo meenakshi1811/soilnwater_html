@@ -192,6 +192,20 @@ class Educator extends Model
         return $this->belongsToMany(User::class, 'educator_followers')->withTimestamps();
     }
 
+    public function affiliatedInstitutes(): BelongsToMany
+    {
+        return $this->belongsToMany(Institute::class, 'educator_institute_affiliations')
+            ->withPivot(['role_title', 'subject', 'sort_order'])
+            ->withTimestamps()
+            ->orderByPivot('sort_order')
+            ->orderBy('institution_name');
+    }
+
+    public function instituteAffiliations(): HasMany
+    {
+        return $this->hasMany(EducatorInstituteAffiliation::class)->orderBy('sort_order');
+    }
+
     public function isApproved(): bool
     {
         return $this->status === 'approved';

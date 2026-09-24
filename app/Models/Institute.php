@@ -123,6 +123,25 @@ class Institute extends Model
         return $this->hasMany(InstituteBook::class)->orderBy('sort_order')->orderBy('title');
     }
 
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(InstituteJob::class)->latest('published_at')->latest('id');
+    }
+
+    public function affiliatedEducators(): BelongsToMany
+    {
+        return $this->belongsToMany(Educator::class, 'educator_institute_affiliations')
+            ->withPivot(['role_title', 'subject', 'sort_order'])
+            ->withTimestamps()
+            ->orderByPivot('sort_order')
+            ->orderBy('display_name');
+    }
+
+    public function educatorAffiliations(): HasMany
+    {
+        return $this->hasMany(EducatorInstituteAffiliation::class)->orderBy('sort_order');
+    }
+
     public function followers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'institute_followers')->withTimestamps();
@@ -155,11 +174,17 @@ class Institute extends Model
 
     public function galleryUrls(): array
     {
-        return collect($this->gallery ?? [])
-            ->filter(fn ($path) => filled($path))
-            ->map(fn ($path) => asset($path))
+        return \App\Support\InstituteGallery::entries($this->gallery)
+            ->where('type', 'image')
+            ->pluck('url')
             ->values()
             ->all();
+    }
+
+    /** @return list<array{type: string, path: string, url: string}> */
+    public function galleryMediaItems(): array
+    {
+        return \App\Support\InstituteGallery::entries($this->gallery)->all();
     }
 
     public function establishedYear(): ?int

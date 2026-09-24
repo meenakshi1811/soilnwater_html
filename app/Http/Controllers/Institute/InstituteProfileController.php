@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Institute;
 use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use App\Support\InstituteFileUploader;
+use App\Support\InstituteGallery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class InstituteProfileController extends Controller
@@ -57,6 +59,10 @@ class InstituteProfileController extends Controller
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'date_of_establishment' => ['nullable', 'date', 'before_or_equal:today'],
+            'gallery_uploads' => ['nullable', 'array', 'max:'.InstituteGallery::MAX_NEW_UPLOADS],
+            'gallery_uploads.*' => ['file'],
+            'removed_gallery' => ['nullable', 'array'],
+            'removed_gallery.*' => ['string', 'max:255'],
         ]);
 
         if ($request->hasFile('logo')) {
@@ -77,6 +83,7 @@ class InstituteProfileController extends Controller
         }
 
         $slug = Institute::generateUniqueSlug($validated['institution_name'], $institute->id);
+        $gallery = $this->syncGallery($request, $institute);
 
         $institute->update([
             'institution_name' => $validated['institution_name'],
@@ -106,6 +113,7 @@ class InstituteProfileController extends Controller
             'instagram_url' => $validated['instagram_url'] ?? null,
             'youtube_url' => $validated['youtube_url'] ?? null,
             'date_of_establishment' => $validated['date_of_establishment'] ?? null,
+            'gallery' => $gallery,
         ]);
 
         $userUpdate = [
@@ -139,5 +147,57 @@ class InstituteProfileController extends Controller
         }
 
         return redirect()->to($request->user()->portalRoute('profile.edit'))->with('status', $message);
+    }
+
+    /** @return list<array{type: string, path: string}> */
+    private function syncGallery(Request $request, Institute $institute): array
+    {
+        $items = InstituteGallery::entries($institute->gallery);
+        $removed = collect($request->input('removed_gallery', []))
+            ->filter(fn ($path) => is_string($path) && $path !== '')
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            InstituteFileUploader::deleteIfExists($path);
+        }
+
+        $kept = $items
+            ->reject(fn (array $item) => in_array($item['path'], $removed, true))
+            ->values();
+
+        $uploads = collect($request->file('gallery_uploads', []))->filter();
+        if ($uploads->count() > InstituteGallery::MAX_NEW_UPLOADS) {
+            throw ValidationException::withMessages([
+                'gallery_uploads' => ['You can upload up to '.InstituteGallery::MAX_NEW_UPLOADS.' gallery files at a time.'],
+            ]);
+        }
+
+        foreach ($uploads as $file) {
+            $type = InstituteGallery::assertUploadValid($file);
+            $path = $type === 'video'
+                ? InstituteFileUploader::storeVideo($file)
+                : InstituteFileUploader::storeImage($file, 'gallery');
+
+            $kept->push([
+                'type' => $type,
+                'path' => $path,
+                'url' => asset($path),
+            ]);
+        }
+
+        if ($kept->count() > InstituteGallery::MAX_ITEMS) {
+            throw ValidationException::withMessages([
+                'gallery_uploads' => ['Your gallery can include up to '.InstituteGallery::MAX_ITEMS.' photos and videos.'],
+            ]);
+        }
+
+        return $kept
+            ->map(fn (array $item) => [
+                'type' => $item['type'],
+                'path' => $item['path'],
+            ])
+            ->values()
+            ->all();
     }
 }

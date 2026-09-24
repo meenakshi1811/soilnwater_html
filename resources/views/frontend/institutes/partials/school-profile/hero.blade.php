@@ -2,7 +2,7 @@
   <div class="sch-card sch-hero">
     <div class="sch-hero__media">
       <img src="{{ $profile->heroImage() }}" alt="{{ $profile->displayName() }}" class="sch-hero__image">
-      @if($profile->galleryImages()->count() > 1)
+      @if($profile->galleryItems()->count() > 1)
         <a href="#sch-gallery" class="sch-hero__gallery-btn js-sch-nav-link">
           <i class="fa-solid fa-camera" aria-hidden="true"></i> View Gallery
         </a>

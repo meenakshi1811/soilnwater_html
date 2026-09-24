@@ -207,10 +207,11 @@ Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
 Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
 Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'schoolSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
     ->name('schools.section');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
+Route::post('/schools/{slug}/jobs/{job}/apply', [InstituteProfileController::class, 'schoolJobApply'])->middleware('auth')->name('schools.jobs.apply');
 Route::post('/schools/{slug}/follow', [InstituteEngagementController::class, 'schoolFollow'])->middleware('auth')->name('schools.follow');
 Route::post('/schools/{slug}/bookmark', [InstituteEngagementController::class, 'schoolBookmark'])->middleware('auth')->name('schools.bookmark');
 Route::post('/schools/{slug}/compare', [InstituteEngagementController::class, 'schoolCompare'])->middleware('auth')->name('schools.compare.toggle');
@@ -223,10 +224,11 @@ Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
 Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
 Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, 'instituteSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
     ->name('institutes.section');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
+Route::post('/institutes/{slug}/jobs/{job}/apply', [InstituteProfileController::class, 'instituteJobApply'])->middleware('auth')->name('institutes.jobs.apply');
 Route::post('/institutes/{slug}/follow', [InstituteEngagementController::class, 'instituteFollow'])->middleware('auth')->name('institutes.follow');
 Route::post('/institutes/{slug}/bookmark', [InstituteEngagementController::class, 'instituteBookmark'])->middleware('auth')->name('institutes.bookmark');
 Route::post('/institutes/{slug}/compare', [InstituteEngagementController::class, 'instituteCompare'])->middleware('auth')->name('institutes.compare.toggle');
@@ -435,6 +437,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/enquiries/{enquiry}/answer', [EducatorEnquiryController::class, 'answer'])->middleware('educator')->name('enquiries.answer');
         Route::post('/notices', [EducatorNoticeController::class, 'store'])->middleware('educator')->name('notices.store');
         Route::delete('/notices/{notice}', [EducatorNoticeController::class, 'destroy'])->middleware('educator')->name('notices.destroy');
+        Route::get('/affiliations/search', [\App\Http\Controllers\Educator\EducatorInstituteAffiliationController::class, 'search'])->middleware('educator')->name('affiliations.search');
+        Route::post('/affiliations', [\App\Http\Controllers\Educator\EducatorInstituteAffiliationController::class, 'store'])->middleware('educator')->name('affiliations.store');
+        Route::delete('/affiliations/{affiliation}', [\App\Http\Controllers\Educator\EducatorInstituteAffiliationController::class, 'destroy'])->middleware('educator')->name('affiliations.destroy');
     });
 
     Route::get('/service/pending', [ServiceProviderPendingController::class, 'show'])->name('service_provider.pending');

@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (viewInput) {
-            viewInput.value = params.get('view') || 'list';
+            viewInput.value = params.get('view') || 'grid';
             syncViewToggle(viewInput.value);
         }
     }
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         filterForm.reset();
         if (viewInput) {
-            viewInput.value = 'list';
+            viewInput.value = 'grid';
         }
         if (sortInput) {
             sortInput.value = 'recent';
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
             categoryInput.value = '';
         }
 
-        syncViewToggle('list');
+        syncViewToggle('grid');
         loadNotes({ page: 1 });
     });
 
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.js-sm-notes-view').forEach(function (button) {
         button.addEventListener('click', function () {
-            const viewMode = button.dataset.view || 'list';
+            const viewMode = button.dataset.view || 'grid';
             syncViewToggle(viewMode);
             loadNotes({ page: 1, scroll: false });
         });
