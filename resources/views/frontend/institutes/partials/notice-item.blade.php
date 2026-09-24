@@ -1,31 +1,35 @@
 @php
-  $excerptLimit = 180;
+  $compact = !empty($compact);
+  $excerptLimit = $compact ? 95 : 180;
   $needsReadMore = $notice->needsReadMore($excerptLimit);
+  $showReadMore = $needsReadMore || $compact;
 @endphp
 <article
-  class="sch-notice"
+  class="sch-notice{{ $compact ? ' sch-notice--box' : '' }}"
   data-notice-id="{{ $notice->id }}"
   data-notice-title="{{ e($notice->displayTitle()) }}"
   data-notice-message="{{ e($notice->message) }}"
   data-notice-expires="{{ $notice->expires_at?->format('d M Y') }}"
 >
   <div class="sch-notice__head">
-    @if(empty($featured))
+    @if(empty($featured) || $compact)
       <span class="sch-notice__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
     @endif
-    <div>
+    <div class="sch-notice__head-copy">
       <h3 class="sch-notice__title">{{ $notice->displayTitle() }}</h3>
       <p class="sch-notice__meta mb-0">Valid until {{ $notice->expires_at?->format('d M Y') }}</p>
     </div>
   </div>
   <p class="sch-notice__text">
-    @if(!empty($featured))
+    @if($compact)
+      {{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}
+    @elseif(!empty($featured))
       {{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}
     @else
       &ldquo;{{ $needsReadMore ? $notice->excerpt($excerptLimit) : $notice->message }}&rdquo;
     @endif
   </p>
-  @if($needsReadMore)
+  @if($showReadMore)
     <button type="button" class="sch-notice__read-more js-sch-notice-read-more">
       Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
     </button>

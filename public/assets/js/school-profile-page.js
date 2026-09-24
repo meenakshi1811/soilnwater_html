@@ -1,6 +1,137 @@
 document.addEventListener('DOMContentLoaded', function () {
     var pageRoot = document.getElementById('schoolProfilePage');
+    var sectionPageRoot = document.getElementById('schoolSectionPage');
+
+    function openNoticeModal(notice) {
+        var modalEl = document.getElementById('schNoticeModal');
+        if (!notice || !modalEl || !window.bootstrap) {
+            return;
+        }
+
+        var titleEl = modalEl.querySelector('#schNoticeModalLabel');
+        var bodyEl = modalEl.querySelector('#schNoticeModalBody');
+        var expiryEl = modalEl.querySelector('#schNoticeModalExpiry');
+
+        if (titleEl) {
+            titleEl.textContent = notice.dataset.noticeTitle || 'Notice';
+        }
+
+        if (bodyEl) {
+            bodyEl.textContent = notice.dataset.noticeMessage || '';
+        }
+
+        if (expiryEl) {
+            expiryEl.textContent = notice.dataset.noticeExpires
+                ? 'Valid until ' + notice.dataset.noticeExpires
+                : '';
+        }
+
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    function initNoticeCarousel() {
+        var carousel = document.querySelector('.js-sch-notice-carousel');
+        if (!carousel) {
+            return;
+        }
+
+        var track = carousel.querySelector('.js-sch-notice-track');
+        var viewport = carousel.querySelector('.sch-notices__viewport');
+        var slides = carousel.querySelectorAll('.sch-notice');
+        var prevBtn = carousel.querySelector('.js-sch-notice-prev');
+        var nextBtn = carousel.querySelector('.js-sch-notice-next');
+        var isGrid = carousel.dataset.noticeLayout === 'grid';
+
+        if (!track || !viewport || !slides.length) {
+            return;
+        }
+
+        if (isGrid) {
+            track.style.transform = 'none';
+
+            function scrollStep(direction) {
+                var firstSlide = slides[0];
+                if (!firstSlide) {
+                    return;
+                }
+
+                var styles = window.getComputedStyle(track);
+                var gap = parseFloat(styles.columnGap || styles.gap) || 0;
+                var step = firstSlide.getBoundingClientRect().width + gap;
+                var maxScroll = viewport.scrollWidth - viewport.clientWidth;
+
+                if (direction > 0 && viewport.scrollLeft >= maxScroll - 2) {
+                    viewport.scrollTo({ left: 0, behavior: 'smooth' });
+                    return;
+                }
+
+                if (direction < 0 && viewport.scrollLeft <= 2) {
+                    viewport.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                    return;
+                }
+
+                viewport.scrollBy({ left: direction * step, behavior: 'smooth' });
+            }
+
+            if (prevBtn) {
+                prevBtn.onclick = function () {
+                    scrollStep(-1);
+                };
+            }
+
+            if (nextBtn) {
+                nextBtn.onclick = function () {
+                    scrollStep(1);
+                };
+            }
+
+            return;
+        }
+
+        var currentIndex = 0;
+
+        function slideOffset() {
+            return viewport.clientWidth;
+        }
+
+        function showSlide(index) {
+            currentIndex = (index + slides.length) % slides.length;
+            carousel.dataset.slideIndex = String(currentIndex);
+            track.style.transform = 'translateX(-' + (currentIndex * slideOffset()) + 'px)';
+        }
+
+        if (prevBtn) {
+            prevBtn.onclick = function () {
+                showSlide(currentIndex - 1);
+            };
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = function () {
+                showSlide(currentIndex + 1);
+            };
+        }
+
+        showSlide(0);
+    }
+
+    initNoticeCarousel();
+
+    document.addEventListener('click', function (event) {
+        var readMoreBtn = event.target.closest('.js-sch-notice-read-more');
+        if (!readMoreBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        openNoticeModal(readMoreBtn.closest('.sch-notice'));
+    });
+
     if (!pageRoot) {
+        if (!sectionPageRoot) {
+            return;
+        }
+
         return;
     }
 
@@ -224,117 +355,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         submitBtn.textContent = originalText;
                     }
                 });
-        });
-    });
-
-    var noticeCarouselTimer = null;
-
-    function initNoticeCarousel() {
-        var carousel = document.querySelector('.js-sch-notice-carousel');
-        if (!carousel) {
-            return;
-        }
-
-        var track = carousel.querySelector('.js-sch-notice-track');
-        var viewport = carousel.querySelector('.sch-notices__viewport');
-        var slides = carousel.querySelectorAll('.sch-notice');
-        var prevBtn = carousel.querySelector('.js-sch-notice-prev');
-        var nextBtn = carousel.querySelector('.js-sch-notice-next');
-        var currentIndex = 0;
-
-        if (noticeCarouselTimer) {
-            clearInterval(noticeCarouselTimer);
-            noticeCarouselTimer = null;
-        }
-
-        function slideOffset() {
-            if (!viewport) {
-                return slides[0] ? slides[0].getBoundingClientRect().width : 0;
-            }
-
-            return viewport.clientWidth;
-        }
-
-        function showSlide(index) {
-            if (!slides.length || !track) {
-                return;
-            }
-
-            currentIndex = (index + slides.length) % slides.length;
-            carousel.dataset.slideIndex = String(currentIndex);
-            track.style.transform = 'translateX(-' + (currentIndex * slideOffset()) + 'px)';
-        }
-
-        if (prevBtn) {
-            prevBtn.onclick = function () {
-                showSlide(currentIndex - 1);
-            };
-        }
-
-        if (nextBtn) {
-            nextBtn.onclick = function () {
-                showSlide(currentIndex + 1);
-            };
-        }
-
-        showSlide(0);
-
-        if (slides.length > 1) {
-            noticeCarouselTimer = setInterval(function () {
-                showSlide(currentIndex + 1);
-            }, 7000);
-        }
-
-        if (!carousel.dataset.resizeBound) {
-            carousel.dataset.resizeBound = '1';
-            window.addEventListener('resize', function () {
-                var carouselEl = document.getElementById('schNoticeCarousel');
-                if (!carouselEl) {
-                    return;
-                }
-
-                var trackEl = carouselEl.querySelector('.js-sch-notice-track');
-                var viewportEl = carouselEl.querySelector('.sch-notices__viewport');
-                var idx = parseInt(carouselEl.dataset.slideIndex || '0', 10);
-
-                if (!trackEl || !viewportEl) {
-                    return;
-                }
-
-                trackEl.style.transform = 'translateX(-' + (idx * viewportEl.clientWidth) + 'px)';
-            });
-        }
-    }
-
-    initNoticeCarousel();
-
-    document.querySelectorAll('.js-sch-notice-read-more').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var notice = btn.closest('.sch-notice');
-            var modalEl = document.getElementById('schNoticeModal');
-            if (!notice || !modalEl || !window.bootstrap) {
-                return;
-            }
-
-            var titleEl = modalEl.querySelector('#schNoticeModalLabel');
-            var bodyEl = modalEl.querySelector('#schNoticeModalBody');
-            var expiryEl = modalEl.querySelector('#schNoticeModalExpiry');
-
-            if (titleEl) {
-                titleEl.textContent = notice.dataset.noticeTitle || 'Notice';
-            }
-
-            if (bodyEl) {
-                bodyEl.textContent = notice.dataset.noticeMessage || '';
-            }
-
-            if (expiryEl) {
-                expiryEl.textContent = notice.dataset.noticeExpires
-                    ? 'Valid until ' + notice.dataset.noticeExpires
-                    : '';
-            }
-
-            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
         });
     });
 

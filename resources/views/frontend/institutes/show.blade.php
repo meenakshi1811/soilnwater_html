@@ -85,7 +85,14 @@
     <section class="vendor-store-section school-notice-section" id="sch-notices" aria-label="Notice Board">
         <div class="container">
             <div class="sch-notice-section__frame">
-                @include('frontend.institutes.partials.notice-board', ['notices' => $notices, 'featured' => true])
+                @include('frontend.institutes.partials.notice-board', [
+                    'notices' => $notices,
+                    'featured' => true,
+                    'layout' => 'grid',
+                    'viewAllUrl' => $institute->publicSectionUrl('notices'),
+                    'viewAllLabel' => 'View all notices',
+                    'showViewAll' => true,
+                ])
             </div>
         </div>
     </section>

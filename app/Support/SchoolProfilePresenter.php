@@ -10,7 +10,7 @@ final class SchoolProfilePresenter
 {
     /** @var array<string, int> */
     public const PREVIEW_LIMITS = [
-        'notices' => 3,
+        'notices' => 8,
         'courses' => 4,
         'facilities' => 4,
         'faculty' => 6,

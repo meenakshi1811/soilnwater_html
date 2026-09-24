@@ -104,8 +104,10 @@
               @include('frontend.institutes.partials.notice-board', [
                 'notices' => $institute->activeNotices->take($noticesPreviewLimit),
                 'featured' => true,
-                'viewAllUrl' => $noticesTotal > $noticesPreviewLimit ? $institute->publicSectionUrl('notices') : null,
+                'layout' => 'grid',
+                'viewAllUrl' => $institute->publicSectionUrl('notices'),
                 'viewAllLabel' => 'View all notices',
+                'showViewAll' => true,
               ])
             </div>
           </section>

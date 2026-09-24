@@ -42,7 +42,14 @@
 
     <div class="sch-section-page-body">
       @if($section === 'notices')
-        @include('frontend.institutes.partials.notice-board', ['notices' => $institute->activeNotices, 'featured' => false])
+        <div class="sch-notice-section__frame sch-card">
+          @include('frontend.institutes.partials.notice-board', [
+              'notices' => $institute->activeNotices,
+              'featured' => false,
+              'layout' => 'grid',
+              'showViewAll' => false,
+          ])
+        </div>
       @else
         @include('frontend.institutes.partials.school-profile.sections', [
           'onlySection' => $section,
@@ -55,6 +62,8 @@
     </div>
   </div>
 </div>
+
+@include('frontend.institutes.partials.notice-modal')
 @endsection
 
 @push('scripts')
