@@ -6,11 +6,19 @@ use App\Models\Educator;
 use App\Models\EducatorInstituteAffiliation;
 use App\Models\Institute;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class EducatorInstituteAffiliationSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! Schema::hasTable('educator_institute_affiliations')) {
+            $this->command?->warn('Skipping EducatorInstituteAffiliationSeeder: run migrations first (educator_institute_affiliations table missing).');
+            $this->command?->line('  php artisan migrate --force');
+
+            return;
+        }
+
         $educator = Educator::query()->where('slug', 'ananya-sharma-demo')->first();
         $school = Institute::query()->where('slug', 'green-valley-international-school-demo')->first();
         $coaching = Institute::query()->where('slug', 'excel-academy-coaching-demo')->first();

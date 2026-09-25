@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -29,41 +30,96 @@ class InstituteProfileController extends Controller
         /** @var Institute $institute */
         $institute = $user->institute;
 
+        $gradesSectionEnabled = $request->boolean('grades_section_enabled');
+        $facilitiesSectionEnabled = $request->boolean('facilities_section_enabled');
+        $gallerySectionEnabled = $request->boolean('gallery_section_enabled');
+
         $validated = $request->validate([
             'institution_name' => ['required', 'string', 'max:255'],
-            'contact_person' => ['nullable', 'string', 'max:255'],
+            'contact_person' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
-            'state' => ['nullable', 'string', 'max:120'],
+            'state' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'date_of_establishment' => ['required', 'date', 'before_or_equal:today'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'logo' => [$institute->logo ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'brochure' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
             'remove_brochure' => ['nullable', 'boolean'],
-            'institution_type' => ['nullable', 'string', 'in:school,college,university,coaching,other'],
-            'board_affiliation' => ['nullable', 'string', 'max:255'],
-            'grades_offered' => ['nullable', 'array'],
-            'grades_offered.*' => ['nullable', 'string', 'max:80'],
-            'facilities' => ['nullable', 'array'],
-            'facilities.*' => ['nullable', 'string', 'max:120'],
-            'tagline' => ['nullable', 'string', 'max:255'],
-            'about' => ['nullable', 'string'],
+            'institution_type' => ['required', 'string', 'in:school,college,university,coaching,other'],
+            'board_affiliation' => ['required', 'string', 'max:255'],
+            'grades_section_enabled' => ['nullable', 'boolean'],
+            'facilities_section_enabled' => ['nullable', 'boolean'],
+            'gallery_section_enabled' => ['nullable', 'boolean'],
+            'grades_offered' => [
+                Rule::requiredIf($gradesSectionEnabled),
+                'array',
+                Rule::when($gradesSectionEnabled, ['min:1']),
+            ],
+            'grades_offered.*' => [
+                Rule::requiredIf($gradesSectionEnabled),
+                'string',
+                'max:80',
+            ],
+            'facilities' => [
+                Rule::requiredIf($facilitiesSectionEnabled),
+                'array',
+                Rule::when($facilitiesSectionEnabled, ['min:1']),
+            ],
+            'facilities.*' => [
+                Rule::requiredIf($facilitiesSectionEnabled),
+                'string',
+                'max:120',
+            ],
+            'tagline' => ['required', 'string', 'max:255'],
+            'about' => ['required', 'string', 'min:10'],
             'description' => ['nullable', 'string'],
-            'website_url' => ['nullable', 'url', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:500'],
             'instagram_url' => ['nullable', 'url', 'max:500'],
             'youtube_url' => ['nullable', 'url', 'max:500'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'date_of_establishment' => ['nullable', 'date', 'before_or_equal:today'],
+            'place_id' => ['nullable', 'string', 'max:255'],
             'gallery_uploads' => ['nullable', 'array', 'max:'.InstituteGallery::MAX_NEW_UPLOADS],
             'gallery_uploads.*' => ['file'],
             'removed_gallery' => ['nullable', 'array'],
             'removed_gallery.*' => ['string', 'max:255'],
+        ], [
+            'contact_person.required' => 'Please enter the contact person name.',
+            'institution_type.required' => 'Please select an institution type.',
+            'board_affiliation.required' => 'Please enter board or affiliation.',
+            'tagline.required' => 'Please enter a tagline.',
+            'about.required' => 'Please enter the about section.',
+            'about.min' => 'About must be at least 10 characters.',
+            'state.required' => 'Please enter your state.',
+            'grades_offered.required' => 'Add at least one grade or class when this section is enabled.',
+            'grades_offered.min' => 'Add at least one grade or class when this section is enabled.',
+            'grades_offered.*.required' => 'Each grade or class entry is required.',
+            'facilities.required' => 'Add at least one facility when this section is enabled.',
+            'facilities.min' => 'Add at least one facility when this section is enabled.',
+            'facilities.*.required' => 'Each facility entry is required.',
+            'date_of_establishment.required' => 'Please enter the founded date.',
+            'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
         ]);
+
+        if ($gallerySectionEnabled) {
+            $removed = collect($request->input('removed_gallery', []))
+                ->filter(fn ($path) => is_string($path) && $path !== '')
+                ->values()
+                ->all();
+            $remainingGalleryCount = InstituteGallery::entries($institute->gallery)
+                ->reject(fn (array $item) => in_array($item['path'], $removed, true))
+                ->count();
+            $newUploadCount = collect($request->file('gallery_uploads', []))->filter()->count();
+
+            if ($remainingGalleryCount + $newUploadCount < 1) {
+                throw ValidationException::withMessages([
+                    'gallery_uploads' => ['Add at least one gallery photo or video when the gallery section is enabled.'],
+                ]);
+            }
+        }
 
         if ($request->hasFile('logo')) {
             InstituteFileUploader::deleteIfExists($institute->logo);
@@ -83,7 +139,9 @@ class InstituteProfileController extends Controller
         }
 
         $slug = Institute::generateUniqueSlug($validated['institution_name'], $institute->id);
-        $gallery = $this->syncGallery($request, $institute);
+        $gallery = $gallerySectionEnabled
+            ? $this->syncGallery($request, $institute)
+            : ($institute->gallery ?? []);
 
         $institute->update([
             'institution_name' => $validated['institution_name'],
@@ -96,23 +154,27 @@ class InstituteProfileController extends Controller
             'email' => $user->email,
             'address' => $validated['address'],
             'city' => $validated['city'],
-            'state' => $validated['state'] ?? null,
+            'state' => $validated['state'],
             'pincode' => $validated['pincode'],
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
+            'place_id' => $validated['place_id'] ?? null,
             'institution_type' => $validated['institution_type'] ?? null,
             'board_affiliation' => $validated['board_affiliation'] ?? null,
-            'grades_offered' => array_values(array_filter($validated['grades_offered'] ?? [])),
-            'facilities' => array_values(array_filter($validated['facilities'] ?? [])),
+            'grades_offered' => $gradesSectionEnabled
+                ? array_values(array_filter($validated['grades_offered'] ?? []))
+                : [],
+            'facilities' => $facilitiesSectionEnabled
+                ? array_values(array_filter($validated['facilities'] ?? []))
+                : [],
             'tagline' => $validated['tagline'] ?? null,
             'about' => $validated['about'] ?? null,
             'description' => $validated['description'] ?? null,
-            'website_url' => $validated['website_url'] ?? null,
             'brochure_path' => $brochurePath,
             'facebook_url' => $validated['facebook_url'] ?? null,
             'instagram_url' => $validated['instagram_url'] ?? null,
             'youtube_url' => $validated['youtube_url'] ?? null,
-            'date_of_establishment' => $validated['date_of_establishment'] ?? null,
+            'date_of_establishment' => $validated['date_of_establishment'],
             'gallery' => $gallery,
         ]);
 
@@ -124,7 +186,6 @@ class InstituteProfileController extends Controller
             'address' => $validated['address'],
             'city' => $validated['city'],
             'pincode' => $validated['pincode'],
-            'date_of_birth' => $validated['date_of_birth'],
         ];
 
         if (filled($validated['password'] ?? null)) {
@@ -142,7 +203,10 @@ class InstituteProfileController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'message' => $message,
-                'redirect' => $request->user()->portalRoute('profile.edit'),
+                'reload' => $request->hasFile('logo')
+                    || $request->hasFile('brochure')
+                    || $request->hasFile('gallery_uploads')
+                    || $request->filled('removed_gallery'),
             ]);
         }
 

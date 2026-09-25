@@ -445,6 +445,7 @@
             var pincodeInput = options.pincodeInputId ? document.getElementById(options.pincodeInputId) : null;
             var latitudeInput = options.latitudeInputId ? document.getElementById(options.latitudeInputId) : null;
             var longitudeInput = options.longitudeInputId ? document.getElementById(options.longitudeInputId) : null;
+            var placeIdInput = options.placeIdInputId ? document.getElementById(options.placeIdInputId) : null;
             var retryMethod = options.retryMethod;
             var onPlaceChanged = typeof options.onPlaceChanged === 'function' ? options.onPlaceChanged : null;
 
@@ -471,6 +472,7 @@
 
             window.SoilnWaterGooglePlaces.bindAutocomplete(addressInput, {
                 geometry: !!(latitudeInput && longitudeInput),
+                placeId: !!placeIdInput,
                 onPlaceChanged: function (place) {
                     var components = place.address_components || [];
                     var selectedAddress = window.SoilnWaterGooglePlaces.getSelectedAddress(place);
@@ -498,6 +500,10 @@
                         $(pincodeInput).trigger('input').trigger('change');
                     }
 
+                    if (placeIdInput) {
+                        placeIdInput.value = place.place_id || '';
+                    }
+
                     if (latitudeInput && longitudeInput && place.geometry && place.geometry.location) {
                         var lat = place.geometry.location.lat();
                         var lng = place.geometry.location.lng();
@@ -520,6 +526,28 @@
                     }
                 },
             });
+
+            if (!addressInput.dataset.instituteAddressClearBound) {
+                addressInput.addEventListener('input', function () {
+                    if (addressInput.dataset.placeJustSelected === '1') {
+                        delete addressInput.dataset.placeJustSelected;
+                        return;
+                    }
+
+                    if (!addressInput.value.trim()) {
+                        if (latitudeInput) {
+                            latitudeInput.value = '';
+                        }
+                        if (longitudeInput) {
+                            longitudeInput.value = '';
+                        }
+                        if (placeIdInput) {
+                            placeIdInput.value = '';
+                        }
+                    }
+                });
+                addressInput.dataset.instituteAddressClearBound = 'true';
+            }
         },
 
         initRegisterPlaceAutocomplete: function () {
@@ -696,6 +724,30 @@
                 longitudeInputId: 'longitude',
                 retryMethod: 'initUserProfilePlaceAutocomplete'
             });
+        },
+
+        initSchoolInstituteProfilePlaceAutocomplete: function () {
+            var profileForm = document.getElementById('schoolInstituteProfileForm')
+                || document.getElementById('instituteProfileForm');
+
+            if (!profileForm || !document.getElementById('address')) {
+                return;
+            }
+
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'address',
+                cityInputId: 'city',
+                stateInputId: 'state',
+                pincodeInputId: 'pincode',
+                latitudeInputId: 'latitude',
+                longitudeInputId: 'longitude',
+                placeIdInputId: 'place_id',
+                retryMethod: 'initSchoolInstituteProfilePlaceAutocomplete'
+            });
+        },
+
+        initInstituteProfilePlaceAutocomplete: function () {
+            this.initSchoolInstituteProfilePlaceAutocomplete();
         },
 
         bindExperienceOrganizationAutocomplete: function (input) {

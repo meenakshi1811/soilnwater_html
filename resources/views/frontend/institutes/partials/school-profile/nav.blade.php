@@ -22,11 +22,6 @@
     </ul>
     <div class="sch-nav__actions">
       <button type="button" class="sch-btn sch-btn-primary js-sch-open-enquiry">Enquire Now</button>
-      @if($institute->website_url)
-        <a href="{{ $institute->website_url }}" target="_blank" rel="noopener" class="sch-btn sch-btn-outline">
-          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Visit Website
-        </a>
-      @endif
     </div>
   </div>
 </aside>

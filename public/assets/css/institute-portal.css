@@ -228,3 +228,40 @@
 .inst-gallery-manage-card input {
   margin-right: 0.35rem;
 }
+
+.inst-profile-section__head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  justify-content: space-between;
+}
+
+.inst-profile-section__switch {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  padding-left: 0;
+}
+
+.inst-profile-section__switch .form-check-input {
+  cursor: pointer;
+  float: none;
+  margin-left: 0;
+}
+
+.inst-profile-section__switch .form-check-label {
+  cursor: pointer;
+  font-size: 0.875rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.inst-public-page .sch-portal-section__head.inst-profile-section__head {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inst-public-page-form-body {
+  margin-bottom: 1rem;
+}

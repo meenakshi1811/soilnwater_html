@@ -43,8 +43,11 @@
       @endif
 
       <div class="sch-hero__facts">
+        @if($institute->locationLabel())
+          <div><span>City / State</span><strong>{{ $institute->locationLabel() }}</strong></div>
+        @endif
         @if($profile->establishedYear())
-          <div><span>Established</span><strong>{{ $profile->establishedYear() }}</strong></div>
+          <div><span>Founded</span><strong>{{ $profile->establishedYear() }}</strong></div>
         @endif
         <div><span>Affiliation</span><strong>{{ $profile->affiliationLabel() }}</strong></div>
         <div><span>School Code</span><strong>{{ $profile->schoolCode() }}</strong></div>

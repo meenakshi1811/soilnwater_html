@@ -66,12 +66,21 @@
         </div>
       </div>
     @endif
-    @if($institute->website_url)
+    @if(filled($institute->city))
       <div class="sch-contact-item">
-        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+        <i class="fa-solid fa-city" aria-hidden="true"></i>
         <div>
-          <span>Website</span>
-          <p><a href="{{ $institute->website_url }}" target="_blank" rel="noopener">{{ parse_url($institute->website_url, PHP_URL_HOST) ?: $institute->website_url }}</a></p>
+          <span>City</span>
+          <p>{{ $institute->city }}</p>
+        </div>
+      </div>
+    @endif
+    @if(filled($institute->state))
+      <div class="sch-contact-item">
+        <i class="fa-solid fa-map" aria-hidden="true"></i>
+        <div>
+          <span>State</span>
+          <p>{{ $institute->state }}</p>
         </div>
       </div>
     @endif

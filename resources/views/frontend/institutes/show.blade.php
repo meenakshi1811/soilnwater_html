@@ -144,13 +144,6 @@
                 </div>
             </div>
         </div>
-        @if($institute->website_url)
-            <div class="mt-4">
-                <a href="{{ $institute->website_url }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
-                    <i class="fa-solid fa-globe me-1"></i> Visit official website
-                </a>
-            </div>
-        @endif
     </div>
 </section>
 

@@ -5,11 +5,19 @@ namespace Database\Seeders;
 use App\Models\Institute;
 use App\Models\InstituteJob;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class InstituteJobSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! Schema::hasTable('institute_jobs')) {
+            $this->command?->warn('Skipping InstituteJobSeeder: run migrations first (institute_jobs table missing).');
+            $this->command?->line('  php artisan migrate --force');
+
+            return;
+        }
+
         $definitions = [
             'green-valley-international-school-demo' => [
                 [

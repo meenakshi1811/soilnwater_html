@@ -630,14 +630,15 @@
 
         <form id="educatorNoticeForm" class="edu-notice-manage-form" novalidate>
           @csrf
+          <div id="educatorNoticeAlert" class="alert d-none mb-3" role="alert"></div>
           <div class="row g-3">
             <div class="col-md-4">
-              <label for="noticeTitle" class="form-label">Title <span class="text-muted">(optional)</span></label>
+              <label for="noticeTitle" class="form-label">Title *</label>
               <input type="text" id="noticeTitle" name="title" class="form-control" maxlength="120" placeholder="e.g. Summer batch registration">
             </div>
             <div class="col-md-4">
-              <label for="noticeExpiresAt" class="form-label">Expiry date</label>
-              <input type="date" id="noticeExpiresAt" name="expires_at" class="form-control" min="{{ now()->toDateString() }}" required>
+              <label for="noticeExpiresAt" class="form-label">Expiry date *</label>
+              <input type="date" id="noticeExpiresAt" name="expires_at" class="form-control" min="{{ now()->toDateString() }}">
             </div>
             <div class="col-md-4 d-flex align-items-end">
               <button type="submit" class="btn btn-primary w-100" id="educatorNoticeSubmitBtn">
@@ -646,12 +647,13 @@
               </button>
             </div>
             <div class="col-12">
-              <label for="noticeMessage" class="form-label">Notice message</label>
-              <textarea id="noticeMessage" name="message" class="form-control" rows="4" maxlength="5000" required placeholder="Share exam dates, holiday schedules, batch updates, or important announcements."></textarea>
+              <label for="noticeMessage" class="form-label">Notice message *</label>
+              <textarea id="noticeMessage" name="message" class="form-control" rows="4" maxlength="5000" placeholder="Share exam dates, holiday schedules, batch updates, or important announcements."></textarea>
             </div>
             <div class="col-md-6">
-              <label for="noticeImage" class="form-label">Notice image <span class="text-muted">(optional)</span></label>
+              <label for="noticeImage" class="form-label">Notice image *</label>
               <input type="file" id="noticeImage" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
+              <p class="form-text mb-0">JPG, PNG, or WebP up to 2 MB.</p>
             </div>
           </div>
         </form>

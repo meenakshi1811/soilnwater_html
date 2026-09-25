@@ -30,11 +30,30 @@
         alertEl.classList.remove('d-none');
     }
 
-    function showValidationErrors(xhr) {
+    function clearFormErrors($form) {
+        if (window.FormHelper && typeof window.FormHelper.clearFormErrors === 'function') {
+            window.FormHelper.clearFormErrors($form);
+            return;
+        }
+
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.ajax-error').remove();
+    }
+
+    function renderFieldErrors($form, errors) {
+        if (window.FormHelper && typeof window.FormHelper.renderFieldErrors === 'function') {
+            return window.FormHelper.renderFieldErrors($form, errors);
+        }
+
+        return null;
+    }
+
+    function showValidationErrors($form, alertSelector, xhr) {
         var response = xhr.responseJSON || {};
         var messages = [];
 
-        if (response.errors) {
+        if (xhr.status === 422 && response.errors) {
+            renderFieldErrors($form, response.errors);
             Object.keys(response.errors).forEach(function (key) {
                 messages = messages.concat(response.errors[key]);
             });
@@ -46,9 +65,27 @@
             messages.push('Unable to save right now. Please try again.');
         }
 
-        messages.forEach(function (message) {
-            notify('warning', message);
-        });
+        var summary = messages.length === 1
+            ? messages[0]
+            : 'Please fix the highlighted fields and try again.';
+
+        notify('warning', summary);
+
+        if (alertSelector) {
+            var $alert = $(alertSelector);
+            if ($alert.length) {
+                $alert.removeClass('d-none alert-success alert-danger')
+                    .addClass('alert-warning');
+
+                if (messages.length === 1) {
+                    $alert.text(messages[0]);
+                } else {
+                    $alert.html(messages.map(function (msg) {
+                        return '<div>' + $('<div>').text(msg).html() + '</div>';
+                    }).join(''));
+                }
+            }
+        }
     }
 
     function setSubmitting($form, isSubmitting) {
@@ -77,18 +114,56 @@
         $list.html('<p class="sch-manage-empty mb-0" id="' + emptySelector.replace('#', '') + '">' + emptyText + '</p>');
     }
 
-    function bindForm(formSelector, url, listSelector, emptySelector) {
+    var publicPageSections = ['notices', 'classes', 'performers', 'achievements', 'books'];
+
+    function sectionToggleSelector(section) {
+        return '#' + section + '_section_enabled';
+    }
+
+    function syncPublicPageSection(section) {
+        var $toggle = $(sectionToggleSelector(section));
+        if (!$toggle.length) {
+            return;
+        }
+
+        var enabled = $toggle.is(':checked');
+        var $body = $('[data-section-body="' + section + '"]');
+
+        $body.toggleClass('d-none', !enabled);
+        $body.find('.js-section-field, .js-inst-submit-btn').prop('disabled', !enabled);
+    }
+
+    function bindForm(formSelector, url, listSelector, emptySelector, options) {
+        options = options || {};
         var $form = $(formSelector);
         if (!$form.length || !url) {
             return;
         }
 
+        var alertSelector = options.alertSelector || null;
+        var ajaxValidationOnly = options.ajaxValidationOnly === true;
+        var sectionKey = options.sectionKey || null;
+
         $form.on('submit', function (event) {
             event.preventDefault();
 
-            if (!$form[0].reportValidity()) {
+            if (sectionKey) {
+                syncPublicPageSection(sectionKey);
+                var $toggle = $(sectionToggleSelector(sectionKey));
+                if (!$toggle.is(':checked')) {
+                    notify('warning', 'Turn on “Show form” for this section to add an entry.');
+                    return;
+                }
+            }
+
+            if (!ajaxValidationOnly && !$form[0].reportValidity()) {
                 notify('warning', 'Please fill in the required fields.');
                 return;
+            }
+
+            clearFormErrors($form);
+            if (alertSelector) {
+                $(alertSelector).addClass('d-none').empty();
             }
 
             setSubmitting($form, true);
@@ -99,7 +174,11 @@
                 url: url,
                 method: 'POST',
                 data: payload,
-                headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                },
             };
 
             if (hasFile) {
@@ -110,27 +189,60 @@
             $.ajax(ajaxOptions)
                 .done(function (response) {
                     notify('success', response.message || 'Saved successfully.');
-                if (response.item_html) {
-                    prependItem(listSelector, emptySelector, response.item_html);
-                }
-                $form[0].reset();
-                var expiresField = $form.find('input[name="expires_at"]');
-                if (expiresField.length) {
-                    expiresField.attr('min', new Date().toISOString().slice(0, 10));
-                }
+                    if (alertSelector) {
+                        $(alertSelector).removeClass('d-none alert-danger alert-warning')
+                            .addClass('alert-success')
+                            .text(response.message || 'Saved successfully.');
+                    }
+                    if (response.item_html) {
+                        prependItem(listSelector, emptySelector, response.item_html);
+                    }
+                    $form[0].reset();
+                    var expiresField = $form.find('input[name="expires_at"]');
+                    if (expiresField.length) {
+                        expiresField.attr('min', new Date().toISOString().slice(0, 10));
+                    }
                 })
-                .fail(showValidationErrors)
+                .fail(function (xhr) {
+                    showValidationErrors($form, alertSelector, xhr);
+                })
                 .always(function () {
                     setSubmitting($form, false);
                 });
         });
     }
 
-    bindForm('#instNoticeForm', routes.notices, '#instNoticeList', '#instNoticeEmpty');
-    bindForm('#instClassForm', routes.classes, '#instClassList', '#instClassEmpty');
-    bindForm('#instPerformerForm', routes.performers, '#instPerformerList', '#instPerformerEmpty');
-    bindForm('#instAchievementForm', routes.achievements, '#instAchievementList', '#instAchievementEmpty');
-    bindForm('#instBookForm', routes.books, '#instBookList', '#instBookEmpty');
+    bindForm('#instNoticeForm', routes.notices, '#instNoticeList', '#instNoticeEmpty', {
+        ajaxValidationOnly: true,
+        alertSelector: '#instNoticeFormAlert',
+        sectionKey: 'notices',
+    });
+    bindForm('#instClassForm', routes.classes, '#instClassList', '#instClassEmpty', {
+        ajaxValidationOnly: true,
+        alertSelector: '#instClassFormAlert',
+        sectionKey: 'classes',
+    });
+    bindForm('#instPerformerForm', routes.performers, '#instPerformerList', '#instPerformerEmpty', {
+        ajaxValidationOnly: true,
+        alertSelector: '#instPerformerFormAlert',
+        sectionKey: 'performers',
+    });
+    bindForm('#instAchievementForm', routes.achievements, '#instAchievementList', '#instAchievementEmpty', {
+        ajaxValidationOnly: true,
+        alertSelector: '#instAchievementFormAlert',
+        sectionKey: 'achievements',
+    });
+    bindForm('#instBookForm', routes.books, '#instBookList', '#instBookEmpty', {
+        ajaxValidationOnly: true,
+        alertSelector: '#instBookFormAlert',
+        sectionKey: 'books',
+    });
+
+    $('.js-public-page-section-toggle').on('change', function () {
+        syncPublicPageSection($(this).data('section'));
+    });
+
+    publicPageSections.forEach(syncPublicPageSection);
 
     function bindDelete(selector, listSelector, itemSelector, emptySelector) {
         $(document).on('click', selector, function () {
@@ -161,7 +273,7 @@
                 })
                 .fail(function (xhr) {
                     $button.prop('disabled', false);
-                    showValidationErrors(xhr);
+                    showValidationErrors($(), null, xhr);
                 });
         });
     }
