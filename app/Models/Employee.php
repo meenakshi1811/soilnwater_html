@@ -6,8 +6,10 @@ use App\Support\ModulePermissions;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Traits\HasRoles;
 
 class Employee extends Authenticatable
@@ -84,6 +86,87 @@ class Employee extends Authenticatable
     public function isServiceProvider(): bool
     {
         return false;
+    }
+
+    public function isTeacher(): bool
+    {
+        return false;
+    }
+
+    public function isEducator(): bool
+    {
+        return false;
+    }
+
+    public function isSchool(): bool
+    {
+        return false;
+    }
+
+    public function isInstitute(): bool
+    {
+        return false;
+    }
+
+    public function isSchoolOrInstitute(): bool
+    {
+        return false;
+    }
+
+    public function isStudent(): bool
+    {
+        return false;
+    }
+
+    public function isParent(): bool
+    {
+        return false;
+    }
+
+    public function hasParentProfileEnabled(): bool
+    {
+        return false;
+    }
+
+    public function portalRoutePrefix(): string
+    {
+        return 'school';
+    }
+
+    public function portalRoute(string $name, mixed $parameters = [], bool $absolute = true): string
+    {
+        return \App\Support\SchoolInstituteHelper::portalRoute($this, $name, $parameters, $absolute);
+    }
+
+    public function parentProfile(): HasOne
+    {
+        return $this->hasOne(ParentProfile::class, 'user_id')->whereRaw('1 = 0');
+    }
+
+    public function dashboardUrl(): string
+    {
+        $slug = $this->firstReadableModuleSlug();
+
+        if ($slug) {
+            $entryRoute = ModulePermissions::entryRouteName($slug);
+            if ($entryRoute && Route::has($entryRoute)) {
+                return route($entryRoute);
+            }
+
+            return route('modules.show', ['module' => $slug]);
+        }
+
+        return route('employee.dashboard');
+    }
+
+    public function panelTitle(): string
+    {
+        return 'Employee Portal';
+    }
+
+    public function isDashboardRouteActive(): bool
+    {
+        return request()->routeIs('employee.dashboard') || request()->routeIs('modules.show');
     }
 
     public function isStaff(): bool
