@@ -34,7 +34,7 @@
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
   $heroBackgroundUrl = $heroBannerImage
     ? asset($heroBannerImage)
-    : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=85';
+    : asset('assets/images/hero-banner-community.jpg');
   $popularSearches = [
     ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
     ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
