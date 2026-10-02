@@ -609,6 +609,173 @@
   font-weight: 700;
 }
 
+/* Banner bottom hub cards */
+.hero-hub-cards {
+  background: #fff;
+  padding: 0 24px 28px;
+  margin-top: -8px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-hub-cards__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.hero-hub-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 22px 14px 18px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: var(--hero-headline-navy);
+  min-height: 100%;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.hero-hub-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 26, 51, 0.08);
+  color: var(--hero-headline-navy);
+}
+
+.hero-hub-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.hero-hub-card__title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 8px;
+  color: var(--hero-headline-navy);
+  letter-spacing: -0.02em;
+}
+
+.hero-hub-card__desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #3d4f63;
+  margin: 0 0 14px;
+  flex: 1 1 auto;
+  max-width: 13.5rem;
+}
+
+.hero-hub-card__go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 26, 51, 0.12);
+  font-size: 0.65rem;
+  color: var(--hero-action-blue);
+  margin-top: auto;
+}
+
+.hero-hub-card--businesses {
+  background: #fff8f0;
+}
+
+.hero-hub-card--businesses .hero-hub-card__icon {
+  color: #f97316;
+}
+
+.hero-hub-card--services {
+  background: #f0fbff;
+}
+
+.hero-hub-card--services .hero-hub-card__icon {
+  color: #16a34a;
+}
+
+.hero-hub-card--services .hero-hub-card__go {
+  color: #16a34a;
+}
+
+.hero-hub-card--consultants {
+  background: #f6f4ff;
+}
+
+.hero-hub-card--consultants .hero-hub-card__icon {
+  color: #7c3aed;
+}
+
+.hero-hub-card--education {
+  background: #f0f7ff;
+}
+
+.hero-hub-card--education .hero-hub-card__icon {
+  color: #2563eb;
+}
+
+.hero-hub-card--offers {
+  background: #fff1f3;
+}
+
+.hero-hub-card--offers .hero-hub-card__icon {
+  color: #ef4444;
+}
+
+.hero-hub-card--community {
+  background: #f2faf5;
+}
+
+.hero-hub-card--community .hero-hub-card__icon {
+  color: #15803d;
+}
+
+@media (max-width: 1199px) {
+  .hero-hub-cards__inner {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-hub-cards {
+    padding: 0 16px 22px;
+  }
+
+  .hero-hub-cards__inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .hero-hub-card {
+    padding: 18px 12px 14px;
+  }
+
+  .hero-hub-card__icon {
+    font-size: 1.65rem;
+    margin-bottom: 10px;
+  }
+
+  .hero-hub-card__title {
+    font-size: 0.875rem;
+  }
+
+  .hero-hub-card__desc {
+    font-size: 0.6875rem;
+    margin-bottom: 12px;
+  }
+}
+
 @media (min-width: 1200px) and (max-width: 1310px) {
   .header-nav-link {
     font-size: 12.5px;

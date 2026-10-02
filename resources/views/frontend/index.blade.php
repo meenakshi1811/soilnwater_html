@@ -151,115 +151,46 @@
 </section>
 
 
-<!-- ══════════════════════════════════════════════════
-     CATEGORY BAR  — fixed categories with enhanced icons
-══════════════════════════════════════════════════ -->
-<div class="cat-bar">
-  <div class="cat-scroller-wrap">
-    <div class="cat-bar-inner" id="catScroller">
-      <a href="/ads-market">
-        <div class="cat-item active">
-          <div class="cat-icon">
-            <i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i>
-          </div>
-          <span>ADS</span>
-        </div>
-      </a>
-      <a href="/offers-market">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-tags cat-icon-i cat-offers"></i>
-          </div>
-          <span>OFFERS</span>
-        </div>
-      </a>
-      {{--
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i>
-          </div>
-          <span>E-COMMERCE</span>
-        </div>
-      </a>
-      --}}
-      <a href="{{ route('frontend.vendors.index') }}">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-store cat-icon-i cat-vendors"></i>
-          </div>
-          <span>VENDORS</span>
-        </div>
-      </a>
-      <a href="{{ route('frontend.consultants.index') }}">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i>
-          </div>
-          <span>CONSULTANTS</span>
-        </div>
-      </a>
-      <a href="{{ route('frontend.service_providers.index') }}">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
-          </div>
-          <span>SERVICES</span>
-        </div>
-      </a>
-      <a href="{{ route('community.index') }}">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-people-group cat-icon-i cat-community"></i>
-          </div>
-          <span>COMMUNITY HUB</span>
-        </div>
-      </a>
-      {{--
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-building cat-icon-i cat-builders"></i>
-          </div>
-          <span>BUILDER &amp; DEVELOPERS</span>
-        </div>
-      </a>
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i>
-          </div>
-          <span>PROJECTS</span>
-        </div>
-      </a>
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i>
-          </div>
-          <span>PROPERTIES</span>
-        </div>
-      </a>
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i>
-          </div>
-          <span>HOTEL/HOMESTAY</span>
-        </div>
-      </a>
-      <a href="">
-        <div class="cat-item">
-          <div class="cat-icon">
-            <i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i>
-          </div>
-          <span>ENQUIRY</span>
-        </div>
-      </a>
-      --}}
-    </div><!-- /cat-bar-inner -->
+<section class="hero-hub-cards" aria-label="Explore SoilnWater">
+  <div class="hero-hub-cards__inner">
+    <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
+      <h2 class="hero-hub-card__title">Businesses</h2>
+      <p class="hero-hub-card__desc">Discover local businesses and shops</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
+    <a href="{{ route('frontend.service_providers.index') }}" class="hero-hub-card hero-hub-card--services">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-wrench"></i></span>
+      <h2 class="hero-hub-card__title">Services</h2>
+      <p class="hero-hub-card__desc">Find reliable service providers</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
+    <a href="{{ route('frontend.consultants.index') }}" class="hero-hub-card hero-hub-card--consultants">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
+      <h2 class="hero-hub-card__title">Consultants</h2>
+      <p class="hero-hub-card__desc">Connect with experts and professionals</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
+    <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+      <h2 class="hero-hub-card__title">Education &amp; Knowledge</h2>
+      <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
+    <a href="{{ route('frontend.offers.index') }}" class="hero-hub-card hero-hub-card--offers">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
+      <h2 class="hero-hub-card__title">Offers</h2>
+      <p class="hero-hub-card__desc">Explore offers and discounts</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
+    <a href="{{ route('community.index') }}" class="hero-hub-card hero-hub-card--community">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+      <h2 class="hero-hub-card__title">Community</h2>
+      <p class="hero-hub-card__desc">Stories, people, ideas and local voices</p>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+    </a>
   </div>
-</div>
+</section>
 
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
