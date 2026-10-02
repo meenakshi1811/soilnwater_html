@@ -102,7 +102,10 @@
   <div class="hero--discover__overlay" aria-hidden="true"></div>
   <div class="hero--discover__inner">
     <div class="hero--discover__copy">
-      <h1>Discover What's <span class="hero--discover__accent">Around You</span></h1>
+      <h1 class="hero--discover__title">
+        <span class="hero--discover__title-line">Discover</span>
+        <span class="hero--discover__title-line">What's <span class="hero--discover__accent">Around You</span></span>
+      </h1>
       <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p>
     </div>
     <div class="hero--discover__script" aria-hidden="true">
