@@ -32,15 +32,18 @@
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
-  $defaultHeroBannerPath = 'assets/images/hero-banner-community.jpg';
   $legacyHeroBannerPaths = [
     'uploads/homepage/hero-fa4ab294-583b-419e-acb2-40d7acbbabdc.webp',
     'uploads/homepage/hero-fa4ab294-583b-419e-acb2-40d7acbbabdc.png',
   ];
-  $useStoredHeroBanner = $heroBannerImage
-    && ! in_array($heroBannerImage, $legacyHeroBannerPaths, true)
-    && is_file(public_path($heroBannerImage));
-  $heroBackgroundUrl = asset($useStoredHeroBanner ? $heroBannerImage : $defaultHeroBannerPath);
+  $heroBannerCandidates = array_values(array_filter([
+    ($heroBannerImage && ! in_array($heroBannerImage, $legacyHeroBannerPaths, true)) ? $heroBannerImage : null,
+    'assets/images/hero-banner-community-hd.jpg',
+    'assets/images/hero-banner-community-hd.webp',
+    'assets/images/hero-banner-community.jpg',
+  ]));
+  $resolvedHeroBannerPath = collect($heroBannerCandidates)->first(fn ($path) => is_file(public_path($path)));
+  $heroBackgroundUrl = asset($resolvedHeroBannerPath ?: 'assets/images/hero-banner-community.jpg');
   $popularSearches = [
     ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
     ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
@@ -104,7 +107,16 @@
 
 <div class="homepage-root">
 
-<section class="hero hero--discover" style="--hero-bg-image: url('{{ $heroBackgroundUrl }}');">
+<section class="hero hero--discover">
+  <img
+    class="hero--discover__bg"
+    src="{{ $heroBackgroundUrl }}"
+    alt=""
+    width="1920"
+    height="720"
+    fetchpriority="high"
+    decoding="async"
+  >
   <div class="hero--discover__overlay" aria-hidden="true"></div>
   <div class="hero--discover__container">
     <div class="hero--discover__inner">

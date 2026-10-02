@@ -346,22 +346,35 @@
   min-height: 500px;
   padding: 44px 0 40px;
   border-bottom: none;
-  background: var(--hero-bg-image) 42% center / cover no-repeat;
   overflow: hidden;
+  background: #dbeafe;
+}
+
+.hero--discover__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% center;
+  pointer-events: none;
+  user-select: none;
 }
 
 .hero--discover__overlay {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background:
-    linear-gradient(100deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.12) 38%, rgba(255, 255, 255, 0) 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.06) 100%);
+    linear-gradient(100deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0) 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.04) 100%);
   pointer-events: none;
 }
 
 .hero--discover__container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 40px;
@@ -997,7 +1010,11 @@
 
   .hero--discover__overlay {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 45%, rgba(15, 23, 42, 0.12) 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.28) 45%, rgba(15, 23, 42, 0.08) 100%);
+  }
+
+  .hero--discover__bg {
+    object-position: 50% center;
   }
 
   .hero--discover__container {
