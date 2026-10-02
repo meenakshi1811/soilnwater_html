@@ -151,7 +151,7 @@
           'searchInputId' => 'heroSearchQuery',
           'showModuleSelect' => false,
           'activeSearchModule' => 'offers',
-          'searchPlaceholderOverride' => 'Search businesses, services, consultants, schools, offers...',
+          'searchPlaceholderOverride' => 'Search businesses, services, schools, offers…',
           'searchSubmitText' => 'Search',
         ])
       </div>

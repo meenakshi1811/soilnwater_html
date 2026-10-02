@@ -368,7 +368,7 @@
   z-index: 0;
   background:
     linear-gradient(100deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0) 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.04) 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 55%);
   pointer-events: none;
 }
 
@@ -865,7 +865,6 @@
   }
 
   .hero.hero--discover {
-    min-height: 0;
     padding: 28px 0 24px;
   }
 
@@ -1010,11 +1009,11 @@
 
   .hero--discover__overlay {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.28) 45%, rgba(15, 23, 42, 0.08) 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.35) 32%, rgba(255, 255, 255, 0) 58%);
   }
 
   .hero--discover__bg {
-    object-position: 50% center;
+    object-position: 58% 22%;
   }
 
   .hero--discover__container {
@@ -1025,8 +1024,57 @@
     margin-top: 1.25rem;
   }
 
+  .hero--discover .search-wrap--hero {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    padding: 10px 12px 12px;
+    gap: 8px 6px;
+    flex-wrap: unset;
+  }
+
+  .hero--discover .search-wrap--hero .search-leading-icon {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0;
+  }
+
+  .hero--discover .search-wrap--hero .search-query-input {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    flex: unset;
+  }
+
+  .hero--discover .search-wrap--hero .search-submit-btn {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 8px;
+  }
+
   .hero--discover__popular {
+    gap: 10px;
+    margin-top: 18px;
+    padding: 12px 12px 4px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(2px);
+  }
+
+  .hero--discover__popular-label {
+    color: var(--hero-headline-navy);
+    text-shadow: none;
+  }
+
+  .hero--discover__popular-tags {
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
   }
 }
 
@@ -1093,55 +1141,92 @@
   .hero-search-card--location {
     padding: 12px 14px;
     min-width: 0;
+    width: 100%;
   }
 
   .hero--discover .search-wrap--hero {
     order: unset !important;
     width: 100% !important;
     flex: 1 1 auto !important;
-    flex-wrap: wrap;
-    padding: 8px 8px 8px 4px;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    padding: 10px 12px 12px;
+    gap: 8px 6px;
   }
 
   .hero--discover .search-wrap--hero .search-leading-icon {
-    padding-left: 10px;
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0;
+    align-self: center;
   }
 
   .hero--discover .search-wrap--hero .search-query-input {
-    flex: 1 1 calc(100% - 40px);
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
     min-width: 0;
-    padding: 10px 8px;
+    padding: 8px 4px;
     font-size: 0.875rem;
   }
 
   .hero--discover .search-wrap--hero .search-submit-btn {
-    flex: 1 1 100%;
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
     min-height: 44px;
     border-radius: 8px;
-    margin-top: 2px;
+    margin-top: 0;
+  }
+
+  .hero--discover__overlay {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.42) 28%, rgba(255, 255, 255, 0) 52%);
+  }
+
+  .hero--discover__bg {
+    object-position: 62% 18%;
+  }
+
+  .hero--discover__copy {
+    max-width: none;
+  }
+
+  .hero--discover__lead {
+    max-width: none;
   }
 
   .hero--discover__popular {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    background: rgba(255, 255, 255, 0.5);
   }
 
   .hero--discover__popular-label {
     font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--hero-headline-navy);
+    text-shadow: none;
   }
 
   .hero--discover__popular-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     width: 100%;
   }
 
   .hero-popular-tag {
-    padding: 6px 12px;
+    justify-content: center;
+    padding: 8px 10px;
     font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .hero-popular-tag--more {
+    grid-column: 1 / -1;
   }
 
   .homepage-root .hero-hub-cards {
