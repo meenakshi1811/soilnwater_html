@@ -4,14 +4,11 @@
   $isHomepage = request()->routeIs('frontend.index');
 @endphp
 
-<header class="header container-fluid d-flex align-items-center{{ $isHomepage ? ' header--homepage' : '' }}" id="frontendHeader">
+<header class="header{{ $isHomepage ? ' header--homepage' : '' }}" id="frontendHeader">
+  <div class="header-inner">
   <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
-
-  <button class="header-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="false" aria-label="Toggle header menu">
-    <i class="fa-solid fa-bars"></i>
-  </button>
 
   <nav class="header-main-nav d-none d-xl-flex" aria-label="Main navigation">
     <div class="dropdown header-nav-dropdown">
@@ -64,14 +61,7 @@
         <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Property Offers</a></li>
       </ul>
     </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navCommunity" data-bs-toggle="dropdown" aria-expanded="false">Community</button>
-      <ul class="dropdown-menu" aria-labelledby="navCommunity">
-        <li><a class="dropdown-item" href="{{ route('community.index') }}">Community Hub</a></li>
-        <li><a class="dropdown-item" href="{{ route('community.index', ['type' => 'local-voices']) }}">Local Voices</a></li>
-        <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
-      </ul>
-    </div>
+    <a class="header-nav-link header-nav-link--plain" href="{{ route('community.index') }}">Community</a>
   </nav>
 
   <div class="header-right-cluster">
@@ -81,7 +71,7 @@
 
     <div class="header-utilities">
       @if($isHomepage)
-        <button type="button" class="header-search-jump d-none d-xl-inline-flex" id="headerSearchJump" aria-label="Jump to search">
+        <button type="button" class="header-search-jump d-none d-md-inline-flex" id="headerSearchJump" aria-label="Jump to search">
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
       @else
@@ -131,6 +121,11 @@
     @endauth
     </div>
   </div>
+  </div>
+
+  <button class="header-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="false" aria-label="Toggle header menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
 
   <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
     <div class="header-mobile-menu-top">

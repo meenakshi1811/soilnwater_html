@@ -11,6 +11,7 @@
     ])->filter()->implode(', ');
   }
   $locWrapClass = trim('loc-wrap ' . ($locWrapClass ?? ''));
+  $isCompactHeader = str_contains($locWrapClass, 'loc-wrap--header-compact');
 @endphp
 
 <div class="{{ $locWrapClass }}" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
@@ -27,7 +28,7 @@
     type="text"
     data-default-location="Detecting location..."
     data-registered-location="{{ $registeredLocation }}"
-    placeholder="{{ !empty($showHeroStyleLabel) ? 'Select Location' : 'Search location' }}"
+    placeholder="{{ !empty($showHeroStyleLabel) || $isCompactHeader ? 'Select Location' : 'Search location' }}"
     autocomplete="off"
   >
   <span class="loc-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
