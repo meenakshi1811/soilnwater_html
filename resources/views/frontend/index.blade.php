@@ -32,6 +32,20 @@
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
+  $heroBackgroundUrl = $heroBannerImage
+    ? asset($heroBannerImage)
+    : 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=80';
+  $popularSearches = [
+    ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
+    ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
+    ['label' => 'School', 'module' => 'vendors', 'q' => 'School'],
+    ['label' => 'Tutor', 'module' => 'consultants', 'q' => 'Tutor'],
+    ['label' => 'Doctor', 'module' => 'consultants', 'q' => 'Doctor'],
+    ['label' => 'Consultant', 'module' => 'consultants', 'q' => 'Consultant'],
+    ['label' => 'Salon', 'module' => 'vendors', 'q' => 'Salon'],
+    ['label' => 'Real Estate', 'module' => 'offers', 'q' => 'Real Estate'],
+    ['label' => 'Café', 'module' => 'vendors', 'q' => 'Cafe'],
+  ];
   $vendorEnquiryCategoryTree = ($vendorEnquiryCategories ?? collect())
     ->map(function ($category) {
       return [
@@ -84,95 +98,50 @@
 
 <div class="homepage-root">
 
-<section class="hero">
-  <div class="hero-stars">✦ ✦<br>✦</div>
-  <div class="hero-content">
-    <h1>Grow Your Business with a Professional Marketplace Presence</h1>
-    <a href="{{ $heroButtonLink ?: "#" }}" class="btn-yellow">{{ $heroButtonText ?: "Advertise Now" }}</a>
+<section class="hero hero--discover" style="--hero-bg-image: url('{{ $heroBackgroundUrl }}');">
+  <div class="hero--discover__overlay" aria-hidden="true"></div>
+  <div class="hero--discover__inner">
+    <div class="hero--discover__copy">
+      <h1>Discover What's <span class="hero--discover__accent">Around You</span></h1>
+      <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p>
+    </div>
+    <div class="hero--discover__script" aria-hidden="true">
+      <p>Local Businesses</p>
+      <p>Real People</p>
+      <p>Stronger Communities</p>
+      <span class="hero--discover__script-swoosh"></span>
+    </div>
   </div>
 
-  <!-- SVG illustration: megaphone + shopping bags + coins -->
-  @if($heroBannerImage)
-    <div class="hero-illus"><img src="{{ asset($heroBannerImage) }}" alt="Hero banner" style="max-width:100%;height:auto;"></div>
-  @else
-  <div class="hero-illus">
-    <svg viewBox="0 0 380 160" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
-      <!-- Ground grass strip -->
-      <ellipse cx="200" cy="155" rx="190" ry="14" fill="#a5d6a7" opacity=".5"/>
-
-      <!-- Gold coins pile right -->
-      <ellipse cx="338" cy="138" rx="28" ry="8" fill="#fdd835"/>
-      <ellipse cx="338" cy="130" rx="24" ry="7" fill="#f9a825"/>
-      <ellipse cx="338" cy="123" rx="20" ry="6" fill="#fdd835"/>
-      <ellipse cx="338" cy="117" rx="16" ry="5" fill="#f9a825"/>
-      <text x="330" y="121" font-size="9" fill="#e65100" font-weight="bold">$</text>
-
-      <!-- Small coins left scatter -->
-      <circle cx="80" cy="145" r="9" fill="#fdd835" stroke="#f9a825" stroke-width="1.5"/>
-      <text x="76" y="149" font-size="8" fill="#e65100" font-weight="bold">$</text>
-      <circle cx="100" cy="138" r="7" fill="#fdd835" stroke="#f9a825" stroke-width="1.2"/>
-      <circle cx="65" cy="135" r="6" fill="#f9a825"/>
-
-      <!-- Red shopping bag -->
-      <rect x="148" y="70" width="52" height="64" rx="5" fill="#e53935"/>
-      <rect x="158" y="58" width="32" height="14" rx="7" fill="none" stroke="#c62828" stroke-width="4"/>
-      <rect x="160" y="94" width="28" height="3" rx="1.5" fill="#ef9a9a"/>
-      <text x="162" y="115" font-size="18" fill="#fff" opacity=".3">🛍</text>
-
-      <!-- Blue/teal gift box -->
-      <rect x="214" y="88" width="46" height="46" rx="5" fill="#0288d1"/>
-      <rect x="214" y="88" width="46" height="14" rx="3" fill="#0277bd"/>
-      <rect x="235" y="88" width="4" height="46" fill="#fff" opacity=".35"/>
-      <rect x="214" y="100" width="46" height="4" fill="#fff" opacity=".35"/>
-      <!-- ribbon bow -->
-      <path d="M237 88 C230 80 222 82 224 88Z" fill="#4fc3f7"/>
-      <path d="M237 88 C244 80 252 82 250 88Z" fill="#4fc3f7"/>
-      <circle cx="237" cy="88" r="4" fill="#e1f5fe"/>
-
-      <!-- Green shopping bag -->
-      <rect x="270" y="62" width="48" height="72" rx="5" fill="#43a047"/>
-      <rect x="280" y="50" width="28" height="14" rx="7" fill="none" stroke="#2e7d32" stroke-width="4"/>
-      <rect x="282" y="96" width="24" height="3" rx="1.5" fill="#a5d6a7"/>
-
-      <!-- Yellow/tan envelope bag -->
-      <rect x="105" y="82" width="42" height="52" rx="5" fill="#f9a825"/>
-      <rect x="105" y="82" width="42" height="14" rx="3" fill="#f57f17"/>
-      <!-- envelope flap -->
-      <path d="M105 96 L126 112 L147 96Z" fill="#ffe082" opacity=".7"/>
-
-      <!-- Megaphone (centre-left of illustration) -->
-      <g transform="translate(30,40) rotate(-18)">
-        <!-- cone body -->
-        <path d="M0 28 L60 8 L60 52 Z" fill="#1565c0"/>
-        <path d="M0 28 L60 8 L60 52 Z" fill="url(#megaGrad)"/>
-        <!-- mouthpiece cylinder -->
-        <rect x="-18" y="20" width="22" height="16" rx="4" fill="#1976d2"/>
-        <!-- rim circle -->
-        <circle cx="60" cy="30" r="22" fill="#1976d2" stroke="#0d47a1" stroke-width="2"/>
-        <circle cx="60" cy="30" r="15" fill="#1565c0"/>
-        <!-- sound waves -->
-        <path d="M82 18 Q96 30 82 42" stroke="#90caf9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M88 12 Q106 30 88 48" stroke="#64b5f6" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>
-      </g>
-      <defs>
-        <linearGradient id="megaGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#1976d2"/>
-          <stop offset="100%" stop-color="#0d47a1"/>
-        </linearGradient>
-      </defs>
-
-      <!-- Stars / sparkles scattered -->
-      <text x="132" y="52" font-size="14" fill="#f9a825">✦</text>
-      <text x="305" y="55" font-size="10" fill="#81c784">✦</text>
-      <text x="320" y="80" font-size="8" fill="#f9a825">✦</text>
-      <text x="108" y="75" font-size="9" fill="#42a5f5">✦</text>
-
-      <!-- Butterflies -->
-      <text x="340" y="52" font-size="13">🦋</text>
-      <text x="356" y="72" font-size="10">🦋</text>
-    </svg>
+  <div class="hero--discover__search-block" id="heroSearchDock">
+    <div class="hero--discover__search-row">
+      <div class="hero-loc-trigger" id="heroLocationTrigger" role="button" tabindex="0" aria-label="Select location">
+        <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
+        <span class="hero-loc-trigger__text">
+          <strong id="heroLocationTitle">Select Location</strong>
+          <span>City, Area or Use My Location</span>
+        </span>
+        <span class="loc-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+      </div>
+      @include('frontend.partials.header-search-form', [
+        'searchWrapClass' => 'search-wrap search-wrap--hero',
+        'searchFormId' => 'heroSearchForm',
+        'searchInputId' => 'heroSearchQuery',
+        'showModuleSelect' => true,
+        'searchPlaceholderOverride' => 'Search businesses, services, consultants, schools, offers...',
+        'searchSubmitText' => 'Search',
+      ])
+    </div>
+    <div class="hero--discover__popular">
+      <span class="hero--discover__popular-label">Popular Searches:</span>
+      <div class="hero--discover__popular-tags">
+        @foreach($popularSearches as $term)
+          <a href="{{ route('frontend.search', ['module' => $term['module'], 'q' => $term['q']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
+        @endforeach
+        <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
+      </div>
+    </div>
   </div>
-  @endif
 </section>
 
 

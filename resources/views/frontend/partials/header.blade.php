@@ -1,4 +1,10 @@
-<header class="header container-fluid d-flex align-items-center" id="frontendHeader">
+@php
+  $user = auth()->user();
+  $dashboardUrl = \App\Support\UserDashboard::url($user);
+  $isHomepage = request()->routeIs('frontend.index');
+@endphp
+
+<header class="header container-fluid d-flex align-items-center{{ $isHomepage ? ' header--homepage' : '' }}" id="frontendHeader">
   <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
@@ -7,110 +13,84 @@
     <i class="fa-solid fa-bars"></i>
   </button>
 
-  @php
-    $registeredLocation = null;
-    $user = auth()->user();
-    $dashboardUrl = \App\Support\UserDashboard::url($user);
-
-    if ($user) {
-      $registeredLocation = collect([
-        $user->address,
-        $user->city,
-        $user->pincode,
-      ])->filter()->implode(', ');
-    }
-  @endphp
-
-  <div class="loc-wrap" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
-    <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
-    <input
-      id="headerCurrentLocation"
-      class="loc-text-input"
-      type="text"
-      data-default-location="Detecting location..."
-      data-registered-location="{{ $registeredLocation }}"
-      placeholder="Search location"
-      autocomplete="off"
-    >
-    <span class="loc-caret">▾</span>
-
-    <div class="location-dropdown" id="headerLocationDropdown" hidden>
-      <label for="headerLocationSearch" class="location-dropdown-label">Search location</label>
-      <input
-        id="headerLocationSearch"
-        type="text"
-        class="location-dropdown-input"
-        placeholder="Search your address..."
-        autocomplete="off"
-      >
-      <small class="location-dropdown-note">Select an address to set your current location.</small>
+  <nav class="header-main-nav d-none d-xl-flex" aria-label="Main navigation">
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navBusinesses" data-bs-toggle="dropdown" aria-expanded="false">Businesses</button>
+      <ul class="dropdown-menu" aria-labelledby="navBusinesses">
+        <li><a class="dropdown-item" href="{{ route('frontend.vendors.index') }}">Browse Businesses</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.vendors.categories') }}">Categories</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.vendors.listings') }}">Listings</a></li>
+      </ul>
     </div>
-  </div>
-
-  <form class="search-wrap" method="GET" action="{{ route('frontend.search') }}">
-    @php
-      $activeSearchModule = request('module') ?? match (true) {
-        request()->routeIs('frontend.ads.*') => 'ads',
-        request()->routeIs('frontend.vendors.*') => 'vendors',
-        request()->routeIs('frontend.consultants.*') => 'consultants',
-        request()->routeIs('frontend.service_providers.*') => 'services',
-        request()->routeIs('community.*') => 'community',
-        default => 'offers',
-      };
-      $searchPlaceholders = [
-        'offers' => 'Search offers...',
-        'ads' => 'Search ads...',
-        'vendors' => 'Search vendor name or product...',
-        'consultants' => 'Search consultant name or service...',
-        'services' => 'Search provider name or service...',
-        'community' => 'Search community posts...',
-      ];
-    @endphp
-    <select name="module" class="search-module-select" aria-label="Search module">
-      <option value="offers" @selected($activeSearchModule === 'offers')>Offers</option>
-      <option value="ads" @selected($activeSearchModule === 'ads')>Ads</option>
-      <option value="vendors" @selected($activeSearchModule === 'vendors')>Vendors</option>
-      <option value="consultants" @selected($activeSearchModule === 'consultants')>Consultants</option>
-      <option value="services" @selected($activeSearchModule === 'services')>Services</option>
-      <option value="community" @selected($activeSearchModule === 'community')>Community</option>
-    </select>
-    <input
-      class="search-query-input"
-      type="text"
-      name="q"
-      placeholder="{{ $searchPlaceholders[$activeSearchModule] ?? 'Search...' }}"
-      data-search-placeholders='@json($searchPlaceholders)'
-      value="{{ request('q', request('search')) }}"
-      aria-label="Search query"
-    >
-    <button type="submit" class="search-submit-btn" aria-label="Search">
-      <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
-  </form>
-
-  <div class="header-actions header-actions-desktop">
-    {{-- Community module temporarily hidden
-    <div class="dropdown header-community-dropdown">
-      <button
-        class="btn-offer dropdown-toggle header-community-toggle"
-        type="button"
-        id="headerCommunityMenu"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        Community
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerCommunityMenu">
-        <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navServices" data-bs-toggle="dropdown" aria-expanded="false">Services</button>
+      <ul class="dropdown-menu" aria-labelledby="navServices">
+        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.index') }}">Browse Services</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.categories') }}">Categories</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.listings') }}">Listings</a></li>
+      </ul>
+    </div>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navConsultants" data-bs-toggle="dropdown" aria-expanded="false">Consultants</button>
+      <ul class="dropdown-menu" aria-labelledby="navConsultants">
+        <li><a class="dropdown-item" href="{{ route('frontend.consultants.index') }}">Browse Consultants</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.consultants.categories') }}">Categories</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.consultants.listings') }}">Listings</a></li>
+      </ul>
+    </div>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navEducation" data-bs-toggle="dropdown" aria-expanded="false">Education</button>
+      <ul class="dropdown-menu" aria-labelledby="navEducation">
+        <li><a class="dropdown-item" href="{{ route('schools.index') }}">Schools</a></li>
+        <li><a class="dropdown-item" href="{{ route('institutes.index') }}">Institutes</a></li>
+        <li><a class="dropdown-item" href="{{ route('educator.index') }}">Teachers &amp; Tutors</a></li>
+        <li><a class="dropdown-item" href="{{ route('study-materials.library') }}">Study Materials</a></li>
+      </ul>
+    </div>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navOffers" data-bs-toggle="dropdown" aria-expanded="false">Offers</button>
+      <ul class="dropdown-menu" aria-labelledby="navOffers">
+        <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Browse Offers</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Browse Ads</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a></li>
+        <li><a class="dropdown-item" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
+      </ul>
+    </div>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navProperties" data-bs-toggle="dropdown" aria-expanded="false">Properties</button>
+      <ul class="dropdown-menu" aria-labelledby="navProperties">
+        <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Property Ads</a></li>
+        <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Property Offers</a></li>
+      </ul>
+    </div>
+    <div class="dropdown header-nav-dropdown">
+      <button class="header-nav-link dropdown-toggle" type="button" id="navCommunity" data-bs-toggle="dropdown" aria-expanded="false">Community</button>
+      <ul class="dropdown-menu" aria-labelledby="navCommunity">
+        <li><a class="dropdown-item" href="{{ route('community.index') }}">Community Hub</a></li>
         <li><a class="dropdown-item" href="{{ route('community.index', ['type' => 'local-voices']) }}">Local Voices</a></li>
         <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
       </ul>
     </div>
-    --}}
+  </nav>
 
-    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
-    <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
+  <div class="header-right-cluster">
+    @if($isHomepage)
+      @include('frontend.partials.header-location', ['locWrapClass' => 'loc-wrap--header-compact homepage-loc-host'])
+    @endif
 
+    <div class="header-utilities">
+      @if($isHomepage)
+        <button type="button" class="header-search-jump d-none d-xl-inline-flex" id="headerSearchJump" aria-label="Jump to search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      @else
+        @include('frontend.partials.header-location')
+        @include('frontend.partials.header-search-form')
+      @endif
+    </div>
+
+    <div class="header-actions header-actions-desktop">
     @auth
       <div class="dropdown user-menu-dropdown">
         <button
@@ -128,6 +108,8 @@
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
           <li><a class="dropdown-item" href="{{ route('employee.login') }}">Employee portal</a></li>
+          <li><a class="dropdown-item" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a></li>
+          <li><a class="dropdown-item" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
           @if($user->isVendor() && ! $user->vendor?->is_premium)
             <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'vendor') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
           @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
@@ -144,9 +126,10 @@
         </ul>
       </div>
     @else
-      <a class="btn-login" href="{{ route('login') }}">Login</a>
-      <a class="btn-login" href="{{ route('employee.login') }}">Employee</a>
+      <a class="btn-login btn-login--outline" href="{{ route('login') }}">Login</a>
+      <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
     @endauth
+    </div>
   </div>
 
   <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
@@ -155,11 +138,12 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    {{-- Community module temporarily hidden
+    <a class="btn-offer" href="{{ route('frontend.vendors.index') }}">Businesses</a>
+    <a class="btn-offer" href="{{ route('frontend.service_providers.index') }}">Services</a>
+    <a class="btn-offer" href="{{ route('frontend.consultants.index') }}">Consultants</a>
+    <a class="btn-offer" href="{{ route('schools.index') }}">Education</a>
+    <a class="btn-offer" href="{{ route('frontend.offers.index') }}">Offers</a>
     <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
-    <a class="btn-offer" href="{{ route('community.index', ['type' => 'local-voices']) }}">Local Voices</a>
-    <a class="btn-offer" href="{{ route('community.community-issues.index') }}">Issues</a>
-    --}}
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -178,11 +162,11 @@
       </form>
     @else
       <a class="btn-login" href="{{ route('login') }}">Login</a>
+      <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
       <a class="btn-login" href="{{ route('employee.login') }}">Employee</a>
     @endauth
   </div>
 </header>
-
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -196,6 +180,52 @@
       moduleSelect.addEventListener('change', function () {
         searchInput.placeholder = placeholders[moduleSelect.value] || 'Search...';
       });
+    }
+
+    const heroSearchInput = document.getElementById('heroSearchQuery');
+    const heroModuleSelect = document.querySelector('#heroSearchForm .search-module-select');
+    if (heroModuleSelect && heroSearchInput) {
+      const placeholders = JSON.parse(heroSearchInput.dataset.searchPlaceholders || '{}');
+      heroModuleSelect.addEventListener('change', function () {
+        heroSearchInput.placeholder = placeholders[heroModuleSelect.value] || 'Search...';
+      });
+    }
+
+    const searchJump = document.getElementById('headerSearchJump');
+    if (searchJump) {
+      searchJump.addEventListener('click', function () {
+        const target = document.getElementById('heroSearchDock') || document.getElementById('heroSearchQuery');
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = document.getElementById('heroSearchQuery');
+        if (input) {
+          window.setTimeout(function () { input.focus(); }, 350);
+        }
+      });
+    }
+
+    const heroLocationTrigger = document.getElementById('heroLocationTrigger');
+    const headerLocationInput = document.getElementById('headerCurrentLocation');
+    const heroLocationTitle = document.getElementById('heroLocationTitle');
+    if (heroLocationTrigger && headerLocationInput) {
+      const syncHeroLocationLabel = function () {
+        if (!heroLocationTitle) return;
+        const value = (headerLocationInput.value || '').trim();
+        heroLocationTitle.textContent = value || 'Select Location';
+      };
+      heroLocationTrigger.addEventListener('click', function () {
+        headerLocationInput.focus();
+        headerLocationInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+      heroLocationTrigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          headerLocationInput.focus();
+        }
+      });
+      headerLocationInput.addEventListener('input', syncHeroLocationLabel);
+      headerLocationInput.addEventListener('change', syncHeroLocationLabel);
+      syncHeroLocationLabel();
     }
 
     if (!header || !menu || typeof bootstrap === 'undefined') {
