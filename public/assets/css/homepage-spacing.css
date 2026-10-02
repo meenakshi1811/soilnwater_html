@@ -4,9 +4,9 @@
  */
 
 .homepage-root .hero.hero--discover {
-  min-height: 430px;
-  padding-left: clamp(18px, 4vw, 48px);
-  padding-right: clamp(18px, 4vw, 48px);
+  min-height: 520px;
+  padding-top: 48px;
+  padding-bottom: 44px;
 }
 
 .homepage-root .cat-bar {

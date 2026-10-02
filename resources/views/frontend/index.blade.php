@@ -34,7 +34,7 @@
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
   $heroBackgroundUrl = $heroBannerImage
     ? asset($heroBannerImage)
-    : 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=80';
+    : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=85';
   $popularSearches = [
     ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
     ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
@@ -100,48 +100,51 @@
 
 <section class="hero hero--discover" style="--hero-bg-image: url('{{ $heroBackgroundUrl }}');">
   <div class="hero--discover__overlay" aria-hidden="true"></div>
-  <div class="hero--discover__inner">
-    <div class="hero--discover__copy">
-      <h1 class="hero--discover__title">
-        <span class="hero--discover__title-line">Discover</span>
-        <span class="hero--discover__title-line">What's <span class="hero--discover__accent">Around You</span></span>
-      </h1>
-      <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p>
-    </div>
-    <div class="hero--discover__script" aria-hidden="true">
-      <p>Local Businesses</p>
-      <p>Real People</p>
-      <p>Stronger Communities</p>
-      <span class="hero--discover__script-swoosh"></span>
-    </div>
-  </div>
-
-  <div class="hero--discover__search-block" id="heroSearchDock">
-    <div class="hero--discover__search-row">
-      <div class="hero-loc-trigger" id="heroLocationTrigger" role="button" tabindex="0" aria-label="Select location">
-        <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
-        <span class="hero-loc-trigger__text">
-          <strong id="heroLocationTitle">Select Location</strong>
-          <span>City, Area or Use My Location</span>
-        </span>
-        <span class="loc-caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+  <div class="hero--discover__container">
+    <div class="hero--discover__inner">
+      <div class="hero--discover__copy">
+        <h1 class="hero--discover__title">
+          <span class="hero--discover__title-line">Discover What's</span>
+          <span class="hero--discover__title-line hero--discover__accent">Around You</span>
+        </h1>
+        <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p>
       </div>
-      @include('frontend.partials.header-search-form', [
-        'searchWrapClass' => 'search-wrap search-wrap--hero',
-        'searchFormId' => 'heroSearchForm',
-        'searchInputId' => 'heroSearchQuery',
-        'showModuleSelect' => true,
-        'searchPlaceholderOverride' => 'Search businesses, services, consultants, schools, offers...',
-        'searchSubmitText' => 'Search',
-      ])
+      <div class="hero--discover__script" aria-hidden="true">
+        <p>Local Businesses</p>
+        <p>Real People</p>
+        <p>Stronger Communities</p>
+        <span class="hero--discover__script-swoosh" aria-hidden="true"></span>
+      </div>
     </div>
-    <div class="hero--discover__popular">
-      <span class="hero--discover__popular-label">Popular Searches:</span>
-      <div class="hero--discover__popular-tags">
-        @foreach($popularSearches as $term)
-          <a href="{{ route('frontend.search', ['module' => $term['module'], 'q' => $term['q']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
-        @endforeach
-        <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
+
+    <div class="hero--discover__search-block" id="heroSearchDock">
+      <div class="hero--discover__search-row">
+        <div class="hero-search-card hero-search-card--location hero-loc-trigger" id="heroLocationTrigger" role="button" tabindex="0" aria-label="Select location">
+          <span class="hero-search-card__icon hero-search-card__icon--pin"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+          <span class="hero-loc-trigger__text">
+            <strong id="heroLocationTitle">Select Location</strong>
+            <span>City, Area or Use My Location</span>
+          </span>
+          <span class="hero-search-card__caret"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+        </div>
+        @include('frontend.partials.header-search-form', [
+          'searchWrapClass' => 'search-wrap search-wrap--hero hero-search-card hero-search-card--query',
+          'searchFormId' => 'heroSearchForm',
+          'searchInputId' => 'heroSearchQuery',
+          'showModuleSelect' => false,
+          'activeSearchModule' => 'offers',
+          'searchPlaceholderOverride' => 'Search businesses, services, consultants, schools, offers...',
+          'searchSubmitText' => 'Search',
+        ])
+      </div>
+      <div class="hero--discover__popular">
+        <span class="hero--discover__popular-label">Popular Searches:</span>
+        <div class="hero--discover__popular-tags">
+          @foreach($popularSearches as $term)
+            <a href="{{ route('frontend.search', ['module' => $term['module'], 'q' => $term['q']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
+          @endforeach
+          <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
+        </div>
       </div>
     </div>
   </div>
