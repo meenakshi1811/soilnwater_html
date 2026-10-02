@@ -69,7 +69,17 @@
   min-width: 0;
   gap: 2px;
   margin-left: 6px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.header-sticky-shell,
+.header-sticky-shell .header,
+.header-inner {
+  overflow: visible;
+}
+
+.header-nav-dropdown {
+  position: relative;
 }
 
 .header-nav-link {
@@ -113,6 +123,19 @@
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
   padding: 6px 0;
   font-size: 13px;
+  z-index: 200;
+  margin-top: 6px;
+}
+
+.header-nav-dropdown .dropdown-menu.show {
+  display: block;
+}
+
+.header-nav-dropdown .dropdown-menu[data-bs-popper="static"] {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  transform: none !important;
 }
 
 .header-utilities {

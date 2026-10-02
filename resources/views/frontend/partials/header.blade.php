@@ -12,7 +12,7 @@
 
   <nav class="header-main-nav d-none d-xl-flex" aria-label="Main navigation">
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navBusinesses" data-bs-toggle="dropdown" aria-expanded="false">Businesses</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navBusinesses" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Businesses</button>
       <ul class="dropdown-menu" aria-labelledby="navBusinesses">
         <li><a class="dropdown-item" href="{{ route('frontend.vendors.index') }}">Browse Businesses</a></li>
         <li><a class="dropdown-item" href="{{ route('frontend.vendors.categories') }}">Categories</a></li>
@@ -20,7 +20,7 @@
       </ul>
     </div>
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navServices" data-bs-toggle="dropdown" aria-expanded="false">Services</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navServices" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Services</button>
       <ul class="dropdown-menu" aria-labelledby="navServices">
         <li><a class="dropdown-item" href="{{ route('frontend.service_providers.index') }}">Browse Services</a></li>
         <li><a class="dropdown-item" href="{{ route('frontend.service_providers.categories') }}">Categories</a></li>
@@ -28,7 +28,7 @@
       </ul>
     </div>
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navConsultants" data-bs-toggle="dropdown" aria-expanded="false">Consultants</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navConsultants" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Consultants</button>
       <ul class="dropdown-menu" aria-labelledby="navConsultants">
         <li><a class="dropdown-item" href="{{ route('frontend.consultants.index') }}">Browse Consultants</a></li>
         <li><a class="dropdown-item" href="{{ route('frontend.consultants.categories') }}">Categories</a></li>
@@ -36,7 +36,7 @@
       </ul>
     </div>
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navEducation" data-bs-toggle="dropdown" aria-expanded="false">Education</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navEducation" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Education</button>
       <ul class="dropdown-menu" aria-labelledby="navEducation">
         <li><a class="dropdown-item" href="{{ route('schools.index') }}">Schools</a></li>
         <li><a class="dropdown-item" href="{{ route('institutes.index') }}">Institutes</a></li>
@@ -45,7 +45,7 @@
       </ul>
     </div>
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navOffers" data-bs-toggle="dropdown" aria-expanded="false">Offers</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navOffers" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Offers</button>
       <ul class="dropdown-menu" aria-labelledby="navOffers">
         <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Browse Offers</a></li>
         <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Browse Ads</a></li>
@@ -55,7 +55,7 @@
       </ul>
     </div>
     <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navProperties" data-bs-toggle="dropdown" aria-expanded="false">Properties</button>
+      <button class="header-nav-link dropdown-toggle" type="button" id="navProperties" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Properties</button>
       <ul class="dropdown-menu" aria-labelledby="navProperties">
         <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Property Ads</a></li>
         <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Property Offers</a></li>
@@ -223,6 +223,12 @@
       syncHeroLocationLabel();
     }
 
+    if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+      document.querySelectorAll('.header-nav-dropdown > .dropdown-toggle[data-bs-toggle="dropdown"]').forEach(function (toggle) {
+        bootstrap.Dropdown.getOrCreateInstance(toggle, { display: 'static' });
+      });
+    }
+
     if (!header || !menu || typeof bootstrap === 'undefined') {
       return;
     }
@@ -240,3 +246,24 @@
     });
   });
 </script>
+
+@push('scripts')
+<script>
+  (function () {
+    function initHeaderNavDropdowns() {
+      if (typeof bootstrap === 'undefined' || !bootstrap.Dropdown) {
+        return;
+      }
+      document.querySelectorAll('.header-nav-dropdown > .dropdown-toggle[data-bs-toggle="dropdown"]').forEach(function (toggle) {
+        bootstrap.Dropdown.getOrCreateInstance(toggle, { display: 'static' });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHeaderNavDropdowns);
+    } else {
+      initHeaderNavDropdowns();
+    }
+  })();
+</script>
+@endpush
