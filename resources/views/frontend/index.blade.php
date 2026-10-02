@@ -157,37 +157,37 @@
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
       <h2 class="hero-hub-card__title">Businesses</h2>
       <p class="hero-hub-card__desc">Discover local businesses and shops</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('frontend.service_providers.index') }}" class="hero-hub-card hero-hub-card--services">
-      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-wrench"></i></span>
+      <span class="hero-hub-card__icon hero-hub-card__icon--wrench" aria-hidden="true"><i class="fa-solid fa-wrench"></i></span>
       <h2 class="hero-hub-card__title">Services</h2>
       <p class="hero-hub-card__desc">Find reliable service providers</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('frontend.consultants.index') }}" class="hero-hub-card hero-hub-card--consultants">
-      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-user"></i></span>
       <h2 class="hero-hub-card__title">Consultants</h2>
       <p class="hero-hub-card__desc">Connect with experts and professionals</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
       <h2 class="hero-hub-card__title">Education &amp; Knowledge</h2>
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('frontend.offers.index') }}" class="hero-hub-card hero-hub-card--offers">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
       <h2 class="hero-hub-card__title">Offers</h2>
       <p class="hero-hub-card__desc">Explore offers and discounts</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('community.index') }}" class="hero-hub-card hero-hub-card--community">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
       <h2 class="hero-hub-card__title">Community</h2>
       <p class="hero-hub-card__desc">Stories, people, ideas and local voices</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
   </div>
 </section>
