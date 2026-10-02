@@ -9,6 +9,26 @@
   padding-bottom: 44px;
 }
 
+@media (max-width: 991px) {
+  .homepage-root .hero.hero--discover {
+    min-height: 0;
+    padding-top: 28px;
+    padding-bottom: 24px;
+  }
+}
+
+@media (max-width: 575px) {
+  .homepage-root .hero.hero--discover {
+    padding-top: 20px;
+    padding-bottom: 18px;
+  }
+
+  .homepage-root .hero-hub-cards {
+    padding-top: 16px;
+    padding-bottom: 24px;
+  }
+}
+
 .homepage-root .hero-hub-cards {
   padding-top: 24px;
   padding-bottom: 36px;

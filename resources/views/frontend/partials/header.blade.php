@@ -139,6 +139,9 @@
     <a class="btn-offer" href="{{ route('schools.index') }}">Education</a>
     <a class="btn-offer" href="{{ route('frontend.offers.index') }}">Offers</a>
     <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
+    @if($isHomepage)
+      <button type="button" class="btn-offer header-mobile-search-jump" id="mobileHeaderSearchJump">Search on page</button>
+    @endif
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -186,15 +189,28 @@
       });
     }
 
+    function jumpToHeroSearch() {
+      const target = document.getElementById('heroSearchDock') || document.getElementById('heroSearchQuery');
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = document.getElementById('heroSearchQuery');
+      if (input) {
+        window.setTimeout(function () { input.focus(); }, 350);
+      }
+    }
+
     const searchJump = document.getElementById('headerSearchJump');
     if (searchJump) {
-      searchJump.addEventListener('click', function () {
-        const target = document.getElementById('heroSearchDock') || document.getElementById('heroSearchQuery');
-        if (!target) return;
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const input = document.getElementById('heroSearchQuery');
-        if (input) {
-          window.setTimeout(function () { input.focus(); }, 350);
+      searchJump.addEventListener('click', jumpToHeroSearch);
+    }
+
+    const mobileSearchJump = document.getElementById('mobileHeaderSearchJump');
+    if (mobileSearchJump) {
+      mobileSearchJump.addEventListener('click', function () {
+        jumpToHeroSearch();
+        const mobileMenu = document.getElementById('mobileHeaderMenu');
+        if (mobileMenu && typeof bootstrap !== 'undefined') {
+          bootstrap.Collapse.getOrCreateInstance(mobileMenu, { toggle: false }).hide();
         }
       });
     }
