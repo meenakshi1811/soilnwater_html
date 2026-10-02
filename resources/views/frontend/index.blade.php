@@ -32,9 +32,15 @@
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
-  $heroBackgroundUrl = $heroBannerImage
-    ? asset($heroBannerImage)
-    : asset('assets/images/hero-banner-community.jpg');
+  $defaultHeroBannerPath = 'assets/images/hero-banner-community.jpg';
+  $legacyHeroBannerPaths = [
+    'uploads/homepage/hero-fa4ab294-583b-419e-acb2-40d7acbbabdc.webp',
+    'uploads/homepage/hero-fa4ab294-583b-419e-acb2-40d7acbbabdc.png',
+  ];
+  $useStoredHeroBanner = $heroBannerImage
+    && ! in_array($heroBannerImage, $legacyHeroBannerPaths, true)
+    && is_file(public_path($heroBannerImage));
+  $heroBackgroundUrl = asset($useStoredHeroBanner ? $heroBannerImage : $defaultHeroBannerPath);
   $popularSearches = [
     ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
     ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
