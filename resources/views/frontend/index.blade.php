@@ -309,14 +309,11 @@
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('frontend.offers_ads.hub') }}" class="hero-hub-card hero-hub-card--offers-ads">
-      <span class="hero-hub-card__icon hero-hub-card__icon--combo" aria-hidden="true">
-        <i class="fa-solid fa-gift hero-hub-card__icon-primary"></i>
-        <i class="fa-solid fa-rectangle-ad hero-hub-card__icon-secondary"></i>
+      <span class="hero-hub-card__icon" aria-hidden="true">
+        <i class="fa-solid fa-gift"></i>
+        <span class="hero-hub-card__ad-badge">Ad</span>
       </span>
-      <h2 class="hero-hub-card__title">
-        <span class="hero-hub-card__title-full">Offers &amp; Ads</span>
-        <span class="hero-hub-card__title-short" aria-hidden="true">Offers</span>
-      </h2>
+      <h2 class="hero-hub-card__title">Offers</h2>
       <p class="hero-hub-card__desc">Deals, discounts &amp; classified ads</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>

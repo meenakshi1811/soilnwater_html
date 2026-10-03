@@ -754,30 +754,29 @@
 }
 
 .homepage-root .hero-hub-card--offers-ads {
-  background: linear-gradient(160deg, #fff1f2 0%, #fefce8 100%);
+  background: #fff1f2;
 }
 
-.homepage-root .hero-hub-card--offers-ads .hero-hub-card__icon--combo {
+.homepage-root .hero-hub-card--offers-ads .hero-hub-card__icon {
   position: relative;
-  width: 52px;
-  height: 48px;
-}
-
-.homepage-root .hero-hub-card--offers-ads .hero-hub-card__icon-primary {
   color: #ef4444;
-  font-size: 1.75rem;
 }
 
-.homepage-root .hero-hub-card--offers-ads .hero-hub-card__icon-secondary {
+.homepage-root .hero-hub-card__ad-badge {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
-  font-size: 1.05rem;
-  color: #ca8a04;
-  background: #fff;
+  right: -4px;
+  bottom: -4px;
+  padding: 3px 6px;
   border-radius: 6px;
-  padding: 2px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  background: #ca8a04;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+  pointer-events: none;
 }
 
 .homepage-root .hero-hub-card--community {
@@ -1268,37 +1267,17 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--offers-ads .hero-hub-card__icon {
-    background: linear-gradient(145deg, #fff1f2 0%, #fefce8 100%);
+    background: #fff1f2;
     color: #ef4444;
     position: relative;
   }
 
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--offers-ads .hero-hub-card__icon--combo {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    aspect-ratio: 1;
-    border-radius: 50%;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--offers-ads .hero-hub-card__icon-primary {
-    font-size: 1.45rem;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--offers-ads .hero-hub-card__icon-secondary {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    font-size: 0.85rem;
-    color: #ca8a04;
-    background: #fff;
-    border-radius: 50%;
-    width: 1.35rem;
-    height: 1.35rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__ad-badge {
+    right: 2px;
+    bottom: 2px;
+    padding: 3px 5px;
+    font-size: 0.5rem;
+    border-radius: 5px;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--community .hero-hub-card__icon {
