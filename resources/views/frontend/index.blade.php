@@ -416,7 +416,24 @@
     </div>
 
     <div class="homepage-showcase-panel homepage-showcase-panel--offers">
-      <header class="homepage-showcase-panel__head">
+      <div class="homepage-popular-deals d-lg-none" aria-label="Shop popular deals">
+        <div class="homepage-popular-deals__head">
+          <h2 class="homepage-popular-deals__title">Shop popular<br>deals</h2>
+          <a class="homepage-popular-deals__view-all" href="{{ route('frontend.offers.index') }}">See all deals</a>
+        </div>
+        <div class="homepage-popular-deals__grid">
+          @foreach(array_slice($homepageLatestOffers, 0, 4) as $deal)
+            <a href="{{ $deal['url'] }}" class="homepage-popular-deals__tile">
+              <div class="homepage-popular-deals__media">
+                <img src="{{ $deal['image'] }}" alt="" loading="lazy" decoding="async" width="320" height="320">
+              </div>
+              <span class="homepage-popular-deals__badge">{{ $deal['badge'] }}</span>
+            </a>
+          @endforeach
+        </div>
+      </div>
+
+      <header class="homepage-showcase-panel__head d-none d-lg-flex">
         <div class="homepage-showcase-panel__title-wrap">
           <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--offers" aria-hidden="true">
             <i class="fa-solid fa-gift"></i>
@@ -429,7 +446,7 @@
         <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.offers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       </header>
       <div
-        class="card-carousel homepage-showcase-carousel"
+        class="card-carousel homepage-showcase-carousel d-none d-lg-block"
         data-slide-by="card"
         data-carousel-cols="2"
         data-show-arrows="true"
