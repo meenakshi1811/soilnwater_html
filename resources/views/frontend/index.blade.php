@@ -215,16 +215,7 @@
 
 <div class="homepage-root">
 
-<div class="homepage-mobile-toolbar d-lg-none" id="homepageMobileSearchDock" aria-label="Search SoilnWater">
-  @include('frontend.partials.header-search-form', [
-    'searchWrapClass' => 'search-wrap search-wrap--mobile-home',
-    'searchFormId' => 'mobileHomeSearchForm',
-    'searchInputId' => 'mobileHomeSearchQuery',
-    'showModuleSelect' => false,
-    'activeSearchModule' => 'offers',
-    'searchPlaceholderOverride' => 'Search businesses & offers',
-    'searchSubmitText' => 'Search',
-  ])
+<div class="homepage-mobile-toolbar d-lg-none" aria-label="Location">
   <button type="button" class="homepage-mobile-loc-bar" id="mobileHomeLocBar" aria-label="Change location">
     <span class="homepage-mobile-loc-bar__main">
       <i class="fa-solid fa-location-dot" aria-hidden="true"></i>

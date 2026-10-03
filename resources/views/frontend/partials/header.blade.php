@@ -10,6 +10,20 @@
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
 
+  @if($isHomepage)
+    <div class="header-mobile-home-search d-lg-none" id="homepageMobileSearchDock">
+      @include('frontend.partials.header-search-form', [
+        'searchWrapClass' => 'search-wrap search-wrap--mobile-home',
+        'searchFormId' => 'mobileHomeSearchForm',
+        'searchInputId' => 'mobileHomeSearchQuery',
+        'showModuleSelect' => false,
+        'activeSearchModule' => 'offers',
+        'searchPlaceholderOverride' => 'Search businesses & offers',
+        'searchSubmitText' => 'Search',
+      ])
+    </div>
+  @endif
+
   <nav class="header-main-nav d-none d-xl-flex" aria-label="Main navigation">
     <div class="dropdown header-nav-dropdown">
       <button class="header-nav-link dropdown-toggle" type="button" id="navBusinesses" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Businesses</button>
