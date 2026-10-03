@@ -54,6 +54,16 @@ class EnsureMarketplacePostingAccountApproved
             return redirect()->route('service_provider.pending')->with('status', $message);
         }
 
+        if ($user?->isParent() && ! $user->hasParentProfileEnabled()) {
+            $message = 'Your parent profile must be approved before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route('parent.pending')->with('status', $message);
+        }
+
         return $next($request);
     }
 }

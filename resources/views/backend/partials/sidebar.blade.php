@@ -10,13 +10,14 @@
     $isSchool = $user->isSchool();
     $isInstitute = $user->isInstitute();
     $isStudent = $user->isStudent();
+    $isParent = $user->isParent();
     $vendorApproved = $isVendor && $user->vendor?->isApproved();
     $consultantApproved = $isConsultant && $user->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
     $educatorApproved = $isEducator && $user->educator?->isApproved();
     $schoolApproved = $isSchool && $user->institute?->isApproved();
     $instituteApproved = $isInstitute && $user->institute?->isApproved();
-    $canAccessOffers = $isAdmin || $isGeneralUser || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
+    $canAccessOffers = $isAdmin || $user->canManageOwnOffersAndAds() || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $communityPostsActive = request()->routeIs('community.posts.*');
@@ -73,6 +74,9 @@
     } elseif ($isStudent) {
         $dashboardUrl = route('child.dashboard');
         $dashboardActive = request()->routeIs('child.*');
+    } elseif ($isParent && ! $isActingAsChild) {
+        $dashboardUrl = route('parent.dashboard');
+        $dashboardActive = request()->routeIs('parent.dashboard');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -339,10 +343,10 @@
                     </a>
                 </li>
             @endif
-        @elseif($isGeneralUser)
+        @elseif($isGeneralUser || ($isParent && ! $isActingAsChild))
             @if($canAccessOffers)
             <li>
-                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                <a class="{{ request()->routeIs('offers.*') || request()->routeIs('post-offer') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>
                     <span>My Offers</span>
                 </a>
@@ -378,12 +382,14 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            @if($isGeneralUser)
             <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>
                 </a>
             </li>
+            @endif
         @elseif($isVendor && $vendorApproved)
             @if(! auth()->user()->vendor?->is_premium)
                 <li>

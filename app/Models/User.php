@@ -279,6 +279,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'parent';
     }
 
+    public function canManageOwnOffersAndAds(): bool
+    {
+        if (ActiveChildSession::belongsToParent($this->id)) {
+            return false;
+        }
+
+        return $this->isGeneralUser()
+            || $this->isParent()
+            || $this->isVendor()
+            || $this->isConsultant()
+            || $this->isServiceProvider();
+    }
+
     public function isParentManagedChild(): bool
     {
         if (! $this->isStudent()) {

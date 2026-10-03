@@ -456,22 +456,27 @@ class PostOfferController extends Controller
 
     private function canRead($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('offers', 'read');
+        return $user->isAdmin() || $this->userCanManageOwnOffersAndAds($user) || $user->canModule('offers', 'read');
     }
 
     private function canCreate($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('offers', 'add');
+        return $user->isAdmin() || $this->userCanManageOwnOffersAndAds($user) || $user->canModule('offers', 'add');
     }
 
     private function canWrite($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('offers', 'write');
+        return $user->isAdmin() || $this->userCanManageOwnOffersAndAds($user) || $user->canModule('offers', 'write');
     }
 
     private function canDelete($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('offers', 'delete');
+        return $user->isAdmin() || $this->userCanManageOwnOffersAndAds($user) || $user->canModule('offers', 'delete');
+    }
+
+    private function userCanManageOwnOffersAndAds($user): bool
+    {
+        return method_exists($user, 'canManageOwnOffersAndAds') && $user->canManageOwnOffersAndAds();
     }
 
     private function canApprove($user): bool

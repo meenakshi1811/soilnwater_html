@@ -16,6 +16,8 @@
     $avatarUrl = filled($user->profile_image) ? asset($user->profile_image) : null;
 
     $quickActions = [
+        ['icon' => 'fa-tags', 'tone' => 'amber', 'title' => 'My Offers', 'subtitle' => 'View and post marketplace offers', 'url' => route('offers.index')],
+        ['icon' => 'fa-rectangle-ad', 'tone' => 'sky', 'title' => 'My Ads', 'subtitle' => 'Create and manage your ads', 'url' => route('ads.index')],
         ['icon' => 'fa-chalkboard-user', 'tone' => 'orange', 'title' => 'Find Teachers / Tutors', 'subtitle' => 'Find the best teachers for your child', 'url' => route('educator.index')],
         ['icon' => 'fa-school', 'tone' => 'purple', 'title' => 'Find Schools & Institutes', 'subtitle' => 'Discover schools and learning centres', 'url' => route('frontend.index')],
         ['icon' => 'fa-book-open', 'tone' => 'blue', 'title' => 'Explore Study Materials', 'subtitle' => 'Notes, papers, videos and more', 'url' => route('study-materials.library')],
