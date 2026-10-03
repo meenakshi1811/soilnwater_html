@@ -1,6 +1,5 @@
 @php
     $user = \App\Support\AuthActor::user();
-    $emsModules = \App\Support\ModulePermissions::modules();
     $isGeneralUser = $user->isGeneralUser();
     $isAdmin = $user->isAdmin();
     $isEmployee = $user->isEmployee();
@@ -322,32 +321,6 @@
                 </details>
             </li>
         @endif
-
-         @foreach($emsModules as $slug => $label)
-            @php
-                $sidebarManagedModules = ['users', 'offers', 'ads', 'vendors', 'products', 'consultants', 'service_providers', 'educators', 'institutes'];
-                $hideSidebarManagedModule = ($isAdmin || $isEmployee) && in_array($slug, $sidebarManagedModules, true);
-                $canReadModule = $isAdmin || $user->canModule($slug, 'read');
-                $entryRoute = \App\Support\ModulePermissions::entryRouteName($slug);
-                $moduleUrl = ($entryRoute && \Illuminate\Support\Facades\Route::has($entryRoute))
-                    ? route($entryRoute)
-                    : route('modules.show', $slug);
-                $moduleActive = false;
-                if ($entryRoute) {
-                    $routePrefix = preg_replace('/\.[^.]+$/', '.*', $entryRoute);
-                    $moduleActive = request()->routeIs($routePrefix);
-                } elseif (request()->routeIs('modules.show') && request()->route('module') === $slug) {
-                    $moduleActive = true;
-                }
-            @endphp
-            @if($canReadModule && ! $hideSidebarManagedModule)
-                <li>
-                    <a class="{{ $moduleActive ? 'active' : '' }}" href="{{ $moduleUrl }}">
-                        <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
-                    </a>
-                </li>
-            @endif
-        @endforeach
 
         @if($isAdmin)
             <li>
