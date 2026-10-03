@@ -299,12 +299,6 @@
       <p class="hero-hub-card__desc">Vendors, consultants &amp; services</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
-    <a href="{{ route('frontend.ads.index') }}" class="hero-hub-card hero-hub-card--ads">
-      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-rectangle-ad"></i></span>
-      <h2 class="hero-hub-card__title">Ads</h2>
-      <p class="hero-hub-card__desc">Browse classified and property ads</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
     <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
       <h2 class="hero-hub-card__title">
@@ -314,10 +308,16 @@
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
-    <a href="{{ route('frontend.offers.index') }}" class="hero-hub-card hero-hub-card--offers">
-      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
-      <h2 class="hero-hub-card__title">Offers</h2>
-      <p class="hero-hub-card__desc">Explore offers and discounts</p>
+    <a href="{{ route('frontend.offers_ads.hub') }}" class="hero-hub-card hero-hub-card--offers-ads">
+      <span class="hero-hub-card__icon hero-hub-card__icon--combo" aria-hidden="true">
+        <i class="fa-solid fa-gift hero-hub-card__icon-primary"></i>
+        <i class="fa-solid fa-rectangle-ad hero-hub-card__icon-secondary"></i>
+      </span>
+      <h2 class="hero-hub-card__title">
+        <span class="hero-hub-card__title-full">Offers &amp; Ads</span>
+        <span class="hero-hub-card__title-short" aria-hidden="true">Offers</span>
+      </h2>
+      <p class="hero-hub-card__desc">Deals, discounts &amp; classified ads</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('community.index') }}" class="hero-hub-card hero-hub-card--community">
