@@ -77,8 +77,9 @@
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 8px 20px rgba(234, 88, 12, 0.14);
+    border: 1px solid #fed7aa;
+    border-top: 3px solid #f97316;
   }
 
   .homepage-vendors-mobile-card__media {
@@ -108,7 +109,7 @@
     font-size: 0.9375rem;
     font-weight: 700;
     line-height: 1.25;
-    color: #0f172a;
+    color: #9a3412;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -183,8 +184,9 @@
     background: #fff;
     border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 8px 20px rgba(234, 88, 12, 0.12);
+    border: 1px solid #fde68a;
+    border-top: 3px solid #f59e0b;
     cursor: pointer;
   }
 
@@ -257,10 +259,6 @@
     font-size: 0.6rem;
   }
 
-  .homepage-discover-panel--order-vendors .homepage-discover-panel__head {
-    padding-bottom: 4px;
-  }
-
   .homepage-vendors-desktop {
     display: none !important;
   }
@@ -269,6 +267,16 @@
 @media (min-width: 992px) {
   .homepage-vendors-mobile {
     display: none !important;
+  }
+
+  .homepage-discover-panel--spotlight-vendors .homepage-discover-panel__head--spotlight {
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 2px solid rgba(253, 186, 116, 0.55);
+  }
+
+  .homepage-vendors-spotlight {
+    padding: 16px 14px 14px;
   }
 }
 

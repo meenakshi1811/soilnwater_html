@@ -323,8 +323,8 @@
             @endif
 
             @if ($showVendors)
-                <div class="homepage-discover-panel homepage-discover-panel--vendors homepage-discover-panel--order-vendors">
-                    <header class="homepage-discover-panel__head">
+                <div class="homepage-discover-panel homepage-discover-panel--vendors homepage-discover-panel--order-vendors homepage-discover-panel--spotlight-vendors">
+                    <header class="homepage-discover-panel__head homepage-discover-panel__head--spotlight">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--vendor" aria-hidden="true">
                                 <i class="fa-solid fa-store"></i>
@@ -336,8 +336,9 @@
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
-                    <div class="homepage-discover-panel__body">
+                    <div class="homepage-discover-panel__body homepage-discover-panel__body--spotlight-vendors">
                     @if ($vendorCarouselItems->isNotEmpty())
+                        <div class="homepage-vendors-spotlight">
                         <div class="homepage-vendors-mobile" aria-label="Top vendors mobile">
                             @if ($vendorHeaderAdsList->isNotEmpty())
                                 <div class="homepage-vendors-mobile__banner-scroll">
@@ -427,6 +428,7 @@
                                 @endforeach
                             </div>
                             </div>
+                        </div>
                         </div>
                     @else
                         <p class="homepage-discover-panel__empty">No vendors available yet.</p>
