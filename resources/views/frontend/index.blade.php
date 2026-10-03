@@ -300,8 +300,8 @@
 
 
 <section class="hero-hub-cards hero-hub-cards--mobile-rail hero-hub-cards--mobile-chips" aria-label="Explore SoilnWater">
-  <p class="hero-hub-cards__mobile-kicker d-lg-none">Explore SoilnWater</p>
   <div class="hero-hub-cards__inner">
+    <p class="hero-hub-cards__mobile-kicker d-lg-none">Explore SoilnWater</p>
     <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
       <h2 class="hero-hub-card__title">Businesses</h2>
@@ -324,7 +324,7 @@
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
       <h2 class="hero-hub-card__title">
         <span class="hero-hub-card__title-full">Education &amp; Knowledge</span>
-        <span class="hero-hub-card__title-short">Education</span>
+        <span class="hero-hub-card__title-short" aria-hidden="true">Education</span>
       </h2>
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
