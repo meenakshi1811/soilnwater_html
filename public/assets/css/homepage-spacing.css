@@ -3,6 +3,10 @@
  * Scoped to .homepage-root on the index page.
  */
 
+.homepage-root {
+  overflow-x: clip;
+}
+
 .homepage-root .hero.hero--discover {
   min-height: 520px;
   padding-top: 48px;
@@ -103,6 +107,13 @@
   .homepage-root .main-wrap {
     padding: 24px 16px 28px;
     gap: 24px;
+  }
+
+  .homepage-root .main-col > .homepage-discover-section {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .homepage-root .main-col {
