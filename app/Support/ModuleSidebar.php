@@ -23,26 +23,33 @@ final class ModuleSidebar
                     ['label' => 'All Users', 'route' => 'admin.users.index', 'icon' => 'fa-solid fa-list', 'module' => 'users', 'action' => 'read', 'active' => 'admin.users.*'],
                 ],
             ],
-            'offers' => [
-                'label' => 'Offers',
-                'icon' => 'fa-solid fa-tags',
-                'active_routes' => ['offers.*', 'admin.offers.*', 'admin.offer-prices.*'],
-                'items' => [
-                    ['label' => 'All Offers', 'route' => 'offers.index', 'icon' => 'fa-solid fa-list', 'module' => 'offers', 'action' => 'read', 'active' => 'offers.*'],
-                    ['label' => 'Report Offers', 'route' => 'admin.offers.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'offers', 'action' => 'read', 'active' => 'admin.offers.reports.*'],
-                    ['label' => 'Offer Prices', 'route' => 'admin.offer-prices.index', 'icon' => 'fa-solid fa-indian-rupee-sign', 'module' => 'offers', 'action' => 'write', 'active' => 'admin.offer-prices.*'],
-                ],
-            ],
-            'ads' => [
-                'label' => 'Ads',
-                'icon' => 'fa-solid fa-rectangle-ad',
-                'active_routes' => ['ads.*', 'admin.ads.*'],
-                'items' => [
-                    ['label' => 'All Ads', 'route' => 'ads.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'ads', 'action' => 'read', 'active' => 'ads.*'],
-                    ['label' => 'Ad Sizes', 'route' => 'admin.ads.sizes.index', 'icon' => 'fa-solid fa-ruler-combined', 'module' => 'ads', 'action' => 'write', 'active' => 'admin.ads.sizes.*'],
-                    ['label' => 'Ad Submissions', 'route' => 'admin.ads.submissions.index', 'icon' => 'fa-solid fa-inbox', 'module' => 'ads', 'action' => 'approve', 'active' => 'admin.ads.submissions.*'],
-                    ['label' => 'Report Ads', 'route' => 'admin.ads.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'ads', 'action' => 'read', 'active' => 'admin.ads.reports.*'],
-                    ['label' => 'Contact Support', 'route' => 'admin.ads.contact-support.index', 'icon' => 'fa-regular fa-envelope', 'module' => 'ads', 'action' => 'read', 'active' => 'admin.ads.contact-support.*'],
+            'offers_and_ads' => [
+                'label' => 'Offers & Ads',
+                'icon' => 'fa-solid fa-bullhorn',
+                'active_routes' => ['offers.*', 'admin.offers.*', 'admin.offer-prices.*', 'ads.*', 'admin.ads.*'],
+                'groups' => [
+                    'offers' => [
+                        'label' => 'Offers',
+                        'icon' => 'fa-solid fa-tags',
+                        'active_routes' => ['offers.*', 'admin.offers.*', 'admin.offer-prices.*'],
+                        'items' => [
+                            ['label' => 'All Offers', 'route' => 'offers.index', 'icon' => 'fa-solid fa-list', 'module' => 'offers', 'action' => 'read', 'active' => 'offers.*'],
+                            ['label' => 'Report Offers', 'route' => 'admin.offers.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'offers', 'action' => 'read', 'active' => 'admin.offers.reports.*'],
+                            ['label' => 'Offer Prices', 'route' => 'admin.offer-prices.index', 'icon' => 'fa-solid fa-indian-rupee-sign', 'module' => 'offers', 'action' => 'write', 'active' => 'admin.offer-prices.*'],
+                        ],
+                    ],
+                    'ads' => [
+                        'label' => 'Ads',
+                        'icon' => 'fa-solid fa-rectangle-ad',
+                        'active_routes' => ['ads.*', 'admin.ads.*'],
+                        'items' => [
+                            ['label' => 'All Ads', 'route' => 'ads.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'ads', 'action' => 'read', 'active' => 'ads.*'],
+                            ['label' => 'Ad Sizes', 'route' => 'admin.ads.sizes.index', 'icon' => 'fa-solid fa-ruler-combined', 'module' => 'ads', 'action' => 'write', 'active' => 'admin.ads.sizes.*'],
+                            ['label' => 'Ad Submissions', 'route' => 'admin.ads.submissions.index', 'icon' => 'fa-solid fa-inbox', 'module' => 'ads', 'action' => 'approve', 'active' => 'admin.ads.submissions.*'],
+                            ['label' => 'Report Ads', 'route' => 'admin.ads.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'ads', 'action' => 'read', 'active' => 'admin.ads.reports.*'],
+                            ['label' => 'Contact Support', 'route' => 'admin.ads.contact-support.index', 'icon' => 'fa-regular fa-envelope', 'module' => 'ads', 'action' => 'read', 'active' => 'admin.ads.contact-support.*'],
+                        ],
+                    ],
                 ],
             ],
             'vendors' => [
@@ -116,6 +123,79 @@ final class ModuleSidebar
         $sections = [];
 
         foreach (self::sections() as $key => $section) {
+            if (isset($section['groups'])) {
+                $groups = [];
+
+                foreach ($section['groups'] as $groupKey => $group) {
+                    $groupItems = [];
+
+                    foreach ($group['items'] as $item) {
+                        if (! self::canSeeItem($user, $isAdmin, $item['module'], $item['action'])) {
+                            continue;
+                        }
+
+                        if (! \Route::has($item['route'])) {
+                            continue;
+                        }
+
+                        $groupItems[] = [
+                            'label' => $item['label'],
+                            'route' => $item['route'],
+                            'icon' => $item['icon'],
+                            'active' => self::itemIsActive($item),
+                        ];
+                    }
+
+                    if ($groupItems === []) {
+                        continue;
+                    }
+
+                    $groupActive = self::sectionIsActive($group);
+
+                    if (! $groupActive) {
+                        foreach ($groupItems as $groupItem) {
+                            if ($groupItem['active']) {
+                                $groupActive = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    $groups[] = [
+                        'key' => $groupKey,
+                        'label' => $group['label'],
+                        'icon' => $group['icon'],
+                        'active' => $groupActive,
+                        'items' => $groupItems,
+                    ];
+                }
+
+                if ($groups === []) {
+                    continue;
+                }
+
+                $sectionActive = self::sectionIsActive($section);
+
+                if (! $sectionActive) {
+                    foreach ($groups as $group) {
+                        if ($group['active']) {
+                            $sectionActive = true;
+                            break;
+                        }
+                    }
+                }
+
+                $sections[] = [
+                    'key' => $key,
+                    'label' => $section['label'],
+                    'icon' => $section['icon'],
+                    'active' => $sectionActive,
+                    'groups' => $groups,
+                ];
+
+                continue;
+            }
+
             $items = [];
 
             foreach ($section['items'] as $item) {

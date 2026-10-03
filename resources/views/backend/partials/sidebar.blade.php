@@ -109,8 +109,24 @@
         margin: 0;
     }
 
-    .admin-sidebar-group details[open] summary .fa-chevron-down {
+    .admin-sidebar-group details[open] summary .fa-chevron-down,
+    .admin-sidebar-subgroup details[open] summary .fa-chevron-down {
         transform: rotate(180deg);
+    }
+
+    .admin-sidebar-subgroup summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px 0;
+        color: inherit;
+    }
+
+    .admin-sidebar-subgroup summary::-webkit-details-marker {
+        display: none;
     }
 </style>
 <aside class="admin-sidebar">

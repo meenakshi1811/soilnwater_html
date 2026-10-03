@@ -28,7 +28,15 @@ class ModuleSidebarTest extends TestCase
         $employee->syncRoles([$role]);
 
         $sections = ModuleSidebar::visibleSections($employee, false);
-        $labels = collect($sections)->flatMap(fn (array $section) => collect($section['items'])->pluck('label'))->all();
+        $labels = collect($sections)->flatMap(function (array $section) {
+            if (! empty($section['groups'])) {
+                return collect($section['groups'])->flatMap(
+                    fn (array $group) => collect($group['items'])->pluck('label')
+                );
+            }
+
+            return collect($section['items'] ?? [])->pluck('label');
+        })->all();
 
         $this->assertContains('All Offers', $labels);
         $this->assertContains('Report Offers', $labels);
