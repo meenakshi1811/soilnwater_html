@@ -109,24 +109,27 @@
         margin: 0;
     }
 
-    .admin-sidebar-group details[open] summary .fa-chevron-down,
-    .admin-sidebar-subgroup details[open] summary .fa-chevron-down {
+    .admin-sidebar-group > details > summary .fa-chevron-down {
+        transition: transform 0.2s ease;
+    }
+
+    .admin-sidebar-group > details[open] > summary .fa-chevron-down {
         transform: rotate(180deg);
     }
 
-    .admin-sidebar-subgroup summary {
+    .admin-sidebar-nested-label {
+        margin-top: 0.65rem;
+        padding: 0.35rem 0.82rem 0.2rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.72);
+        font-weight: 800;
         list-style: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 10px 0;
-        color: inherit;
     }
 
-    .admin-sidebar-subgroup summary::-webkit-details-marker {
-        display: none;
+    .admin-sidebar-nested-label:first-child {
+        margin-top: 0.15rem;
     }
 </style>
 <aside class="admin-sidebar">
