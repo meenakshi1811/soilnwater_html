@@ -107,6 +107,23 @@
 
 <div class="homepage-root">
 
+<div class="homepage-mobile-toolbar d-lg-none" id="homepageMobileSearchDock" aria-label="Search SoilnWater">
+  @include('frontend.partials.header-search-form', [
+    'searchWrapClass' => 'search-wrap search-wrap--mobile-home',
+    'searchFormId' => 'mobileHomeSearchForm',
+    'searchInputId' => 'mobileHomeSearchQuery',
+    'showModuleSelect' => false,
+    'activeSearchModule' => 'offers',
+    'searchPlaceholderOverride' => 'Search businesses, services, schools, offers…',
+    'searchSubmitText' => '',
+  ])
+  <button type="button" class="homepage-mobile-loc-bar" id="mobileHomeLocBar" aria-label="Change location">
+    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+    <span class="homepage-mobile-loc-bar__text" id="mobileHomeLocLabel">Select Location</span>
+    <i class="fa-solid fa-chevron-down homepage-mobile-loc-bar__caret" aria-hidden="true"></i>
+  </button>
+</div>
+
 <section class="hero hero--discover">
   <img
     class="hero--discover__bg"
@@ -169,7 +186,7 @@
 </section>
 
 
-<section class="hero-hub-cards" aria-label="Explore SoilnWater">
+<section class="hero-hub-cards hero-hub-cards--mobile-rail" aria-label="Explore SoilnWater">
   <div class="hero-hub-cards__inner">
     <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>

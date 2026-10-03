@@ -11,22 +11,7 @@
 
 @media (max-width: 991px) {
   .homepage-root .hero.hero--discover {
-    min-height: 480px;
-    padding-top: 24px;
-    padding-bottom: 32px;
-  }
-}
-
-@media (max-width: 575px) {
-  .homepage-root .hero.hero--discover {
-    min-height: 420px;
-    padding-top: 18px;
-    padding-bottom: 28px;
-  }
-
-  .homepage-root .hero-hub-cards {
-    padding-top: 20px;
-    padding-bottom: 24px;
+    display: none !important;
   }
 }
 

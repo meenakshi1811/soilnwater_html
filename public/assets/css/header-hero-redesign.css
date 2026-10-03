@@ -788,40 +788,9 @@
   }
 }
 
-@media (max-width: 640px) {
-  .homepage-root .hero-hub-cards {
-    padding: 18px 16px 28px;
-  }
-
-  .homepage-root .hero-hub-cards__inner {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .homepage-root .hero-hub-card {
-    padding: 22px 12px 18px;
-    min-height: 210px;
-  }
-
-  .homepage-root .hero-hub-card__icon {
-    font-size: 1.875rem;
-    width: 42px;
-    height: 42px;
-    margin-bottom: 12px;
-  }
-
-  .homepage-root .hero-hub-card__title {
-    font-size: 1rem;
-  }
-
-  .homepage-root .hero-hub-card--education .hero-hub-card__title {
-    font-size: 0.9375rem;
-  }
-
-  .homepage-root .hero-hub-card__desc {
-    font-size: 0.8125rem;
-    max-width: none;
-    margin-bottom: 14px;
+@media (min-width: 992px) {
+  .homepage-mobile-toolbar {
+    display: none !important;
   }
 }
 
@@ -966,12 +935,178 @@
   }
 }
 
-/* ── Mobile / tablet: header, hero, hub cards ── */
-@media (max-width: 991px) {
+/* Homepage mobile feed (search + hub rail) — ≤991px */
+@media (max-width: 991.98px) {
+  .homepage-mobile-toolbar {
+    background: linear-gradient(180deg, #e8f5ef 0%, #f4f7fb 100%);
+    padding: 10px 14px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .homepage-mobile-toolbar .search-wrap--mobile-home {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  .homepage-mobile-toolbar .search-wrap--mobile-home:focus-within {
+    border-color: var(--snw-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  .homepage-mobile-toolbar .search-leading-icon {
+    color: var(--snw-blue);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .homepage-mobile-toolbar .search-query-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #0f172a;
+  }
+
+  .homepage-mobile-toolbar .search-query-input:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .homepage-mobile-toolbar .search-submit-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--snw-blue);
+    font-size: 1rem;
+  }
+
+  .homepage-mobile-loc-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 11px 6px 12px;
+    border: none;
+    background: transparent;
+    color: #0f172a;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .homepage-mobile-loc-bar > .fa-location-dot {
+    color: var(--snw-green);
+    font-size: 1.05rem;
+  }
+
+  .homepage-mobile-loc-bar__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .homepage-mobile-loc-bar__caret {
+    color: #64748b;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
   .header--homepage .header-right-cluster {
+    display: block !important;
+    position: static;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .header--homepage .header-right-cluster .header-utilities,
+  .header--homepage .header-right-cluster .header-actions-desktop {
+    display: none !important;
+  }
+
+  .header--homepage .homepage-loc-host {
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    top: 118px;
+    z-index: 1045;
+    max-width: none;
+    width: auto;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .header--homepage .homepage-loc-host.is-mobile-loc-open,
+  .header--homepage .homepage-loc-host:focus-within {
+    display: inline-flex !important;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-rail {
+    padding: 14px 0 18px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-rail .hero-hub-cards__inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    padding: 4px 16px 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-rail .hero-hub-cards__inner::-webkit-scrollbar {
     display: none;
   }
 
+  .homepage-root .hero-hub-cards--mobile-rail .hero-hub-card {
+    flex: 0 0 min(78vw, 292px);
+    scroll-snap-align: center;
+    min-height: 220px;
+    padding: 24px 16px 20px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+
+  .homepage-root .hero-hub-cards--mobile-rail .hero-hub-card__desc {
+    max-width: none;
+    font-size: 0.8125rem;
+  }
+}
+
+/* ── Mobile / tablet: header, hero, hub cards ── */
+@media (max-width: 991px) {
   .header-inner {
     flex-wrap: nowrap;
     min-height: 56px;
@@ -986,25 +1121,6 @@
   .header-sticky-shell .btn-signup {
     padding: 7px 14px;
     font-size: 12px;
-  }
-
-  .homepage-root .hero-hub-cards {
-    padding: 20px 20px 28px;
-  }
-
-  .homepage-root .hero-hub-cards__inner {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .homepage-root .hero-hub-card {
-    min-height: 200px;
-    padding: 22px 14px 18px;
-  }
-
-  .homepage-root .hero-hub-card__desc {
-    max-width: none;
-    font-size: 0.8125rem;
   }
 
   .hero--discover__overlay {
@@ -1229,32 +1345,9 @@
     grid-column: 1 / -1;
   }
 
-  .homepage-root .hero-hub-cards {
-    padding: 16px 14px 24px;
-  }
-
-  .homepage-root .hero-hub-cards__inner {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .homepage-root .hero-hub-card {
-    min-height: 0;
-    padding: 20px 18px 18px;
-    grid-template-rows: auto auto auto auto;
-  }
-
-  .homepage-root .hero-hub-card__title {
-    font-size: 1.0625rem;
-  }
-
-  .homepage-root .hero-hub-card--education .hero-hub-card__title {
-    font-size: 1rem;
-  }
-
-  .homepage-root .hero-hub-card__desc {
-    margin-bottom: 14px;
-    font-size: 0.875rem;
+  .homepage-root .hero-hub-cards--mobile-rail .hero-hub-card {
+    flex-basis: min(84vw, 292px);
+    min-height: 210px;
   }
 
   .header-mobile-menu.show,

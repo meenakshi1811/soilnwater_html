@@ -190,6 +190,13 @@
     }
 
     function jumpToHeroSearch() {
+      const mobileDock = document.getElementById('homepageMobileSearchDock');
+      const mobileInput = document.getElementById('mobileHomeSearchQuery');
+      if (mobileDock && mobileInput && window.matchMedia('(max-width: 991.98px)').matches) {
+        mobileDock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(function () { mobileInput.focus(); }, 350);
+        return;
+      }
       const target = document.getElementById('heroSearchDock') || document.getElementById('heroSearchQuery');
       if (!target) return;
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -237,6 +244,35 @@
       headerLocationInput.addEventListener('input', syncHeroLocationLabel);
       headerLocationInput.addEventListener('change', syncHeroLocationLabel);
       syncHeroLocationLabel();
+    }
+
+    const mobileHomeLocBar = document.getElementById('mobileHomeLocBar');
+    const mobileHomeLocLabel = document.getElementById('mobileHomeLocLabel');
+    if (mobileHomeLocBar && headerLocationInput) {
+      const syncMobileHomeLocLabel = function () {
+        if (!mobileHomeLocLabel) return;
+        const value = (headerLocationInput.value || '').trim();
+        mobileHomeLocLabel.textContent = value || 'Select Location';
+      };
+      mobileHomeLocBar.addEventListener('click', function () {
+        const locHost = document.getElementById('headerLocationToggle');
+        if (locHost) {
+          locHost.classList.add('is-mobile-loc-open');
+        }
+        headerLocationInput.focus();
+      });
+      headerLocationInput.addEventListener('blur', function () {
+        window.setTimeout(function () {
+          const locHost = document.getElementById('headerLocationToggle');
+          const active = document.activeElement;
+          if (locHost && active !== headerLocationInput && !locHost.contains(active)) {
+            locHost.classList.remove('is-mobile-loc-open');
+          }
+        }, 180);
+      });
+      headerLocationInput.addEventListener('input', syncMobileHomeLocLabel);
+      headerLocationInput.addEventListener('change', syncMobileHomeLocLabel);
+      syncMobileHomeLocLabel();
     }
 
     if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
