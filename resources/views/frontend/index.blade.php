@@ -55,6 +55,82 @@
     ['label' => 'Real Estate', 'module' => 'offers', 'q' => 'Real Estate'],
     ['label' => 'Café', 'module' => 'vendors', 'q' => 'Cafe'],
   ];
+  $homepageFeaturedBusinesses = [
+    [
+      'name' => 'Himalaya Bakers',
+      'category' => 'Bakery & Snacks',
+      'location' => 'Dehradun',
+      'rating' => '4.6',
+      'reviews' => 128,
+      'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=640&q=80',
+      'url' => route('frontend.vendors.index'),
+    ],
+    [
+      'name' => 'GreenCare Nursery',
+      'category' => 'Plants & Home',
+      'location' => 'Dehradun',
+      'rating' => '4.8',
+      'reviews' => 86,
+      'image' => 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=640&q=80',
+      'url' => route('frontend.vendors.index'),
+    ],
+    [
+      'name' => 'City Electronics',
+      'category' => 'Electronics',
+      'location' => 'Dehradun',
+      'rating' => '4.5',
+      'reviews' => 214,
+      'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=640&q=80',
+      'url' => route('frontend.vendors.index'),
+    ],
+    [
+      'name' => 'Blossom Boutique',
+      'category' => 'Clothing',
+      'location' => 'Dehradun',
+      'rating' => '4.7',
+      'reviews' => 67,
+      'image' => 'https://images.unsplash.com/photo-1441986300917-64676bd600d8?w=640&q=80',
+      'url' => route('frontend.vendors.index'),
+    ],
+  ];
+  $homepageLatestOffers = [
+    [
+      'business' => 'The Royal Treat',
+      'offer' => '20% off on all Pizzas',
+      'location' => 'Mumbai',
+      'valid_till' => '31 Oct 2026',
+      'badge' => '20% OFF',
+      'image' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=640&q=80',
+      'url' => route('frontend.offers.index'),
+    ],
+    [
+      'business' => 'Hill View Resort',
+      'offer' => 'Family Package Deal',
+      'location' => 'Mussoorie',
+      'valid_till' => '30 Nov 2026',
+      'badge' => 'UP TO 50%',
+      'image' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=640&q=80',
+      'url' => route('frontend.offers.index'),
+    ],
+    [
+      'business' => 'Glow Beauty Salon',
+      'offer' => '30% off on Hair Spa',
+      'location' => 'Dehradun',
+      'valid_till' => '15 Oct 2026',
+      'badge' => '30% OFF',
+      'image' => 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=640&q=80',
+      'url' => route('frontend.offers.index'),
+    ],
+    [
+      'business' => 'Fresh Mart Grocery',
+      'offer' => 'Buy 2 Get 1 on staples',
+      'location' => 'Dehradun',
+      'valid_till' => '20 Oct 2026',
+      'badge' => 'B1G1',
+      'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=640&q=80',
+      'url' => route('frontend.offers.index'),
+    ],
+  ];
   $vendorEnquiryCategoryTree = ($vendorEnquiryCategories ?? collect())
     ->map(function ($category) {
       return [
@@ -186,7 +262,7 @@
 </section>
 
 
-<section class="hero-hub-cards hero-hub-cards--mobile-rail" aria-label="Explore SoilnWater">
+<section class="hero-hub-cards hero-hub-cards--mobile-rail hero-hub-cards--mobile-chips" aria-label="Explore SoilnWater">
   <div class="hero-hub-cards__inner">
     <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
@@ -208,7 +284,10 @@
     </a>
     <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
-      <h2 class="hero-hub-card__title">Education &amp; Knowledge</h2>
+      <h2 class="hero-hub-card__title">
+        <span class="hero-hub-card__title-full">Education &amp; Knowledge</span>
+        <span class="hero-hub-card__title-short">Education</span>
+      </h2>
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
@@ -224,6 +303,107 @@
       <p class="hero-hub-card__desc">Stories, people, ideas and local voices</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
+  </div>
+</section>
+
+<section class="homepage-showcase-section" aria-label="Featured businesses and latest offers">
+  <div class="homepage-showcase-section__inner">
+    <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
+      <header class="homepage-showcase-panel__head">
+        <div class="homepage-showcase-panel__title-wrap">
+          <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--business" aria-hidden="true">
+            <i class="fa-solid fa-store"></i>
+          </span>
+          <div>
+            <h2 class="homepage-showcase-panel__title">Featured Businesses</h2>
+            <p class="homepage-showcase-panel__subtitle">Explore local businesses and see what they offer.</p>
+          </div>
+        </div>
+        <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </header>
+      <div
+        class="card-carousel homepage-showcase-carousel"
+        data-slide-by="card"
+        data-carousel-cols="2"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Featured businesses carousel"
+      >
+        <div class="card-carousel-track">
+          @foreach($homepageFeaturedBusinesses as $business)
+            <div class="card-carousel-item">
+              <a href="{{ $business['url'] }}" class="homepage-showcase-card homepage-showcase-card--business">
+                <div class="homepage-showcase-card__media">
+                  <img src="{{ $business['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
+                </div>
+                <div class="homepage-showcase-card__body">
+                  <h3 class="homepage-showcase-card__name">{{ $business['name'] }}</h3>
+                  <p class="homepage-showcase-card__meta">{{ $business['category'] }}</p>
+                  <p class="homepage-showcase-card__loc">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                    {{ $business['location'] }}
+                  </p>
+                  <p class="homepage-showcase-card__rating">
+                    <i class="fa-solid fa-star" aria-hidden="true"></i>
+                    {{ $business['rating'] }} ({{ $business['reviews'] }})
+                  </p>
+                </div>
+              </a>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    </div>
+
+    <div class="homepage-showcase-panel homepage-showcase-panel--offers">
+      <header class="homepage-showcase-panel__head">
+        <div class="homepage-showcase-panel__title-wrap">
+          <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--offers" aria-hidden="true">
+            <i class="fa-solid fa-gift"></i>
+          </span>
+          <div>
+            <h2 class="homepage-showcase-panel__title">Latest Offers &amp; Discounts</h2>
+            <p class="homepage-showcase-panel__subtitle">Exclusive offers and promotions from businesses.</p>
+          </div>
+        </div>
+        <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.offers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </header>
+      <div
+        class="card-carousel homepage-showcase-carousel"
+        data-slide-by="card"
+        data-carousel-cols="2"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Latest offers carousel"
+      >
+        <div class="card-carousel-track">
+          @foreach($homepageLatestOffers as $offer)
+            <div class="card-carousel-item">
+              <a href="{{ $offer['url'] }}" class="homepage-showcase-card homepage-showcase-card--offer">
+                <div class="homepage-showcase-card__media">
+                  <img src="{{ $offer['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
+                  <span class="homepage-showcase-card__badge">{{ $offer['badge'] }}</span>
+                </div>
+                <div class="homepage-showcase-card__body">
+                  <h3 class="homepage-showcase-card__name">{{ $offer['business'] }}</h3>
+                  <p class="homepage-showcase-card__meta">{{ $offer['offer'] }}</p>
+                  <p class="homepage-showcase-card__loc homepage-showcase-card__loc--accent">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                    {{ $offer['location'] }}
+                  </p>
+                  <p class="homepage-showcase-card__valid">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    Valid till {{ $offer['valid_till'] }}
+                  </p>
+                </div>
+              </a>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1502,6 +1682,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-showcase.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">
