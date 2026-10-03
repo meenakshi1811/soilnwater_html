@@ -1780,6 +1780,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-showcase.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-discover-grid.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-vendors-mobile.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">

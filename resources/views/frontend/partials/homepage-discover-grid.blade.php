@@ -337,32 +337,73 @@
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
                     <div class="homepage-discover-panel__body">
-                    @if ($vendorHeaderAdsList->isNotEmpty())
-                        <div class="homepage-discover-vendors-banner d-none d-lg-block ad-slider auto-ad-slider" data-show-dots="false" data-show-arrows="false" aria-label="Vendor banner ads">
-                            @foreach ($vendorHeaderAdsList as $bannerAd)
-                                <img
-                                    src="{{ asset($bannerAd->final_image) }}"
-                                    alt="{{ $bannerAd->title }}"
-                                    loading="lazy"
-                                    width="1191"
-                                    height="77"
-                                    data-ad-id="{{ $bannerAd->id }}"
-                                    data-ad-url="{{ $bannerAd->shareUrl() }}"
-                                    data-ad-description="Special marketplace ad available now."
-                                >
-                            @endforeach
-                        </div>
-                    @endif
                     @if ($vendorCarouselItems->isNotEmpty())
-                        <div
-                            class="card-carousel homepage-discover-carousel homepage-discover-carousel--wide auto-ad-slider"
-                            data-slide-by="card"
-                            data-carousel-cols="4"
-                            data-show-arrows="true"
-                            data-show-dots="false"
-                            data-pause-on-hover="false"
-                            aria-label="Top vendors carousel"
-                        >
+                        <div class="homepage-vendors-mobile" aria-label="Top vendors mobile">
+                            @if ($vendorHeaderAdsList->isNotEmpty())
+                                <div class="homepage-vendors-mobile__banner-scroll">
+                                    @foreach ($vendorHeaderAdsList as $bannerAd)
+                                        <div class="homepage-vendors-mobile__banner">
+                                            <img
+                                                src="{{ asset($bannerAd->final_image) }}"
+                                                alt="{{ $bannerAd->title }}"
+                                                loading="lazy"
+                                                data-ad-id="{{ $bannerAd->id }}"
+                                                data-ad-url="{{ $bannerAd->shareUrl() }}"
+                                                data-ad-description="Special marketplace ad available now."
+                                            >
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                            <div class="homepage-vendors-mobile__scroll">
+                                @foreach ($vendorCarouselItems as $item)
+                                    <div class="homepage-vendors-mobile__item">
+                                        @if ($item['type'] === 'ad')
+                                            @include('frontend.partials.homepage-vendor-mobile-ad', ['ad' => $item['ad']])
+                                        @else
+                                            @php
+                                                $card = VendorListingCard::data($item['vendor'], $hasLocation);
+                                            @endphp
+                                            @include('frontend.partials.homepage-vendor-mobile-card', [
+                                                'href' => $card['storeUrl'],
+                                                'image' => $card['coverImage'],
+                                                'title' => $item['vendor']->publicDisplayName(),
+                                                'category' => $card['categoryName'],
+                                                'location' => $cityFromLabel($card['locationLabel']),
+                                                'ratingScore' => $card['ratingScore'],
+                                                'ratingCount' => $card['ratingCount'],
+                                            ])
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="homepage-vendors-desktop d-none d-lg-block">
+                            @if ($vendorHeaderAdsList->isNotEmpty())
+                                <div class="homepage-discover-vendors-banner ad-slider auto-ad-slider" data-show-dots="false" data-show-arrows="false" aria-label="Vendor banner ads">
+                                    @foreach ($vendorHeaderAdsList as $bannerAd)
+                                        <img
+                                            src="{{ asset($bannerAd->final_image) }}"
+                                            alt="{{ $bannerAd->title }}"
+                                            loading="lazy"
+                                            width="1191"
+                                            height="77"
+                                            data-ad-id="{{ $bannerAd->id }}"
+                                            data-ad-url="{{ $bannerAd->shareUrl() }}"
+                                            data-ad-description="Special marketplace ad available now."
+                                        >
+                                    @endforeach
+                                </div>
+                            @endif
+                            <div
+                                class="card-carousel homepage-discover-carousel homepage-discover-carousel--wide auto-ad-slider"
+                                data-slide-by="card"
+                                data-carousel-cols="4"
+                                data-show-arrows="true"
+                                data-show-dots="false"
+                                data-pause-on-hover="false"
+                                aria-label="Top vendors carousel"
+                            >
                             <div class="card-carousel-track">
                                 @foreach ($vendorCarouselItems as $item)
                                     <div class="card-carousel-item">
@@ -384,6 +425,7 @@
                                         @endif
                                     </div>
                                 @endforeach
+                            </div>
                             </div>
                         </div>
                     @else
