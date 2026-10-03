@@ -197,43 +197,6 @@
                 </a>
             </li>
             <li>
-                <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
-                    <i class="fa-solid fa-file-contract"></i>
-                    <span>Terms &amp; Conditions</span>
-                </a>
-            </li>
-            <li class="admin-sidebar-group">
-                <details {{ $communityChatMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $communityChatMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-comments"></i>
-                            <span>Community Chat</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('admin.community-chats.index') || request()->routeIs('admin.community-chats.show') ? 'active' : '' }}" href="{{ route('admin.community-chats.index') }}">
-                                <i class="fa-solid fa-message"></i>
-                                <span>All Chats</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.community-chats.users') || request()->routeIs('admin.community-chats.users.*') ? 'active' : '' }}" href="{{ route('admin.community-chats.users') }}">
-                                <i class="fa-solid fa-user-slash"></i>
-                                <span>Chat Users</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.foul-words.*') ? 'active' : '' }}" href="{{ route('admin.foul-words.index') }}">
-                                <i class="fa-solid fa-ban"></i>
-                                <span>Foul Words</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-            <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Approval Center</span>
@@ -817,6 +780,45 @@
                     <i class="fa-solid fa-house"></i>
                     <span>Home</span>
                 </a>
+            </li>
+        @endif
+        @if($isAdmin)
+            <li>
+                <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
+                    <i class="fa-solid fa-file-contract"></i>
+                    <span>Terms &amp; Conditions</span>
+                </a>
+            </li>
+            <li class="admin-sidebar-group">
+                <details {{ $communityChatMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $communityChatMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>Community Chat</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-chats.index') || request()->routeIs('admin.community-chats.show') ? 'active' : '' }}" href="{{ route('admin.community-chats.index') }}">
+                                <i class="fa-solid fa-message"></i>
+                                <span>All Chats</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-chats.users') || request()->routeIs('admin.community-chats.users.*') ? 'active' : '' }}" href="{{ route('admin.community-chats.users') }}">
+                                <i class="fa-solid fa-user-slash"></i>
+                                <span>Chat Users</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.foul-words.*') ? 'active' : '' }}" href="{{ route('admin.foul-words.index') }}">
+                                <i class="fa-solid fa-ban"></i>
+                                <span>Foul Words</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
         @endif
         <li>
