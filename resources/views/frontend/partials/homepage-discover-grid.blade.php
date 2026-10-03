@@ -54,12 +54,20 @@
         ->values();
 
     $offersList = collect($offers ?? []);
-    $offerCarouselItems = $mergeDiscoverCarousel(
-        $offersList,
-        collect($offerDiscountSideAds ?? []),
-        'offer',
-        3
-    );
+    $offerCarouselItems = collect($offerDiscountTopAds ?? [])
+        ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
+        ->concat($mergeDiscoverCarousel(
+            $offersList,
+            collect($offerDiscountSideAds ?? []),
+            'offer',
+            3
+        ))
+        ->values();
+
+    $vendorCarouselItems = collect($topVendorsHeaderAdsList ?? [])
+        ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
+        ->concat(collect($topVendorCarouselItems ?? []))
+        ->values();
 
     $serviceCarouselItems = $mergeDiscoverCarousel(
         collect($topServiceProviders ?? []),
@@ -75,8 +83,6 @@
         4
     );
 
-    $vendorCarouselItems = $topVendorCarouselItems ?? collect();
-
     $communityPosts = collect($homepageCommunityPosts ?? [])->take(8);
     $communityHubSections = $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
 @endphp
@@ -85,7 +91,7 @@
     <div class="homepage-discover-section__inner">
         <div class="homepage-discover-grid">
             @if ($showRecentAds)
-                <div class="homepage-discover-panel homepage-discover-panel--ads">
+                <div class="homepage-discover-panel homepage-discover-panel--ads homepage-discover-panel--order-ads">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--ads" aria-hidden="true">
@@ -98,6 +104,7 @@
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.ads.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
+                    <div class="homepage-discover-panel__body">
                     @if ($recentAdsCarouselItems->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
@@ -120,13 +127,14 @@
                             </div>
                         </div>
                     @else
-                        <p class="homepage-discover-panel__subtitle mb-0">No approved ads available yet.</p>
+                        <p class="homepage-discover-panel__empty">No approved ads available yet.</p>
                     @endif
+                    </div>
                 </div>
             @endif
 
             @if ($showOffers)
-                <div class="homepage-discover-panel homepage-discover-panel--offers">
+                <div class="homepage-discover-panel homepage-discover-panel--offers homepage-discover-panel--order-offers">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--offers" aria-hidden="true">
@@ -139,20 +147,7 @@
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.offers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
-                    @if (collect($offerDiscountTopAds ?? [])->isNotEmpty())
-                        <div class="homepage-discover-offers-banner ad-slider auto-ad-slider" data-show-dots="false" data-show-arrows="false" aria-label="Offer banner ads">
-                            @foreach (collect($offerDiscountTopAds ?? []) as $bannerAd)
-                                <img
-                                    src="{{ asset($bannerAd->final_image) }}"
-                                    alt="{{ $bannerAd->title }}"
-                                    loading="lazy"
-                                    data-ad-id="{{ $bannerAd->id }}"
-                                    data-ad-url="{{ $bannerAd->shareUrl() }}"
-                                    data-ad-description="Special marketplace ad available now."
-                                >
-                            @endforeach
-                        </div>
-                    @endif
+                    <div class="homepage-discover-panel__body">
                     @if ($offerCarouselItems->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
@@ -207,13 +202,14 @@
                             </div>
                         </div>
                     @else
-                        <p class="homepage-discover-panel__subtitle mb-0">No active offers available.</p>
+                        <p class="homepage-discover-panel__empty">No active offers available.</p>
                     @endif
+                    </div>
                 </div>
             @endif
 
             @if ($showServices)
-                <div class="homepage-discover-panel homepage-discover-panel--services">
+                <div class="homepage-discover-panel homepage-discover-panel--services homepage-discover-panel--order-services">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--services" aria-hidden="true">
@@ -229,6 +225,7 @@
                             <a class="homepage-discover-panel__view-all" href="{{ route('frontend.service_providers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </div>
                     </header>
+                    <div class="homepage-discover-panel__body">
                     @if ($serviceCarouselItems->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
@@ -263,18 +260,14 @@
                             </div>
                         </div>
                     @else
-                        <p class="homepage-discover-panel__subtitle mb-0">No services available yet.</p>
+                        <p class="homepage-discover-panel__empty">No services available yet.</p>
                     @endif
-                    @if ($showPremiumOptions)
-                        <div class="homepage-discover-panel__premium">
-                            @include('frontend.premium.partials.module-cta', ['type' => 'service'])
-                        </div>
-                    @endif
+                    </div>
                 </div>
             @endif
 
             @if ($showConsultants)
-                <div class="homepage-discover-panel homepage-discover-panel--consultants">
+                <div class="homepage-discover-panel homepage-discover-panel--consultants homepage-discover-panel--order-consultants">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--consultant" aria-hidden="true">
@@ -290,6 +283,7 @@
                             <a class="homepage-discover-panel__view-all" href="{{ route('frontend.consultants.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </div>
                     </header>
+                    <div class="homepage-discover-panel__body">
                     @if ($consultantCarouselItems->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
@@ -324,18 +318,14 @@
                             </div>
                         </div>
                     @else
-                        <p class="homepage-discover-panel__subtitle mb-0">No consultants available yet.</p>
+                        <p class="homepage-discover-panel__empty">No consultants available yet.</p>
                     @endif
-                    @if ($showPremiumOptions)
-                        <div class="homepage-discover-panel__premium">
-                            @include('frontend.premium.partials.module-cta', ['type' => 'consultant'])
-                        </div>
-                    @endif
+                    </div>
                 </div>
             @endif
 
             @if ($showVendors)
-                <div class="homepage-discover-panel homepage-discover-panel--vendors">
+                <div class="homepage-discover-panel homepage-discover-panel--vendors homepage-discover-panel--order-vendors">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--vendor" aria-hidden="true">
@@ -348,25 +338,12 @@
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
-                    @if ($topVendorsHeaderAdsList->isNotEmpty())
-                        <div class="homepage-discover-offers-banner ad-slider auto-ad-slider" data-show-dots="false" data-show-arrows="false" aria-label="Vendor banner ads">
-                            @foreach ($topVendorsHeaderAdsList as $bannerAd)
-                                <img
-                                    src="{{ asset($bannerAd->final_image) }}"
-                                    alt="{{ $bannerAd->title }}"
-                                    loading="lazy"
-                                    data-ad-id="{{ $bannerAd->id }}"
-                                    data-ad-url="{{ $bannerAd->shareUrl() }}"
-                                    data-ad-description="Special marketplace ad available now."
-                                >
-                            @endforeach
-                        </div>
-                    @endif
+                    <div class="homepage-discover-panel__body">
                     @if ($vendorCarouselItems->isNotEmpty())
                         <div
-                            class="card-carousel homepage-discover-carousel auto-ad-slider"
+                            class="card-carousel homepage-discover-carousel homepage-discover-carousel--wide auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="4"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -396,17 +373,13 @@
                             </div>
                         </div>
                     @else
-                        <p class="homepage-discover-panel__subtitle mb-0">No vendors available yet.</p>
+                        <p class="homepage-discover-panel__empty">No vendors available yet.</p>
                     @endif
-                    @if ($showPremiumOptions)
-                        <div class="homepage-discover-panel__premium">
-                            @include('frontend.premium.partials.module-cta', ['type' => 'vendor'])
-                        </div>
-                    @endif
+                    </div>
                 </div>
             @endif
 
-            <div class="homepage-discover-panel homepage-discover-panel--education">
+            <div class="homepage-discover-panel homepage-discover-panel--education homepage-discover-panel--order-education">
                 <header class="homepage-discover-panel__head">
                     <div class="homepage-discover-panel__title-wrap">
                         <span class="homepage-discover-panel__icon homepage-discover-panel__icon--education" aria-hidden="true">
@@ -419,6 +392,7 @@
                     </div>
                     <a class="homepage-discover-panel__view-all" href="{{ route('schools.index') }}">Explore <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                 </header>
+                <div class="homepage-discover-panel__body homepage-discover-panel__body--hub">
                 <div class="homepage-discover-education">
                     <div class="homepage-discover-education__visual">
                         <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900&q=80" alt="Student with books" loading="lazy">
@@ -442,10 +416,11 @@
                         </a>
                     </div>
                 </div>
+                </div>
             </div>
 
             @if ($showCommunity)
-                <div class="homepage-discover-panel homepage-discover-panel--community">
+                <div class="homepage-discover-panel homepage-discover-panel--community homepage-discover-panel--order-community">
                     <header class="homepage-discover-panel__head">
                         <div class="homepage-discover-panel__title-wrap">
                             <span class="homepage-discover-panel__icon homepage-discover-panel__icon--community" aria-hidden="true">
@@ -458,11 +433,12 @@
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('community.index') }}">Explore <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
+                    <div class="homepage-discover-panel__body homepage-discover-panel__body--hub">
                     @if ($communityPosts->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel homepage-discover-community-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="3"
+                            data-carousel-cols="2"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -491,7 +467,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel homepage-discover-community-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="3"
+                            data-carousel-cols="2"
                             data-show-arrows="true"
                             data-show-dots="false"
                             aria-label="Community hub categories"
@@ -512,6 +488,7 @@
                             </div>
                         </div>
                     @endif
+                    </div>
                 </div>
             @endif
         </div>
