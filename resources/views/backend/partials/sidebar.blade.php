@@ -135,6 +135,20 @@
                     <span>Parent Dashboard</span>
                 </a>
             </li>
+            @if($user->canPublishStudyMaterials())
+                <li>
+                    <a class="{{ request()->routeIs('parent.materials.*') ? 'active' : '' }}" href="{{ route('parent.materials.index') }}">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>My Study Materials</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="{{ request()->routeIs('parent.materials.create') ? 'active' : '' }}" href="{{ route('parent.materials.create') }}">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Upload Study Material</span>
+                    </a>
+                </li>
+            @endif
         @endif
         @if($isEmployee)
             @include('backend.partials.sidebar-module-menus', ['sidebarUser' => $user, 'sidebarIsAdmin' => false])
@@ -224,6 +238,12 @@
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Approval Center</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.materials.*') ? 'active' : '' }}" href="{{ route('admin.materials.index') }}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Study Material</span>
                 </a>
             </li>
             <li>

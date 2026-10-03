@@ -143,6 +143,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function studyMaterialRoutePrefix(): string
     {
+        if ($this->isAdmin()) {
+            return 'admin.materials';
+        }
+
         if ($this->isStudent()) {
             return 'child.materials';
         }
@@ -151,11 +155,19 @@ class User extends Authenticatable implements MustVerifyEmail
             return 'child.materials';
         }
 
+        if ($this->hasParentProfileEnabled()) {
+            return 'parent.materials';
+        }
+
         return 'educator.materials';
     }
 
     public function canPublishStudyMaterials(): bool
     {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
         if ($this->isTeacher() && $this->educator?->isApproved()) {
             return true;
         }

@@ -132,10 +132,11 @@ class StudyMaterialController extends Controller
     {
         $routePrefix = $this->materialRoutePrefix();
         $data = $this->validated($request);
-        $data['user_id'] = auth()->id();
-        $data['educator_id'] = auth()->user()->educator?->id;
+        $user = auth()->user();
+        $data['user_id'] = $user->id;
+        $data['educator_id'] = $user->educator?->id;
         $data['slug'] = StudyMaterial::generateUniqueSlug($data['title']);
-        $data['status'] = 'pending';
+        $data = array_merge($data, $this->approvalAttributesForStore($user));
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
@@ -152,13 +153,17 @@ class StudyMaterialController extends Controller
 
         $material = StudyMaterial::create($data);
 
-        PortalNotificationService::notifyAdminsOfApprovalRequest(
-            'Study material',
-            $material->title.' (by '.$this->publisherDisplayName().')',
-            route('admin.approvals.index', ['module' => 'study-materials'])
-        );
+        if ($material->status === 'pending') {
+            PortalNotificationService::notifyAdminsOfApprovalRequest(
+                'Study material',
+                $material->title.' (by '.$this->publisherDisplayName().')',
+                route('admin.approvals.index', ['module' => 'study-materials'])
+            );
+        }
 
-        $message = 'Study material submitted for admin approval.';
+        $message = $material->status === 'approved'
+            ? 'Study material published successfully.'
+            : 'Study material submitted for admin approval.';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -240,11 +245,12 @@ class StudyMaterialController extends Controller
             $data['slug'] = StudyMaterial::generateUniqueSlug($data['title']);
         }
 
-        $data['status'] = 'pending';
-        $data['approved_at'] = null;
-        $data['approved_by'] = null;
-        $data['is_verified'] = false;
-        $data['is_trending'] = false;
+        $user = auth()->user();
+        $data = array_merge($data, $this->approvalAttributesForUpdate($user, $material));
+        if (! $user->isAdmin()) {
+            $data['is_verified'] = false;
+            $data['is_trending'] = false;
+        }
 
         if ($request->hasFile('file')) {
             EducatorFileUploader::deleteIfExists($material->file_path);
@@ -263,13 +269,17 @@ class StudyMaterialController extends Controller
         $material->update($data);
         $material->refresh();
 
-        PortalNotificationService::notifyAdminsOfApprovalRequest(
-            'Updated study material',
-            $material->title.' (by '.$this->publisherDisplayName().')',
-            route('admin.approvals.index', ['module' => 'study-materials'])
-        );
+        if ($material->status === 'pending') {
+            PortalNotificationService::notifyAdminsOfApprovalRequest(
+                'Updated study material',
+                $material->title.' (by '.$this->publisherDisplayName().')',
+                route('admin.approvals.index', ['module' => 'study-materials'])
+            );
+        }
 
-        $message = 'Study material updated and sent for admin approval.';
+        $message = $material->status === 'approved'
+            ? 'Study material updated successfully.'
+            : 'Study material updated and sent for admin approval.';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -307,17 +317,39 @@ class StudyMaterialController extends Controller
             return 'child.materials';
         }
 
+        if (request()->routeIs('parent.materials.*')) {
+            return 'parent.materials';
+        }
+
+        if (request()->routeIs('admin.materials.*')) {
+            return 'admin.materials';
+        }
+
         return auth()->user()->studyMaterialRoutePrefix();
     }
 
     private function portalKicker(): string
     {
-        return auth()->user()->isStudent() ? 'Student Portal' : 'Educator Portal';
+        $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return 'Admin Portal';
+        }
+
+        if ($user->hasParentProfileEnabled() && ! $user->isStudent()) {
+            return 'Parent Portal';
+        }
+
+        return $user->isStudent() ? 'Student Portal' : 'Educator Portal';
     }
 
     private function publisherDisplayName(): string
     {
         $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return $user->name ?: 'Admin';
+        }
 
         if ($user->isTeacher()) {
             return $user->educator?->display_name ?: 'Teacher / Tutor';
@@ -327,7 +359,51 @@ class StudyMaterialController extends Controller
             return $user->name ?: 'Student';
         }
 
+        if ($user->hasParentProfileEnabled()) {
+            return $user->name ?: 'Parent';
+        }
+
         return $user->name ?: 'Uploader';
+    }
+
+    /**
+     * @return array{status: string, approved_at: ?\Illuminate\Support\Carbon, approved_by: ?int}
+     */
+    private function approvalAttributesForStore(\App\Models\User $user): array
+    {
+        if ($user->isAdmin()) {
+            return [
+                'status' => 'approved',
+                'approved_at' => now(),
+                'approved_by' => $user->id,
+            ];
+        }
+
+        return [
+            'status' => 'pending',
+            'approved_at' => null,
+            'approved_by' => null,
+        ];
+    }
+
+    /**
+     * @return array{status: string, approved_at: ?\Illuminate\Support\Carbon, approved_by: ?int}
+     */
+    private function approvalAttributesForUpdate(\App\Models\User $user, StudyMaterial $material): array
+    {
+        if ($user->isAdmin()) {
+            return [
+                'status' => 'approved',
+                'approved_at' => $material->approved_at ?? now(),
+                'approved_by' => $material->approved_by ?? $user->id,
+            ];
+        }
+
+        return [
+            'status' => 'pending',
+            'approved_at' => null,
+            'approved_by' => null,
+        ];
     }
 
     /**

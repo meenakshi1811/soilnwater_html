@@ -292,8 +292,16 @@ class StudyMaterial extends Model
     {
         $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
 
+        if ($owner?->isAdmin()) {
+            return route('admin.materials.index');
+        }
+
         if ($owner?->isStudent()) {
             return route('child.materials.index');
+        }
+
+        if ($owner?->hasParentProfileEnabled()) {
+            return route('parent.materials.index');
         }
 
         return route('educator.materials.index');
@@ -303,8 +311,16 @@ class StudyMaterial extends Model
     {
         $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
 
+        if ($owner?->isAdmin()) {
+            return route('admin.materials.show', $this);
+        }
+
         if ($owner?->isStudent()) {
             return route('child.materials.show', $this);
+        }
+
+        if ($owner?->hasParentProfileEnabled()) {
+            return route('parent.materials.show', $this);
         }
 
         return route('educator.materials.show', $this);

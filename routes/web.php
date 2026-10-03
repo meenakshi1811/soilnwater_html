@@ -366,6 +366,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/children/{childProfile}/switch', [ParentProfileController::class, 'switchToChild'])->name('children.switch');
         Route::post('/children/switch-back', [ParentProfileController::class, 'switchBack'])->name('children.switch-back');
         Route::get('/children/{childProfile}/dashboard', [ChildPortalController::class, 'parentView'])->name('children.dashboard');
+        Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('study_material.publisher')->name('materials.data');
+        Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('study_material.publisher')->name('materials.type-config');
+        Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('study_material.publisher')->name('materials.download');
+        Route::get('/materials/{material}/solution-download', [StudyMaterialController::class, 'downloadSolution'])->middleware('study_material.publisher')->name('materials.solution-download');
+        Route::get('/materials/{material}/solved-worksheet-download', [StudyMaterialController::class, 'downloadSolvedWorksheet'])->middleware('study_material.publisher')->name('materials.solved-worksheet-download');
+        Route::resource('materials', StudyMaterialController::class)->middleware('study_material.publisher');
     });
 
     Route::prefix('child')->name('child.')->middleware(['child.portal'])->group(function () {
@@ -837,6 +843,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{childProfile}/reject', [AdminChildProfileController::class, 'reject'])->name('reject');
             Route::delete('/{childProfile}', [AdminChildProfileController::class, 'destroy'])->name('destroy');
         });
+
+        Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('study_material.publisher')->name('materials.data');
+        Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('study_material.publisher')->name('materials.type-config');
+        Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('study_material.publisher')->name('materials.download');
+        Route::get('/materials/{material}/solution-download', [StudyMaterialController::class, 'downloadSolution'])->middleware('study_material.publisher')->name('materials.solution-download');
+        Route::get('/materials/{material}/solved-worksheet-download', [StudyMaterialController::class, 'downloadSolvedWorksheet'])->middleware('study_material.publisher')->name('materials.solved-worksheet-download');
+        Route::resource('materials', StudyMaterialController::class)->middleware('study_material.publisher');
 
         Route::prefix('study-materials')->name('study-materials.')->group(function () {
             Route::get('/', [StudyMaterialApprovalController::class, 'index'])->name('index');
