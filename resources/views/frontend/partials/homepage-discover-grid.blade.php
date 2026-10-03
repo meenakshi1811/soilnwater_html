@@ -64,10 +64,8 @@
         ))
         ->values();
 
-    $vendorCarouselItems = collect($topVendorsHeaderAdsList ?? [])
-        ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
-        ->concat(collect($topVendorCarouselItems ?? []))
-        ->values();
+    $vendorCarouselItems = collect($topVendorCarouselItems ?? []);
+    $vendorHeaderAdsList = collect($topVendorsHeaderAdsList ?? []);
 
     $serviceCarouselItems = $mergeDiscoverCarousel(
         collect($topServiceProviders ?? []),
@@ -339,6 +337,22 @@
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </header>
                     <div class="homepage-discover-panel__body">
+                    @if ($vendorHeaderAdsList->isNotEmpty())
+                        <div class="homepage-discover-vendors-banner d-none d-lg-block ad-slider auto-ad-slider" data-show-dots="false" data-show-arrows="false" aria-label="Vendor banner ads">
+                            @foreach ($vendorHeaderAdsList as $bannerAd)
+                                <img
+                                    src="{{ asset($bannerAd->final_image) }}"
+                                    alt="{{ $bannerAd->title }}"
+                                    loading="lazy"
+                                    width="1191"
+                                    height="77"
+                                    data-ad-id="{{ $bannerAd->id }}"
+                                    data-ad-url="{{ $bannerAd->shareUrl() }}"
+                                    data-ad-description="Special marketplace ad available now."
+                                >
+                            @endforeach
+                        </div>
+                    @endif
                     @if ($vendorCarouselItems->isNotEmpty())
                         <div
                             class="card-carousel homepage-discover-carousel homepage-discover-carousel--wide auto-ad-slider"

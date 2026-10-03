@@ -293,6 +293,27 @@
   display: block;
 }
 
+.homepage-discover-card--ad .homepage-discover-card__media {
+  background: #f1f5f9;
+}
+
+.homepage-discover-card--ad .homepage-discover-card__media img {
+  object-fit: contain;
+  object-position: center;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.homepage-discover-card--ad .homepage-discover-card__loc i {
+  color: #64748b;
+}
+
+.homepage-discover-card__rating--ad-spacer {
+  visibility: hidden;
+  pointer-events: none;
+  min-height: 1.35em;
+}
+
 .homepage-discover-card__ad-badge {
   position: absolute;
   top: 8px;
@@ -311,9 +332,9 @@
   padding: 12px 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1 1 auto;
-  min-height: 108px;
+  min-height: 118px;
 }
 
 .homepage-discover-card__title {
@@ -387,6 +408,23 @@
 
 [data-slide-by="card"] .card-carousel-item > .homepage-discover-card {
   height: 100%;
+}
+
+.homepage-discover-vendors-banner {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.homepage-discover-vendors-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 88px;
+  object-fit: cover;
+  cursor: pointer;
 }
 
 .homepage-discover-education {
@@ -699,6 +737,8 @@
     width: 72vw;
     max-width: 292px;
     scroll-snap-align: center;
+    display: flex;
+    align-items: stretch;
   }
 
   .homepage-discover-community-carousel .card-carousel-item {
@@ -710,17 +750,30 @@
   .homepage-discover-card {
     border-radius: 12px;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    width: 100%;
+    min-height: 268px;
+  }
+
+  .homepage-discover-card__media {
+    aspect-ratio: 4 / 3;
+    flex-shrink: 0;
+  }
+
+  .homepage-discover-card--ad .homepage-discover-card__media img {
+    padding: 10px;
   }
 
   .homepage-discover-card__body {
-    min-height: 0;
-    padding: 10px 10px 12px;
+    min-height: 112px;
+    padding: 10px 11px 12px;
+    gap: 3px;
   }
 
   .homepage-discover-card__title {
-    min-height: 0;
-    -webkit-line-clamp: 1;
+    min-height: 2.5em;
+    -webkit-line-clamp: 2;
     font-size: 0.875rem;
+    word-break: break-word;
   }
 
   .homepage-discover-card__meta {
@@ -728,6 +781,16 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font-size: 0.6875rem;
+  }
+
+  .homepage-discover-card__loc,
+  .homepage-discover-card__rating {
+    font-size: 0.6875rem;
+  }
+
+  .homepage-discover-panel--order-vendors .homepage-discover-carousel .card-carousel-track {
+    gap: 12px;
   }
 
   .homepage-discover-story-card__title {
