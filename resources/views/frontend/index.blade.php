@@ -508,11 +508,11 @@
     @endif
 
     <!-- Top fold layout: categories + listings with right sidebar ads -->
-      @if(!empty($sectionToggles['sponsored_listings']) && $sectionToggles['sponsored_listings'] || (!empty($sectionToggles['top_categories']) && $sectionToggles['top_categories']))
+      @if(!empty($sectionToggles['sponsored_listings']) && $sectionToggles['sponsored_listings'])
       <div class="top-fold-layout">
         <div class="row g-3 align-items-start top-fold-upper">
         <div class="col-12 col-lg-9 top-fold-main">
-          <!-- Top Categories + Boost Ad -->
+          {{-- Top Categories + Boost Ad (hidden)
           @if(!empty($sectionToggles['top_categories']) && $sectionToggles['top_categories'])
             
             <div class="sec">
@@ -544,6 +544,7 @@
               </div>
             </div>
           @endif
+          --}}
 
           
           <!-- Sponsored Listings -->
@@ -597,6 +598,7 @@
         </div>
 
         <aside class="col-12 col-lg-3 top-sidebar-ads">
+         {{-- Top Categories sidebar ads (hidden)
          @if(!empty($sectionToggles['top_categories']) && $sectionToggles['top_categories'])
 
           <div class="ad-slider auto-ad-slider business-side-slider">
@@ -616,6 +618,7 @@
             @endforelse
           </div>
           @endif
+          --}}
           @if(!empty($sectionToggles['sponsored_listings']) && $sectionToggles['sponsored_listings'])
           <div class="ad-slider auto-ad-slider dream-home-side-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
             @forelse(($sponsoredListingsAds ?? collect()) as $ad)
@@ -1188,7 +1191,7 @@
       </div>
     </div>
 
-    <!-- Explore Products Near You (SSNY style) -->
+    {{-- Explore Products Near You (SSNY style) — hidden
     @if(!empty($sectionToggles['explore_products']) && $sectionToggles['explore_products'])
 
       <div class="sec explore-redesign">
@@ -1235,6 +1238,7 @@
         </div>
       </div>
     @endif
+    --}}
     <!-- Top Vendors + Properties with Right Ad Rail -->
     @if($showTopVendors || $showPopularPropertiesNearGreenwood)
 
