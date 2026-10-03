@@ -62,8 +62,16 @@
       'location' => 'Dehradun',
       'rating' => '4.6',
       'reviews' => 128,
-      'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=640&q=80',
+      'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=900&q=80',
       'url' => route('frontend.vendors.index'),
+      'theme' => 'orange',
+      'headline' => 'Up to 30% off',
+      'subheadline' => 'Fresh bakery picks from trusted local favourites',
+      'promo_badge' => 'Featured Deal',
+      'promo_title' => 'Himalaya Bakers',
+      'promo_sub' => 'Bakery & Snacks · Dehradun',
+      'strip_primary' => 'Exclusive offers when you enquire via SoilnWater',
+      'strip_secondary' => '4.6★ rating · 128 reviews · Same-day pickup',
     ],
     [
       'name' => 'GreenCare Nursery',
@@ -71,8 +79,16 @@
       'location' => 'Dehradun',
       'rating' => '4.8',
       'reviews' => 86,
-      'image' => 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=640&q=80',
+      'image' => 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&q=80',
       'url' => route('frontend.vendors.index'),
+      'theme' => 'green',
+      'headline' => 'Up to 50% off',
+      'subheadline' => 'Seasonal plants, pots and home garden essentials',
+      'promo_badge' => 'Local Spotlight',
+      'promo_title' => 'GreenCare Nursery',
+      'promo_sub' => 'Plants & Home · Dehradun',
+      'strip_primary' => 'Free guidance on indoor & outdoor plants',
+      'strip_secondary' => '4.8★ rating · 86 reviews · Home delivery',
     ],
     [
       'name' => 'City Electronics',
@@ -80,8 +96,16 @@
       'location' => 'Dehradun',
       'rating' => '4.5',
       'reviews' => 214,
-      'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=640&q=80',
+      'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80',
       'url' => route('frontend.vendors.index'),
+      'theme' => 'red',
+      'headline' => 'Festive deals',
+      'subheadline' => 'Appliances, gadgets and accessories on offer',
+      'promo_badge' => 'Hot Picks',
+      'promo_title' => 'City Electronics',
+      'promo_sub' => 'Electronics · Dehradun',
+      'strip_primary' => 'Extended warranty on select brands this month',
+      'strip_secondary' => '4.5★ rating · 214 reviews · EMI available',
     ],
     [
       'name' => 'Blossom Boutique',
@@ -89,8 +113,16 @@
       'location' => 'Dehradun',
       'rating' => '4.7',
       'reviews' => 67,
-      'image' => 'https://images.unsplash.com/photo-1441986300917-64676bd600d8?w=640&q=80',
+      'image' => 'https://images.unsplash.com/photo-1441986300917-64676bd600d8?w=900&q=80',
       'url' => route('frontend.vendors.index'),
+      'theme' => 'green',
+      'headline' => 'New arrivals',
+      'subheadline' => 'Ethnic wear, casuals and festive collections',
+      'promo_badge' => 'Featured Deal',
+      'promo_title' => 'Blossom Boutique',
+      'promo_sub' => 'Clothing · Dehradun',
+      'strip_primary' => 'Styling help and alteration support in-store',
+      'strip_secondary' => '4.7★ rating · 67 reviews · Try at shop',
     ],
   ];
   $homepageLatestOffers = [
@@ -314,7 +346,7 @@
 <section class="homepage-showcase-section" aria-label="Featured businesses and latest offers">
   <div class="homepage-showcase-section__inner">
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
-      <header class="homepage-showcase-panel__head">
+      <header class="homepage-showcase-panel__head d-none d-lg-flex">
         <div class="homepage-showcase-panel__title-wrap">
           <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--business" aria-hidden="true">
             <i class="fa-solid fa-store"></i>
@@ -326,8 +358,9 @@
         </div>
         <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       </header>
+
       <div
-        class="card-carousel homepage-showcase-carousel"
+        class="card-carousel homepage-showcase-carousel d-none d-lg-block"
         data-slide-by="card"
         data-carousel-cols="2"
         data-show-arrows="true"
@@ -356,6 +389,41 @@
                 </div>
               </a>
             </div>
+          @endforeach
+        </div>
+      </div>
+
+      <div class="homepage-featured-promo-rail d-lg-none" aria-label="Featured business promotions">
+        <div class="homepage-featured-promo-rail__scroll">
+          @foreach($homepageFeaturedBusinesses as $business)
+            <article class="homepage-featured-promo-card homepage-featured-promo-card--{{ $business['theme'] }}">
+              <a href="{{ $business['url'] }}" class="homepage-featured-promo-card__link">
+                <div class="homepage-featured-promo-card__frame">
+                  <div class="homepage-featured-promo-card__copy">
+                    <h3 class="homepage-featured-promo-card__headline">{{ $business['headline'] }}</h3>
+                    <p class="homepage-featured-promo-card__subheadline">{{ $business['subheadline'] }}</p>
+                  </div>
+                  <div class="homepage-featured-promo-card__hero">
+                    <img src="{{ $business['image'] }}" alt="" loading="lazy" decoding="async" width="900" height="560">
+                    <div class="homepage-featured-promo-card__overlay">
+                      <span class="homepage-featured-promo-card__badge">{{ $business['promo_badge'] }}</span>
+                      <strong class="homepage-featured-promo-card__promo-title">{{ $business['promo_title'] }}</strong>
+                      <span class="homepage-featured-promo-card__promo-sub">{{ $business['promo_sub'] }}</span>
+                    </div>
+                  </div>
+                  <div class="homepage-featured-promo-card__strip homepage-featured-promo-card__strip--primary">
+                    {{ $business['strip_primary'] }}
+                  </div>
+                  <div class="homepage-featured-promo-card__strip homepage-featured-promo-card__strip--secondary">
+                    {{ $business['strip_secondary'] }}
+                  </div>
+                  <div class="homepage-featured-promo-card__footer">
+                    <span class="homepage-featured-promo-card__pause" aria-hidden="true"><i class="fa-solid fa-pause"></i></span>
+                    <span class="homepage-featured-promo-card__tc">*T&amp;C apply</span>
+                  </div>
+                </div>
+              </a>
+            </article>
           @endforeach
         </div>
       </div>

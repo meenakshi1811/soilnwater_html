@@ -272,11 +272,234 @@
   }
 
   .homepage-showcase-section {
-    padding: 20px 14px 24px;
+    padding: 0 0 20px;
+    background: #e3f3ea;
+    border-bottom: none;
+  }
+
+  .homepage-showcase-panel--businesses {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    gap: 0;
   }
 
   .homepage-showcase-carousel {
     --carousel-visible: 2;
+  }
+
+  .homepage-featured-promo-rail {
+    width: 100%;
+    overflow: hidden;
+    padding: 8px 0 14px;
+  }
+
+  .homepage-featured-promo-rail__scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 12px;
+    padding: 0 12px 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .homepage-featured-promo-rail__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .homepage-featured-promo-card {
+    flex: 0 0 min(88vw, 360px);
+    scroll-snap-align: center;
+    min-width: 0;
+  }
+
+  .homepage-featured-promo-card__link {
+    display: block;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .homepage-featured-promo-card__frame {
+    position: relative;
+    min-height: 430px;
+    border-radius: 14px;
+    padding: 14px 12px 10px;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18);
+  }
+
+  .homepage-featured-promo-card__frame::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 2px dashed rgba(255, 255, 255, 0.55);
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .homepage-featured-promo-card--orange .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #fb923c 0%, #ea580c 42%, #c2410c 100%);
+  }
+
+  .homepage-featured-promo-card--green .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #22c55e 0%, #15803d 45%, #14532d 100%);
+  }
+
+  .homepage-featured-promo-card--red .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #f87171 0%, #dc2626 45%, #991b1b 100%);
+  }
+
+  .homepage-featured-promo-card__copy {
+    position: relative;
+    z-index: 2;
+    padding: 2px 6px 10px;
+  }
+
+  .homepage-featured-promo-card__headline {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.625rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .homepage-featured-promo-card__subheadline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.35;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+    max-width: 18rem;
+  }
+
+  .homepage-featured-promo-card__hero {
+    position: relative;
+    z-index: 2;
+    margin: 0 4px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .homepage-featured-promo-card__hero img {
+    display: block;
+    width: 100%;
+    height: 168px;
+    object-fit: cover;
+  }
+
+  .homepage-featured-promo-card__overlay {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    background: #fff7ed;
+    border-radius: 10px;
+    padding: 10px 12px 11px;
+    text-align: center;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+  }
+
+  .homepage-featured-promo-card__badge {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #fce7f3;
+    color: #be185d;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .homepage-featured-promo-card__promo-title {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #6d28d9;
+    margin-bottom: 2px;
+  }
+
+  .homepage-featured-promo-card__promo-sub {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .homepage-featured-promo-card__strip {
+    position: relative;
+    z-index: 2;
+    margin-top: 8px;
+    padding: 8px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    border-radius: 6px;
+  }
+
+  .homepage-featured-promo-card__strip--primary {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .homepage-featured-promo-card__strip--secondary {
+    background: #fff;
+    color: #334155;
+    font-weight: 500;
+  }
+
+  .homepage-featured-promo-card__footer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 4px;
+  }
+
+  .homepage-featured-promo-card__pause {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 0.65rem;
+  }
+
+  .homepage-featured-promo-card__tc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .homepage-showcase-panel--offers {
+    margin: 0 14px;
   }
 }
 
