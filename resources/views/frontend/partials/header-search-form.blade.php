@@ -37,12 +37,13 @@
   @endif
   <input
     class="search-query-input"
-    type="text"
+    type="search"
     name="q"
     placeholder="{{ $defaultPlaceholder }}"
     data-search-placeholders='@json($searchPlaceholders)'
     value="{{ request('q', request('search')) }}"
     aria-label="Search query"
+    enterkeyhint="search"
     @if(!empty($searchInputId)) id="{{ $searchInputId }}" @endif
   >
   <button type="submit" class="search-submit-btn" aria-label="Search">

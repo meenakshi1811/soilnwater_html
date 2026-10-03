@@ -190,12 +190,17 @@
     'searchInputId' => 'mobileHomeSearchQuery',
     'showModuleSelect' => false,
     'activeSearchModule' => 'offers',
-    'searchPlaceholderOverride' => 'Search businesses, services, schools, offers…',
-    'searchSubmitText' => '',
+    'searchPlaceholderOverride' => 'Search businesses & offers',
+    'searchSubmitText' => 'Search',
   ])
   <button type="button" class="homepage-mobile-loc-bar" id="mobileHomeLocBar" aria-label="Change location">
-    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-    <span class="homepage-mobile-loc-bar__text" id="mobileHomeLocLabel">Select Location</span>
+    <span class="homepage-mobile-loc-bar__main">
+      <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+      <span class="homepage-mobile-loc-bar__copy">
+        <span class="homepage-mobile-loc-bar__prefix">Location</span>
+        <strong class="homepage-mobile-loc-bar__value" id="mobileHomeLocLabel">Select location</strong>
+      </span>
+    </span>
     <i class="fa-solid fa-chevron-down homepage-mobile-loc-bar__caret" aria-hidden="true"></i>
   </button>
 </div>
