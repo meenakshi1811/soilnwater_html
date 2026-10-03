@@ -52,64 +52,85 @@ final class ModuleSidebar
                     ],
                 ],
             ],
-            'vendors' => [
-                'label' => 'Vendor',
-                'icon' => 'fa-solid fa-store',
-                'active_routes' => ['admin.vendors.*', 'admin.vendor-products.*'],
-                'items' => [
-                    ['label' => 'All Vendors', 'route' => 'admin.vendors.index', 'icon' => 'fa-solid fa-list', 'module' => 'vendors', 'action' => 'read', 'active' => 'admin.vendors.*'],
-                    ['label' => 'Create Product', 'route' => 'admin.vendor-products.create', 'icon' => 'fa-solid fa-plus', 'module' => 'products', 'action' => 'add', 'active' => 'admin.vendor-products.create'],
-                    ['label' => 'Products Approval', 'route' => 'admin.vendor-products.index', 'icon' => 'fa-solid fa-boxes-stacked', 'module' => 'products', 'action' => 'approve', 'active' => 'admin.vendor-products.*', 'active_except' => ['admin.vendor-products.all.*', 'admin.vendor-products.create']],
-                    ['label' => 'All Products', 'route' => 'admin.vendor-products.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'products', 'action' => 'read', 'active' => 'admin.vendor-products.all.*'],
+            'business' => [
+                'label' => 'Business',
+                'icon' => 'fa-solid fa-briefcase',
+                'active_routes' => [
+                    'admin.vendors.*',
+                    'admin.vendor-products.*',
+                    'admin.consultants.*',
+                    'admin.consultant-services.*',
+                    'admin.service_providers.*',
+                    'admin.service-provider-services.*',
+                ],
+                'groups' => [
+                    'vendors' => [
+                        'label' => 'Vendor',
+                        'icon' => 'fa-solid fa-store',
+                        'active_routes' => ['admin.vendors.*', 'admin.vendor-products.*'],
+                        'items' => [
+                            ['label' => 'All Vendors', 'route' => 'admin.vendors.index', 'icon' => 'fa-solid fa-list', 'module' => 'vendors', 'action' => 'read', 'active' => 'admin.vendors.*'],
+                            ['label' => 'Create Product', 'route' => 'admin.vendor-products.create', 'icon' => 'fa-solid fa-plus', 'module' => 'products', 'action' => 'add', 'active' => 'admin.vendor-products.create'],
+                            ['label' => 'Products Approval', 'route' => 'admin.vendor-products.index', 'icon' => 'fa-solid fa-boxes-stacked', 'module' => 'products', 'action' => 'approve', 'active' => 'admin.vendor-products.*', 'active_except' => ['admin.vendor-products.all.*', 'admin.vendor-products.create']],
+                            ['label' => 'All Products', 'route' => 'admin.vendor-products.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'products', 'action' => 'read', 'active' => 'admin.vendor-products.all.*'],
+                        ],
+                    ],
+                    'consultants' => [
+                        'label' => 'Consultants',
+                        'icon' => 'fa-solid fa-user-tie',
+                        'active_routes' => ['admin.consultants.*', 'admin.consultant-services.*'],
+                        'items' => [
+                            ['label' => 'All Consultants', 'route' => 'admin.consultants.index', 'icon' => 'fa-solid fa-list', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultants.*', 'active_except' => ['admin.consultants.reports.*']],
+                            ['label' => 'Create Service', 'route' => 'admin.consultant-services.create', 'icon' => 'fa-solid fa-plus', 'module' => 'consultants', 'action' => 'add', 'active' => 'admin.consultant-services.create'],
+                            ['label' => 'Services Approval', 'route' => 'admin.consultant-services.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'consultants', 'action' => 'approve', 'active' => 'admin.consultant-services.*', 'active_except' => ['admin.consultant-services.all.*', 'admin.consultant-services.create']],
+                            ['label' => 'All Services', 'route' => 'admin.consultant-services.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultant-services.all.*'],
+                            ['label' => 'Report Consultants', 'route' => 'admin.consultants.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultants.reports.*'],
+                        ],
+                    ],
+                    'service_providers' => [
+                        'label' => 'Services',
+                        'icon' => 'fa-solid fa-screwdriver-wrench',
+                        'active_routes' => ['admin.service_providers.*', 'admin.service-provider-services.*'],
+                        'items' => [
+                            ['label' => 'All Service Providers', 'route' => 'admin.service_providers.index', 'icon' => 'fa-solid fa-list', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service_providers.*', 'active_except' => ['admin.service_providers.reports.*']],
+                            ['label' => 'Create Service', 'route' => 'admin.service-provider-services.create', 'icon' => 'fa-solid fa-plus', 'module' => 'service_providers', 'action' => 'add', 'active' => 'admin.service-provider-services.create'],
+                            ['label' => 'Services Approval', 'route' => 'admin.service-provider-services.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'service_providers', 'action' => 'approve', 'active' => 'admin.service-provider-services.*', 'active_except' => ['admin.service-provider-services.all.*', 'admin.service-provider-services.create']],
+                            ['label' => 'All Services', 'route' => 'admin.service-provider-services.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service-provider-services.all.*'],
+                            ['label' => 'Report Services', 'route' => 'admin.service_providers.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service_providers.reports.*'],
+                        ],
+                    ],
                 ],
             ],
-            'consultants' => [
-                'label' => 'Consultants',
-                'icon' => 'fa-solid fa-user-tie',
-                'active_routes' => ['admin.consultants.*', 'admin.consultant-services.*'],
-                'items' => [
-                    ['label' => 'All Consultants', 'route' => 'admin.consultants.index', 'icon' => 'fa-solid fa-list', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultants.*', 'active_except' => ['admin.consultants.reports.*']],
-                    ['label' => 'Create Service', 'route' => 'admin.consultant-services.create', 'icon' => 'fa-solid fa-plus', 'module' => 'consultants', 'action' => 'add', 'active' => 'admin.consultant-services.create'],
-                    ['label' => 'Services Approval', 'route' => 'admin.consultant-services.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'consultants', 'action' => 'approve', 'active' => 'admin.consultant-services.*', 'active_except' => ['admin.consultant-services.all.*', 'admin.consultant-services.create']],
-                    ['label' => 'All Services', 'route' => 'admin.consultant-services.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultant-services.all.*'],
-                    ['label' => 'Report Consultants', 'route' => 'admin.consultants.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'consultants', 'action' => 'read', 'active' => 'admin.consultants.reports.*'],
-                ],
-            ],
-            'service_providers' => [
-                'label' => 'Services',
-                'icon' => 'fa-solid fa-screwdriver-wrench',
-                'active_routes' => ['admin.service_providers.*', 'admin.service-provider-services.*'],
-                'items' => [
-                    ['label' => 'All Service Providers', 'route' => 'admin.service_providers.index', 'icon' => 'fa-solid fa-list', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service_providers.*', 'active_except' => ['admin.service_providers.reports.*']],
-                    ['label' => 'Create Service', 'route' => 'admin.service-provider-services.create', 'icon' => 'fa-solid fa-plus', 'module' => 'service_providers', 'action' => 'add', 'active' => 'admin.service-provider-services.create'],
-                    ['label' => 'Services Approval', 'route' => 'admin.service-provider-services.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'service_providers', 'action' => 'approve', 'active' => 'admin.service-provider-services.*', 'active_except' => ['admin.service-provider-services.all.*', 'admin.service-provider-services.create']],
-                    ['label' => 'All Services', 'route' => 'admin.service-provider-services.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service-provider-services.all.*'],
-                    ['label' => 'Report Services', 'route' => 'admin.service_providers.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'service_providers', 'action' => 'read', 'active' => 'admin.service_providers.reports.*'],
-                ],
-            ],
-            'educators' => [
-                'label' => 'Teachers & Tutors',
-                'icon' => 'fa-solid fa-chalkboard-user',
-                'active_routes' => ['admin.educators.*', 'admin.study-materials.*'],
-                'items' => [
-                    ['label' => 'All Educators', 'route' => 'admin.educators.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'read', 'active' => 'admin.educators.*'],
-                    ['label' => 'Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-book-open', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
-                ],
-            ],
-            'schools' => [
-                'label' => 'Schools',
-                'icon' => 'fa-solid fa-school',
-                'active_routes' => ['admin.schools.*'],
-                'items' => [
-                    ['label' => 'All Schools', 'route' => 'admin.schools.index', 'icon' => 'fa-solid fa-list', 'module' => 'schools', 'action' => 'read', 'active' => 'admin.schools.*'],
-                ],
-            ],
-            'institutes' => [
-                'label' => 'Institutes',
-                'icon' => 'fa-solid fa-building-columns',
-                'active_routes' => ['admin.institutes.*'],
-                'items' => [
-                    ['label' => 'All Institutes', 'route' => 'admin.institutes.index', 'icon' => 'fa-solid fa-list', 'module' => 'institutes', 'action' => 'read', 'active' => 'admin.institutes.*'],
+            'education' => [
+                'label' => 'Education',
+                'icon' => 'fa-solid fa-graduation-cap',
+                'active_routes' => ['admin.educators.*', 'admin.study-materials.*', 'admin.schools.*', 'admin.institutes.*'],
+                'groups' => [
+                    'educators' => [
+                        'label' => 'Teachers & Tutors',
+                        'icon' => 'fa-solid fa-chalkboard-user',
+                        'active_routes' => ['admin.educators.*', 'admin.study-materials.*'],
+                        'items' => [
+                            ['label' => 'All Educators', 'route' => 'admin.educators.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'read', 'active' => 'admin.educators.*'],
+                            ['label' => 'Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-book-open', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
+                        ],
+                    ],
+                    'schools' => [
+                        'label' => 'Schools',
+                        'icon' => 'fa-solid fa-school',
+                        'active_routes' => ['admin.schools.*'],
+                        'items' => [
+                            ['label' => 'All Schools', 'route' => 'admin.schools.index', 'icon' => 'fa-solid fa-list', 'module' => 'schools', 'action' => 'read', 'active' => 'admin.schools.*'],
+                        ],
+                    ],
+                    'institutes' => [
+                        'label' => 'Institutes',
+                        'icon' => 'fa-solid fa-building-columns',
+                        'active_routes' => ['admin.institutes.*'],
+                        'items' => [
+                            ['label' => 'All Institutes', 'route' => 'admin.institutes.index', 'icon' => 'fa-solid fa-list', 'module' => 'institutes', 'action' => 'read', 'active' => 'admin.institutes.*'],
+                        ],
+                    ],
                 ],
             ],
         ];
