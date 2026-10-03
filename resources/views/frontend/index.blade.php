@@ -208,6 +208,7 @@
   $homepageConsultants = collect($topConsultants ?? []);
   $showCommunityHubSection = data_get($sectionToggles, 'community_hub', true);
   $homepageCommunityPosts = collect($homepageCommunityPosts ?? []);
+  $useHomepageDiscoverGrid = true;
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -488,6 +489,24 @@
   <!-- LEFT / MAIN COLUMN -->
   <div class="main-col">
 
+    @if ($useHomepageDiscoverGrid)
+      @include('frontend.partials.homepage-discover-grid', [
+          'sectionToggles' => $sectionToggles,
+          'hasLocation' => $hasLocation,
+          'recentApprovedAds' => $recentApprovedAds ?? collect(),
+          'sponsoredListingsAds' => $sponsoredListingsAds ?? collect(),
+          'offers' => $offers ?? collect(),
+          'offerDiscountTopAds' => $offerDiscountTopAds ?? collect(),
+          'offerDiscountSideAds' => $offerDiscountSideAds ?? collect(),
+          'topServiceProviders' => $topServiceProviders ?? collect(),
+          'topConsultants' => $topConsultants ?? collect(),
+          'topVendorCarouselItems' => $topVendorCarouselItems,
+          'topVendorsHeaderAdsList' => $topVendorsHeaderAdsList,
+          'homepageCommunityPosts' => $homepageCommunityPosts,
+          'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+      ])
+    @endif
+
     <!-- Top fold layout: categories + listings with right sidebar ads -->
       @if(!empty($sectionToggles['sponsored_listings']) && $sectionToggles['sponsored_listings'] || (!empty($sectionToggles['top_categories']) && $sectionToggles['top_categories']))
       <div class="top-fold-layout">
@@ -755,7 +774,7 @@
       @endif
 
     <!-- Recent Ads Section -->
-    @if(!empty($sectionToggles['recent_ads']) && $sectionToggles['recent_ads'])
+    @if(!$useHomepageDiscoverGrid && !empty($sectionToggles['recent_ads']) && $sectionToggles['recent_ads'])
 
       <div class="sec recent-ads-section">
         <div class="sec-head">
@@ -817,7 +836,7 @@
     @endif
 
     <!-- Offer & Discount Section -->
-    @if(!empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
+    @if(!$useHomepageDiscoverGrid && !empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
 
       <div class="sec promo-slider-section">
         <div class="sec-head">
@@ -1222,7 +1241,7 @@
       <div class="content-with-ad-rail">
         <div class="content-main-stack">
           <!-- Top Vendors -->
-          @if($showTopVendors)
+          @if($showTopVendors && !$useHomepageDiscoverGrid)
 
           <div class="sec recent-ads-section top-vendors-section">
             <div class="sec-head">
@@ -1576,7 +1595,7 @@
     @endif
 
     <!-- Popular Services -->
-    @if($showServiceProvidersSection)
+    @if($showServiceProvidersSection && !$useHomepageDiscoverGrid)
       <div class="sec promo-slider-section">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span> Popular Services</div>
@@ -1632,7 +1651,7 @@
     @endif
 
     <!-- Consultants & Enquiry -->
-    @if($showConsultantsSection)
+    @if($showConsultantsSection && !$useHomepageDiscoverGrid)
       <div class="sec promo-slider-section">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-user-tie"></i></span> Consultants &amp; Enquiry</div>
@@ -1691,7 +1710,7 @@
       </div>
     @endif -->
 
-    @if($showCommunityHubSection)
+    @if($showCommunityHubSection && !$useHomepageDiscoverGrid)
       @include('frontend.partials.community-hub-home-section', [
           'homepageCommunityPosts' => $homepageCommunityPosts,
           'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
@@ -1756,6 +1775,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-showcase.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-discover-grid.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">

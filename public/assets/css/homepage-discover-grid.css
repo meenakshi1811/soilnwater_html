@@ -1,0 +1,506 @@
+/**
+ * Homepage discover grid — Popular Services, Consultants, Vendors, Ads, Offers, Education, Community
+ */
+
+.homepage-discover-section {
+  background: #eef2f7;
+  padding: 24px 20px 28px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.homepage-discover-section__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.homepage-discover-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.homepage-discover-panel {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px 16px 20px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.homepage-discover-panel--education,
+.homepage-discover-panel--community {
+  min-height: 0;
+}
+
+.homepage-discover-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.homepage-discover-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.homepage-discover-panel__enquiry {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.homepage-discover-panel__title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.homepage-discover-panel__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.homepage-discover-panel__icon--services {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.homepage-discover-panel__icon--consultant {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.homepage-discover-panel__icon--vendor {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.homepage-discover-panel__icon--ads {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.homepage-discover-panel__icon--offers {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.homepage-discover-panel__icon--education {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.homepage-discover-panel__icon--community {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.homepage-discover-panel__title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.homepage-discover-panel__subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #64748b;
+  margin: 0;
+}
+
+.homepage-discover-panel__view-all {
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  white-space: nowrap;
+  padding-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.homepage-discover-panel__view-all:hover {
+  color: #1d4ed8;
+}
+
+.homepage-discover-panel__view-all i {
+  font-size: 0.7rem;
+}
+
+.homepage-discover-carousel {
+  --carousel-gap: 12px;
+  --carousel-visible: 2;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 2px;
+}
+
+.homepage-discover-carousel[data-carousel-cols="2"] {
+  --carousel-visible: 2;
+}
+
+.homepage-discover-carousel .card-carousel-track {
+  padding-bottom: 4px;
+}
+
+.homepage-discover-carousel .ad-slider-arrows {
+  padding: 0 4px;
+}
+
+.homepage-discover-carousel .ad-slider-arrow {
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  color: #334155;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.homepage-discover-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.homepage-discover-card:hover {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+  color: inherit;
+}
+
+.homepage-discover-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.homepage-discover-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.homepage-discover-card__ad-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.homepage-discover-card__body {
+  padding: 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+}
+
+.homepage-discover-card__title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1e3a8a;
+  margin: 0;
+}
+
+.homepage-discover-card__meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #64748b;
+  margin: 0;
+}
+
+.homepage-discover-card__loc,
+.homepage-discover-card__rating {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #475569;
+}
+
+.homepage-discover-card__loc i {
+  color: #ea580c;
+  font-size: 0.7rem;
+}
+
+.homepage-discover-card__rating {
+  margin-top: 2px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.homepage-discover-card__rating i {
+  color: #f59e0b;
+  font-size: 0.72rem;
+}
+
+.homepage-discover-card__rating-count {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.homepage-discover-card--offer .homepage-discover-card__badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+[data-slide-by="card"] .card-carousel-item > .homepage-discover-card {
+  height: 100%;
+}
+
+.homepage-discover-offers-banner {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.homepage-discover-offers-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 120px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.homepage-discover-education {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 180px;
+}
+
+.homepage-discover-education__visual {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e2e8f0;
+  min-height: 160px;
+}
+
+.homepage-discover-education__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  min-height: 160px;
+}
+
+.homepage-discover-education__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.homepage-discover-education__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.homepage-discover-education__tile:hover {
+  color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.homepage-discover-education__tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.homepage-discover-community-carousel {
+  --carousel-visible: 3;
+}
+
+.homepage-discover-community-carousel[data-carousel-cols="3"] {
+  --carousel-visible: 3;
+}
+
+.homepage-discover-story-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.homepage-discover-story-card__media {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.homepage-discover-story-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.homepage-discover-story-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dbeafe, #dcfce7);
+  color: #2563eb;
+  font-size: 1.5rem;
+}
+
+.homepage-discover-story-card__title {
+  margin: 10px 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #1e40af;
+  text-align: center;
+}
+
+.homepage-discover-panel__premium {
+  margin-top: 4px;
+}
+
+@media (max-width: 991px) {
+  .homepage-discover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-discover-carousel {
+    --carousel-visible: 1;
+    overflow: visible;
+  }
+
+  .homepage-discover-carousel .card-carousel-viewport {
+    overflow: visible;
+  }
+
+  .homepage-discover-carousel .card-carousel-item {
+    flex: 0 0 min(78vw, 320px);
+    max-width: min(78vw, 320px);
+  }
+
+  .homepage-discover-community-carousel .card-carousel-item {
+    flex: 0 0 min(72vw, 280px);
+    max-width: min(72vw, 280px);
+  }
+
+  .homepage-discover-education {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-discover-education__visual {
+    max-height: 160px;
+  }
+
+  .homepage-discover-education__visual img {
+    min-height: 140px;
+    max-height: 160px;
+  }
+}
+
+@media (max-width: 575px) {
+  .homepage-discover-section {
+    padding: 18px 12px 22px;
+  }
+
+  .homepage-discover-panel {
+    padding: 14px 12px 16px;
+  }
+}
