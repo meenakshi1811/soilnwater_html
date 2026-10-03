@@ -1117,23 +1117,41 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips {
-    padding: 10px 0 12px;
-    background: #fff;
-    border-bottom: 1px solid #eef2f6;
+    position: relative;
+    padding: 12px 12px 16px;
+    background: linear-gradient(180deg, #eef2f7 0%, #f8fafc 100%);
+    border-bottom: 1px solid #dbe3ef;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  }
+
+  .homepage-root .hero-hub-cards__mobile-kicker {
+    margin: 0 4px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #0f172a;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-cards__inner {
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x proximity;
-    scroll-padding-inline: 14px;
-    padding: 2px 14px 6px;
+    scroll-padding-inline: 12px;
+    padding: 14px 12px 12px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    background: #fff;
+    border: 1px solid #dbe3ef;
+    border-radius: 16px;
+    box-shadow:
+      0 8px 22px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-cards__inner::-webkit-scrollbar {
@@ -1141,8 +1159,8 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card {
-    flex: 0 0 4.65rem;
-    width: 4.65rem;
+    flex: 0 0 5.35rem;
+    width: 5.35rem;
     scroll-snap-align: start;
     min-height: 0;
     padding: 0;
@@ -1152,9 +1170,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     grid-template-rows: unset;
     text-align: center;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card:active .hero-hub-card__icon {
+    transform: scale(0.94);
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card:hover {
@@ -1165,10 +1187,13 @@
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__icon {
     width: 100%;
     aspect-ratio: 1;
-    max-width: 4.65rem;
+    max-width: 5.35rem;
     margin: 0;
-    border-radius: 12px;
-    font-size: 1.65rem;
+    border-radius: 14px;
+    font-size: 1.9rem;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--businesses .hero-hub-card__icon {
@@ -1202,12 +1227,12 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title {
-    font-size: 0.6875rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+    font-weight: 800;
     line-height: 1.2;
     margin: 0;
     color: #0f172a;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     width: 100%;
   }
 
@@ -1476,13 +1501,13 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card {
-    flex: 0 0 4.35rem;
-    width: 4.35rem;
+    flex: 0 0 5rem;
+    width: 5rem;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__icon {
-    max-width: 4.35rem;
-    font-size: 1.5rem;
+    max-width: 5rem;
+    font-size: 1.75rem;
   }
 
   .header-mobile-menu.show,

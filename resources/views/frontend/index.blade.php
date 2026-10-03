@@ -300,6 +300,7 @@
 
 
 <section class="hero-hub-cards hero-hub-cards--mobile-rail hero-hub-cards--mobile-chips" aria-label="Explore SoilnWater">
+  <p class="hero-hub-cards__mobile-kicker d-lg-none">Explore SoilnWater</p>
   <div class="hero-hub-cards__inner">
     <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
