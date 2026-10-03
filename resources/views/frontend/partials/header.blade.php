@@ -18,7 +18,7 @@
         'searchInputId' => 'mobileHomeSearchQuery',
         'showModuleSelect' => false,
         'activeSearchModule' => 'offers',
-        'searchPlaceholderOverride' => 'Search businesses & offers',
+        'searchPlaceholderOverride' => 'Search…',
         'searchSubmitText' => 'Search',
       ])
     </div>
