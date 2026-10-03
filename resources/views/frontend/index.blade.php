@@ -293,22 +293,16 @@
 <section class="hero-hub-cards hero-hub-cards--mobile-rail hero-hub-cards--mobile-chips" aria-label="Explore SoilnWater">
   <p class="hero-hub-cards__mobile-kicker d-lg-none">Explore SoilnWater</p>
   <div class="hero-hub-cards__inner">
-    <a href="{{ route('frontend.vendors.index') }}" class="hero-hub-card hero-hub-card--businesses">
+    <a href="{{ route('frontend.businesses.hub') }}" class="hero-hub-card hero-hub-card--businesses">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
       <h2 class="hero-hub-card__title">Businesses</h2>
-      <p class="hero-hub-card__desc">Discover local businesses and shops</p>
+      <p class="hero-hub-card__desc">Vendors, consultants &amp; services</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
-    <a href="{{ route('frontend.service_providers.index') }}" class="hero-hub-card hero-hub-card--services">
-      <span class="hero-hub-card__icon hero-hub-card__icon--wrench" aria-hidden="true"><i class="fa-solid fa-wrench"></i></span>
-      <h2 class="hero-hub-card__title">Services</h2>
-      <p class="hero-hub-card__desc">Find reliable service providers</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a href="{{ route('frontend.consultants.index') }}" class="hero-hub-card hero-hub-card--consultants">
-      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-user"></i></span>
-      <h2 class="hero-hub-card__title">Consultants</h2>
-      <p class="hero-hub-card__desc">Connect with experts and professionals</p>
+    <a href="{{ route('frontend.ads.index') }}" class="hero-hub-card hero-hub-card--ads">
+      <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-rectangle-ad"></i></span>
+      <h2 class="hero-hub-card__title">Ads</h2>
+      <p class="hero-hub-card__desc">Browse classified and property ads</p>
       <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">

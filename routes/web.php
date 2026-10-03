@@ -133,6 +133,7 @@ Route::post('/offers-market/{offer}/report', [OfferReportController::class, 'sto
 Route::get('/vendors/categories', [OfferPageController::class, 'vendorCategories'])->name('frontend.vendors.categories');
 Route::get('/vendors/premium', [OfferPageController::class, 'premiumVendors'])->name('frontend.vendors.premium');
 Route::get('/vendors/listings', [OfferPageController::class, 'vendorListings'])->name('frontend.vendors.listings');
+Route::view('/businesses', 'frontend.businesses-hub')->name('frontend.businesses.hub');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
 Route::get('/consultants/categories', [OfferPageController::class, 'consultantCategories'])->name('frontend.consultants.categories');
 Route::get('/consultants/premium', [OfferPageController::class, 'premiumConsultants'])->name('frontend.consultants.premium');

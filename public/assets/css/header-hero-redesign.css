@@ -635,7 +635,7 @@
   max-width: 1240px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
 }
@@ -767,6 +767,14 @@
 
 .homepage-root .hero-hub-card--community .hero-hub-card__icon {
   color: #166534;
+}
+
+.homepage-root .hero-hub-card--ads {
+  background: #fefce8;
+}
+
+.homepage-root .hero-hub-card--ads .hero-hub-card__icon {
+  color: #ca8a04;
 }
 
 @media (min-width: 992px) and (max-width: 1199px) {
@@ -1256,6 +1264,11 @@
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--community .hero-hub-card__icon {
     background: #f0fdf4;
     color: #166534;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--ads .hero-hub-card__icon {
+    background: #fefce8;
+    color: #ca8a04;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title {
