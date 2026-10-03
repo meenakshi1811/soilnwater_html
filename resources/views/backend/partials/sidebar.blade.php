@@ -111,25 +111,43 @@
 
     .admin-sidebar-group > details > summary .fa-chevron-down {
         transition: transform 0.2s ease;
+        flex-shrink: 0;
     }
 
     .admin-sidebar-group > details[open] > summary .fa-chevron-down {
         transform: rotate(180deg);
     }
 
-    .admin-sidebar-nested-label {
-        margin-top: 0.65rem;
-        padding: 0.35rem 0.82rem 0.2rem;
-        font-size: 0.72rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.72);
-        font-weight: 800;
+    .admin-sidebar-subgroup {
         list-style: none;
     }
 
-    .admin-sidebar-nested-label:first-child {
-        margin-top: 0.15rem;
+    .admin-sidebar-subgroup__summary {
+        list-style: none;
+        cursor: pointer;
+        width: 100%;
+        padding: 0.55rem 0.82rem;
+        color: inherit;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .admin-sidebar-subgroup__summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .admin-sidebar-subgroup__summary .fa-chevron-down {
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .admin-sidebar-subgroup > details[open] > summary .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+
+    .admin-sidebar-subgroup__summary:hover,
+    .admin-sidebar-subgroup__summary.active {
+        background: rgba(255, 255, 255, 0.12);
     }
 </style>
 <aside class="admin-sidebar">
