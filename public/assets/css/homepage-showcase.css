@@ -18,6 +18,17 @@
   width: 100%;
 }
 
+.homepage-showcase-section__inner--businesses-only {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 720px;
+}
+
+@media (min-width: 992px) {
+  .homepage-showcase-section__inner--businesses-only {
+    max-width: 960px;
+  }
+}
+
 @media (min-width: 992px) {
   .homepage-showcase-section {
     padding-left: 36px;

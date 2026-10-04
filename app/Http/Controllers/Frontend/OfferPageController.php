@@ -13,6 +13,13 @@ use App\Models\ServiceProvider;
 use App\Models\UserAd;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Support\HomepageMarketplacePromoCards;
+use App\Support\HomepagePopularNearYouCards;
+use App\Support\HomepageCommunityHubCards;
+use App\Support\HomepageConsultantsCards;
+use App\Support\HomepageEducationKnowledgeCards;
+use App\Support\HomepagePopularServicesCards;
+use App\Support\HomepageStudyMaterialLibraryCards;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +36,8 @@ class OfferPageController extends Controller
         $lng = request()->filled('lng') ? (float) request()->input('lng') : session('frontend_lng');
 
         $offers = $this->baseOfferQuery(null, $lat, $lng)
-            ->limit(10)
+            ->with(['category:id,name', 'subcategory:id,name'])
+            ->limit(12)
             ->get();
 
         $frontPageAdsQuery = UserAd::query()
@@ -72,11 +80,17 @@ class OfferPageController extends Controller
             ->latest('created_at')
             ->latest('id')
             ->limit(20)
-            ->get(['id', 'title', 'category_id', 'selected_category_ids', 'selected_modules', 'short_description', 'final_image', 'created_at']);
+            ->get(['id', 'title', 'category_id', 'selected_category_ids', 'selected_modules', 'short_description', 'final_image', 'location', 'valid_until', 'created_at']);
 
         $selectedCategoryNamesByRecentAdId = $this->resolveSelectedCategoryNamesByAdId($recentApprovedAds);
 
         $homepageSetting = HomepageSetting::query()->find(1);
+
+        $topVendors = $this->topVendorsQuery($lat, $lng)->limit(12)->get();
+        $topServiceProviders = $this->topServiceProvidersQuery($lat, $lng)->limit(12)->get();
+        $topConsultants = $this->topConsultantsQuery($lat, $lng)->limit(12)->get();
+        $hasLocation = is_numeric($lat) && is_numeric($lng);
+        $homepageCommunityPosts = $this->homepageCommunityPosts();
 
         return view('frontend.index', [
             'offers' => $offers,
@@ -97,9 +111,9 @@ class OfferPageController extends Controller
             'belowPopularAds' => $frontPageAds->where('size_type', 'below_popular_ad')->values(),
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
-            'topVendors' => $this->topVendorsQuery($lat, $lng)->limit(12)->get(),
-            'topConsultants' => $this->topConsultantsQuery($lat, $lng)->limit(15)->get(),
-            'topServiceProviders' => $this->topServiceProvidersQuery($lat, $lng)->limit(15)->get(),
+            'topVendors' => $topVendors,
+            'topConsultants' => $topConsultants,
+            'topServiceProviders' => $topServiceProviders,
             'vendorEnquiryCategories' => Category::query()
                 ->whereNull('parent_id')
                 ->forModule('vendors')
@@ -118,11 +132,32 @@ class OfferPageController extends Controller
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']),
-            'hasLocation' => is_numeric($lat) && is_numeric($lng),
+            'hasLocation' => $hasLocation,
             'homepageSetting' => $homepageSetting,
-            'homepageCommunityPosts' => $this->homepageCommunityPosts(),
+            'homepageCommunityPosts' => $homepageCommunityPosts,
             'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
             'communityEngagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            'homepageOfferPromoCards' => HomepageMarketplacePromoCards::fromOffers($offers, 8),
+            'homepageAdPromoCards' => HomepageMarketplacePromoCards::fromAds($recentApprovedAds, 8),
+            'homepagePopularNearYouCards' => HomepagePopularNearYouCards::build(
+                $topVendors,
+                $topServiceProviders,
+                $hasLocation,
+                8
+            ),
+            'homepagePopularServicesCards' => HomepagePopularServicesCards::build(
+                $topServiceProviders,
+                $hasLocation,
+                6
+            ),
+            'homepageEducationKnowledgeCards' => HomepageEducationKnowledgeCards::build(
+                is_numeric($lat) ? (float) $lat : null,
+                is_numeric($lng) ? (float) $lng : null,
+            ),
+            'homepageStudyMaterialLibraryCards' => HomepageStudyMaterialLibraryCards::build(),
+            'homepageStudyMaterialNavLinks' => HomepageStudyMaterialLibraryCards::navLinks(),
+            'homepageConsultantsCards' => HomepageConsultantsCards::build($topConsultants, $hasLocation, 6),
+            'homepageCommunityHubCards' => HomepageCommunityHubCards::build($homepageCommunityPosts, 6),
         ]);
     }
 

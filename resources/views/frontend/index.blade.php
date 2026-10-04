@@ -124,43 +124,39 @@
       'strip_primary' => 'Styling help and alteration support in-store',
       'strip_secondary' => '4.7★ rating · 67 reviews · Try at shop',
     ],
-  ];
-  $homepageLatestOffers = [
     [
-      'business' => 'The Royal Treat',
-      'offer' => '20% off on all Pizzas',
-      'location' => 'Mumbai',
-      'valid_till' => '31 Oct 2026',
-      'badge' => '20% OFF',
-      'image' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=640&q=80',
-      'url' => route('frontend.offers.index'),
+      'name' => 'Spice Garden Restaurant',
+      'category' => 'Restaurant',
+      'location' => 'Rajpur Road, Dehradun',
+      'rating' => '4.5',
+      'reviews' => 182,
+      'image' => 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=900&q=80',
+      'url' => route('frontend.vendors.index'),
+      'theme' => 'orange',
+      'headline' => 'Dining deals',
+      'subheadline' => 'North Indian, Chinese & Continental',
+      'promo_badge' => 'Featured Deal',
+      'promo_title' => 'Spice Garden Restaurant',
+      'promo_sub' => 'Restaurant · Rajpur Road',
+      'strip_primary' => 'Table booking and takeaway available',
+      'strip_secondary' => '4.5★ rating · 182 reviews',
     ],
     [
-      'business' => 'Hill View Resort',
-      'offer' => 'Family Package Deal',
-      'location' => 'Mussoorie',
-      'valid_till' => '30 Nov 2026',
-      'badge' => 'UP TO 50%',
-      'image' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=640&q=80',
-      'url' => route('frontend.offers.index'),
-    ],
-    [
-      'business' => 'Glow Beauty Salon',
-      'offer' => '30% off on Hair Spa',
-      'location' => 'Dehradun',
-      'valid_till' => '15 Oct 2026',
-      'badge' => '30% OFF',
-      'image' => 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=640&q=80',
-      'url' => route('frontend.offers.index'),
-    ],
-    [
-      'business' => 'Fresh Mart Grocery',
-      'offer' => 'Buy 2 Get 1 on staples',
-      'location' => 'Dehradun',
-      'valid_till' => '20 Oct 2026',
-      'badge' => 'B1G1',
-      'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=640&q=80',
-      'url' => route('frontend.offers.index'),
+      'name' => 'FreshMart Supermarket',
+      'category' => 'Grocery Store',
+      'location' => 'ISBT Road, Dehradun',
+      'rating' => '4.3',
+      'reviews' => 156,
+      'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80',
+      'url' => route('frontend.vendors.index'),
+      'theme' => 'green',
+      'headline' => 'Daily essentials',
+      'subheadline' => 'Fresh fruits, vegetables and household needs',
+      'promo_badge' => 'Local Spotlight',
+      'promo_title' => 'FreshMart Supermarket',
+      'promo_sub' => 'Grocery · ISBT Road',
+      'strip_primary' => 'Home delivery in select areas',
+      'strip_secondary' => '4.3★ rating · 156 reviews',
     ],
   ];
   $vendorEnquiryCategoryTree = ($vendorEnquiryCategories ?? collect())
@@ -327,8 +323,8 @@
   </div>
 </section>
 
-<section class="homepage-showcase-section" aria-label="Featured businesses and latest offers">
-  <div class="homepage-showcase-section__inner">
+<section class="homepage-showcase-section" aria-label="Featured businesses">
+  <div class="homepage-showcase-section__inner homepage-showcase-section__inner--businesses-only">
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
       <header class="homepage-showcase-panel__head d-none d-lg-flex">
         <div class="homepage-showcase-panel__title-wrap">
@@ -412,74 +408,96 @@
         </div>
       </div>
     </div>
-
-    <div class="homepage-showcase-panel homepage-showcase-panel--offers">
-      <div class="homepage-popular-deals d-lg-none" aria-label="Shop popular deals">
-        <div class="homepage-popular-deals__head">
-          <h2 class="homepage-popular-deals__title">Shop popular<br>deals</h2>
-          <a class="homepage-popular-deals__view-all" href="{{ route('frontend.offers.index') }}">See all deals</a>
-        </div>
-        <div class="homepage-popular-deals__grid">
-          @foreach(array_slice($homepageLatestOffers, 0, 4) as $deal)
-            <a href="{{ $deal['url'] }}" class="homepage-popular-deals__tile">
-              <div class="homepage-popular-deals__media">
-                <img src="{{ $deal['image'] }}" alt="" loading="lazy" decoding="async" width="320" height="320">
-              </div>
-              <span class="homepage-popular-deals__badge">{{ $deal['badge'] }}</span>
-            </a>
-          @endforeach
-        </div>
-      </div>
-
-      <header class="homepage-showcase-panel__head d-none d-lg-flex">
-        <div class="homepage-showcase-panel__title-wrap">
-          <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--offers" aria-hidden="true">
-            <i class="fa-solid fa-gift"></i>
-          </span>
-          <div>
-            <h2 class="homepage-showcase-panel__title">Latest Offers &amp; Discounts</h2>
-            <p class="homepage-showcase-panel__subtitle">Exclusive offers and promotions from businesses.</p>
-          </div>
-        </div>
-        <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.offers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-      </header>
-      <div
-        class="card-carousel homepage-showcase-carousel d-none d-lg-block"
-        data-slide-by="card"
-        data-carousel-cols="2"
-        data-show-arrows="true"
-        data-show-dots="false"
-        data-pause-on-hover="true"
-        aria-label="Latest offers carousel"
-      >
-        <div class="card-carousel-track">
-          @foreach($homepageLatestOffers as $offer)
-            <div class="card-carousel-item">
-              <a href="{{ $offer['url'] }}" class="homepage-showcase-card homepage-showcase-card--offer">
-                <div class="homepage-showcase-card__media">
-                  <img src="{{ $offer['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
-                  <span class="homepage-showcase-card__badge">{{ $offer['badge'] }}</span>
-                </div>
-                <div class="homepage-showcase-card__body">
-                  <h3 class="homepage-showcase-card__name">{{ $offer['business'] }}</h3>
-                  <p class="homepage-showcase-card__meta">{{ $offer['offer'] }}</p>
-                  <p class="homepage-showcase-card__loc homepage-showcase-card__loc--accent">
-                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                    {{ $offer['location'] }}
-                  </p>
-                  <p class="homepage-showcase-card__valid">
-                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                    Valid till {{ $offer['valid_till'] }}
-                  </p>
-                </div>
-              </a>
-            </div>
-          @endforeach
-        </div>
-      </div>
-    </div>
   </div>
+
+  @include('frontend.partials.homepage-desktop-showcase', [
+      'section' => \App\Support\HomepageDesktopShowcase::section('featured-businesses'),
+      'cards' => \App\Support\HomepageDesktopShowcase::featuredBusinessCards($homepageFeaturedBusinesses ?? []),
+  ])
 </section>
+
+@if(!empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
+    @include('frontend.partials.homepage-marketplace-promo', [
+        'variant' => 'offers',
+        'cards' => $homepageOfferPromoCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('offers'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('offers', $homepageOfferPromoCards ?? []),
+    ])
+@endif
+
+@if(!empty($sectionToggles['recent_ads']) && $sectionToggles['recent_ads'])
+    @include('frontend.partials.homepage-marketplace-promo', [
+        'variant' => 'ads',
+        'cards' => $homepageAdPromoCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('ads'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('ads', $homepageAdPromoCards ?? []),
+    ])
+@endif
+
+@if(!empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'])
+    @include('frontend.partials.homepage-popular-near-you', [
+        'cards' => $homepagePopularNearYouCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('popular-near'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('popular-near', $homepagePopularNearYouCards ?? []),
+    ])
+@endif
+
+@if($showServiceProvidersSection)
+    @include('frontend.partials.homepage-popular-services', [
+        'cards' => $homepagePopularServicesCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('services'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('services', $homepagePopularServicesCards ?? []),
+    ])
+@endif
+
+@if($showPremiumOptions)
+    @include('frontend.partials.homepage-education-knowledge', [
+        'cards' => $homepageEducationKnowledgeCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('education'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('education', $homepageEducationKnowledgeCards ?? []),
+    ])
+@endif
+
+@if($showPremiumOptions)
+    @include('frontend.partials.homepage-study-material-library', [
+        'cards' => $homepageStudyMaterialLibraryCards ?? [],
+        'navLinks' => $homepageStudyMaterialNavLinks ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('study-material'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('study-material', $homepageStudyMaterialLibraryCards ?? []),
+    ])
+@endif
+
+@if($showConsultantsSection)
+    @include('frontend.partials.homepage-consultants', [
+        'cards' => $homepageConsultantsCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('consultants'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('consultants', $homepageConsultantsCards ?? []),
+    ])
+@endif
+
+@if($showCommunityHubSection)
+    @include('frontend.partials.homepage-community-hub', [
+        'cards' => $homepageCommunityHubCards ?? [],
+    ])
+    @include('frontend.partials.homepage-desktop-showcase', [
+        'section' => \App\Support\HomepageDesktopShowcase::section('community'),
+        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('community', $homepageCommunityHubCards ?? []),
+    ])
+@endif
 
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
@@ -491,6 +509,13 @@
 
     @if ($useHomepageDiscoverGrid)
       @include('frontend.partials.homepage-discover-grid', [
+          'showOffersInDiscover' => false,
+          'showAdsInDiscover' => false,
+          'showVendorsInDiscover' => false,
+          'showServicesInDiscover' => false,
+          'showEducationInDiscover' => false,
+          'showConsultantsInDiscover' => false,
+          'showCommunityInDiscover' => false,
           'sectionToggles' => $sectionToggles,
           'hasLocation' => $hasLocation,
           'recentApprovedAds' => $recentApprovedAds ?? collect(),
@@ -1779,6 +1804,14 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-showcase.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-desktop-showcase.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-marketplace-promo.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-popular-near-you.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-popular-services.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-education-knowledge.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-study-material-library.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-consultants.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-community-hub.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-discover-grid.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-vendors-mobile.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">

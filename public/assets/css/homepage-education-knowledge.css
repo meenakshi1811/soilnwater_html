@@ -1,0 +1,332 @@
+/**
+ * Education & Knowledge — blue shell + learning cards.
+ */
+
+.homepage-education-knowledge {
+  padding: 14px 0 6px;
+  background: #eef2f7;
+}
+
+.homepage-education-knowledge__shell {
+  margin: 0 14px;
+  padding: 18px 14px 16px;
+  border-radius: 22px;
+  background: linear-gradient(165deg, #2563eb 0%, #1d4ed8 40%, #1e40af 100%);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+}
+
+.homepage-education-knowledge__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.homepage-education-knowledge__head-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.homepage-education-knowledge__head-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.35rem;
+}
+
+.homepage-education-knowledge__spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #fde047;
+  box-shadow: 0 0 0 2px rgba(253, 224, 71, 0.35);
+}
+
+.homepage-education-knowledge__spark--a {
+  top: 0;
+  right: 0;
+}
+
+.homepage-education-knowledge__spark--b {
+  top: 8px;
+  left: -3px;
+  width: 5px;
+  height: 5px;
+}
+
+.homepage-education-knowledge__spark--c {
+  bottom: 4px;
+  right: -2px;
+}
+
+.homepage-education-knowledge__title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.35rem, 4.2vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.homepage-education-knowledge__title-accent {
+  color: #bae6fd;
+}
+
+.homepage-education-knowledge__subtitle {
+  margin: 4px 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.homepage-education-knowledge__see-all {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.homepage-education-knowledge__see-all i {
+  font-size: 0.72rem;
+  margin-left: 2px;
+}
+
+.homepage-education-knowledge__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.homepage-education-knowledge-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  min-height: 100%;
+}
+
+.homepage-education-knowledge-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.homepage-education-knowledge-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.homepage-education-knowledge-card__category {
+  position: absolute;
+  top: 10px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #fff;
+  max-width: calc(100% - 16px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.homepage-education-knowledge-card__category i {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.homepage-education-knowledge-card__category--purple {
+  background: #7c3aed;
+}
+
+.homepage-education-knowledge-card__category--green {
+  background: #16a34a;
+}
+
+.homepage-education-knowledge-card__category--orange {
+  background: #ea580c;
+}
+
+.homepage-education-knowledge-card__category--red {
+  background: #dc2626;
+}
+
+.homepage-education-knowledge-card__body {
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.homepage-education-knowledge-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.homepage-education-knowledge-card__title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;
+  min-width: 0;
+}
+
+.homepage-education-knowledge-card__rating {
+  margin: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.homepage-education-knowledge-card__rating i {
+  color: #eab308;
+  font-size: 0.6875rem;
+}
+
+.homepage-education-knowledge-card__desc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.homepage-education-knowledge-card__desc {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: #64748b;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.homepage-education-knowledge-card__reviews {
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.homepage-education-knowledge-card__location {
+  margin: 2px 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.homepage-education-knowledge-card__location i {
+  color: #16a34a;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .homepage-education-knowledge {
+    padding: 18px 0 8px;
+  }
+
+  .homepage-education-knowledge__shell {
+    margin: 0 24px;
+    padding: 22px 20px 20px;
+    border-radius: 24px;
+  }
+
+  .homepage-education-knowledge__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .homepage-education-knowledge-card__body {
+    padding: 12px 14px 14px;
+  }
+
+  .homepage-education-knowledge-card__title {
+    font-size: 0.9375rem;
+  }
+
+  .homepage-education-knowledge-card__desc,
+  .homepage-education-knowledge-card__reviews,
+  .homepage-education-knowledge-card__location {
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .homepage-education-knowledge__shell {
+    max-width: none;
+    margin: 0 36px;
+    padding: 24px 22px 22px;
+  }
+
+  .homepage-education-knowledge__grid {
+    gap: 16px;
+  }
+
+  .homepage-education-knowledge__title {
+    font-size: 1.75rem;
+  }
+
+  .homepage-education-knowledge__subtitle {
+    font-size: 0.875rem;
+  }
+
+  .homepage-education-knowledge-card__title {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .homepage-education-knowledge__shell {
+    margin-left: 48px;
+    margin-right: 48px;
+  }
+}

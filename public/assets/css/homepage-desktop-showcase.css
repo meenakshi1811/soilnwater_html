@@ -1,0 +1,391 @@
+/**
+ * Homepage desktop showcase — hero + 3×2 card grid (lg+).
+ */
+
+.hp-desktop {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .homepage-marketplace-promo,
+  .homepage-popular-near,
+  .homepage-popular-services,
+  .homepage-education-knowledge,
+  .homepage-study-library,
+  .homepage-consultants,
+  .homepage-community-hub {
+    display: none !important;
+  }
+
+  .homepage-showcase-section .homepage-showcase-panel__head.d-none,
+  .homepage-showcase-section .homepage-showcase-carousel,
+  .homepage-featured-promo-rail {
+    display: none !important;
+  }
+
+  .homepage-showcase-section {
+    padding-bottom: 0;
+    background: #eef2f7;
+  }
+
+  .hp-desktop {
+    display: block;
+    padding: 0 36px 28px;
+    background: #eef2f7;
+  }
+
+  .hp-desktop__hero {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 22px;
+    min-height: 168px;
+    background-image: var(--hp-desktop-hero);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .hp-desktop__hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 42%, rgba(255, 255, 255, 0.55) 100%);
+  }
+
+  .hp-desktop__hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 26px;
+  }
+
+  .hp-desktop__hero-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .hp-desktop__hero-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    color: #2563eb;
+  }
+
+  .hp-desktop__hero-icon--pin-ring {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 3px solid #dc2626;
+    color: #dc2626;
+    background: #fff;
+  }
+
+  .hp-desktop__hero-icon--award {
+    color: #ca8a04;
+    font-size: 2rem;
+  }
+
+  .hp-desktop__title {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+  }
+
+  .hp-desktop__title-accent {
+    color: #15803d;
+  }
+
+  .hp-desktop--offers .hp-desktop__title-accent,
+  .hp-desktop--ads .hp-desktop__title-accent {
+    color: #15803d;
+  }
+
+  .hp-desktop--education .hp-desktop__title-accent {
+    color: #2563eb;
+  }
+
+  .hp-desktop--study-material .hp-desktop__title-accent {
+    color: #16a34a;
+  }
+
+  .hp-desktop--consultants .hp-desktop__title-accent {
+    color: #1d4ed8;
+  }
+
+  .hp-desktop--community .hp-desktop__title-accent {
+    color: #15803d;
+  }
+
+  .hp-desktop__subtitle {
+    margin: 6px 0 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: #64748b;
+    max-width: 640px;
+  }
+
+  .hp-desktop__chips {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .hp-desktop__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .hp-desktop__chip i {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #fff;
+  }
+
+  .hp-desktop__chip--green i { background: #16a34a; }
+  .hp-desktop__chip--orange i { background: #ea580c; }
+  .hp-desktop__chip--blue i { background: #2563eb; }
+  .hp-desktop__chip--purple i { background: #7c3aed; }
+  .hp-desktop__chip--red i { background: #dc2626; }
+  .hp-desktop__chip--pink i { background: #db2777; }
+  .hp-desktop__chip--teal i { background: #0d9488; }
+  .hp-desktop__chip--amber i { background: #d97706; }
+
+  .hp-desktop__cta {
+    flex-shrink: 0;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: #14532d;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(20, 83, 45, 0.25);
+  }
+
+  .hp-desktop__cta:hover {
+    color: #fff;
+    background: #166534;
+  }
+
+  .hp-desktop__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .hp-desktop-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .hp-desktop-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+    color: inherit;
+  }
+
+  .hp-desktop-card__media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+
+  .hp-desktop-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hp-desktop-card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #fff;
+    max-width: calc(100% - 24px);
+  }
+
+  .hp-desktop-card__badge i { font-size: 0.625rem; }
+
+  .hp-desktop-card__badge--orange { background: #ea580c; }
+  .hp-desktop-card__badge--pink { background: #db2777; }
+  .hp-desktop-card__badge--blue { background: #2563eb; }
+  .hp-desktop-card__badge--green { background: #16a34a; }
+  .hp-desktop-card__badge--purple { background: #7c3aed; }
+  .hp-desktop-card__badge--indigo { background: #4f46e5; }
+  .hp-desktop-card__badge--teal { background: #0d9488; }
+  .hp-desktop-card__badge--red { background: #dc2626; }
+  .hp-desktop-card__badge--amber { background: #d97706; }
+  .hp-desktop-card__badge--brown { background: #92400e; }
+  .hp-desktop-card__badge--slate { background: #475569; }
+
+  .hp-desktop-card__discount {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-align: center;
+    max-width: 42%;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  }
+
+  .hp-desktop-card__body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .hp-desktop-card__title {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #0f172a;
+  }
+
+  .hp-desktop-card__desc {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: #64748b;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .hp-desktop-card__foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .hp-desktop-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .hp-desktop-card__loc,
+  .hp-desktop-card__rating,
+  .hp-desktop-card__offer-meta,
+  .hp-desktop-card__study-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .hp-desktop-card__loc i { color: #dc2626; }
+  .hp-desktop-card__rating i { color: #eab308; }
+  .hp-desktop-card__offer-meta i { color: #dc2626; }
+
+  .hp-desktop-card__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .hp-desktop-card__action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .hp-desktop-card__action--orange { background: #ffedd5; color: #c2410c; }
+  .hp-desktop-card__action--pink { background: #fce7f3; color: #be185d; }
+  .hp-desktop-card__action--blue { background: #dbeafe; color: #1d4ed8; }
+  .hp-desktop-card__action--green { background: #dcfce7; color: #15803d; }
+  .hp-desktop-card__action--purple { background: #ede9fe; color: #6d28d9; }
+  .hp-desktop-card__action--indigo { background: #e0e7ff; color: #4338ca; }
+  .hp-desktop-card__action--teal { background: #ccfbf1; color: #0f766e; }
+  .hp-desktop-card__action--red { background: #fee2e2; color: #b91c1c; }
+  .hp-desktop-card__action--amber { background: #fef3c7; color: #b45309; }
+  .hp-desktop-card__action--brown { background: #fef3c7; color: #92400e; }
+  .hp-desktop-card__action--slate { background: #f1f5f9; color: #475569; }
+}
+
+@media (min-width: 1200px) {
+  .hp-desktop {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+
+  .hp-desktop__title {
+    font-size: 2.125rem;
+  }
+}

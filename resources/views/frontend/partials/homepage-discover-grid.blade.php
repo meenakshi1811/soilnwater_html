@@ -5,12 +5,20 @@
 
     $hasLocation = $hasLocation ?? false;
     $sectionToggles = $sectionToggles ?? [];
-    $showRecentAds = ! empty($sectionToggles['recent_ads']);
-    $showOffers = ! empty($sectionToggles['offer_discount']);
-    $showVendors = ! empty($sectionToggles['top_vendors']);
-    $showServices = ! empty($sectionToggles['popular_services']);
-    $showConsultants = ! empty($sectionToggles['consultants_enquiry']);
-    $showCommunity = data_get($sectionToggles, 'community_hub', true);
+    $showRecentAds = ($showAdsInDiscover ?? true) && ! empty($sectionToggles['recent_ads']);
+    $showOffers = ($showOffersInDiscover ?? true) && ! empty($sectionToggles['offer_discount']);
+    $showVendors = ($showVendorsInDiscover ?? true) && ! empty($sectionToggles['top_vendors']);
+    $showServices = ($showServicesInDiscover ?? true) && ! empty($sectionToggles['popular_services']);
+    $showConsultants = ($showConsultantsInDiscover ?? true) && ! empty($sectionToggles['consultants_enquiry']);
+    $showCommunity = ($showCommunityInDiscover ?? true) && data_get($sectionToggles, 'community_hub', true);
+    $showEducationPanel = ($showEducationInDiscover ?? true);
+    $hasDiscoverPanels = $showRecentAds
+        || $showOffers
+        || $showServices
+        || $showConsultants
+        || $showVendors
+        || $showEducationPanel
+        || $showCommunity;
     $showPremiumOptions = data_get($sectionToggles, 'premium_options', true);
 
     $mergeDiscoverCarousel = static function ($entities, $ads, string $entityType, int $interval = 4) {
@@ -85,6 +93,7 @@
     $communityHubSections = $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
 @endphp
 
+@if ($hasDiscoverPanels)
 <section class="homepage-discover-section" aria-label="Discover SoilnWater">
     <div class="homepage-discover-section__inner">
         <div class="homepage-discover-grid">
@@ -437,6 +446,7 @@
                 </div>
             @endif
 
+            @if ($showEducationPanel)
             <div class="homepage-discover-panel homepage-discover-panel--education homepage-discover-panel--order-education">
                 <header class="homepage-discover-panel__head">
                     <div class="homepage-discover-panel__title-wrap">
@@ -476,6 +486,7 @@
                 </div>
                 </div>
             </div>
+            @endif
 
             @if ($showCommunity)
                 <div class="homepage-discover-panel homepage-discover-panel--community homepage-discover-panel--order-community">
@@ -552,3 +563,4 @@
         </div>
     </div>
 </section>
+@endif
