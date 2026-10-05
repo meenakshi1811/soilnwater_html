@@ -400,10 +400,9 @@
     font-size: 0.75rem;
     line-height: 1.35;
     color: #64748b;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .hp-desktop-card__foot {
@@ -428,9 +427,22 @@
   .hp-desktop-card__rating,
   .hp-desktop-card__offer-meta,
   .hp-desktop-card__study-meta {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hp-desktop-card__loc i,
+  .hp-desktop-card__rating i,
+  .hp-desktop-card__offer-meta i {
+    display: inline;
+    margin-right: 4px;
+  }
+
+  .hp-desktop-card__stats span {
+    display: block;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -461,6 +473,9 @@
     font-size: 0.6875rem;
     font-weight: 700;
     white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .hp-desktop-card__action--orange { background: #ffedd5; color: #c2410c; }
