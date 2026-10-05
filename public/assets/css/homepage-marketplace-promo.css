@@ -291,9 +291,19 @@
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
-  /* Tablet-only tweaks; phones use compact block below */
+  .homepage-marketplace-promo__shell {
+    margin: 0 22px;
+    padding: 14px 16px 14px;
+  }
+
   .homepage-marketplace-promo__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    row-gap: 18px;
+  }
+
+  .homepage-marketplace-promo__head {
+    margin-bottom: 12px;
   }
 }
 
@@ -395,7 +405,8 @@
   .homepage-marketplace-promo__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    gap: 12px;
+    row-gap: 14px;
     overflow: visible;
   }
 

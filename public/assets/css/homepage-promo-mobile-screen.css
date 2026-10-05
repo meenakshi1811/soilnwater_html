@@ -122,7 +122,8 @@
   .homepage-community-hub__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 12px;
+    row-gap: 14px;
     overflow: visible;
   }
 
@@ -241,6 +242,46 @@
   .homepage-consultants-card__reviews,
   .homepage-community-hub-card__reviews {
     font-size: 0.5625rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .homepage-popular-near,
+  .homepage-popular-services,
+  .homepage-education-knowledge,
+  .homepage-study-library,
+  .homepage-consultants,
+  .homepage-community-hub {
+    padding: 10px 0 6px;
+  }
+
+  .homepage-popular-near__shell,
+  .homepage-popular-services__shell,
+  .homepage-education-knowledge__shell,
+  .homepage-study-library__shell,
+  .homepage-consultants__shell,
+  .homepage-community-hub__shell {
+    margin: 0 22px;
+    padding: 14px 16px 14px;
+  }
+
+  .homepage-popular-near__head,
+  .homepage-popular-services__head,
+  .homepage-education-knowledge__head,
+  .homepage-study-library__head,
+  .homepage-consultants__head,
+  .homepage-community-hub__head {
+    margin-bottom: 12px;
+  }
+
+  .homepage-popular-near__grid,
+  .homepage-popular-services__grid,
+  .homepage-education-knowledge__grid,
+  .homepage-study-library__grid,
+  .homepage-consultants__grid,
+  .homepage-community-hub__grid {
+    gap: 16px;
+    row-gap: 18px;
   }
 }
 
