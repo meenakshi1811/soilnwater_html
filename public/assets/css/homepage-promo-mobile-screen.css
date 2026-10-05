@@ -3,7 +3,8 @@
  */
 
 @media (max-width: 991.98px) {
-  .homepage-marketplace-promo,
+  /* Offers/ads: compact rules live in homepage-marketplace-promo.css */
+
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
@@ -13,7 +14,6 @@
     padding: 8px 0 4px;
   }
 
-  .homepage-marketplace-promo__shell,
   .homepage-popular-near__shell,
   .homepage-popular-services__shell,
   .homepage-education-knowledge__shell,
@@ -25,7 +25,6 @@
     border-radius: 18px;
   }
 
-  .homepage-marketplace-promo__head,
   .homepage-popular-near__head,
   .homepage-popular-services__head,
   .homepage-education-knowledge__head,
@@ -36,7 +35,6 @@
     gap: 8px;
   }
 
-  .homepage-marketplace-promo__head-main,
   .homepage-popular-near__head-main,
   .homepage-popular-services__head-main,
   .homepage-education-knowledge__head-main,
@@ -46,7 +44,6 @@
     gap: 8px;
   }
 
-  .homepage-marketplace-promo__head-icon,
   .homepage-popular-near__pin,
   .homepage-popular-services__head-icon,
   .homepage-education-knowledge__head-icon,
@@ -58,12 +55,6 @@
     font-size: 1rem;
   }
 
-  .homepage-marketplace-promo__spark {
-    width: 5px;
-    height: 5px;
-  }
-
-  .homepage-marketplace-promo__title,
   .homepage-popular-near__title,
   .homepage-popular-services__title,
   .homepage-education-knowledge__title,
@@ -74,7 +65,6 @@
     line-height: 1.15;
   }
 
-  .homepage-marketplace-promo__subtitle,
   .homepage-popular-near__subtitle,
   .homepage-popular-services__subtitle,
   .homepage-education-knowledge__subtitle,
@@ -92,7 +82,6 @@
     line-height: 1.3;
   }
 
-  .homepage-marketplace-promo__see-all,
   .homepage-popular-near__see-all,
   .homepage-popular-services__see-all,
   .homepage-education-knowledge__see-all,
@@ -113,7 +102,6 @@
   }
 
   /* One horizontal row — no multi-row grid on mobile */
-  .homepage-marketplace-promo__grid,
   .homepage-popular-near__grid,
   .homepage-popular-services__grid,
   .homepage-education-knowledge__grid,
@@ -131,7 +119,6 @@
     padding-bottom: 2px;
   }
 
-  .homepage-marketplace-promo__grid::-webkit-scrollbar,
   .homepage-popular-near__grid::-webkit-scrollbar,
   .homepage-popular-services__grid::-webkit-scrollbar,
   .homepage-education-knowledge__grid::-webkit-scrollbar,
@@ -141,7 +128,6 @@
     display: none;
   }
 
-  .homepage-marketplace-promo-card,
   .homepage-popular-near-card,
   .homepage-popular-services-card,
   .homepage-education-knowledge-card,
@@ -155,7 +141,6 @@
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
   }
 
-  .homepage-marketplace-promo-card__media,
   .homepage-popular-near-card__media,
   .homepage-popular-services-card__media,
   .homepage-education-knowledge-card__media,
@@ -165,23 +150,6 @@
     aspect-ratio: 16 / 9;
     height: auto;
     max-height: 76px;
-  }
-
-  .homepage-marketplace-promo-card__discount {
-    top: 5px;
-    left: 5px;
-    padding: 3px 6px;
-    font-size: 0.5625rem;
-    transform: rotate(-4deg);
-    max-width: calc(100% - 68px);
-  }
-
-  .homepage-marketplace-promo-card__category {
-    top: 5px;
-    right: 5px;
-    padding: 3px 6px;
-    font-size: 0.5rem;
-    max-width: 48%;
   }
 
   .homepage-popular-near-card__category,
@@ -204,7 +172,6 @@
     font-size: 0.5rem;
   }
 
-  .homepage-marketplace-promo-card__body,
   .homepage-popular-near-card__body,
   .homepage-popular-services-card__body,
   .homepage-education-knowledge-card__body,
@@ -215,7 +182,6 @@
     gap: 2px;
   }
 
-  .homepage-marketplace-promo-card__title,
   .homepage-popular-near-card__title,
   .homepage-popular-services-card__title,
   .homepage-education-knowledge-card__title,
@@ -226,7 +192,6 @@
     line-height: 1.2;
   }
 
-  .homepage-marketplace-promo-card__desc,
   .homepage-popular-near-card__desc,
   .homepage-popular-services-card__desc,
   .homepage-education-knowledge-card__desc,
@@ -238,13 +203,6 @@
     -webkit-line-clamp: 2;
   }
 
-  .homepage-marketplace-promo-card__meta {
-    margin-top: 2px;
-    padding-top: 2px;
-    gap: 3px;
-  }
-
-  .homepage-marketplace-promo-card__location,
   .homepage-popular-near-card__location,
   .homepage-popular-services-card__location,
   .homepage-education-knowledge-card__location,
@@ -253,11 +211,6 @@
     font-size: 0.5625rem;
     gap: 3px;
     line-height: 1.25;
-  }
-
-  .homepage-marketplace-promo-card__valid {
-    padding: 2px 6px;
-    font-size: 0.5625rem;
   }
 
   .homepage-popular-near-card__title-row,
@@ -294,7 +247,6 @@
 }
 
 @media (max-width: 991.98px) and (max-height: 700px) {
-  .homepage-marketplace-promo-card__media,
   .homepage-popular-near-card__media,
   .homepage-popular-services-card__media,
   .homepage-education-knowledge-card__media,
@@ -304,7 +256,6 @@
     max-height: 68px;
   }
 
-  .homepage-marketplace-promo__title,
   .homepage-popular-near__title,
   .homepage-popular-services__title,
   .homepage-education-knowledge__title,
