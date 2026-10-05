@@ -3415,6 +3415,28 @@ body.soilnwater-google-places-active .pac-container:not(:has(.pac-item)) {
   pointer-events: none !important;
 }
 
+.soilnwater-place-autocomplete-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.soilnwater-place-sync-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+gmp-place-autocomplete {
+  display: block;
+  width: 100%;
+}
+
 /* Register Google role modal */
 .role-picker-modal .modal-content {
   border: 1px solid #dbe6f3;

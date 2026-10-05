@@ -8,7 +8,165 @@
             return (component.types || []).indexOf(type) !== -1;
         });
 
-        return match ? match.long_name : '';
+        return match ? (match.long_name || match.longText || '') : '';
+    }
+
+    function normalizeAddressComponents(components) {
+        return (components || []).map(function (component) {
+            return {
+                long_name: component.long_name || component.longText || '',
+                short_name: component.short_name || component.shortText || '',
+                types: component.types || [],
+            };
+        });
+    }
+
+    function buildPlaceAutocompleteElementOptions(options) {
+        options = options || {};
+        var elementOptions = {};
+
+        if (options.country !== false) {
+            elementOptions.includedRegionCodes = [options.country || DEFAULT_COUNTRY];
+        }
+
+        if (options.types && options.types.length) {
+            elementOptions.includedPrimaryTypes = options.types;
+        }
+
+        return elementOptions;
+    }
+
+    function buildPlaceFetchFields(options) {
+        options = options || {};
+        var fields = ['displayName', 'formattedAddress', 'id'];
+
+        if (options.addressComponents !== false) {
+            fields.push('addressComponents');
+        }
+
+        if (options.geometry) {
+            fields.push('location');
+        }
+
+        return fields;
+    }
+
+    function legacyGeometryFromPlace(place) {
+        if (!place || !place.location) {
+            return undefined;
+        }
+
+        var lat = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
+        var lng = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
+
+        if (typeof lat !== 'number' || typeof lng !== 'number') {
+            return undefined;
+        }
+
+        return {
+            location: {
+                lat: function () {
+                    return lat;
+                },
+                lng: function () {
+                    return lng;
+                },
+            },
+        };
+    }
+
+    function legacyPlaceFromNewPlace(place, options) {
+        var components = normalizeAddressComponents(place.addressComponents);
+
+        return {
+            formatted_address: place.formattedAddress || '',
+            name: place.displayName || '',
+            place_id: place.id || '',
+            address_components: components,
+            geometry: legacyGeometryFromPlace(place),
+        };
+    }
+
+    function fetchLegacyPlaceFromPrediction(placePrediction, options) {
+        if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+            return Promise.resolve(null);
+        }
+
+        var place = placePrediction.toPlace();
+
+        if (!place || typeof place.fetchFields !== 'function') {
+            return Promise.resolve(null);
+        }
+
+        return place.fetchFields({
+            fields: buildPlaceFetchFields(options),
+        }).then(function () {
+            return legacyPlaceFromNewPlace(place, options);
+        }).catch(function () {
+            return null;
+        });
+    }
+
+    function copyPresentationToPlaceElement(input, widget) {
+        if (!input || !widget) {
+            return;
+        }
+
+        widget.className = input.className;
+        widget.classList.remove('soilnwater-place-sync-input');
+
+        if (input.placeholder) {
+            widget.placeholder = input.placeholder;
+        }
+
+        if (input.getAttribute('aria-label')) {
+            widget.setAttribute('aria-label', input.getAttribute('aria-label'));
+        }
+
+        if (input.value) {
+            widget.value = input.value;
+        }
+    }
+
+    function mountPlaceAutocompleteElement(input, widget) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'soilnwater-place-autocomplete-wrap';
+
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(widget);
+
+        input.classList.add('soilnwater-place-sync-input');
+        wrapper.appendChild(input);
+
+        copyPresentationToPlaceElement(input, widget);
+    }
+
+    function restorePlaceAutocompleteElement(input) {
+        var wrapper = input.closest('.soilnwater-place-autocomplete-wrap');
+        var widget = input._soilnwaterPlacesWidget;
+
+        if (widget && widget.parentNode) {
+            widget.parentNode.removeChild(widget);
+        }
+
+        if (wrapper && wrapper.parentNode) {
+            wrapper.parentNode.insertBefore(input, wrapper);
+            wrapper.parentNode.removeChild(wrapper);
+        }
+
+        input.classList.remove('soilnwater-place-sync-input');
+    }
+
+    function ensurePlacesLibraryLoaded() {
+        if (!window.google || !google.maps) {
+            return Promise.reject(new Error('Google Maps is not loaded.'));
+        }
+
+        if (google.maps.importLibrary) {
+            return google.maps.importLibrary('places');
+        }
+
+        return Promise.resolve(google.maps.places || {});
     }
 
     function getSelectedAddress(place) {
@@ -523,15 +681,33 @@
         }
 
         var autocomplete = input._soilnwaterPlacesAutocomplete;
+        var widget = input._soilnwaterPlacesWidget;
+        var selectHandler = input._soilnwaterPlacesSelectHandler;
 
-        if (autocomplete && window.google && google.maps && google.maps.event) {
+        if (widget && selectHandler) {
+            widget.removeEventListener('gmp-select', selectHandler);
+        }
+
+        if (
+            autocomplete
+            && input.dataset.googlePlacesUsesLegacy === 'true'
+            && window.google
+            && google.maps
+            && google.maps.event
+        ) {
             google.maps.event.clearInstanceListeners(autocomplete);
         }
 
+        restorePlaceAutocompleteElement(input);
+
         delete input._soilnwaterPlacesAutocomplete;
+        delete input._soilnwaterPlacesWidget;
+        delete input._soilnwaterPlacesSelectHandler;
         input.dataset.googlePlacesReady = 'false';
+        input.dataset.googlePlacesBinding = 'false';
         input.dataset.googlePlacesPending = 'false';
         input.dataset.googlePlacesAttempts = '0';
+        input.dataset.googlePlacesUsesLegacy = 'false';
     }
 
     function bindSchoolInstituteInput(input) {
@@ -548,7 +724,7 @@
             return;
         }
 
-        if (!window.google || !google.maps || !google.maps.places) {
+        if (!window.google || !google.maps || (!google.maps.places && !google.maps.importLibrary)) {
             var attempts = Number(input.dataset.googlePlacesAttempts || 0);
 
             if (attempts >= 20) {
@@ -563,12 +739,11 @@
             return;
         }
 
+        ensurePacContainerModalSupport();
+
         var latitudeInput = resolveInputTarget(input, 'latitudeTarget');
         var longitudeInput = resolveInputTarget(input, 'longitudeTarget');
         var usesCoordinates = Boolean(latitudeInput && longitudeInput);
-
-        ensurePacContainerModalSupport();
-        trackPacInput(input);
 
         bindAutocomplete(input, {
             types: ['establishment'],
@@ -614,22 +789,12 @@
         });
     }
 
-    function bindAutocomplete(input, options) {
-        options = options || {};
-
-        if (!input || !window.google || !google.maps || !google.maps.places) {
-            return null;
-        }
-
-        ensurePacContainerModalSupport();
-
-        if (input.dataset.googlePlacesReady === 'true') {
-            return input._soilnwaterPlacesAutocomplete || null;
-        }
-
+    function bindLegacyAutocomplete(input, options) {
         var autocomplete = new google.maps.places.Autocomplete(input, buildOptions(options));
 
         input.dataset.googlePlacesReady = 'true';
+        input.dataset.googlePlacesUsesLegacy = 'true';
+        input.dataset.googlePlacesBinding = 'false';
         input._soilnwaterPlacesAutocomplete = autocomplete;
         trackPacInput(input);
 
@@ -646,6 +811,113 @@
         });
 
         return autocomplete;
+    }
+
+    function bindModernPlaceAutocomplete(input, options, PlaceAutocompleteElement) {
+        var widget = new PlaceAutocompleteElement(buildPlaceAutocompleteElementOptions(options));
+
+        mountPlaceAutocompleteElement(input, widget);
+
+        var selectHandler = function (event) {
+            var placePrediction = event.placePrediction;
+
+            fetchLegacyPlaceFromPrediction(placePrediction, options).then(function (legacyPlace) {
+                var selectedText = legacyPlace ? getSelectedAddress(legacyPlace) : '';
+
+                if (!selectedText && widget.value) {
+                    selectedText = widget.value;
+                }
+
+                if (selectedText) {
+                    input.value = selectedText;
+                }
+
+                if (typeof options.onPlaceChanged === 'function') {
+                    options.onPlaceChanged(legacyPlace, widget);
+                }
+
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                if (!options.skipDismissPacDropdown) {
+                    dismissPacDropdown(input);
+                }
+            });
+        };
+
+        widget.addEventListener('gmp-select', selectHandler);
+
+        input.dataset.googlePlacesReady = 'true';
+        input.dataset.googlePlacesUsesLegacy = 'false';
+        input.dataset.googlePlacesBinding = 'false';
+        input._soilnwaterPlacesAutocomplete = widget;
+        input._soilnwaterPlacesWidget = widget;
+        input._soilnwaterPlacesSelectHandler = selectHandler;
+
+        return widget;
+    }
+
+    function bindAutocomplete(input, options) {
+        options = options || {};
+
+        if (!input || !window.google || !google.maps) {
+            return null;
+        }
+
+        if (input.dataset.googlePlacesReady === 'true') {
+            return input._soilnwaterPlacesAutocomplete || null;
+        }
+
+        if (input.dataset.googlePlacesBinding === 'true') {
+            return null;
+        }
+
+        input.dataset.googlePlacesBinding = 'true';
+
+        ensurePlacesLibraryLoaded().then(function (placesLibrary) {
+            if (input.dataset.googlePlacesReady === 'true') {
+                input.dataset.googlePlacesBinding = 'false';
+                return;
+            }
+
+            var PlaceAutocompleteElement = placesLibrary.PlaceAutocompleteElement
+                || (google.maps.places && google.maps.places.PlaceAutocompleteElement);
+
+            if (PlaceAutocompleteElement) {
+                try {
+                    markGooglePlacesActive();
+                    bindModernPlaceAutocomplete(input, options, PlaceAutocompleteElement);
+                } catch (error) {
+                    restorePlaceAutocompleteElement(input);
+                    ensurePacContainerModalSupport();
+                    bindLegacyAutocomplete(input, options);
+                }
+                return;
+            }
+
+            if (!google.maps.places) {
+                input.dataset.googlePlacesBinding = 'false';
+                return;
+            }
+
+            ensurePacContainerModalSupport();
+            bindLegacyAutocomplete(input, options);
+        }).catch(function () {
+            if (input.dataset.googlePlacesReady === 'true') {
+                input.dataset.googlePlacesBinding = 'false';
+                return;
+            }
+
+            if (google.maps.places) {
+                ensurePacContainerModalSupport();
+                bindLegacyAutocomplete(input, options);
+                return;
+            }
+
+            input.dataset.googlePlacesBinding = 'false';
+        });
+
+        return input._soilnwaterPlacesAutocomplete || null;
     }
 
     window.SoilnWaterGooglePlaces = {
