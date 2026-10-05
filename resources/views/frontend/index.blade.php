@@ -1747,21 +1747,6 @@
       ])
     @endif
 
-    @if(data_get($sectionToggles, 'vendor_enquiry', true))
-      <div class="sec vendor-enquiry-section">
-        <div class="vendor-enquiry-card">
-          <div class="vendor-enquiry-copy">
-            <span class="vendor-enquiry-pill"><i class="fa-solid fa-circle-question"></i> Vendor Enquiry</span>
-            <h3>Need help from a vendor?</h3>
-            <p>Share your requirement and our team will connect you with the right verified vendor.</p>
-          </div>
-          <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#vendorEnquiryModal">
-            Submit Enquiry
-          </button>
-        </div>
-      </div>
-    @endif
-
     <!-- Local Sellers CTA -->
     <!-- <div class="seller-highlight seller-highlight-redesign">
       <div class="seller-highlight-info">
