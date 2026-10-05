@@ -323,6 +323,7 @@
   </div>
 </section>
 
+<div class="homepage-desktop-panels">
 <section class="homepage-showcase-section" aria-label="Featured businesses">
   <div class="homepage-showcase-section__inner homepage-showcase-section__inner--businesses-only">
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
@@ -409,12 +410,12 @@
       </div>
     </div>
   </div>
-
-  @include('frontend.partials.homepage-desktop-showcase', [
-      'section' => \App\Support\HomepageDesktopShowcase::section('featured-businesses'),
-      'cards' => \App\Support\HomepageDesktopShowcase::featuredBusinessCards($homepageFeaturedBusinesses ?? []),
-  ])
 </section>
+
+@include('frontend.partials.homepage-desktop-showcase', [
+    'section' => \App\Support\HomepageDesktopShowcase::section('featured-businesses'),
+    'cards' => \App\Support\HomepageDesktopShowcase::featuredBusinessCards($homepageFeaturedBusinesses ?? []),
+])
 
 @if(!empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
     @include('frontend.partials.homepage-marketplace-promo', [
@@ -498,6 +499,7 @@
         'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('community', $homepageCommunityHubCards ?? []),
     ])
 @endif
+</div><!-- /.homepage-desktop-panels -->
 
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
