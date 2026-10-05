@@ -1,5 +1,5 @@
 /**
- * Mobile: compact promo sections (scale content only; single horizontal card row).
+ * Mobile: compact promo sections — 2-column grid, all cards (page scroll, no carousels).
  */
 
 @media (max-width: 991.98px) {
@@ -101,31 +101,16 @@
     padding: 4px 8px;
   }
 
-  /* One horizontal row — no multi-row grid on mobile */
   .homepage-popular-near__grid,
   .homepage-popular-services__grid,
   .homepage-education-knowledge__grid,
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
-    display: flex;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-
-  .homepage-popular-near__grid::-webkit-scrollbar,
-  .homepage-popular-services__grid::-webkit-scrollbar,
-  .homepage-education-knowledge__grid::-webkit-scrollbar,
-  .homepage-study-library__grid::-webkit-scrollbar,
-  .homepage-consultants__grid::-webkit-scrollbar,
-  .homepage-community-hub__grid::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
 
   .homepage-popular-near-card,
@@ -134,9 +119,7 @@
   .homepage-study-library-card,
   .homepage-consultants-card,
   .homepage-community-hub-card {
-    flex: 0 0 calc(50% - 4px);
-    min-width: calc(50% - 4px);
-    scroll-snap-align: start;
+    min-width: 0;
     border-radius: 14px;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
   }
@@ -147,9 +130,10 @@
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    aspect-ratio: 16 / 9;
-    height: auto;
-    max-height: 76px;
+    aspect-ratio: unset;
+    height: 62px;
+    max-height: 62px;
+    min-height: 62px;
   }
 
   .homepage-popular-near-card__category,
@@ -253,7 +237,9 @@
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    max-height: 68px;
+    height: 56px;
+    max-height: 56px;
+    min-height: 56px;
   }
 
   .homepage-popular-near__title,

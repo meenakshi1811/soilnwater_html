@@ -344,7 +344,7 @@
   }
 }
 
-/* Mobile: compact offers block (two cards, one row — matches homepage mock) */
+/* Mobile: compact offers/ads — 2-column grid, all cards (vertical rows) */
 @media (max-width: 991.98px) {
   .homepage-marketplace-promo {
     padding: 6px 0 2px;
@@ -396,10 +396,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
-  }
-
-  .homepage-marketplace-promo__grid .homepage-marketplace-promo-card:nth-child(n + 3) {
-    display: none;
+    overflow: visible;
   }
 
   .homepage-marketplace-promo-card {
