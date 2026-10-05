@@ -144,7 +144,7 @@
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
     width: 100%;
-    aspect-ratio: 5 / 4;
+    aspect-ratio: 16 / 10;
     height: auto;
     min-height: 0;
     max-height: none;
@@ -258,7 +258,7 @@
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 7 / 4;
   }
 
   .homepage-popular-near__title,
