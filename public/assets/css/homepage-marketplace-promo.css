@@ -411,9 +411,9 @@
 
   .homepage-marketplace-promo-card__media {
     aspect-ratio: unset;
-    height: 62px;
-    max-height: 62px;
-    min-height: 62px;
+    height: 92px;
+    max-height: 92px;
+    min-height: 92px;
   }
 
   .homepage-marketplace-promo-card__media img {

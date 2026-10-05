@@ -144,9 +144,9 @@
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
     aspect-ratio: unset;
-    height: 62px;
-    max-height: 62px;
-    min-height: 62px;
+    height: 92px;
+    max-height: 92px;
+    min-height: 92px;
   }
 
   .homepage-popular-near-card__category,
@@ -250,15 +250,16 @@
 }
 
 @media (max-width: 991.98px) and (max-height: 700px) {
+  .homepage-marketplace-promo-card__media,
   .homepage-popular-near-card__media,
   .homepage-popular-services-card__media,
   .homepage-education-knowledge-card__media,
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    height: 56px;
-    max-height: 56px;
-    min-height: 56px;
+    height: 80px;
+    max-height: 80px;
+    min-height: 80px;
   }
 
   .homepage-popular-near__title,
