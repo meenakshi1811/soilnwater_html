@@ -119,6 +119,122 @@
     }
 
     var activePacInput = null;
+    var pacPositionWatchTimer = null;
+    var pacDomObserver = null;
+    var pacLayoutMutating = false;
+    var pacObserverDebounceTimer = null;
+
+    function markGooglePlacesActive() {
+        if (document.body) {
+            document.body.classList.add('soilnwater-google-places-active');
+        }
+    }
+
+    function countPacItems(pac) {
+        return pac ? pac.querySelectorAll('.pac-item').length : 0;
+    }
+
+    function hidePacContainer(pac) {
+        if (!pac) {
+            return;
+        }
+
+        pac.classList.remove('soilnwater-pac-fixed');
+        pac.dataset.soilnwaterPacDismissed = 'true';
+        pac.style.display = 'none';
+        pac.style.visibility = 'hidden';
+        pac.style.opacity = '0';
+        pac.style.pointerEvents = 'none';
+    }
+
+    function hideOrphanPacContainers() {
+        document.querySelectorAll('.pac-container').forEach(function (pac) {
+            if (countPacItems(pac) > 0) {
+                return;
+            }
+
+            hidePacContainer(pac);
+
+            if (pac.parentNode) {
+                pac.parentNode.removeChild(pac);
+            }
+        });
+    }
+
+    function dedupePacContainers() {
+        var pacs = Array.prototype.slice.call(document.querySelectorAll('.pac-container'));
+
+        if (pacs.length <= 1) {
+            return pacs[0] || null;
+        }
+
+        pacs.sort(function (a, b) {
+            return countPacItems(b) - countPacItems(a);
+        });
+
+        var primary = pacs[0];
+
+        for (var i = 1; i < pacs.length; i++) {
+            hidePacContainer(pacs[i]);
+
+            if (pacs[i].parentNode) {
+                pacs[i].parentNode.removeChild(pacs[i]);
+            }
+        }
+
+        return primary;
+    }
+
+    function shouldMovePacToBody(pac) {
+        var node = pac ? pac.parentElement : null;
+
+        while (node && node !== document.body) {
+            var style = window.getComputedStyle(node);
+
+            if (style.transform !== 'none' || style.filter !== 'none' || style.perspective !== 'none') {
+                return true;
+            }
+
+            if (/(auto|scroll|hidden)/.test(style.overflow + style.overflowY + style.overflowX)) {
+                return true;
+            }
+
+            node = node.parentElement;
+        }
+
+        return false;
+    }
+
+    function ensurePacDomObserver() {
+        if (pacDomObserver || !window.MutationObserver || !document.body) {
+            return;
+        }
+
+        pacDomObserver = new MutationObserver(function () {
+            if (pacLayoutMutating) {
+                return;
+            }
+
+            if (pacObserverDebounceTimer) {
+                window.clearTimeout(pacObserverDebounceTimer);
+            }
+
+            pacObserverDebounceTimer = window.setTimeout(function () {
+                pacObserverDebounceTimer = null;
+                hideOrphanPacContainers();
+
+                if (activePacInput) {
+                    dedupePacContainers();
+                    positionActivePacContainer(activePacInput);
+                }
+            }, 20);
+        });
+
+        pacDomObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
 
     function isInputVisibleForPlaces(input) {
         if (!input || !input.isConnected) {
@@ -137,18 +253,28 @@
 
     function hidePacContainers() {
         document.querySelectorAll('.pac-container').forEach(function (container) {
-            container.style.display = 'none';
-            container.style.visibility = 'hidden';
-            container.style.opacity = '0';
-            container.style.pointerEvents = 'none';
+            hidePacContainer(container);
         });
+    }
+
+    function stopPacPositionWatch() {
+        if (pacPositionWatchTimer) {
+            window.clearInterval(pacPositionWatchTimer);
+            pacPositionWatchTimer = null;
+        }
     }
 
     function dismissPacDropdown(input) {
         var target = input || activePacInput;
 
+        stopPacPositionWatch();
+
         if (target && typeof target.blur === 'function') {
             target.blur();
+        }
+
+        if (activePacInput === target) {
+            activePacInput = null;
         }
 
         hidePacContainers();
@@ -158,39 +284,132 @@
         });
     }
 
+    function isPacDropdownOpen(pac) {
+        if (!pac || !pac.isConnected) {
+            return false;
+        }
+
+        if (pac.dataset.soilnwaterPacDismissed === 'true') {
+            return false;
+        }
+
+        var style = window.getComputedStyle(pac);
+
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+            return false;
+        }
+
+        return pac.querySelector('.pac-item') !== null;
+    }
+
     function positionActivePacContainer(input) {
+        if (!input || activePacInput !== input) {
+            return;
+        }
+
+        hideOrphanPacContainers();
+        dedupePacContainers();
+
+        window.requestAnimationFrame(function () {
+            if (activePacInput !== input || pacLayoutMutating) {
+                return;
+            }
+
+            pacLayoutMutating = true;
+
+            hideOrphanPacContainers();
+
+            var rect = input.getBoundingClientRect();
+
+            if (rect.width <= 0 || rect.height <= 0) {
+                pacLayoutMutating = false;
+                return;
+            }
+
+            var anchored = dedupePacContainers();
+
+            document.querySelectorAll('.pac-container').forEach(function (pac) {
+                if (!isPacDropdownOpen(pac)) {
+                    return;
+                }
+
+                if (anchored && pac !== anchored) {
+                    hidePacContainer(pac);
+                    return;
+                }
+
+                if (shouldMovePacToBody(pac) && document.body && pac.parentNode !== document.body) {
+                    document.body.appendChild(pac);
+                }
+
+                pac.classList.add('soilnwater-pac-fixed');
+                pac.style.position = 'fixed';
+                pac.style.top = Math.round(rect.bottom + 4) + 'px';
+                pac.style.left = Math.round(rect.left) + 'px';
+                pac.style.width = Math.max(Math.round(rect.width), 240) + 'px';
+                pac.style.right = 'auto';
+                pac.style.bottom = 'auto';
+                pac.style.zIndex = '20000';
+                pac.style.visibility = 'visible';
+                pac.style.opacity = '1';
+                pac.style.pointerEvents = 'auto';
+                pac.style.display = 'block';
+                delete pac.dataset.soilnwaterPacDismissed;
+            });
+
+            hideOrphanPacContainers();
+            pacLayoutMutating = false;
+        });
+    }
+
+    function startPacPositionWatch(input) {
+        stopPacPositionWatch();
+
         if (!input) {
             return;
         }
 
-        window.requestAnimationFrame(function () {
-            var rect = input.getBoundingClientRect();
+        var ticks = 0;
+        pacPositionWatchTimer = window.setInterval(function () {
+            if (activePacInput !== input) {
+                stopPacPositionWatch();
+                return;
+            }
 
-            document.querySelectorAll('.pac-container').forEach(function (pac) {
-                if (pac.style.display === 'none' || pac.style.visibility === 'hidden') {
-                    return;
-                }
+            positionActivePacContainer(input);
+            ticks += 1;
 
-                if (document.body && pac.parentNode !== document.body) {
-                    document.body.appendChild(pac);
-                }
-
-                pac.style.position = 'fixed';
-                pac.style.top = Math.round(rect.bottom) + 'px';
-                pac.style.left = Math.round(rect.left) + 'px';
-                pac.style.width = Math.max(Math.round(rect.width), 240) + 'px';
-                pac.style.zIndex = '20000';
-            });
-        });
+            if (ticks >= 48) {
+                stopPacPositionWatch();
+            }
+        }, 50);
     }
 
     function schedulePacReposition(input) {
         positionActivePacContainer(input);
-        [50, 150, 350].forEach(function (delay) {
+        [0, 50, 120, 250, 400, 650, 900].forEach(function (delay) {
             window.setTimeout(function () {
                 positionActivePacContainer(input);
             }, delay);
         });
+        startPacPositionWatch(input);
+    }
+
+    function bindPacViewportReposition(input) {
+        if (!input || input.dataset.pacViewportScrollBound === 'true') {
+            return;
+        }
+
+        input.dataset.pacViewportScrollBound = 'true';
+
+        var handler = function () {
+            if (activePacInput === input) {
+                positionActivePacContainer(input);
+            }
+        };
+
+        window.addEventListener('scroll', handler, true);
+        window.addEventListener('resize', handler, { passive: true });
     }
 
     function watchPacPositionWhileActive(input) {
@@ -219,21 +438,28 @@
         input.dataset.pacInputTrackingBound = 'true';
 
         input.addEventListener('focus', function () {
+            if (activePacInput && activePacInput !== input) {
+                hidePacContainers();
+            }
+
             activePacInput = input;
 
             document.querySelectorAll('.pac-container').forEach(function (pac) {
-                pac.style.display = '';
-                pac.style.visibility = '';
-                pac.style.opacity = '';
-                pac.style.pointerEvents = '';
+                delete pac.dataset.soilnwaterPacDismissed;
             });
 
             schedulePacReposition(input);
+            bindPacViewportReposition(input);
             watchPacPositionWhileActive(input);
         });
 
         input.addEventListener('input', function () {
             activePacInput = input;
+
+            document.querySelectorAll('.pac-container').forEach(function (pac) {
+                delete pac.dataset.soilnwaterPacDismissed;
+            });
+
             schedulePacReposition(input);
         });
 
@@ -257,7 +483,14 @@
 
         window._soilnwaterPacContainerBound = true;
 
+        markGooglePlacesActive();
+        ensurePacDomObserver();
+
         document.addEventListener('mousedown', function (event) {
+            if (event.target.closest('.pac-item')) {
+                event.preventDefault();
+            }
+
             if (event.target.closest('.pac-container')) {
                 event.stopPropagation();
             }
@@ -387,6 +620,8 @@
         if (!input || !window.google || !google.maps || !google.maps.places) {
             return null;
         }
+
+        ensurePacContainerModalSupport();
 
         if (input.dataset.googlePlacesReady === 'true') {
             return input._soilnwaterPlacesAutocomplete || null;

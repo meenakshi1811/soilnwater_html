@@ -110,7 +110,12 @@
               </div>
             </div>
 
-            @include('backend.partials.registration-profile-fields', ['profile' => $educator, 'showMarketplaceFields' => false])
+            @include('backend.partials.registration-profile-fields', [
+              'profile' => $educator,
+              'showMarketplaceFields' => false,
+              'enableAddressAutocomplete' => true,
+              'showAddressStateField' => false,
+            ])
           </div>
         </section>
 
@@ -830,6 +835,9 @@ window.educatorNoticeStoreUrl = @json(route('educator.notices.store'));
 @if(config('services.google.maps_api_key'))
 <script>
 window.initEducatorExperiencePlacesAutocomplete = function () {
+  if (window.FormHelper && typeof window.FormHelper.initEducatorProfilePlaceAutocomplete === 'function') {
+    window.FormHelper.initEducatorProfilePlaceAutocomplete();
+  }
   if (window.SoilnWaterGooglePlaces && typeof window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields === 'function') {
     window.SoilnWaterGooglePlaces.initSchoolInstituteSearchFields();
   }

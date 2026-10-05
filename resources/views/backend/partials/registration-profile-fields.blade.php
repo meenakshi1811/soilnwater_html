@@ -2,6 +2,7 @@
     $profile = $profile ?? null;
     $showMarketplaceFields = $showMarketplaceFields ?? false;
     $enableAddressAutocomplete = $enableAddressAutocomplete ?? false;
+    $showAddressStateField = $showAddressStateField ?? true;
     $isStudentProfile = $isStudentProfile ?? ($user->isStudent() ?? false);
     $hasGstValue = old('has_gst', $profile?->gst_number ? '1' : '0');
     $dobSource = $user->date_of_birth ?? $user->childProfile?->date_of_birth ?? null;
@@ -64,7 +65,7 @@
     @enderror
 </div>
 
-@if($enableAddressAutocomplete)
+@if($enableAddressAutocomplete && $showAddressStateField)
 <div class="col-md-4">
     <label for="state" class="form-label">State</label>
     <input id="state" name="state" type="text" class="form-control @error('state') is-invalid @enderror" value="{{ old('state', $user->state) }}" autocomplete="address-level1">

@@ -551,11 +551,28 @@
         },
 
         initRegisterPlaceAutocomplete: function () {
+            if (!$('#registerForm').length && !$('#googleCompleteForm').length) {
+                return;
+            }
+
             this.bindRegisterPlaceAutocomplete({
                 addressInputId: 'address',
                 cityInputId: 'city',
                 pincodeInputId: 'pincode',
                 retryMethod: 'initRegisterPlaceAutocomplete'
+            });
+        },
+
+        initEducatorProfilePlaceAutocomplete: function () {
+            if (!document.getElementById('educatorProfileForm') || !document.getElementById('address')) {
+                return;
+            }
+
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'address',
+                cityInputId: 'city',
+                pincodeInputId: 'pincode',
+                retryMethod: 'initEducatorProfilePlaceAutocomplete'
             });
         },
 

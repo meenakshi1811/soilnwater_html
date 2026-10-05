@@ -3403,6 +3403,18 @@
   z-index: 2000 !important;
 }
 
+.pac-container.soilnwater-pac-fixed {
+  position: fixed !important;
+  z-index: 20000 !important;
+}
+
+/* Hide empty ghost dropdowns Google injects at the wrong scroll position */
+body.soilnwater-google-places-active .pac-container:not(:has(.pac-item)) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Register Google role modal */
 .role-picker-modal .modal-content {
   border: 1px solid #dbe6f3;

@@ -728,7 +728,31 @@
 }
 
 .edu-profile-page .pac-container {
-  z-index: 2000;
+  z-index: 20000 !important;
+  border-radius: 12px;
+  border: 1px solid var(--edu-pro-border);
+  box-shadow: var(--edu-pro-shadow);
+  margin-top: 0;
+  font-family: inherit;
+}
+
+.edu-profile-page .pac-container.soilnwater-pac-fixed {
+  position: fixed !important;
+}
+
+body.soilnwater-google-places-active .edu-profile-page .pac-container:not(:has(.pac-item)) {
+  display: none !important;
+}
+
+.edu-profile-page .pac-item {
+  padding: 0.65rem 0.85rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.edu-profile-page .pac-item:hover,
+.edu-profile-page .pac-item-selected {
+  background: var(--edu-pro-primary-soft);
 }
 
 @media (min-width: 768px) {
