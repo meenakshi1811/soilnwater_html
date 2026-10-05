@@ -1650,6 +1650,9 @@
     min-width: 0;
     scroll-snap-align: start;
   }
+  [data-slide-by="card"][data-carousel-cols="2"] {
+    --carousel-visible: 2;
+  }
   [data-slide-by="card"][data-carousel-cols="3"] {
     --carousel-visible: 3;
   }

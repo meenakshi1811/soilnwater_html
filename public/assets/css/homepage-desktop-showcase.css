@@ -220,15 +220,45 @@
     background: #166534;
   }
 
-  .hp-desktop__grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    flex: 1;
+  .hp-desktop__carousel {
+    --carousel-gap: 12px;
+    --carousel-visible: 3;
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 2px;
   }
 
-  .hp-desktop__grid .hp-desktop-card:nth-child(n + 5) {
-    display: none;
+  .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
+    --carousel-visible: 3;
+  }
+
+  .hp-desktop__carousel .card-carousel-track {
+    padding-bottom: 4px;
+  }
+
+  [data-slide-by="card"] .card-carousel-item > .hp-desktop-card {
+    height: 100%;
+  }
+
+  .hp-desktop__carousel .ad-slider-arrows {
+    padding: 0 2px;
+  }
+
+  .hp-desktop__carousel .ad-slider-arrow {
+    width: 32px;
+    height: 32px;
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+  }
+
+  .hp-desktop__carousel .ad-slider-arrow:hover {
+    background: #f8fafc;
+    color: #0f172a;
   }
 
   .hp-desktop-card {
@@ -346,7 +376,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
-    margin-top: 2px;
+    margin-top: auto;
   }
 
   .hp-desktop-card__meta {
@@ -418,7 +448,7 @@
     font-size: 1.5rem;
   }
 
-  .hp-desktop__grid {
-    gap: 14px;
+  .hp-desktop__carousel {
+    --carousel-gap: 14px;
   }
 }

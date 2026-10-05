@@ -45,8 +45,18 @@
             </div>
         </div>
 
-        <div class="hp-desktop__grid">
+        <div
+            class="hp-desktop__carousel card-carousel"
+            data-slide-by="card"
+            data-carousel-cols="3"
+            data-show-arrows="true"
+            data-show-dots="false"
+            data-pause-on-hover="true"
+            aria-label="{{ trim(($section['title'] ?? '').' '.($section['title_accent'] ?? '')) }} cards"
+        >
+            <div class="card-carousel-track">
             @foreach($cards as $card)
+                <div class="card-carousel-item">
                 <a href="{{ $card['url'] }}" class="hp-desktop-card">
                     <div class="hp-desktop-card__media">
                         <img src="{{ $card['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
@@ -107,7 +117,9 @@
                         </div>
                     </div>
                 </a>
+                </div>
             @endforeach
+            </div>
         </div>
     </section>
 @endif
