@@ -5,6 +5,19 @@
 @media (max-width: 991.98px) {
   /* Offers/ads: compact rules live in homepage-marketplace-promo.css */
 
+  .hp-promo-see-all-label__lg {
+    display: none;
+  }
+
+  .homepage-popular-near__grid .homepage-popular-near-card:nth-child(n + 5),
+  .homepage-popular-services__grid .homepage-popular-services-card:nth-child(n + 5),
+  .homepage-education-knowledge__grid .homepage-education-knowledge-card:nth-child(n + 5),
+  .homepage-study-library__grid .homepage-study-library-card:nth-child(n + 5),
+  .homepage-consultants__grid .homepage-consultants-card:nth-child(n + 5),
+  .homepage-community-hub__grid .homepage-community-hub-card:nth-child(n + 5) {
+    display: none;
+  }
+
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
@@ -227,6 +240,12 @@
   .homepage-consultants-card__reviews,
   .homepage-community-hub-card__reviews {
     font-size: 0.5625rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .hp-promo-see-all-label__sm {
+    display: none;
   }
 }
 

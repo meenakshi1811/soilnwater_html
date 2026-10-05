@@ -33,7 +33,7 @@
                         </button>
                     @endif
                     <a class="homepage-consultants__see-all" href="{{ $viewAllUrl }}">
-                        See all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        @include('frontend.partials.homepage-promo-see-all-label') <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
             </header>
