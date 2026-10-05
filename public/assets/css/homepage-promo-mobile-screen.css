@@ -1,126 +1,19 @@
 /**
- * Mobile: one viewport per promo block + peek of the next section (lg unchanged).
+ * Mobile: compact promo sections (scale content only; single horizontal card row).
  */
 
 @media (max-width: 991.98px) {
-  /* ── Latest Offers & Ads ── */
-  .homepage-marketplace-promo {
-    padding: 6px 0 2px;
-  }
-
-  .homepage-marketplace-promo__shell {
-    margin: 0 10px;
-    padding: 11px 10px 10px;
-    border-radius: 18px;
-  }
-
-  .homepage-marketplace-promo__head {
-    margin-bottom: 8px;
-    gap: 8px;
-  }
-
-  .homepage-marketplace-promo__head-main {
-    gap: 8px;
-  }
-
-  .homepage-marketplace-promo__head-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 1.05rem;
-  }
-
-  .homepage-marketplace-promo__spark {
-    width: 5px;
-    height: 5px;
-  }
-
-  .homepage-marketplace-promo__title {
-    font-size: 1.125rem;
-    line-height: 1.12;
-  }
-
-  .homepage-marketplace-promo__subtitle {
-    margin-top: 2px;
-    font-size: 0.6875rem;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .homepage-marketplace-promo__see-all {
-    font-size: 0.6875rem;
-    padding-top: 2px;
-  }
-
-  .homepage-marketplace-promo__grid {
-    gap: 8px;
-  }
-
-  .homepage-marketplace-promo__grid .homepage-marketplace-promo-card:nth-child(n + 3) {
-    display: none;
-  }
-
-  .homepage-marketplace-promo-card {
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
-  }
-
-  .homepage-marketplace-promo-card__media {
-    aspect-ratio: unset;
-    height: 82px;
-  }
-
-  .homepage-marketplace-promo-card__discount {
-    top: 6px;
-    left: 6px;
-    padding: 4px 7px;
-    font-size: 0.5625rem;
-    transform: rotate(-4deg);
-    max-width: calc(100% - 72px);
-  }
-
-  .homepage-marketplace-promo-card__category {
-    top: 6px;
-    right: 6px;
-    padding: 3px 6px;
-    font-size: 0.5rem;
-    max-width: 50%;
-  }
-
-  .homepage-marketplace-promo-card__body {
-    padding: 7px 8px 8px;
-    gap: 2px;
-  }
-
-  .homepage-marketplace-promo-card__title {
-    font-size: 0.8125rem;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .homepage-marketplace-promo-card__desc {
-    font-size: 0.625rem;
-    -webkit-line-clamp: 1;
-  }
-
-  .homepage-marketplace-promo-card__meta {
-    display: none;
-  }
-
-  /* ── Other gradient promo sections (2×2, max 4 cards) ── */
+  .homepage-marketplace-promo,
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 6px 0 2px;
+    padding: 8px 0 4px;
   }
 
+  .homepage-marketplace-promo__shell,
   .homepage-popular-near__shell,
   .homepage-popular-services__shell,
   .homepage-education-knowledge__shell,
@@ -128,20 +21,22 @@
   .homepage-consultants__shell,
   .homepage-community-hub__shell {
     margin: 0 10px;
-    padding: 11px 10px 10px;
+    padding: 12px 10px 11px;
     border-radius: 18px;
   }
 
+  .homepage-marketplace-promo__head,
   .homepage-popular-near__head,
   .homepage-popular-services__head,
   .homepage-education-knowledge__head,
   .homepage-study-library__head,
   .homepage-consultants__head,
   .homepage-community-hub__head {
-    margin-bottom: 8px;
+    margin-bottom: 9px;
     gap: 8px;
   }
 
+  .homepage-marketplace-promo__head-main,
   .homepage-popular-near__head-main,
   .homepage-popular-services__head-main,
   .homepage-education-knowledge__head-main,
@@ -151,42 +46,53 @@
     gap: 8px;
   }
 
+  .homepage-marketplace-promo__head-icon,
   .homepage-popular-near__pin,
   .homepage-popular-services__head-icon,
   .homepage-education-knowledge__head-icon,
   .homepage-study-library__head-icon,
   .homepage-consultants__head-icon,
   .homepage-community-hub__head-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 1.05rem;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
   }
 
+  .homepage-marketplace-promo__spark {
+    width: 5px;
+    height: 5px;
+  }
+
+  .homepage-marketplace-promo__title,
   .homepage-popular-near__title,
   .homepage-popular-services__title,
   .homepage-education-knowledge__title,
   .homepage-study-library__title,
   .homepage-consultants__title,
   .homepage-community-hub__title {
-    font-size: 1.125rem;
-    line-height: 1.12;
+    font-size: 1.05rem;
+    line-height: 1.15;
   }
 
+  .homepage-marketplace-promo__subtitle,
   .homepage-popular-near__subtitle,
   .homepage-popular-services__subtitle,
   .homepage-education-knowledge__subtitle,
-  .homepage-study-library__nav,
   .homepage-consultants__subtitle,
   .homepage-community-hub__subtitle {
     margin-top: 2px;
     font-size: 0.6875rem;
-    line-height: 1.25;
+    line-height: 1.3;
   }
 
   .homepage-study-library__nav {
-    display: none;
+    margin-top: 4px;
+    gap: 4px;
+    font-size: 0.625rem;
+    line-height: 1.3;
   }
 
+  .homepage-marketplace-promo__see-all,
   .homepage-popular-near__see-all,
   .homepage-popular-services__see-all,
   .homepage-education-knowledge__see-all,
@@ -206,41 +112,76 @@
     padding: 4px 8px;
   }
 
+  /* One horizontal row — no multi-row grid on mobile */
+  .homepage-marketplace-promo__grid,
   .homepage-popular-near__grid,
   .homepage-popular-services__grid,
   .homepage-education-knowledge__grid,
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
+    display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
   }
 
-  .homepage-popular-near__grid .homepage-popular-near-card:nth-child(n + 5),
-  .homepage-popular-services__grid .homepage-popular-services-card:nth-child(n + 5),
-  .homepage-education-knowledge__grid .homepage-education-knowledge-card:nth-child(n + 5),
-  .homepage-study-library__grid .homepage-study-library-card:nth-child(n + 5),
-  .homepage-consultants__grid .homepage-consultants-card:nth-child(n + 5),
-  .homepage-community-hub__grid .homepage-community-hub-card:nth-child(n + 5) {
+  .homepage-marketplace-promo__grid::-webkit-scrollbar,
+  .homepage-popular-near__grid::-webkit-scrollbar,
+  .homepage-popular-services__grid::-webkit-scrollbar,
+  .homepage-education-knowledge__grid::-webkit-scrollbar,
+  .homepage-study-library__grid::-webkit-scrollbar,
+  .homepage-consultants__grid::-webkit-scrollbar,
+  .homepage-community-hub__grid::-webkit-scrollbar {
     display: none;
   }
 
+  .homepage-marketplace-promo-card,
   .homepage-popular-near-card,
   .homepage-popular-services-card,
   .homepage-education-knowledge-card,
   .homepage-study-library-card,
   .homepage-consultants-card,
   .homepage-community-hub-card {
+    flex: 0 0 calc(50% - 4px);
+    min-width: calc(50% - 4px);
+    scroll-snap-align: start;
     border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
   }
 
+  .homepage-marketplace-promo-card__media,
   .homepage-popular-near-card__media,
   .homepage-popular-services-card__media,
   .homepage-education-knowledge-card__media,
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    aspect-ratio: unset;
-    height: 72px;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    max-height: 76px;
+  }
+
+  .homepage-marketplace-promo-card__discount {
+    top: 5px;
+    left: 5px;
+    padding: 3px 6px;
+    font-size: 0.5625rem;
+    transform: rotate(-4deg);
+    max-width: calc(100% - 68px);
+  }
+
+  .homepage-marketplace-promo-card__category {
+    top: 5px;
+    right: 5px;
+    padding: 3px 6px;
+    font-size: 0.5rem;
+    max-width: 48%;
   }
 
   .homepage-popular-near-card__category,
@@ -249,40 +190,43 @@
   .homepage-study-library-card__badge,
   .homepage-consultants-card__category,
   .homepage-community-hub-card__category {
-    top: 6px;
-    left: 6px;
+    top: 5px;
+    left: 5px;
     padding: 3px 6px;
     font-size: 0.5rem;
-    max-width: calc(100% - 12px);
+    max-width: calc(100% - 56px);
   }
 
   .homepage-popular-near-card__offer {
-    display: none;
+    top: 5px;
+    right: 5px;
+    padding: 3px 6px;
+    font-size: 0.5rem;
   }
 
+  .homepage-marketplace-promo-card__body,
   .homepage-popular-near-card__body,
   .homepage-popular-services-card__body,
   .homepage-education-knowledge-card__body,
   .homepage-study-library-card__body,
   .homepage-consultants-card__body,
   .homepage-community-hub-card__body {
-    padding: 7px 8px 8px;
+    padding: 6px 7px 7px;
     gap: 2px;
   }
 
+  .homepage-marketplace-promo-card__title,
   .homepage-popular-near-card__title,
   .homepage-popular-services-card__title,
   .homepage-education-knowledge-card__title,
   .homepage-study-library-card__title,
   .homepage-consultants-card__title,
   .homepage-community-hub-card__title {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
+  .homepage-marketplace-promo-card__desc,
   .homepage-popular-near-card__desc,
   .homepage-popular-services-card__desc,
   .homepage-education-knowledge-card__desc,
@@ -290,15 +234,30 @@
   .homepage-consultants-card__desc,
   .homepage-community-hub-card__desc {
     font-size: 0.625rem;
-    -webkit-line-clamp: 1;
+    line-height: 1.3;
+    -webkit-line-clamp: 2;
   }
 
+  .homepage-marketplace-promo-card__meta {
+    margin-top: 2px;
+    padding-top: 2px;
+    gap: 3px;
+  }
+
+  .homepage-marketplace-promo-card__location,
   .homepage-popular-near-card__location,
   .homepage-popular-services-card__location,
   .homepage-education-knowledge-card__location,
   .homepage-consultants-card__location,
   .homepage-community-hub-card__location {
-    display: none;
+    font-size: 0.5625rem;
+    gap: 3px;
+    line-height: 1.25;
+  }
+
+  .homepage-marketplace-promo-card__valid {
+    padding: 2px 6px;
+    font-size: 0.5625rem;
   }
 
   .homepage-popular-near-card__title-row,
@@ -306,7 +265,7 @@
   .homepage-education-knowledge-card__title-row,
   .homepage-consultants-card__title-row,
   .homepage-community-hub-card__title-row {
-    gap: 4px;
+    gap: 3px;
   }
 
   .homepage-popular-near-card__rating,
@@ -314,7 +273,7 @@
   .homepage-education-knowledge-card__rating,
   .homepage-consultants-card__rating,
   .homepage-community-hub-card__rating {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
   }
 
   .homepage-popular-near-card__desc-row,
@@ -322,7 +281,7 @@
   .homepage-education-knowledge-card__desc-row,
   .homepage-consultants-card__desc-row,
   .homepage-community-hub-card__desc-row {
-    gap: 4px;
+    gap: 3px;
   }
 
   .homepage-popular-near-card__reviews,
@@ -330,7 +289,7 @@
   .homepage-education-knowledge-card__reviews,
   .homepage-consultants-card__reviews,
   .homepage-community-hub-card__reviews {
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
   }
 }
 
@@ -342,7 +301,7 @@
   .homepage-study-library-card__media,
   .homepage-consultants-card__media,
   .homepage-community-hub-card__media {
-    height: 68px;
+    max-height: 68px;
   }
 
   .homepage-marketplace-promo__title,
@@ -352,6 +311,6 @@
   .homepage-study-library__title,
   .homepage-consultants__title,
   .homepage-community-hub__title {
-    font-size: 1.05rem;
+    font-size: 0.975rem;
   }
 }
