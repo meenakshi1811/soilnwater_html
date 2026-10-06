@@ -7,9 +7,23 @@ use App\Models\EducatorNotice;
 use App\Support\EducatorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class EducatorNoticeController extends Controller
 {
+    public function index(Request $request): View
+    {
+        $educator = $request->user()->educator;
+        abort_unless($educator, 403);
+
+        $notices = $educator->notices()->latest()->get();
+
+        return view('backend.educator.notices.index', [
+            'educator' => $educator,
+            'notices' => $notices,
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $educator = $request->user()->educator;

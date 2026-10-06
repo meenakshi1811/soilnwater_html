@@ -75,6 +75,7 @@ use App\Http\Controllers\Institute\InstitutePublicContentController;
 use App\Http\Controllers\Institute\InstitutePublicPageController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
 use App\Http\Controllers\Educator\EducatorNoticeController;
+use App\Http\Controllers\Educator\EducatorTuitionController;
 use App\Http\Controllers\Educator\EducatorProfileController;
 use App\Http\Controllers\Educator\StudyMaterialController;
 use App\Http\Controllers\Discussion\DiscussionGroupInvitationController;
@@ -435,6 +436,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [EducatorDashboardController::class, 'dashboard'])->middleware('educator')->name('dashboard');
         Route::get('/profile', [EducatorProfileController::class, 'edit'])->middleware('educator')->name('profile.edit');
         Route::put('/profile', [EducatorProfileController::class, 'update'])->middleware('educator')->name('profile.update');
+        Route::get('/tuition', [EducatorTuitionController::class, 'edit'])->middleware('educator')->name('tuition.edit');
+        Route::put('/tuition', [EducatorTuitionController::class, 'update'])->middleware('educator')->name('tuition.update');
         Route::get('/materials/data', [StudyMaterialController::class, 'data'])->middleware('educator')->name('materials.data');
         Route::get('/materials/type-config/{type}', [StudyMaterialController::class, 'typeConfig'])->middleware('educator')->name('materials.type-config');
         Route::get('/materials/{material}/download', [StudyMaterialController::class, 'download'])->middleware('educator')->name('materials.download');
@@ -443,6 +446,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('materials', StudyMaterialController::class)->middleware('educator');
         Route::get('/enquiries', [EducatorEnquiryController::class, 'index'])->middleware('educator')->name('enquiries.index');
         Route::post('/enquiries/{enquiry}/answer', [EducatorEnquiryController::class, 'answer'])->middleware('educator')->name('enquiries.answer');
+        Route::get('/notices', [EducatorNoticeController::class, 'index'])->middleware('educator')->name('notices.index');
         Route::post('/notices', [EducatorNoticeController::class, 'store'])->middleware('educator')->name('notices.store');
         Route::delete('/notices/{notice}', [EducatorNoticeController::class, 'destroy'])->middleware('educator')->name('notices.destroy');
         Route::get('/affiliations/search', [\App\Http\Controllers\Educator\EducatorInstituteAffiliationController::class, 'search'])->middleware('educator')->name('affiliations.search');

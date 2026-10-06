@@ -353,6 +353,37 @@ class Educator extends Model
             ->all();
     }
 
+    public function hasPublishedTuitionDetails(): bool
+    {
+        if (! $this->isTutor()) {
+            return false;
+        }
+
+        if ($this->normalizedTuitionBatches() !== []) {
+            return true;
+        }
+
+        if ($this->activeTuitionDeliveryOptions() !== []) {
+            return true;
+        }
+
+        if (filled($this->tuition_charges)) {
+            return true;
+        }
+
+        if (filled($this->tuition_timings)) {
+            return true;
+        }
+
+        if (filled($this->tuitionPointAddressLabel())) {
+            return true;
+        }
+
+        return collect($this->availability ?? [])
+            ->filter(fn ($row) => is_array($row) && collect($row)->filter()->isNotEmpty())
+            ->isNotEmpty();
+    }
+
     public function publicTagline(): ?string
     {
         $tagline = trim((string) $this->tagline);

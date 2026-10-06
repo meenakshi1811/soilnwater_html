@@ -33,6 +33,7 @@
   $coursesPreview = collect($courses ?? []);
   $courseCarouselCols = min(max($coursesPreview->count(), 1), 3);
   $isTutorProfile = $educator->isTutor();
+  $showTuitionDetails = $educator->hasPublishedTuitionDetails();
   $tuitionPointLabel = $educator->tuitionPointAddressLabel();
   $affiliatedInstitutes = $educator->affiliatedInstitutes ?? collect();
   $showLocationSidebar = $educator->locationLabel()
@@ -55,10 +56,10 @@
     ['id' => 'edu-study-materials', 'label' => 'Study Material', 'icon' => 'fa-folder-open'],
     ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper'],
     ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
-    ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'tutor_only' => true],
+    ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'show_when' => $showTuitionDetails],
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
     ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
-    )->filter(fn ($item) => empty($item['tutor_only']) || $isTutorProfile)->values()->all();
+    )->filter(fn ($item) => ! array_key_exists('show_when', $item) || $item['show_when'])->values()->all();
 @endphp
 
 <div
@@ -492,7 +493,7 @@
           <p class="edu-empty">No gallery photos yet.</p>
         </section>
 
-        @if($isTutorProfile)
+        @if($showTuitionDetails)
         {{-- 14. Fees & Packages --}}
         <section class="edu-section" id="edu-fees">
           <h2 class="edu-section__title"><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> Fees &amp; Packages</h2>

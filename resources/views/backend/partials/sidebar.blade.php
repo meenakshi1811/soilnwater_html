@@ -36,7 +36,7 @@
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
-    $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
+    $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.tuition.*') || request()->routeIs('educator.notices.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
     $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.jobs.*') || request()->routeIs('school.engagement.*') || request()->routeIs('school.diary.*');
     $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.jobs.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
@@ -690,6 +690,18 @@
                             <a class="{{ request()->routeIs('educator.profile.*') ? 'active' : '' }}" href="{{ route('educator.profile.edit') }}">
                                 <i class="fa-solid fa-id-card"></i>
                                 <span>Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('educator.tuition.*') ? 'active' : '' }}" href="{{ route('educator.tuition.edit') }}">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                <span>Tuition</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('educator.notices.*') ? 'active' : '' }}" href="{{ route('educator.notices.index') }}">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                <span>Notice</span>
                             </a>
                         </li>
                         <li>

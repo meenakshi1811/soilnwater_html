@@ -26,10 +26,6 @@ class EducatorProfileController extends Controller
         $educator?->recalculateRating();
         $educator?->refresh();
 
-        $notices = $educator
-            ? $educator->notices()->latest()->get()
-            : collect();
-
         $instituteAffiliations = $educator
             ? $educator->instituteAffiliations()->with(['institute.user:id,role'])->get()
             : collect();
@@ -37,7 +33,6 @@ class EducatorProfileController extends Controller
         return view('backend.educator.profile', [
             'user' => $user,
             'educator' => $educator,
-            'notices' => $notices,
             'instituteAffiliations' => $instituteAffiliations,
         ]);
     }
@@ -91,34 +86,8 @@ class EducatorProfileController extends Controller
             'achievements.*' => ['nullable', 'string', 'max:500'],
             'certifications' => ['nullable', 'array'],
             'certifications.*' => ['nullable', 'string', 'max:500'],
-            'availability' => ['nullable', 'array'],
-            'availability.*.day' => ['nullable', 'string', 'max:40'],
-            'availability.*.slots' => ['nullable', 'string', 'max:255'],
             'service_area' => ['nullable', 'array'],
             'service_area.*' => ['nullable', 'string', 'max:120'],
-            'take_tuitions' => ['nullable', 'boolean'],
-            'tuition_batches' => ['nullable', 'array'],
-            'tuition_batches.*.class' => ['nullable', 'string', 'max:80'],
-            'tuition_batches.*.subject' => ['nullable', 'string', 'max:80'],
-            'tuition_batches.*.batch_type' => ['nullable', 'string', 'max:80'],
-            'tuition_batches.*.student_count' => ['nullable', 'string', 'max:20'],
-            'tuition_batches.*.cost' => ['nullable', 'string', 'max:120'],
-            'tuition_location' => ['nullable', 'string', 'max:255'],
-            'tuition_point_address' => ['nullable', 'string', 'max:500'],
-            'tuition_place_id' => ['nullable', 'string', 'max:255'],
-            'tuition_latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'tuition_longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'tuition_timings' => ['nullable', 'string', 'max:255'],
-            'tuition_charges' => ['nullable', 'string', 'max:255'],
-            'tuition_delivery_options' => ['nullable', 'array'],
-            'tuition_delivery_options.home' => ['nullable', 'array'],
-            'tuition_delivery_options.home.enabled' => ['nullable', 'boolean'],
-            'tuition_delivery_options.home.charges' => ['nullable', 'string', 'max:255'],
-            'tuition_delivery_options.home.timings' => ['nullable', 'string', 'max:255'],
-            'tuition_delivery_options.personal' => ['nullable', 'array'],
-            'tuition_delivery_options.personal.enabled' => ['nullable', 'boolean'],
-            'tuition_delivery_options.personal.charges' => ['nullable', 'string', 'max:255'],
-            'tuition_delivery_options.personal.timings' => ['nullable', 'string', 'max:255'],
             'years_experience' => ['nullable', 'integer', 'min:0', 'max:80'],
             'students_taught' => ['nullable', 'integer', 'min:0'],
             'is_available_now' => ['nullable', 'boolean'],
@@ -171,29 +140,10 @@ class EducatorProfileController extends Controller
         $validated['achievements'] = $this->cleanStringList($validated['achievements'] ?? []);
         $validated['certifications'] = $this->cleanStringList($validated['certifications'] ?? []);
         $validated['service_area'] = $this->cleanStringList($validated['service_area'] ?? []);
-        $validated['tuition_batches'] = $this->cleanTuitionBatches($validated['tuition_batches'] ?? []);
-        $validated['tuition_delivery_options'] = $this->cleanTuitionDeliveryOptions(
-            $validated['tuition_delivery_options'] ?? [],
-            $request
-        );
-        $validated['tuition_classes'] = collect($validated['tuition_batches'])->pluck('class')->filter()->unique()->values()->all();
-        $validated['tuition_subjects'] = collect($validated['tuition_batches'])->pluck('subject')->filter()->unique()->values()->all();
-        $validated['tuition_types'] = collect($validated['tuition_batches'])->pluck('batch_type')->filter()->unique()->values()->all();
         $validated['subjects'] = $this->cleanSubjects($validated['subjects'] ?? []);
         $validated['qualifications'] = $this->cleanObjectList($validated['qualifications'] ?? [], ['degree', 'institution', 'year']);
         $validated['experiences'] = $this->cleanExperiences($validated['experiences'] ?? []);
-        $validated['availability'] = $this->cleanObjectList($validated['availability'] ?? [], ['day', 'slots']);
-        $validated['take_tuitions'] = $request->boolean('take_tuitions');
         $validated['is_available_now'] = $request->boolean('is_available_now');
-        $validated['tuition_point_address'] = trim((string) ($validated['tuition_point_address'] ?? ''));
-
-        if ($validated['tuition_point_address'] === '') {
-            $validated['tuition_place_id'] = null;
-            $validated['tuition_latitude'] = null;
-            $validated['tuition_longitude'] = null;
-        }
-
-        $validated['tuition_location'] = $validated['tuition_point_address'] ?: null;
         $validated['tagline'] = Educator::excerptFromAbout($validated['about'] ?? null);
         $validated['display_name'] = $validated['name'];
         $validated['phone'] = $validated['phone_number'];
@@ -226,7 +176,6 @@ class EducatorProfileController extends Controller
                 'message' => 'Profile updated successfully.',
                 'display_name' => $educator->display_name,
                 'photo_url' => $educator->photoUrl(),
-                'take_tuitions' => (bool) $educator->take_tuitions,
             ]);
         }
 
@@ -261,69 +210,6 @@ class EducatorProfileController extends Controller
     {
         return collect($items)
             ->map(fn ($item) => is_string($item) ? trim($item) : '')
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     * @return list<array{class: string, subject: string, batch_type: string, student_count: string, cost: string}>
-     */
-    /**
-     * @param  array<string, mixed>  $options
-     * @return array<string, array{enabled: bool, label: string, charges: string, timings: string}>
-     */
-    private function cleanTuitionDeliveryOptions(array $options, Request $request): array
-    {
-        $result = [];
-
-        foreach ([
-            'home' => 'Home tuition',
-            'personal' => 'Personal tuition',
-        ] as $key => $label) {
-            $row = is_array($options[$key] ?? null) ? $options[$key] : [];
-            $enabled = $request->boolean('tuition_delivery_options.'.$key.'.enabled');
-            $charges = trim((string) ($row['charges'] ?? ''));
-            $timings = trim((string) ($row['timings'] ?? ''));
-
-            if (! $enabled) {
-                continue;
-            }
-
-            $result[$key] = [
-                'enabled' => true,
-                'label' => $label,
-                'charges' => $charges,
-                'timings' => $timings,
-            ];
-        }
-
-        return $result;
-    }
-
-    private function cleanTuitionBatches(array $items): array
-    {
-        return collect($items)
-            ->map(function ($item) {
-                if (! is_array($item)) {
-                    return null;
-                }
-
-                $row = [
-                    'class' => trim((string) ($item['class'] ?? '')),
-                    'subject' => trim((string) ($item['subject'] ?? '')),
-                    'batch_type' => trim((string) ($item['batch_type'] ?? '')),
-                    'student_count' => trim((string) ($item['student_count'] ?? '')),
-                    'cost' => trim((string) ($item['cost'] ?? '')),
-                ];
-
-                if (collect($row)->filter()->isEmpty()) {
-                    return null;
-                }
-
-                return $row;
-            })
             ->filter()
             ->values()
             ->all();

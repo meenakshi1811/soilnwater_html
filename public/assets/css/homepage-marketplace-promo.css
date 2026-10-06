@@ -119,12 +119,14 @@
 .homepage-marketplace-promo__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  column-gap: 14px;
+  row-gap: 14px;
 }
 
 .homepage-marketplace-promo-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   background: #fff;
   border-radius: 20px;
   overflow: hidden;
@@ -298,8 +300,8 @@
 
   .homepage-marketplace-promo__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    row-gap: 18px;
+    column-gap: 20px;
+    row-gap: 22px;
   }
 
   .homepage-marketplace-promo__head {
@@ -405,8 +407,8 @@
   .homepage-marketplace-promo__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    row-gap: 14px;
+    column-gap: 16px;
+    row-gap: 18px;
     overflow: visible;
   }
 
@@ -416,7 +418,7 @@
 
   .homepage-marketplace-promo-card {
     border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     min-height: 0;
   }
 
