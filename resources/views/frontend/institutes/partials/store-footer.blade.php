@@ -10,8 +10,8 @@
             </div>
             <div class="col-md-3">
                 <h6 class="text-white">Contact</h6>
-                @if($institute->phone)
-                    <p class="small mb-1"><i class="fa-solid fa-phone me-1"></i> <a href="tel:{{ $institute->phone }}" class="text-white-50 text-decoration-none">{{ $institute->phone }}</a></p>
+                @if($institute->phoneNumbersList() !== [])
+                    <p class="small mb-1"><i class="fa-solid fa-phone me-1"></i> @include('frontend.partials.profile-phone-links', ['phones' => $institute->phoneNumbersList(), 'linkClass' => 'text-white-50 text-decoration-none'])</p>
                 @endif
                 @if($institute->email)
                     <p class="small mb-1"><i class="fa-solid fa-envelope me-1"></i> <a href="mailto:{{ $institute->email }}" class="text-white-50 text-decoration-none">{{ $institute->email }}</a></p>

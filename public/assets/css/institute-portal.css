@@ -265,3 +265,15 @@
 .inst-public-page-form-body {
   margin-bottom: 1rem;
 }
+
+.inst-grade-row {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.inst-grade-rows__head {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}

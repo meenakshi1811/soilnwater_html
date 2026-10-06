@@ -237,9 +237,8 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
-        $rules = [
+        $rules = array_merge([
             'name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
@@ -249,7 +248,7 @@ class UserDashboardController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ];
+        ], \App\Support\ProfilePhoneNumbers::validationRules());
 
         if ($user->isStudent()) {
             $rules['date_of_birth'] = ['nullable', 'date'];
@@ -257,18 +256,17 @@ class UserDashboardController extends Controller
             $rules['date_of_birth'] = ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()];
         }
 
-        $validated = $request->validate($rules, [
-            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+        $validated = $request->validate($rules, array_merge([
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old.',
-        ]);
+        ], \App\Support\ProfilePhoneNumbers::validationMessages()));
 
-        $phoneChanged = $user->phone_number !== $validated['phone_number'];
+        $phoneNumbers = \App\Support\ProfilePhoneNumbers::normalize($validated['phone_numbers']);
+        $phoneChanged = \App\Support\ProfilePhoneNumbers::applyToUser($user, $phoneNumbers);
 
         $user->name = $validated['name'];
         $user->full_name = $validated['name'];
-        $user->phone_number = $validated['phone_number'];
         $user->whatsapp_number = $validated['whatsapp_number'];
         $user->address = $validated['address'];
         $user->city = $validated['city'];

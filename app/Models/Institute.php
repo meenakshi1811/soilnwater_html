@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasProfilePhoneNumbers;
+use App\Support\InstituteGrades;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +14,8 @@ use Illuminate\Support\Str;
 
 class Institute extends Model
 {
+    use HasProfilePhoneNumbers;
+
     protected $fillable = [
         'user_id',
         'institution_name',
@@ -20,6 +24,7 @@ class Institute extends Model
         'display_name',
         'logo',
         'phone',
+        'phone_numbers',
         'whatsapp',
         'email',
         'address',
@@ -56,6 +61,7 @@ class Institute extends Model
     protected function casts(): array
     {
         return [
+            'phone_numbers' => 'array',
             'grades_offered' => 'array',
             'facilities' => 'array',
             'gallery' => 'array',
@@ -66,6 +72,14 @@ class Institute extends Model
             'date_of_establishment' => 'date',
             'approved_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return list<array{class: string, sections: int|null, students_per_section: int|null}>
+     */
+    public function gradesOfferedEntries(): array
+    {
+        return InstituteGrades::normalizeList($this->grades_offered);
     }
 
     public function user(): BelongsTo

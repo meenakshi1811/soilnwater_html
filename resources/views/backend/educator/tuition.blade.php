@@ -10,7 +10,7 @@
     $tuitionBatches = $educator->normalizedTuitionBatches();
   }
   if (empty($tuitionBatches)) {
-    $tuitionBatches = [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '']];
+    $tuitionBatches = [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
   }
   $tuitionDeliveryOptions = $educator->normalizedTuitionDeliveryOptions();
 @endphp
@@ -52,41 +52,7 @@
 @endpush
 
 @push('scripts')
-<script>
-(function () {
-  const templates = {
-    availability: (i) => `<div class="edu-repeat-row edu-repeat-row--availability js-repeat-row"><input type="text" name="availability[${i}][day]" class="form-control" placeholder="Monday"><input type="text" name="availability[${i}][slots]" class="form-control" placeholder="4:00 PM – 7:00 PM"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
-    tuitionBatch: (i) => `<div class="tuition-batch-card js-repeat-row"><div class="tuition-batch-card__grid"><div><label class="form-label d-md-none">Class</label><input type="text" name="tuition_batches[${i}][class]" class="form-control" placeholder="Class 10"></div><div><label class="form-label d-md-none">Subject</label><input type="text" name="tuition_batches[${i}][subject]" class="form-control" placeholder="Physics"></div><div><label class="form-label d-md-none">Batch type</label><input type="text" name="tuition_batches[${i}][batch_type]" class="form-control" placeholder="Small group" list="tuitionBatchTypeOptions"></div><div><label class="form-label d-md-none">Students</label><input type="number" name="tuition_batches[${i}][student_count]" class="form-control" min="1" placeholder="8"></div><div><label class="form-label d-md-none">Cost</label><input type="text" name="tuition_batches[${i}][cost]" class="form-control" placeholder="₹500 / month"></div><div class="tuition-batch-card__actions"><button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove batch">&times;</button></div></div></div>`
-  };
-
-  document.querySelectorAll('[data-add]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      const wrap = document.querySelector(btn.dataset.add);
-      const i = wrap.querySelectorAll('.js-repeat-row').length;
-      wrap.insertAdjacentHTML('beforeend', templates[btn.dataset.template](i));
-    });
-  });
-
-  document.addEventListener('change', function (e) {
-    if (e.target.classList.contains('js-delivery-option-toggle')) {
-      const fields = e.target.closest('[data-delivery-option]')?.querySelector('.edu-delivery-option__fields');
-      if (fields) {
-        fields.classList.toggle('d-none', !e.target.checked);
-      }
-    }
-  });
-
-  document.addEventListener('click', function (e) {
-    if (e.target.classList.contains('js-remove-row')) {
-      const row = e.target.closest('.js-repeat-row');
-      const wrap = row?.parentElement;
-      if (row && wrap && wrap.querySelectorAll('.js-repeat-row').length > 1) {
-        row.remove();
-      }
-    }
-  });
-})();
-</script>
+<script src="{{ asset('assets/js/educator-tuition-form.js') }}?v={{ now()->timestamp }}"></script>
 @if(config('services.google.maps_api_key'))
 <script>
 window.initEducatorTuitionPlacesAutocomplete = function () {

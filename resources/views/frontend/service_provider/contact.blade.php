@@ -32,12 +32,12 @@
                             </div>
                         </div>
 
-                        @if($service_provider->phone)
+                        @if($service_provider->phoneNumbersList() !== [])
                             <div class="d-flex align-items-start gap-3 mb-4">
                                 <span class="contact-icon"><i class="fa-solid fa-phone"></i></span>
                                 <div>
                                     <p class="mb-1 fw-semibold text-dark">Phone</p>
-                                    <p class="mb-0 text-muted">{{ $service_provider->phone }}</p>
+                                    <div class="mb-0 text-muted">@include('frontend.partials.profile-phone-links', ['phones' => $service_provider->phoneNumbersList(), 'asList' => true])</div>
                                 </div>
                             </div>
                         @endif

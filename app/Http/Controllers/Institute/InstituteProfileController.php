@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use App\Support\InstituteFileUploader;
 use App\Support\InstituteGallery;
+use App\Support\InstituteGrades;
+use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,10 +36,24 @@ class InstituteProfileController extends Controller
         $facilitiesSectionEnabled = $request->boolean('facilities_section_enabled');
         $gallerySectionEnabled = $request->boolean('gallery_section_enabled');
 
-        $validated = $request->validate([
+        if ($gradesSectionEnabled) {
+            $request->merge([
+                'grades_offered' => collect($request->input('grades_offered', []))
+                    ->filter(function ($row) {
+                        if (! is_array($row)) {
+                            return is_string($row) && trim($row) !== '';
+                        }
+
+                        return trim((string) ($row['class'] ?? '')) !== '';
+                    })
+                    ->values()
+                    ->all(),
+            ]);
+        }
+
+        $validated = $request->validate(array_merge([
             'institution_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
@@ -53,16 +69,6 @@ class InstituteProfileController extends Controller
             'grades_section_enabled' => ['nullable', 'boolean'],
             'facilities_section_enabled' => ['nullable', 'boolean'],
             'gallery_section_enabled' => ['nullable', 'boolean'],
-            'grades_offered' => [
-                Rule::requiredIf($gradesSectionEnabled),
-                'array',
-                Rule::when($gradesSectionEnabled, ['min:1']),
-            ],
-            'grades_offered.*' => [
-                Rule::requiredIf($gradesSectionEnabled),
-                'string',
-                'max:80',
-            ],
             'facilities' => [
                 Rule::requiredIf($facilitiesSectionEnabled),
                 'array',
@@ -86,7 +92,7 @@ class InstituteProfileController extends Controller
             'gallery_uploads.*' => ['file'],
             'removed_gallery' => ['nullable', 'array'],
             'removed_gallery.*' => ['string', 'max:255'],
-        ], [
+        ], ProfilePhoneNumbers::validationRules(), InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
             'contact_person.required' => 'Please enter the contact person name.',
             'institution_type.required' => 'Please select an institution type.',
             'board_affiliation.required' => 'Please enter board or affiliation.',
@@ -94,15 +100,15 @@ class InstituteProfileController extends Controller
             'about.required' => 'Please enter the about section.',
             'about.min' => 'About must be at least 10 characters.',
             'state.required' => 'Please enter your state.',
-            'grades_offered.required' => 'Add at least one grade or class when this section is enabled.',
-            'grades_offered.min' => 'Add at least one grade or class when this section is enabled.',
-            'grades_offered.*.required' => 'Each grade or class entry is required.',
             'facilities.required' => 'Add at least one facility when this section is enabled.',
             'facilities.min' => 'Add at least one facility when this section is enabled.',
             'facilities.*.required' => 'Each facility entry is required.',
             'date_of_establishment.required' => 'Please enter the founded date.',
             'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
-        ]);
+        ], ProfilePhoneNumbers::validationMessages(), InstituteGrades::validationMessages()));
+
+        $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
+        $phoneChanged = ProfilePhoneNumbers::applyToUser($user, $phoneNumbers);
 
         if ($gallerySectionEnabled) {
             $removed = collect($request->input('removed_gallery', []))
@@ -149,7 +155,8 @@ class InstituteProfileController extends Controller
             'display_name' => $validated['institution_name'],
             'slug' => $slug,
             'logo' => $validated['logo'] ?? $institute->logo,
-            'phone' => $validated['phone_number'],
+            'phone' => ProfilePhoneNumbers::primary($phoneNumbers),
+            'phone_numbers' => $phoneNumbers,
             'whatsapp' => $validated['whatsapp_number'],
             'email' => $user->email,
             'address' => $validated['address'],
@@ -162,7 +169,7 @@ class InstituteProfileController extends Controller
             'institution_type' => $validated['institution_type'] ?? null,
             'board_affiliation' => $validated['board_affiliation'] ?? null,
             'grades_offered' => $gradesSectionEnabled
-                ? array_values(array_filter($validated['grades_offered'] ?? []))
+                ? InstituteGrades::fromValidated($validated['grades_offered'] ?? [])
                 : [],
             'facilities' => $facilitiesSectionEnabled
                 ? array_values(array_filter($validated['facilities'] ?? []))
@@ -181,12 +188,17 @@ class InstituteProfileController extends Controller
         $userUpdate = [
             'name' => $validated['institution_name'],
             'full_name' => $validated['institution_name'],
-            'phone_number' => $validated['phone_number'],
+            'phone_number' => ProfilePhoneNumbers::primary($phoneNumbers),
+            'phone_numbers' => $phoneNumbers,
             'whatsapp_number' => $validated['whatsapp_number'],
             'address' => $validated['address'],
             'city' => $validated['city'],
             'pincode' => $validated['pincode'],
         ];
+
+        if ($phoneChanged) {
+            $userUpdate['phone_verified_at'] = null;
+        }
 
         if (filled($validated['password'] ?? null)) {
             $userUpdate['password'] = Hash::make($validated['password']);

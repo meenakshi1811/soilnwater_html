@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasProfilePhoneNumbers;
 use App\Support\ActiveChildSession;
 use App\Support\ModulePermissions;
 use App\Support\UserDashboard;
@@ -18,7 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasProfilePhoneNumbers, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'full_name',
         'email',
         'phone_number',
+        'phone_numbers',
         'whatsapp_number',
         'address',
         'city',
@@ -68,6 +70,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_numbers' => 'array',
             'phone_verified_at' => 'datetime',
             'date_of_birth' => 'date',
             'is_active' => 'boolean',

@@ -39,21 +39,21 @@
         </div>
       </div>
     @endif
-    @if($institute->phone)
+    @if($institute->phoneNumbersList() !== [])
       <div class="sch-contact-item">
         <i class="fa-solid fa-phone" aria-hidden="true"></i>
         <div>
           <span>Phone</span>
-          <p><a href="tel:{{ $institute->phone }}">{{ $institute->phone }}</a></p>
+          <div>@include('frontend.partials.profile-phone-links', ['phones' => $institute->phoneNumbersList(), 'asList' => true])</div>
         </div>
       </div>
     @endif
-    @if($institute->whatsapp ?: $institute->phone)
+    @if($institute->whatsapp ?: $institute->primaryPhoneNumber())
       <div class="sch-contact-item">
         <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
         <div>
           <span>WhatsApp</span>
-          <p><a href="https://wa.me/91{{ preg_replace('/\D/', '', $institute->whatsapp ?: $institute->phone) }}" target="_blank" rel="noopener">{{ $institute->whatsapp ?: $institute->phone }}</a></p>
+          <p><a href="https://wa.me/91{{ preg_replace('/\D/', '', $institute->whatsapp ?: $institute->primaryPhoneNumber()) }}" target="_blank" rel="noopener">{{ $institute->whatsapp ?: $institute->primaryPhoneNumber() }}</a></p>
         </div>
       </div>
     @endif

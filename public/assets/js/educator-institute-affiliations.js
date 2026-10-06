@@ -22,6 +22,27 @@
         }
     }
 
+    function syncProfileLocationFromInstitute(institute) {
+        if (!institute) {
+            return;
+        }
+        var name = institute.name || '';
+        var city = institute.city || '';
+        var state = institute.state || '';
+        var $assoc = $('#associated_institute');
+        var $city = $('#educator_teaching_city');
+        var $state = $('#educator_teaching_state');
+        if ($assoc.length && name) {
+            $assoc.val(name);
+        }
+        if ($city.length && city) {
+            $city.val(city);
+        }
+        if ($state.length && state) {
+            $state.val(state);
+        }
+    }
+
     function setSelected(institute) {
         selectedInstitute = institute;
         var label = $('#eduAffiliationSelectedLabel');
@@ -33,7 +54,14 @@
             $('#eduAffiliationInstituteId').val('');
             return;
         }
-        label.text('Selected: ' + institute.name + (institute.city ? ' · ' + institute.city : ''));
+        var parts = [institute.name];
+        if (institute.city) {
+            parts.push(institute.city);
+        }
+        if (institute.state) {
+            parts.push(institute.state);
+        }
+        label.text('Selected: ' + parts.join(' · '));
         $('#eduAffiliationInstituteId').val(String(institute.id));
     }
 
@@ -43,7 +71,9 @@
             return;
         }
         if (!results.length) {
-            box.addClass('d-none').empty();
+            box.removeClass('d-none').html(
+                '<p class="edu-affiliation-search-results__empty mb-0 small text-muted px-2 py-1">No matching approved schools or institutes. Try another name or city.</p>'
+            );
             return;
         }
         var html = results.map(function (item) {
@@ -54,6 +84,8 @@
                 $('<div>').text(item.name).html() +
                 '" data-city="' +
                 $('<div>').text(item.city || '').html() +
+                '" data-state="' +
+                $('<div>').text(item.state || '').html() +
                 '">' +
                 '<strong>' +
                 $('<div>').text(item.name).html() +
@@ -61,38 +93,51 @@
                 '<span>' +
                 item.type +
                 (item.city ? ' · ' + $('<div>').text(item.city).html() : '') +
+                (item.state ? ' · ' + $('<div>').text(item.state).html() : '') +
                 '</span></button>'
             );
         }).join('');
         box.html(html).removeClass('d-none');
     }
 
-    $('#eduAffiliationSearch').on('input', function () {
-        var query = $(this).val().trim();
+    function runSearch(query) {
+        $.getJSON(routes.search, { q: query })
+            .done(function (response) {
+                renderResults(response.results || []);
+            })
+            .fail(function () {
+                renderResults([]);
+            });
+    }
+
+    function scheduleSearch() {
+        var query = $('#eduAffiliationSearch').val().trim();
         clearTimeout(searchTimer);
         setSelected(null);
-        if (query.length < 2) {
-            renderResults([]);
-            return;
-        }
         searchTimer = setTimeout(function () {
-            $.getJSON(routes.search, { q: query })
-                .done(function (response) {
-                    renderResults(response.results || []);
-                })
-                .fail(function () {
-                    renderResults([]);
-                });
-        }, 250);
+            runSearch(query);
+        }, 220);
+    }
+
+    $('#eduAffiliationSearch').on('input', scheduleSearch);
+
+    $('#eduAffiliationSearch').on('focus', function () {
+        var query = $(this).val().trim();
+        if (query.length === 0) {
+            runSearch('');
+        }
     });
 
     $(document).on('click', '.edu-affiliation-search-results__item', function () {
         var btn = $(this);
-        setSelected({
+        var institute = {
             id: btn.data('id'),
             name: btn.data('name'),
             city: btn.data('city') || '',
-        });
+            state: btn.data('state') || '',
+        };
+        setSelected(institute);
+        syncProfileLocationFromInstitute(institute);
         $('#eduAffiliationSearch').val(btn.data('name'));
         renderResults([]);
     });
@@ -122,6 +167,11 @@
                 notify('success', response.message || 'Linked successfully.');
                 $('#eduAffiliationEmpty').remove();
                 $('#eduAffiliationList').prepend(response.html || '');
+                if (response.institute) {
+                    syncProfileLocationFromInstitute(response.institute);
+                } else if (selectedInstitute) {
+                    syncProfileLocationFromInstitute(selectedInstitute);
+                }
                 $('#eduAffiliationSearch').val('');
                 $('#eduAffiliationRole').val('');
                 $('#eduAffiliationSubject').val('');
@@ -162,7 +212,7 @@
 
     $(document).on('click', function (event) {
         if (!$(event.target).closest('#eduAffiliationSearch, #eduAffiliationSearchResults').length) {
-            renderResults([]);
+            $('#eduAffiliationSearchResults').addClass('d-none').empty();
         }
     });
 })(window.jQuery);

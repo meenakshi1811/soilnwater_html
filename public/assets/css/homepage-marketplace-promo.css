@@ -360,18 +360,18 @@
 @media (max-width: 991.98px) {
   /* Gray band between stacked gradient section boxes (not extra gap inside white cards) */
   .homepage-marketplace-promo {
-    padding: 0 0 18px;
+    padding: 0 0 36px;
   }
 
   .homepage-marketplace-promo__shell {
     margin: 0 10px;
-    padding: 10px 10px 9px;
+    padding: 18px 14px 17px;
     border-radius: 16px;
   }
 
   .homepage-marketplace-promo__head {
-    margin-bottom: 7px;
-    gap: 6px;
+    margin-bottom: 14px;
+    gap: 8px;
   }
 
   .homepage-marketplace-promo__head-main {
@@ -408,8 +408,8 @@
   .homepage-marketplace-promo__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 10px;
-    row-gap: 12px;
+    column-gap: 12px;
+    row-gap: 14px;
     overflow: visible;
   }
 
@@ -506,6 +506,21 @@
     align-self: flex-start;
     padding: 1px 5px;
     font-size: 0.5rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .homepage-marketplace-promo {
+    padding: 0 0 44px;
+  }
+
+  .homepage-marketplace-promo__shell {
+    margin: 0 22px;
+    padding: 20px 20px 19px;
+  }
+
+  .homepage-marketplace-promo__head {
+    margin-bottom: 16px;
   }
 }
 

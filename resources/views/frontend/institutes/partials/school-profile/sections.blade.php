@@ -129,6 +129,11 @@
           </div>
         @endif
       </div>
+    @elseif($institute->gradesOfferedEntries() !== [])
+      <div id="sch-classes-detail" class="sch-classes-detail">
+        <h3 class="sch-classes-detail__title mb-3">Classes offered</h3>
+        @include('frontend.institutes.partials.grade-offered-table', ['institute' => $institute])
+      </div>
     @endif
   </section>
 @endif

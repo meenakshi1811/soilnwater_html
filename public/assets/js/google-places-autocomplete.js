@@ -743,12 +743,15 @@
 
         var latitudeInput = resolveInputTarget(input, 'latitudeTarget');
         var longitudeInput = resolveInputTarget(input, 'longitudeTarget');
+        var stateInput = resolveInputTarget(input, 'educatorStateTarget');
+        var cityInput = resolveInputTarget(input, 'educatorCityTarget');
         var usesCoordinates = Boolean(latitudeInput && longitudeInput);
+        var usesAddressComponents = Boolean(stateInput || cityInput);
 
         bindAutocomplete(input, {
             types: ['establishment'],
-            addressComponents: false,
-            geometry: usesCoordinates,
+            addressComponents: usesAddressComponents,
+            geometry: usesCoordinates || usesAddressComponents,
             onPlaceChanged: function (place) {
                 var placeName = getPlaceName(place);
 
@@ -759,6 +762,15 @@
                 if (usesCoordinates && place && place.geometry && place.geometry.location) {
                     latitudeInput.value = String(place.geometry.location.lat());
                     longitudeInput.value = String(place.geometry.location.lng());
+                }
+
+                if (place && place.address_components) {
+                    if (stateInput) {
+                        stateInput.value = getState(place.address_components) || stateInput.value;
+                    }
+                    if (cityInput) {
+                        cityInput.value = getCity(place.address_components) || cityInput.value;
+                    }
                 }
 
                 input.dispatchEvent(new Event('input', { bubbles: true }));

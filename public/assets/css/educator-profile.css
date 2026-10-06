@@ -2281,6 +2281,22 @@
   color: var(--edu-success);
 }
 
+.edu-delivery-card--online .edu-delivery-card__icon {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.edu-delivery-card--tuition_point .edu-delivery-card__icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.edu-delivery-offering-public + .edu-delivery-offering-public {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--edu-border);
+}
+
 .edu-delivery-card__title {
   margin: 0;
   font-size: 1rem;

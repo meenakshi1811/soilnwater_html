@@ -117,7 +117,7 @@
             <label class="vendors-filter-check">
               <input type="checkbox" id="educatorsMarketFilterAvailable" @checked(request()->boolean('available_now'))>
               <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-              Available now
+              Accepting private tuitions
             </label>
           </div>
         </div>

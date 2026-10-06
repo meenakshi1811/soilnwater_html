@@ -1364,9 +1364,8 @@
                 alertSelector: '#adminProfileAlert',
                 defaultText: 'Save Changes',
                 loadingText: 'Saving...',
-                rules: {
+                rules: $.extend({
                     name: { required: true, minlength: 3, maxlength: 255 },
-                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     email: { required: true, email: true, maxlength: 255 },
                     password: { minlength: 8 },
                     password_confirmation: {
@@ -1375,17 +1374,13 @@
                         },
                         equalTo: '#password'
                     }
-                },
-                messages: {
+                }, window.ProfilePhoneNumbers ? ProfilePhoneNumbers.validationRules() : {
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
+                }),
+                messages: $.extend({
                     name: {
                         required: 'Please enter your full name.',
                         minlength: 'Full name must be at least 3 characters.'
-                    },
-                    phone_number: {
-                        required: 'Please enter your phone number.',
-                        digits: 'Phone number should contain only digits.',
-                        minlength: 'Phone number must be at least 10 digits.',
-                        maxlength: 'Phone number cannot exceed 15 digits.'
                     },
                     email: {
                         required: 'Please enter your email address.',
@@ -1398,7 +1393,14 @@
                         required: 'Please confirm your password.',
                         equalTo: 'Password confirmation does not match.'
                     }
-                },
+                }, window.ProfilePhoneNumbers ? ProfilePhoneNumbers.validationMessages() : {
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    }
+                }),
                 fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
                 onSuccess: function (response, ctx) {
                     if (ctx && ctx.form && ctx.form.length) {
@@ -1415,10 +1417,14 @@
         },
 
         profileValidationRules: function (includeMarketplaceFields) {
-            var rules = {
+            var phoneRules = window.ProfilePhoneNumbers
+                ? ProfilePhoneNumbers.validationRules()
+                : { phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 } };
+            var rules = $.extend({
                 name: { required: true, minlength: 3, maxlength: 255 },
-                phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                 whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+            }, phoneRules);
+            rules = $.extend(rules, {
                 address: { required: true, minlength: 5, maxlength: 500 },
                 city: { required: true, maxlength: 120 },
                 state: { maxlength: 120 },
@@ -1436,7 +1442,7 @@
                     },
                     equalTo: '#password'
                 }
-            };
+            });
 
             if (includeMarketplaceFields) {
                 rules.pan_number = { required: true, maxlength: 20 };
@@ -1454,16 +1460,20 @@
         },
 
         profileValidationMessages: function (includeMarketplaceFields) {
-            var messages = {
+            var phoneMessages = window.ProfilePhoneNumbers
+                ? ProfilePhoneNumbers.validationMessages()
+                : {
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    }
+                };
+            var messages = $.extend({
                 name: {
                     required: 'Please enter your full name.',
                     minlength: 'Full name must be at least 3 characters.'
-                },
-                phone_number: {
-                    required: 'Please enter your phone number.',
-                    digits: 'Phone number should contain only digits.',
-                    minlength: 'Phone number must be at least 10 digits.',
-                    maxlength: 'Phone number cannot exceed 15 digits.'
                 },
                 whatsapp_number: {
                     required: 'Please enter your WhatsApp number.',
@@ -1495,7 +1505,7 @@
                     required: 'Please confirm your password.',
                     equalTo: 'Password confirmation does not match.'
                 }
-            };
+            }, phoneMessages);
 
             if (includeMarketplaceFields) {
                 messages.pan_number = {
@@ -1544,7 +1554,14 @@
                     el.parentElement.appendChild(input);
                 });
             });
-            ctx.form.find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
+            if (window.ProfilePhoneNumbers) {
+                ProfilePhoneNumbers.normalizeInputs(ctx.form);
+            } else {
+                ctx.form.find('[name="phone_number"]').each(function () {
+                    $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
+                });
+            }
+            ctx.form.find('[name="whatsapp_number"], [name="pincode"]').each(function () {
                 $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
             });
         },

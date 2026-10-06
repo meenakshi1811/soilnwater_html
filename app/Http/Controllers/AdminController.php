@@ -142,15 +142,16 @@ class AdminController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ]);
+        ], \App\Support\ProfilePhoneNumbers::validationRules()), \App\Support\ProfilePhoneNumbers::validationMessages());
+
+        $phoneNumbers = \App\Support\ProfilePhoneNumbers::normalize($validated['phone_numbers']);
 
         $user->name = $validated['name'];
-        $user->phone_number = $validated['phone_number'];
+        \App\Support\ProfilePhoneNumbers::applyToUser($user, $phoneNumbers);
 
         if ($user->email !== $validated['email']) {
             $user->email = $validated['email'];

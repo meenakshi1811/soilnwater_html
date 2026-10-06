@@ -10,7 +10,7 @@
     if ($bannerSlides->isEmpty()) {
         $bannerSlides = collect([$photo]);
     }
-    $grades = collect($institute->grades_offered ?? []);
+    $grades = collect($institute->gradesOfferedEntries());
     $facilities = collect($institute->facilities ?? []);
     $gallery = collect($institute->galleryUrls());
     $notices = collect($institute->activeNotices ?? []);
@@ -72,8 +72,8 @@
                     </p>
                 @endif
             </div>
-            @if($institute->phone)
-                <a href="tel:{{ $institute->phone }}" class="btn btn-store-primary align-self-center">
+            @if($institute->primaryPhoneNumber())
+                <a href="tel:{{ $institute->primaryPhoneNumber() }}" class="btn btn-store-primary align-self-center">
                     <i class="fa-solid fa-phone me-1"></i> Call {{ $entityLabel }}
                 </a>
             @endif
@@ -196,11 +196,7 @@
                     @endforeach
                 </div>
             @elseif($grades->isNotEmpty())
-                <div class="school-chip-list">
-                    @foreach($grades as $grade)
-                        <span class="school-chip">{{ $grade }}</span>
-                    @endforeach
-                </div>
+                @include('frontend.institutes.partials.grade-offered-table', ['institute' => $institute])
             @endif
         </div>
     </section>
@@ -373,12 +369,12 @@
                                 <p class="mb-0 text-muted">{{ $institute->formattedAddress() ?: 'Address details are not available yet.' }}</p>
                             </div>
                         </div>
-                        @if($institute->phone)
+                        @if($institute->phoneNumbersList() !== [])
                             <div class="d-flex align-items-start gap-3 mb-3">
                                 <span class="contact-icon"><i class="fa-solid fa-phone"></i></span>
                                 <div>
                                     <p class="mb-1 fw-semibold">Phone</p>
-                                    <p class="mb-0"><a href="tel:{{ $institute->phone }}">{{ $institute->phone }}</a></p>
+                                    <p class="mb-0">@include('frontend.partials.profile-phone-links', ['phones' => $institute->phoneNumbersList(), 'asList' => true])</p>
                                 </div>
                             </div>
                         @endif

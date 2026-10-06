@@ -24,14 +24,12 @@
     <small class="text-muted">Email cannot be changed from this profile page.</small>
 </div>
 
-<div class="col-md-6">
-    <label for="phone_number" class="form-label">Phone Number</label>
-    <input id="phone_number" name="phone_number" type="tel" class="form-control @error('phone_number') is-invalid @enderror" value="{{ old('phone_number', $user->phone_number) }}" required autocomplete="tel">
-    <small class="text-muted">Changing this number will require phone verification on your next login.</small>
-    @error('phone_number')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
+@include('backend.partials.profile-phone-numbers-fields', [
+    'user' => $user,
+    'entity' => $profile,
+    'inputIdPrefix' => 'registration_profile_phone',
+    'showPrimaryHint' => true,
+])
 
 <div class="col-md-6">
     <label for="whatsapp_number" class="form-label">WhatsApp Number</label>

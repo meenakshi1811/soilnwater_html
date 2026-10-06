@@ -10,18 +10,15 @@
 @section('content')
 @php
   use App\Support\InstituteGallery;
+  use App\Support\InstituteGrades;
   $galleryItems = InstituteGallery::entries($institute->gallery);
-  $gradesList = old('grades_offered', $institute->grades_offered ?? []);
-  $gradesList = is_array($gradesList) ? array_values(array_filter($gradesList, fn ($g) => is_string($g) && trim($g) !== '')) : [];
-  if ($gradesList === []) {
-      $gradesList = [''];
-  }
+  $gradesList = InstituteGrades::forForm($institute->grades_offered, old('grades_offered'));
   $facilitiesList = old('facilities', $institute->facilities ?? []);
   $facilitiesList = is_array($facilitiesList) ? array_values(array_filter($facilitiesList, fn ($f) => is_string($f) && trim($f) !== '')) : [];
   if ($facilitiesList === []) {
       $facilitiesList = [''];
   }
-  $storedGradesCount = count(array_filter($institute->grades_offered ?? [], fn ($g) => is_string($g) && trim($g) !== ''));
+  $storedGradesCount = count($institute->gradesOfferedEntries());
   $storedFacilitiesCount = count(array_filter($institute->facilities ?? [], fn ($f) => is_string($f) && trim($f) !== ''));
   $gradesSectionEnabled = old('grades_section_enabled') !== null
       ? (bool) old('grades_section_enabled')
@@ -115,12 +112,15 @@
                         </div>
                     </div>
                     <div id="gradesSectionBody" class="inst-profile-section__body @unless($gradesSectionEnabled) d-none @endunless" data-section-body="grades">
+                        <div class="inst-grade-rows__head row g-2 d-none d-md-flex small text-muted mb-1">
+                            <div class="col-md-5">Class</div>
+                            <div class="col-md-3">Number of sections</div>
+                            <div class="col-md-3">Students per section</div>
+                            <div class="col-md-1"></div>
+                        </div>
                         <div id="gradesWrap">
-                            @foreach ($gradesList as $grade)
-                                <div class="input-group mb-2 js-repeat-row">
-                                    <input type="text" class="form-control js-section-field" name="grades_offered[]" value="{{ $grade }}" placeholder="e.g. Class 1" data-section="grades">
-                                    <button type="button" class="btn btn-outline-danger js-remove-row">&times;</button>
-                                </div>
+                            @foreach ($gradesList as $index => $gradeRow)
+                                @include('backend.institute.partials.grade-offered-row', ['index' => $index, 'gradeRow' => $gradeRow])
                             @endforeach
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-secondary js-section-control" id="addGradeRow" data-section="grades">+ Add grade</button>
@@ -156,10 +156,12 @@
                     @endif
                     <input type="file" class="form-control" name="logo" accept="image/*" @unless($institute->logoUrl()) required @endunless>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label" for="phone_number">Phone *</label>
-                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required>
-                </div>
+                @include('backend.partials.profile-phone-numbers-fields', [
+                    'user' => $user,
+                    'entity' => $institute,
+                    'wrapperClass' => 'mb-3 js-profile-phone-field',
+                    'inputIdPrefix' => 'institute_profile_phone',
+                ])
                 <div class="mb-3">
                     <label class="form-label" for="whatsapp_number">WhatsApp *</label>
                     <input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ old('whatsapp_number', $user->whatsapp_number) }}" required>
@@ -279,6 +281,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="{{ asset('assets/js/profile-phone-numbers.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/institute-profile.js') }}?v={{ now()->timestamp }}"></script>
 @if(config('services.google.maps_api_key'))

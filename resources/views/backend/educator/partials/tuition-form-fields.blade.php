@@ -1,7 +1,14 @@
 @php
-  $tuitionBatches = $tuitionBatches ?? [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '']];
+  use App\Support\EducatorTuitionDelivery;
+  $tuitionBatches = $tuitionBatches ?? [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
   $availability = $availability ?? [['day' => '', 'slots' => '']];
-  $tuitionDeliveryOptions = $tuitionDeliveryOptions ?? [];
+  $tuitionDeliveryOptions = EducatorTuitionDelivery::normalizeStored($tuitionDeliveryOptions ?? null);
+  $deliveryMeta = [
+    'home' => ['icon' => 'fa-house', 'desc' => 'You visit the student\'s home for classes.'],
+    'personal' => ['icon' => 'fa-user', 'desc' => 'One-on-one or small-group tuition at your place or theirs.'],
+    'online' => ['icon' => 'fa-laptop', 'desc' => 'Live online classes (batch strength not required).'],
+    'tuition_point' => ['icon' => 'fa-location-dot', 'desc' => 'Students come to your tuition centre or coaching point.'],
+  ];
 @endphp
 
 <div class="edu-toggle-card mb-4">
@@ -12,22 +19,32 @@
   </div>
 </div>
 
+<div class="edu-toggle-card mb-4">
+  <input class="form-check-input" type="checkbox" name="is_available_now" value="1" id="takePrivateTuitions" @checked(old('is_available_now', $educator->is_available_now))>
+  <div>
+    <div class="edu-toggle-card__title">I take private tuitions</div>
+    <p class="edu-toggle-card__desc">Show on your public profile that you are actively accepting private tuition students.</p>
+  </div>
+</div>
+
 <div class="edu-profile-subsection">
   <div class="edu-profile-subsection__head">
     <div>
-      <h4 class="edu-profile-subsection__title">Home &amp; personal tuition</h4>
-      <p class="edu-profile-subsection__hint">Enable the tuition types you offer and add charges and timings for each.</p>
+      <h4 class="edu-profile-subsection__title">Tuition options</h4>
+      <p class="edu-profile-subsection__hint">Enable each mode you offer and add class, subject, board, fees, and timings.</p>
     </div>
   </div>
 
   <div class="edu-delivery-options">
-    @foreach([
-      'home' => ['icon' => 'fa-house', 'title' => 'Home tuition', 'desc' => 'You visit the student\'s home for classes.'],
-      'personal' => ['icon' => 'fa-user', 'title' => 'Personal tuition', 'desc' => 'One-on-one personal tuition at your centre or a chosen location.'],
-    ] as $deliveryKey => $deliveryMeta)
+    @foreach(EducatorTuitionDelivery::MODES as $deliveryKey => $deliveryLabel)
       @php
-        $deliveryRow = $tuitionDeliveryOptions[$deliveryKey] ?? ['enabled' => false, 'charges' => '', 'timings' => ''];
+        $deliveryRow = $tuitionDeliveryOptions[$deliveryKey] ?? ['enabled' => false, 'offerings' => []];
         $deliveryEnabled = (bool) old('tuition_delivery_options.'.$deliveryKey.'.enabled', $deliveryRow['enabled'] ?? false);
+        $offerings = old('tuition_delivery_options.'.$deliveryKey.'.offerings', $deliveryRow['offerings'] ?? []);
+        if (! is_array($offerings) || $offerings === []) {
+          $offerings = [EducatorTuitionDelivery::emptyOffering($deliveryKey)];
+        }
+        $meta = $deliveryMeta[$deliveryKey] ?? ['icon' => 'fa-circle', 'desc' => ''];
       @endphp
       <div class="edu-delivery-option" data-delivery-option="{{ $deliveryKey }}">
         <div class="edu-toggle-card edu-delivery-option__toggle">
@@ -41,34 +58,27 @@
           >
           <div>
             <div class="edu-toggle-card__title">
-              <i class="fa-solid {{ $deliveryMeta['icon'] }} me-1" aria-hidden="true"></i>
-              {{ $deliveryMeta['title'] }}
+              <i class="fa-solid {{ $meta['icon'] }} me-1" aria-hidden="true"></i>
+              {{ $deliveryLabel }}
             </div>
-            <p class="edu-toggle-card__desc">{{ $deliveryMeta['desc'] }}</p>
+            <p class="edu-toggle-card__desc">{{ $meta['desc'] }}</p>
           </div>
         </div>
-        <div class="edu-delivery-option__fields row g-3 {{ $deliveryEnabled ? '' : 'd-none' }}">
-          <div class="col-md-6">
-            <label class="form-label" for="tuitionDelivery{{ ucfirst($deliveryKey) }}Charges">Charges</label>
-            <input
-              type="text"
-              id="tuitionDelivery{{ ucfirst($deliveryKey) }}Charges"
-              name="tuition_delivery_options[{{ $deliveryKey }}][charges]"
-              class="form-control"
-              value="{{ old('tuition_delivery_options.'.$deliveryKey.'.charges', $deliveryRow['charges'] ?? '') }}"
-              placeholder="e.g. ₹800 / hour or ₹4,000 / month"
-            >
+        <div class="edu-delivery-option__fields {{ $deliveryEnabled ? '' : 'd-none' }}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold text-muted text-uppercase">Offerings</span>
+            <button type="button" class="btn btn-sm btn-outline-primary edu-btn-add js-add-delivery-offering" data-delivery-key="{{ $deliveryKey }}">
+              <i class="fa-solid fa-plus"></i> Add row
+            </button>
           </div>
-          <div class="col-md-6">
-            <label class="form-label" for="tuitionDelivery{{ ucfirst($deliveryKey) }}Timings">Timings</label>
-            <input
-              type="text"
-              id="tuitionDelivery{{ ucfirst($deliveryKey) }}Timings"
-              name="tuition_delivery_options[{{ $deliveryKey }}][timings]"
-              class="form-control"
-              value="{{ old('tuition_delivery_options.'.$deliveryKey.'.timings', $deliveryRow['timings'] ?? '') }}"
-              placeholder="e.g. Weekdays 5 PM – 8 PM"
-            >
+          <div class="edu-delivery-offerings-wrap" id="deliveryOfferings{{ ucfirst($deliveryKey) }}" data-delivery-key="{{ $deliveryKey }}" data-online="{{ $deliveryKey === 'online' ? '1' : '0' }}">
+            @foreach($offerings as $oi => $offering)
+              @include('backend.educator.partials.tuition-delivery-offering-row', [
+                'deliveryKey' => $deliveryKey,
+                'index' => $oi,
+                'offering' => is_array($offering) ? $offering : EducatorTuitionDelivery::emptyOffering($deliveryKey),
+              ])
+            @endforeach
           </div>
         </div>
       </div>
@@ -80,7 +90,7 @@
   <div class="edu-profile-subsection__head">
     <div>
       <h4 class="edu-profile-subsection__title">Tuition batches</h4>
-      <p class="edu-profile-subsection__hint">Add each class batch with subject, type, student count, and cost.</p>
+      <p class="edu-profile-subsection__hint">Group batches with seat availability for your public profile.</p>
     </div>
     <button type="button" class="btn btn-sm btn-outline-primary edu-btn-add" data-add="#tuitionBatchesWrap" data-template="tuitionBatch">
       <i class="fa-solid fa-plus"></i> Add batch
@@ -88,11 +98,17 @@
   </div>
 
   <div class="tuition-batches-table d-none d-md-grid text-muted small fw-semibold px-3 py-2 mb-2">
-    <span>Class</span><span>Subject</span><span>Batch type</span><span>Students</span><span>Cost</span><span></span>
+    <span>Class</span><span>Subject</span><span>Batch type</span><span>Students</span><span>Cost</span><span>Seats</span><span></span>
   </div>
 
   <div id="tuitionBatchesWrap" class="tuition-batches-wrap">
     @foreach($tuitionBatches as $i => $batch)
+      @php
+        $seats = old('tuition_batches.'.$i.'.seats_status', $batch['seats_status'] ?? 'available');
+        if (! in_array($seats, ['available', 'full'], true)) {
+          $seats = 'available';
+        }
+      @endphp
       <div class="tuition-batch-card js-repeat-row">
         <div class="tuition-batch-card__grid">
           <div>
@@ -114,6 +130,13 @@
           <div>
             <label class="form-label d-md-none">Cost</label>
             <input type="text" name="tuition_batches[{{ $i }}][cost]" class="form-control" placeholder="₹500 / month" value="{{ $batch['cost'] ?? '' }}">
+          </div>
+          <div>
+            <label class="form-label d-md-none">Seats</label>
+            <select name="tuition_batches[{{ $i }}][seats_status]" class="form-select">
+              <option value="available" @selected($seats === 'available')>Seats available</option>
+              <option value="full" @selected($seats === 'full')>Batch full</option>
+            </select>
           </div>
           <div class="tuition-batch-card__actions">
             <button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove batch">&times;</button>
@@ -147,10 +170,10 @@
     <input type="hidden" id="tuition_place_id" name="tuition_place_id" value="{{ old('tuition_place_id', $educator->tuition_place_id) }}">
     <input type="hidden" id="tuition_latitude" name="tuition_latitude" value="{{ old('tuition_latitude', $educator->tuition_latitude) }}">
     <input type="hidden" id="tuition_longitude" name="tuition_longitude" value="{{ old('tuition_longitude', $educator->tuition_longitude) }}">
-    <small class="text-muted">Search with Google Places — the address will appear on your public tutor profile with a map.</small>
+    <small class="text-muted">Used on your public tutor profile map when you offer tuition at a fixed point.</small>
   </div>
   <div class="col-md-6">
-    <label class="form-label">Tuition timings</label>
+    <label class="form-label">General tuition timings</label>
     <input type="text" name="tuition_timings" class="form-control" value="{{ old('tuition_timings', $educator->tuition_timings) }}" placeholder="Weekdays evenings, Saturday mornings">
   </div>
   <div class="col-12">

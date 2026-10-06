@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasDefaultListingLocation;
+use App\Models\Concerns\HasProfilePhoneNumbers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 
 class Vendor extends Model
 {
-    use HasDefaultListingLocation;
+    use HasDefaultListingLocation, HasProfilePhoneNumbers;
 
     protected $fillable = [
         'user_id',
@@ -22,6 +23,7 @@ class Vendor extends Model
         'display_name',
         'logo',
         'phone',
+        'phone_numbers',
         'whatsapp',
         'email',
         'address',
@@ -56,6 +58,7 @@ class Vendor extends Model
     protected function casts(): array
     {
         return [
+            'phone_numbers' => 'array',
             'gallery' => 'array',
             'hero_main_style' => 'array',
             'hero_sub_style' => 'array',

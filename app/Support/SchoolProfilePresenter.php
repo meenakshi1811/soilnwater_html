@@ -180,13 +180,16 @@ final class SchoolProfilePresenter
 
     public function gradesRangeLabel(): string
     {
-        $grades = collect($this->institute->grades_offered ?? []);
+        $grades = collect($this->institute->gradesOfferedEntries());
 
         if ($grades->isEmpty()) {
             return 'Classes: Nursery to XII';
         }
 
-        return 'Classes: '.$grades->first().' to '.$grades->last();
+        $first = $grades->first()['class'] ?? '';
+        $last = $grades->last()['class'] ?? '';
+
+        return 'Classes: '.$first.' to '.$last;
     }
 
     public function establishedYear(): ?int
@@ -418,7 +421,7 @@ final class SchoolProfilePresenter
             ['icon' => 'fa-language', 'label' => 'Medium of Instruction', 'value' => (string) $this->meta('medium_of_instruction', 'English')],
             ['icon' => 'fa-certificate', 'label' => 'Board', 'value' => $this->institute->board_affiliation ?: '—'],
             ['icon' => 'fa-layer-group', 'label' => 'Grades Offered', 'value' => $this->gradesRangeLabel()],
-            ['icon' => 'fa-phone', 'label' => 'Contact Number', 'value' => $this->institute->phone ?: '—'],
+            ['icon' => 'fa-phone', 'label' => 'Contact Number', 'value' => implode(', ', $this->institute->phoneNumbersList()) ?: '—'],
         ];
     }
 

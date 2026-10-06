@@ -237,6 +237,30 @@
     font-size: 0.9rem;
 }
 
+.school-grades-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.school-grades-table {
+    margin-bottom: 0;
+}
+
+.school-grades-table thead th {
+    background: #f1f5f9;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+    border-bottom-width: 1px;
+}
+
+.school-grades-table tbody td {
+    font-size: 0.875rem;
+    color: #0f172a;
+}
+
 .school-class-card__meta p {
     margin-bottom: 0.35rem;
     color: #475569;

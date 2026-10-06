@@ -24,13 +24,12 @@
                     @enderror
                 </div>
 
-                <div class="col-md-6">
-                    <label for="phone_number" class="form-label">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="text" class="form-control @error('phone_number') is-invalid @enderror" value="{{ old('phone_number', $employee->phone_number) }}" required>
-                    @error('phone_number')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                @include('backend.partials.profile-phone-numbers-fields', [
+                    'user' => $employee,
+                    'entity' => $employee,
+                    'inputIdPrefix' => 'employee_profile_phone',
+                    'showPrimaryHint' => false,
+                ])
 
                 <div class="col-12">
                     <label for="email" class="form-label">Email</label>

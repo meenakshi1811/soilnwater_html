@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasProfilePhoneNumbers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,8 @@ use Illuminate\Support\Str;
 
 class Educator extends Model
 {
+    use HasProfilePhoneNumbers;
+
     protected $fillable = [
         'user_id',
         'type',
@@ -20,6 +23,7 @@ class Educator extends Model
         'professional_headline',
         'tagline',
         'associated_institute',
+        'associated_with_school',
         'institute_place_id',
         'institute_latitude',
         'institute_longitude',
@@ -30,6 +34,7 @@ class Educator extends Model
         'latitude',
         'longitude',
         'phone',
+        'phone_numbers',
         'whatsapp',
         'email',
         'video_profile_url',
@@ -82,6 +87,7 @@ class Educator extends Model
     protected function casts(): array
     {
         return [
+            'phone_numbers' => 'array',
             'languages' => 'array',
             'subjects' => 'array',
             'classes' => 'array',
@@ -100,6 +106,7 @@ class Educator extends Model
             'tuition_batches' => 'array',
             'tuition_delivery_options' => 'array',
             'take_tuitions' => 'boolean',
+            'associated_with_school' => 'boolean',
             'is_verified' => 'boolean',
             'is_available_now' => 'boolean',
             'converted_from_user' => 'boolean',
@@ -306,34 +313,9 @@ class Educator extends Model
      */
     public function normalizedTuitionDeliveryOptions(): array
     {
-        $defaults = [
-            'home' => [
-                'enabled' => false,
-                'label' => 'Home tuition',
-                'charges' => '',
-                'timings' => '',
-            ],
-            'personal' => [
-                'enabled' => false,
-                'label' => 'Personal tuition',
-                'charges' => '',
-                'timings' => '',
-            ],
-        ];
-
         $stored = is_array($this->tuition_delivery_options) ? $this->tuition_delivery_options : [];
 
-        foreach ($defaults as $key => $default) {
-            if (! isset($stored[$key]) || ! is_array($stored[$key])) {
-                continue;
-            }
-
-            $defaults[$key]['enabled'] = (bool) ($stored[$key]['enabled'] ?? false);
-            $defaults[$key]['charges'] = trim((string) ($stored[$key]['charges'] ?? ''));
-            $defaults[$key]['timings'] = trim((string) ($stored[$key]['timings'] ?? ''));
-        }
-
-        return $defaults;
+        return \App\Support\EducatorTuitionDelivery::normalizeStored($stored);
     }
 
     /**
@@ -342,13 +324,20 @@ class Educator extends Model
     public function activeTuitionDeliveryOptions(): array
     {
         return collect($this->normalizedTuitionDeliveryOptions())
-            ->filter(fn (array $item, string $key) => $item['enabled'] && ($item['charges'] !== '' || $item['timings'] !== ''))
-            ->map(fn (array $item, string $key) => [
-                'key' => $key,
-                'label' => $item['label'],
-                'charges' => $item['charges'],
-                'timings' => $item['timings'],
-            ])
+            ->filter(fn (array $item) => $item['enabled'])
+            ->map(function (array $item, string $key) {
+                $offerings = collect($item['offerings'] ?? [])
+                    ->filter(fn ($row) => is_array($row) && collect($row)->except(['enrolment_open'])->filter()->isNotEmpty())
+                    ->values()
+                    ->all();
+
+                return [
+                    'key' => $key,
+                    'label' => $item['label'],
+                    'offerings' => $offerings,
+                ];
+            })
+            ->filter(fn (array $item) => $item['offerings'] !== [])
             ->values()
             ->all();
     }
@@ -436,12 +425,18 @@ class Educator extends Model
      */
     private function formatTuitionBatchRow(array $item): array
     {
+        $seats = trim((string) ($item['seats_status'] ?? 'available'));
+        if (! in_array($seats, ['available', 'full'], true)) {
+            $seats = 'available';
+        }
+
         return [
             'class' => trim((string) ($item['class'] ?? '')),
             'subject' => trim((string) ($item['subject'] ?? '')),
             'batch_type' => trim((string) ($item['batch_type'] ?? '')),
             'student_count' => trim((string) ($item['student_count'] ?? '')),
             'cost' => trim((string) ($item['cost'] ?? '')),
+            'seats_status' => $seats,
         ];
     }
 

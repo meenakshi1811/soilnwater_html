@@ -26,13 +26,12 @@
                     @enderror
                 </div>
 
-                <div class="col-md-6">
-                    <label for="phone_number" class="form-label">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="text" class="form-control @error('phone_number') is-invalid @enderror" value="{{ old('phone_number', $user->phone_number) }}" required>
-                    @error('phone_number')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                @include('backend.partials.profile-phone-numbers-fields', [
+                    'user' => $user,
+                    'entity' => $user,
+                    'inputIdPrefix' => 'admin_profile_phone',
+                    'showPrimaryHint' => false,
+                ])
 
                 <div class="col-12">
                     <label for="email" class="form-label">Email</label>
@@ -68,5 +67,6 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="{{ asset('assets/js/profile-phone-numbers.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

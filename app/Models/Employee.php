@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasProfilePhoneNumbers;
 use App\Support\ModulePermissions;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 class Employee extends Authenticatable
 {
     /** @use HasFactory<EmployeeFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasProfilePhoneNumbers, HasRoles, Notifiable;
 
     protected static function newFactory(): EmployeeFactory
     {
@@ -33,6 +34,7 @@ class Employee extends Authenticatable
         'name',
         'email',
         'phone_number',
+        'phone_numbers',
         'password',
         'is_active',
         'created_by',
@@ -47,6 +49,7 @@ class Employee extends Authenticatable
     protected function casts(): array
     {
         return [
+            'phone_numbers' => 'array',
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',

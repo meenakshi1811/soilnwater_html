@@ -317,16 +317,25 @@
               @foreach($subjects as $index => $subject)
                 @php
                   $name = is_array($subject) ? ($subject['name'] ?? '') : $subject;
-                  $level = is_array($subject) ? ($subject['level'] ?? 'primary') : 'primary';
+                  $subjectClass = is_array($subject) ? trim((string) ($subject['class'] ?? '')) : '';
+                  $subjectBoard = is_array($subject) ? trim((string) ($subject['board'] ?? '')) : '';
+                  $subjectYears = is_array($subject) ? trim((string) ($subject['years_experience'] ?? '')) : '';
                   $icon = \App\Support\SubjectPresentation::iconFor($name, $index);
+                  $metaParts = array_filter([
+                    $subjectClass !== '' ? 'Class '.$subjectClass : '',
+                    $subjectBoard !== '' ? $subjectBoard : '',
+                    $subjectYears !== '' ? $subjectYears.' yrs exp.' : '',
+                  ]);
                 @endphp
                 @if($name)
                   <div class="edu-subject-card">
-                    <span class="edu-subject-card__icon edu-subject-card__icon--{{ $level }}">
+                    <span class="edu-subject-card__icon edu-subject-card__icon--secondary">
                       <i class="fa-solid {{ $icon }}" aria-hidden="true"></i>
                     </span>
                     <strong>{{ $name }}</strong>
-                    <span>{{ ucfirst($level) }}</span>
+                    @if($metaParts !== [])
+                      <span>{{ implode(' · ', $metaParts) }}</span>
+                    @endif
                   </div>
                 @endif
               @endforeach
@@ -502,27 +511,65 @@
             $tuitionDeliveryOptions = $educator->activeTuitionDeliveryOptions();
           @endphp
           @if($tuitionDeliveryOptions !== [])
+            @php
+              $deliveryIcons = [
+                'home' => 'fa-house',
+                'personal' => 'fa-user',
+                'online' => 'fa-laptop',
+                'tuition_point' => 'fa-location-dot',
+              ];
+            @endphp
             <div class="edu-delivery-grid {{ $tuitionBatches !== [] ? 'mb-3' : '' }}">
               @foreach($tuitionDeliveryOptions as $deliveryOption)
                 <article class="edu-delivery-card edu-delivery-card--{{ $deliveryOption['key'] }}">
                   <div class="edu-delivery-card__head">
                     <span class="edu-delivery-card__icon" aria-hidden="true">
-                      <i class="fa-solid {{ $deliveryOption['key'] === 'home' ? 'fa-house' : 'fa-user' }}"></i>
+                      <i class="fa-solid {{ $deliveryIcons[$deliveryOption['key']] ?? 'fa-circle' }}"></i>
                     </span>
                     <h3 class="edu-delivery-card__title">{{ $deliveryOption['label'] }}</h3>
                   </div>
-                  @if($deliveryOption['charges'])
-                    <p class="edu-delivery-card__row">
-                      <span>Charges</span>
-                      <strong>{{ $deliveryOption['charges'] }}</strong>
-                    </p>
-                  @endif
-                  @if($deliveryOption['timings'])
-                    <p class="edu-delivery-card__row">
-                      <span>Timings</span>
-                      <strong>{{ $deliveryOption['timings'] }}</strong>
-                    </p>
-                  @endif
+                  @foreach($deliveryOption['offerings'] ?? [] as $offering)
+                    <div class="edu-delivery-offering-public">
+                      @php
+                        $offeringMeta = array_filter([
+                          filled($offering['class'] ?? '') ? 'Class '.$offering['class'] : '',
+                          $offering['subject'] ?? '',
+                          $offering['board'] ?? '',
+                        ]);
+                      @endphp
+                      @if($offeringMeta !== [])
+                        <p class="edu-delivery-card__row mb-1">
+                          <span>Class / subject</span>
+                          <strong>{{ implode(' · ', $offeringMeta) }}</strong>
+                        </p>
+                      @endif
+                      @if(filled($offering['batch_strength'] ?? ''))
+                        <p class="edu-delivery-card__row mb-1">
+                          <span>Batch size</span>
+                          <strong>{{ $offering['batch_strength'] }}</strong>
+                        </p>
+                      @endif
+                      @if(filled($offering['fee'] ?? ''))
+                        <p class="edu-delivery-card__row mb-1">
+                          <span>Fee</span>
+                          <strong>{{ $offering['fee'] }}</strong>
+                        </p>
+                      @endif
+                      @if(filled($offering['timings'] ?? ''))
+                        <p class="edu-delivery-card__row mb-1">
+                          <span>Timings</span>
+                          <strong>{{ $offering['timings'] }}</strong>
+                        </p>
+                      @endif
+                      <p class="edu-delivery-card__row mb-1">
+                        <span>Enrolment</span>
+                        <strong>{{ filter_var($offering['enrolment_open'] ?? true, FILTER_VALIDATE_BOOLEAN) ? 'Open' : 'Closed' }}</strong>
+                      </p>
+                      @if(filled($offering['note'] ?? ''))
+                        <p class="small text-muted mb-2">{{ $offering['note'] }}</p>
+                      @endif
+                    </div>
+                  @endforeach
                 </article>
               @endforeach
             </div>
@@ -537,6 +584,7 @@
                     <th>Batch</th>
                     <th>Students</th>
                     <th>Cost</th>
+                    <th>Seats</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -547,6 +595,13 @@
                       <td>{{ $batch['batch_type'] ?: '—' }}</td>
                       <td>{{ $batch['student_count'] ?: '—' }}</td>
                       <td><strong>{{ $batch['cost'] ?: '—' }}</strong></td>
+                      <td>
+                        @if(($batch['seats_status'] ?? 'available') === 'full')
+                          <span class="text-danger fw-semibold">Batch full</span>
+                        @else
+                          <span class="text-success fw-semibold">Seats available</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -855,7 +910,7 @@
         <div class="edu-sidebar-card">
           <h3><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Availability</h3>
           @if($educator->is_available_now)
-            <span class="edu-available-now"><i class="fa-solid fa-circle" aria-hidden="true"></i> Available now</span>
+            <span class="edu-available-now"><i class="fa-solid fa-circle" aria-hidden="true"></i> Accepting private tuitions</span>
           @endif
           @forelse($availability as $slot)
             <div class="d-flex justify-content-between small py-1 border-bottom">
@@ -953,11 +1008,11 @@
         <div class="edu-sidebar-card edu-sidebar-card--contact">
           <h3><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h3>
           <ul class="edu-sidebar-list">
-            @if($educator->phone)<li><span>Phone</span><span>{{ $educator->phone }}</span></li>@endif
+            @if($educator->phoneNumbersList() !== [])<li><span>Phone</span><span>@include('frontend.partials.profile-phone-links', ['phones' => $educator->phoneNumbersList(), 'asList' => true])</span></li>@endif
             @if($educator->email)<li><span>Email</span><span>{{ $educator->email }}</span></li>@endif
             @if($educator->whatsapp)<li><span>WhatsApp</span><span>{{ $educator->whatsapp }}</span></li>@endif
           </ul>
-          @if(!$educator->phone && !$educator->email && !$educator->whatsapp && ! $educator->hasSocialLinks())
+          @if($educator->phoneNumbersList() === [] && !$educator->email && !$educator->whatsapp && ! $educator->hasSocialLinks())
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
           @include('frontend.educator.partials.social-links', ['educator' => $educator])

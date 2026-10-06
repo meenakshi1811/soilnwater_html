@@ -9,7 +9,7 @@
             </div>
             <div class="col-md-3">
                 <h6 class="text-white">Contact</h6>
-                @if($service_provider->phone)<p class="small mb-1"><i class="fa-solid fa-phone me-1"></i> {{ $service_provider->phone }}</p>@endif
+                @if($service_provider->phoneNumbersList() !== [])<p class="small mb-1"><i class="fa-solid fa-phone me-1"></i> @include('frontend.partials.profile-phone-links', ['phones' => $service_provider->phoneNumbersList()])</p>@endif
                 @if($service_provider->email)<p class="small mb-1"><i class="fa-solid fa-envelope me-1"></i> {{ $service_provider->email }}</p>@endif
             </div>
             <div class="col-md-3">

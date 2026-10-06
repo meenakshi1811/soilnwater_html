@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Support\ProfilePhoneNumbers;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -33,18 +34,23 @@ class EmployeeDashboardController extends Controller
     {
         $employee = $request->user();
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'name' => ['required', 'string', 'max:255'],
-            'phone_number' => [
-                'required',
-                'digits_between:10,15',
-                Rule::unique('employees', 'phone_number')->ignore($employee->id),
-            ],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ]);
+        ], ProfilePhoneNumbers::validationRules());
+        $rules['phone_numbers.0'][] = Rule::unique('employees', 'phone_number')->ignore($employee->id);
+
+        $validated = $request->validate($rules, array_merge(
+            ProfilePhoneNumbers::validationMessages(),
+            ['phone_numbers.0.unique' => 'An employee account with this phone number already exists.']
+        ));
+
+        $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
+        $primary = ProfilePhoneNumbers::primary($phoneNumbers);
 
         $employee->name = $validated['name'];
-        $employee->phone_number = $validated['phone_number'];
+        $employee->phone_numbers = $phoneNumbers;
+        $employee->phone_number = $primary;
 
         if (! empty($validated['password'])) {
             $employee->password = $validated['password'];

@@ -3,7 +3,9 @@
 @section('content')
 @php
   $educator = $educator ?? null;
-  $subjects = old('subjects', $educator->subjects ?? [['name' => '', 'level' => 'primary']]);
+  use App\Support\EducatorSubjects;
+  $subjects = EducatorSubjects::forForm($educator->subjects, old('subjects'));
+  $associatedWithSchool = (bool) old('associated_with_school', $educator->associated_with_school ?? (! $educator->take_tuitions || ($instituteAffiliations ?? collect())->isNotEmpty()));
   $qualifications = old('qualifications', $educator->qualifications ?? [['degree' => '', 'institution' => '', 'year' => '']]);
   $experienceYears = range((int) date('Y'), 1970);
   $experiences = old('experiences');
@@ -123,22 +125,34 @@
               <input type="text" name="professional_headline" class="form-control" value="{{ old('professional_headline', $educator->professional_headline) }}" placeholder="e.g. CBSE Physics expert · 12+ years">
               <small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">Associated institute <span class="text-secondary fw-normal">(optional text)</span></label>
-              <input type="text" name="associated_institute" id="associated_institute" class="form-control js-school-institute-search" autocomplete="off" value="{{ old('associated_institute', $educator->associated_institute) }}" placeholder="Search school or institute name" data-latitude-target="institute_latitude" data-longitude-target="institute_longitude">
-              <small class="edu-field-hint">Free-text label for your sidebar. For cross-links on SoilnWater, use the optional linking section below.</small>
-              <input type="hidden" name="institute_latitude" id="institute_latitude" value="{{ old('institute_latitude', $educator->institute_latitude) }}">
-              <input type="hidden" name="institute_longitude" id="institute_longitude" value="{{ old('institute_longitude', $educator->institute_longitude) }}">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">State</label>
-              <input type="text" name="state" class="form-control" value="{{ old('state', $educator->state) }}">
-            </div>
-            <div class="col-md-8 d-flex align-items-end">
-              <label class="edu-availability-pill w-100 mb-0">
-                <input class="form-check-input mt-0 me-2" type="checkbox" name="is_available_now" value="1" id="availNow" @checked(old('is_available_now', $educator->is_available_now))>
-                <span><strong>Available now</strong> — show as actively accepting students</span>
-              </label>
+            @if($isTutorProfile)
+              <div class="col-12">
+                <label class="edu-availability-pill mb-0">
+                  <input class="form-check-input mt-0 me-2 js-associated-with-school" type="checkbox" name="associated_with_school" value="1" id="associatedWithSchool" @checked($associatedWithSchool)>
+                  <span><strong>Associated with a school / institute</strong> — show school link fields and SoilnWater institute linking</span>
+                </label>
+              </div>
+            @else
+              <input type="hidden" name="associated_with_school" value="1">
+            @endif
+            <div id="eduSchoolAssociationFields" class="col-12 @if($isTutorProfile && ! $associatedWithSchool) d-none @endif">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Associated institute <span class="text-secondary fw-normal">(Google place name)</span></label>
+                  <input type="text" name="associated_institute" id="associated_institute" class="form-control js-school-institute-search" autocomplete="off" value="{{ old('associated_institute', $educator->associated_institute) }}" placeholder="Search school or institute name" data-latitude-target="institute_latitude" data-longitude-target="institute_longitude" data-educator-state-target="educator_teaching_state" data-educator-city-target="educator_teaching_city">
+                  <small class="edu-field-hint">Pick a place to auto-fill city and state. Link registered schools from the section below.</small>
+                  <input type="hidden" name="institute_latitude" id="institute_latitude" value="{{ old('institute_latitude', $educator->institute_latitude) }}">
+                  <input type="hidden" name="institute_longitude" id="institute_longitude" value="{{ old('institute_longitude', $educator->institute_longitude) }}">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label" for="educator_teaching_city">City</label>
+                  <input type="text" name="teaching_city" id="educator_teaching_city" class="form-control" value="{{ old('teaching_city', $educator->city) }}">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label" for="educator_teaching_state">State</label>
+                  <input type="text" name="state" id="educator_teaching_state" class="form-control" value="{{ old('state', $educator->state) }}">
+                </div>
+              </div>
             </div>
             <div class="col-12">
               <label class="form-label">About teacher</label>
@@ -147,17 +161,17 @@
             </div>
           </div>
 
-          <div class="edu-profile-subsection edu-profile-subsection--affiliations">
+          <div id="eduSchoolAffiliationBlock" class="edu-profile-subsection edu-profile-subsection--affiliations @if($isTutorProfile && ! $associatedWithSchool) d-none @endif">
             <div class="edu-profile-subsection__head">
               <div>
-                <h4 class="edu-profile-subsection__title">Link to school / institute on SoilnWater <span class="text-secondary fw-normal">(optional)</span></h4>
-                <p class="edu-profile-subsection__hint mb-0">Connect your teacher profile to a registered school or coaching institute. You will appear on their public faculty section with a link to your profile, and they will appear on yours.</p>
+                <h4 class="edu-profile-subsection__title">Link to school / institute <span class="text-secondary fw-normal">(optional)</span></h4>
+                <p class="edu-profile-subsection__hint mb-0">Choose a registered school or coaching institute on SoilnWater. You appear on their faculty section and they on yours. Only approved school / institute profiles are listed.</p>
               </div>
             </div>
             <div class="edu-affiliation-form chart-card border p-3 mb-3">
               <div class="row g-3 align-items-end">
                 <div class="col-md-5">
-                  <label class="form-label" for="eduAffiliationSearch">Search institution</label>
+                  <label class="form-label" for="eduAffiliationSearch">Search institute</label>
                   <input type="text" id="eduAffiliationSearch" class="form-control" autocomplete="off" placeholder="Type school or institute name…">
                   <input type="hidden" id="eduAffiliationInstituteId" value="">
                   <div id="eduAffiliationSearchResults" class="edu-affiliation-search-results d-none" role="listbox"></div>
@@ -329,10 +343,6 @@
               </div>
             </div>
 
-            <div class="mt-3">
-              <label class="form-label">Service area</label>
-              <textarea class="form-control js-lines" data-name="service_area" rows="2" placeholder="One area per line">{{ $toLines(old('service_area', $educator->service_area ?? [])) }}</textarea>
-            </div>
           </div>
         </section>
 
@@ -341,7 +351,7 @@
             <span class="edu-profile-section__icon edu-profile-section__icon--amber"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
             <div>
               <h3 class="edu-profile-section__title">Subjects</h3>
-              <p class="edu-profile-section__desc">Subjects you teach and their difficulty level.</p>
+              <p class="edu-profile-section__desc">Subjects you teach with class, board, and experience.</p>
             </div>
           </header>
 
@@ -351,18 +361,16 @@
               <i class="fa-solid fa-plus"></i> Add subject
             </button>
           </div>
-          <div class="edu-repeat-table-head edu-repeat-table-head--subjects">
-            <span>Subject</span><span>Level</span><span></span>
+          <div class="edu-repeat-table-head edu-repeat-table-head--subjects edu-repeat-table-head--subjects-ext">
+            <span>Subject</span><span>Class</span><span>Board</span><span>Years of experience</span><span></span>
           </div>
           <div id="subjectsWrap">
             @foreach($subjects as $i => $subject)
-              <div class="edu-repeat-row edu-repeat-row--subject js-repeat-row">
-                <input type="text" name="subjects[{{ $i }}][name]" class="form-control" placeholder="Subject name" value="{{ is_array($subject) ? ($subject['name'] ?? '') : $subject }}">
-                <select name="subjects[{{ $i }}][level]" class="form-select">
-                  @foreach(['primary','secondary','specialized'] as $level)
-                    <option value="{{ $level }}" @selected((is_array($subject) ? ($subject['level'] ?? 'primary') : 'primary') === $level)>{{ ucfirst($level) }}</option>
-                  @endforeach
-                </select>
+              <div class="edu-repeat-row edu-repeat-row--subject edu-repeat-row--subject-ext js-repeat-row">
+                <input type="text" name="subjects[{{ $i }}][name]" class="form-control" placeholder="Subject" value="{{ $subject['name'] ?? '' }}">
+                <input type="text" name="subjects[{{ $i }}][class]" class="form-control" placeholder="Class" value="{{ $subject['class'] ?? '' }}">
+                <input type="text" name="subjects[{{ $i }}][board]" class="form-control" placeholder="Board" value="{{ $subject['board'] ?? '' }}">
+                <input type="text" name="subjects[{{ $i }}][years_experience]" class="form-control" placeholder="Years" value="{{ $subject['years_experience'] ?? '' }}">
                 <button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button>
               </div>
             @endforeach
@@ -433,6 +441,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('assets/js/profile-phone-numbers.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script>
 (function () {
@@ -468,7 +477,7 @@
   };
 
   const templates = {
-    subject: (i) => `<div class="edu-repeat-row edu-repeat-row--subject js-repeat-row"><input type="text" name="subjects[${i}][name]" class="form-control" placeholder="Subject name"><select name="subjects[${i}][level]" class="form-select"><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="specialized">Specialized</option></select><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
+    subject: (i) => `<div class="edu-repeat-row edu-repeat-row--subject edu-repeat-row--subject-ext js-repeat-row"><input type="text" name="subjects[${i}][name]" class="form-control" placeholder="Subject"><input type="text" name="subjects[${i}][class]" class="form-control" placeholder="Class"><input type="text" name="subjects[${i}][board]" class="form-control" placeholder="Board"><input type="text" name="subjects[${i}][years_experience]" class="form-control" placeholder="Years"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
     qualification: (i) => `<div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row"><input type="text" name="qualifications[${i}][degree]" class="form-control" placeholder="Degree"><div class="edu-repeat-field-stack"><input type="text" name="qualifications[${i}][institution]" class="form-control js-school-institute-search" autocomplete="off" placeholder="Search school or institute"><small class="edu-field-hint">Search via Google.</small></div><input type="text" name="qualifications[${i}][year]" class="form-control" placeholder="Year"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
     experience: (i) => `<div class="experience-card js-repeat-row"><span class="experience-card__badge"><i class="fa-solid fa-briefcase"></i> Experience ${i + 1}</span><div class="experience-card__grid"><div class="experience-card__fields experience-card__fields--top"><div class="experience-field"><label class="form-label">Job title</label><input type="text" name="experiences[${i}][title]" class="form-control" placeholder="Senior Physics Teacher"><small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small></div><div class="experience-field"><label class="form-label">Place of work</label><input type="text" name="experiences[${i}][organization]" class="form-control js-school-institute-search js-experience-organization" autocomplete="off" placeholder="Search school or institute name"><small class="edu-field-hint">Start typing to search schools via Google.</small></div></div><div class="experience-card__fields experience-card__fields--meta"><div class="experience-field"><label class="form-label">Start year</label><select name="experiences[${i}][start_year]" class="form-select">${experienceYearOptions('')}</select></div><div class="experience-field"><label class="form-label">End year</label><select name="experiences[${i}][end_year]" class="form-select js-exp-end-year">${experienceYearOptions('')}</select></div><div class="experience-field experience-field--current"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><div class="form-check experience-current-check"><input class="form-check-input js-exp-current" type="checkbox" name="experiences[${i}][is_current]" value="1" id="experienceCurrent${i}"><label class="form-check-label" for="experienceCurrent${i}">I still work here</label></div></div><div class="experience-field experience-field--action"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove experience">&times;</button></div></div><div class="experience-field experience-field--full"><label class="form-label">Description</label><textarea name="experiences[${i}][description]" class="form-control" rows="2" placeholder="Teaching responsibilities, achievements, and role details"></textarea></div></div></div>`,
   };
@@ -579,4 +588,5 @@ window.eduAffiliationRoutes = {
 };
 </script>
 <script src="{{ asset('assets/js/educator-institute-affiliations.js') }}?v={{ now()->timestamp }}"></script>
+<script src="{{ asset('assets/js/educator-profile-school.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

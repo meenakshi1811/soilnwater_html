@@ -24,7 +24,7 @@
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 0 0 18px;
+    padding: 0 0 36px;
   }
 
   .homepage-popular-near__shell,
@@ -34,7 +34,7 @@
   .homepage-consultants__shell,
   .homepage-community-hub__shell {
     margin: 0 10px;
-    padding: 12px 10px 11px;
+    padding: 18px 14px 17px;
     border-radius: 18px;
   }
 
@@ -44,8 +44,8 @@
   .homepage-study-library__head,
   .homepage-consultants__head,
   .homepage-community-hub__head {
-    margin-bottom: 9px;
-    gap: 8px;
+    margin-bottom: 14px;
+    gap: 10px;
   }
 
   .homepage-popular-near__head-main,
@@ -253,7 +253,7 @@
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 0 0 22px;
+    padding: 0 0 44px;
   }
 
   .homepage-popular-near__shell,
@@ -263,7 +263,7 @@
   .homepage-consultants__shell,
   .homepage-community-hub__shell {
     margin: 0 22px;
-    padding: 14px 16px 14px;
+    padding: 20px 20px 19px;
   }
 
   .homepage-popular-near__head,
@@ -272,7 +272,7 @@
   .homepage-study-library__head,
   .homepage-consultants__head,
   .homepage-community-hub__head {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
 }

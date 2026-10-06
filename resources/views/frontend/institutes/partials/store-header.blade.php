@@ -1,7 +1,7 @@
 @php
     $profileUrl = $institute->publicUrl();
     $aboutText = trim((string) ($institute->about ?: $institute->description));
-    $hasClasses = ($institute->schoolClasses ?? collect())->isNotEmpty() || collect($institute->grades_offered ?? [])->isNotEmpty();
+    $hasClasses = ($institute->schoolClasses ?? collect())->isNotEmpty() || $institute->gradesOfferedEntries() !== [];
     $hasAchievements = ($institute->achievements ?? collect())->isNotEmpty();
     $hasPerformers = ($institute->topPerformers ?? collect())->isNotEmpty();
     $hasBooks = ($institute->books ?? collect())->isNotEmpty();

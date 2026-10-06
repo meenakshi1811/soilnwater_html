@@ -20,7 +20,8 @@ class EducatorInstituteAffiliationController extends Controller
                 $builder->where(function ($inner) use ($query): void {
                     $inner->where('institution_name', 'like', '%'.$query.'%')
                         ->orWhere('display_name', 'like', '%'.$query.'%')
-                        ->orWhere('city', 'like', '%'.$query.'%');
+                        ->orWhere('city', 'like', '%'.$query.'%')
+                        ->orWhere('state', 'like', '%'.$query.'%');
                 });
             })
             ->with('user:id,role')
@@ -32,6 +33,7 @@ class EducatorInstituteAffiliationController extends Controller
                 'name' => $institute->displayName(),
                 'type' => $institute->user?->isSchool() ? 'School' : 'Institute',
                 'city' => $institute->city,
+                'state' => $institute->state,
                 'url' => $institute->publicUrl(),
             ])
             ->values();
@@ -65,6 +67,13 @@ class EducatorInstituteAffiliationController extends Controller
             ], 422);
         }
 
+        $educator->forceFill([
+            'associated_institute' => $institute->displayName(),
+            'associated_with_school' => true,
+            'city' => $institute->city ?: $educator->city,
+            'state' => $institute->state ?: $educator->state,
+        ])->save();
+
         $affiliation = EducatorInstituteAffiliation::create([
             'educator_id' => $educator->id,
             'institute_id' => $institute->id,
@@ -81,6 +90,12 @@ class EducatorInstituteAffiliationController extends Controller
             'html' => view('backend.educator.partials.institute-affiliation-item', [
                 'affiliation' => $affiliation,
             ])->render(),
+            'institute' => [
+                'id' => $institute->id,
+                'name' => $institute->displayName(),
+                'city' => $institute->city,
+                'state' => $institute->state,
+            ],
         ]);
     }
 

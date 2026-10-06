@@ -44,7 +44,7 @@
                     <th scope="row">Contact</th>
                     @foreach($items as $item)
                         <td>
-                            @if($item->institute->phone)<div>{{ $item->institute->phone }}</div>@endif
+                            @if($item->institute->phoneNumbersList() !== [])<div>@include('frontend.partials.profile-phone-links', ['phones' => $item->institute->phoneNumbersList()])</div>@endif
                             @if($item->institute->email)<div>{{ $item->institute->email }}</div>@endif
                         </td>
                     @endforeach

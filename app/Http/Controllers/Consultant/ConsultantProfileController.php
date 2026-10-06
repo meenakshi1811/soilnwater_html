@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Consultant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultant;
+use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,9 +29,8 @@ class ConsultantProfileController extends Controller
         $user = $request->user()->load('consultant');
         $consultant = $user->consultant;
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
@@ -41,20 +41,19 @@ class ConsultantProfileController extends Controller
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ], [
-            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+        ], ProfilePhoneNumbers::validationRules()), array_merge([
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
-        ]);
+        ], ProfilePhoneNumbers::validationMessages()));
 
-        $phoneChanged = $user->phone_number !== $validated['phone_number'];
+        $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
+        $phoneChanged = ProfilePhoneNumbers::applyToUser($user, $phoneNumbers);
         $gstNumber = $validated['has_gst'] === '1' ? ($validated['gst_number'] ?? null) : null;
 
         $user->name = $validated['name'];
         $user->full_name = $validated['name'];
-        $user->phone_number = $validated['phone_number'];
         $user->whatsapp_number = $validated['whatsapp_number'];
         $user->address = $validated['address'];
         $user->city = $validated['city'];
@@ -76,7 +75,8 @@ class ConsultantProfileController extends Controller
                 'company_name' => $validated['name'],
                 'contact_person' => $validated['name'],
                 'display_name' => $validated['name'],
-                'phone' => $validated['phone_number'],
+                'phone' => ProfilePhoneNumbers::primary($phoneNumbers),
+                'phone_numbers' => $phoneNumbers,
                 'whatsapp' => $validated['whatsapp_number'],
                 'email' => $user->email,
                 'address' => $validated['address'],
