@@ -57,6 +57,15 @@
     display: flex;
   }
 
+  /* Community — last homepage block: full row on large screens */
+  .homepage-desktop-panels > .hp-desktop--community {
+    grid-column: 1 / -1;
+  }
+
+  .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
+    --carousel-visible: 4;
+  }
+
   .hp-desktop__hero {
     position: relative;
     border-radius: 14px;
@@ -504,5 +513,15 @@
 
   .hp-desktop__carousel {
     --carousel-gap: 14px;
+  }
+
+  .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
+    --carousel-visible: 5;
+  }
+}
+
+@media (min-width: 1400px) {
+  .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
+    --carousel-visible: 6;
   }
 }
