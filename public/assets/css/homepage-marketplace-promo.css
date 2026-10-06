@@ -358,13 +358,14 @@
 
 /* Mobile: compact offers/ads — 2-column grid, all cards (vertical rows) */
 @media (max-width: 991.98px) {
+  /* Gray band between stacked gradient section boxes (not extra gap inside white cards) */
   .homepage-marketplace-promo {
-    padding: 6px 0 2px;
+    padding: 0 0 18px;
   }
 
   .homepage-marketplace-promo__shell {
     margin: 0 10px;
-    padding: 10px 12px 9px;
+    padding: 10px 10px 9px;
     border-radius: 16px;
   }
 
@@ -405,19 +406,11 @@
   }
 
   .homepage-marketplace-promo__grid {
-    --hp-promo-card-gap: 24px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: var(--hp-promo-card-gap);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 10px;
+    row-gap: 12px;
     overflow: visible;
-  }
-
-  .homepage-marketplace-promo__grid .homepage-marketplace-promo-card {
-    flex: 0 0 calc((100% - var(--hp-promo-card-gap)) / 2);
-    width: calc((100% - var(--hp-promo-card-gap)) / 2);
-    max-width: calc((100% - var(--hp-promo-card-gap)) / 2);
-    box-sizing: border-box;
   }
 
   .homepage-marketplace-promo__grid .homepage-marketplace-promo-card:nth-child(n + 5) {
@@ -513,12 +506,6 @@
     align-self: flex-start;
     padding: 1px 5px;
     font-size: 0.5rem;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .homepage-marketplace-promo__grid {
-    --hp-promo-card-gap: 20px;
   }
 }
 

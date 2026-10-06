@@ -24,7 +24,7 @@
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 8px 0 4px;
+    padding: 0 0 18px;
   }
 
   .homepage-popular-near__shell,
@@ -120,24 +120,11 @@
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
-    --hp-promo-card-gap: 24px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: var(--hp-promo-card-gap);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 10px;
+    row-gap: 12px;
     overflow: visible;
-  }
-
-  .homepage-popular-near__grid > *,
-  .homepage-popular-services__grid > *,
-  .homepage-education-knowledge__grid > *,
-  .homepage-study-library__grid > *,
-  .homepage-consultants__grid > *,
-  .homepage-community-hub__grid > * {
-    flex: 0 0 calc((100% - var(--hp-promo-card-gap)) / 2);
-    width: calc((100% - var(--hp-promo-card-gap)) / 2);
-    max-width: calc((100% - var(--hp-promo-card-gap)) / 2);
-    box-sizing: border-box;
   }
 
   .homepage-popular-near-card,
@@ -259,17 +246,14 @@
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
-  .homepage-marketplace-promo__grid {
-    --hp-promo-card-gap: 28px;
-  }
-
+  .homepage-marketplace-promo,
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 10px 0 6px;
+    padding: 0 0 22px;
   }
 
   .homepage-popular-near__shell,
@@ -291,25 +275,6 @@
     margin-bottom: 12px;
   }
 
-  .homepage-popular-near__grid,
-  .homepage-popular-services__grid,
-  .homepage-education-knowledge__grid,
-  .homepage-study-library__grid,
-  .homepage-consultants__grid,
-  .homepage-community-hub__grid {
-    --hp-promo-card-gap: 28px;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .homepage-popular-near__grid,
-  .homepage-popular-services__grid,
-  .homepage-education-knowledge__grid,
-  .homepage-study-library__grid,
-  .homepage-consultants__grid,
-  .homepage-community-hub__grid {
-    --hp-promo-card-gap: 20px;
-  }
 }
 
 @media (min-width: 992px) {
