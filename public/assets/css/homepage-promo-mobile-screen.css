@@ -120,11 +120,24 @@
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 16px;
-    row-gap: 18px;
+    --hp-promo-card-gap: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--hp-promo-card-gap);
     overflow: visible;
+  }
+
+  .homepage-popular-near__grid > *,
+  .homepage-popular-services__grid > *,
+  .homepage-education-knowledge__grid > *,
+  .homepage-study-library__grid > *,
+  .homepage-consultants__grid > *,
+  .homepage-community-hub__grid > * {
+    flex: 0 0 calc((100% - var(--hp-promo-card-gap)) / 2);
+    width: calc((100% - var(--hp-promo-card-gap)) / 2);
+    max-width: calc((100% - var(--hp-promo-card-gap)) / 2);
+    box-sizing: border-box;
   }
 
   .homepage-popular-near-card,
@@ -247,8 +260,7 @@
 
 @media (min-width: 768px) and (max-width: 991.98px) {
   .homepage-marketplace-promo__grid {
-    column-gap: 20px;
-    row-gap: 22px;
+    --hp-promo-card-gap: 28px;
   }
 
   .homepage-popular-near,
@@ -285,8 +297,18 @@
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
-    column-gap: 20px;
-    row-gap: 22px;
+    --hp-promo-card-gap: 28px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .homepage-popular-near__grid,
+  .homepage-popular-services__grid,
+  .homepage-education-knowledge__grid,
+  .homepage-study-library__grid,
+  .homepage-consultants__grid,
+  .homepage-community-hub__grid {
+    --hp-promo-card-gap: 20px;
   }
 }
 
