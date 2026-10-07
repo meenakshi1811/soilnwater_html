@@ -238,6 +238,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.homepage-showcase.*') ? 'active' : '' }}" href="{{ route('admin.homepage-showcase.index') }}">
+                    <i class="fa-solid fa-table-columns"></i>
+                    <span>Homepage Showcase</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Approval Center</span>

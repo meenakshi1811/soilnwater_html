@@ -8,12 +8,14 @@ use App\Models\Category;
 use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\HomepageSetting;
+use App\Models\HomepageShowcaseItem;
 use App\Models\Offer;
 use App\Models\ServiceProvider;
 use App\Models\UserAd;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Support\HomepageMarketplacePromoCards;
+use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
 use App\Support\HomepageCommunityHubCards;
 use App\Support\HomepageConsultantsCards;
@@ -92,6 +94,26 @@ class OfferPageController extends Controller
         $hasLocation = is_numeric($lat) && is_numeric($lng);
         $homepageCommunityPosts = $this->homepageCommunityPosts();
 
+        $featuredShowcaseItems = HomepageShowcaseItem::query()
+            ->active()
+            ->ofType(HomepageShowcaseItem::TYPE_FEATURED_BUSINESS)
+            ->ordered()
+            ->get();
+
+        $offerShowcaseItems = HomepageShowcaseItem::query()
+            ->active()
+            ->ofType(HomepageShowcaseItem::TYPE_OFFER_PROMO)
+            ->ordered()
+            ->get();
+
+        $homepageFeaturedBusinesses = $featuredShowcaseItems->isNotEmpty()
+            ? HomepageShowcaseItems::toFeaturedBusinessArrays($featuredShowcaseItems)
+            : [];
+
+        $homepageOfferPromoCards = $offerShowcaseItems->isNotEmpty()
+            ? HomepageShowcaseItems::toOfferPromoArrays($offerShowcaseItems)
+            : HomepageMarketplacePromoCards::fromOffers($offers, 8);
+
         return view('frontend.index', [
             'offers' => $offers,
             'topCategoriesSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_1')->values(),
@@ -137,7 +159,8 @@ class OfferPageController extends Controller
             'homepageCommunityPosts' => $homepageCommunityPosts,
             'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
             'communityEngagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-            'homepageOfferPromoCards' => HomepageMarketplacePromoCards::fromOffers($offers, 8),
+            'homepageOfferPromoCards' => $homepageOfferPromoCards,
+            'homepageFeaturedBusinesses' => $homepageFeaturedBusinesses,
             'homepageAdPromoCards' => HomepageMarketplacePromoCards::fromAds($recentApprovedAds, 8),
             'homepagePopularNearYouCards' => HomepagePopularNearYouCards::build(
                 $topVendors,

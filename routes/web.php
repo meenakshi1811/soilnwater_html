@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
+use App\Http\Controllers\Admin\HomepageShowcaseItemController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
 use App\Http\Controllers\Admin\OfferPriceController;
@@ -731,6 +732,15 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
 
         Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
         Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
+
+        Route::prefix('homepage-showcase')->name('homepage-showcase.')->group(function () {
+            Route::get('/', [HomepageShowcaseItemController::class, 'index'])->name('index');
+            Route::get('/data', [HomepageShowcaseItemController::class, 'data'])->name('data');
+            Route::post('/', [HomepageShowcaseItemController::class, 'store'])->name('store');
+            Route::get('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'show'])->name('show');
+            Route::match(['put', 'patch'], '/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'update'])->name('update');
+            Route::delete('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'destroy'])->name('destroy');
+        });
 
         Route::prefix('vendor-products')->name('vendor-products.')->group(function () {
             Route::get('/', [VendorProductApprovalController::class, 'index'])->name('index');
