@@ -892,6 +892,12 @@
                 return;
             }
 
+            if (options.preferLegacy && google.maps.places) {
+                ensurePacContainerModalSupport();
+                bindLegacyAutocomplete(input, options);
+                return;
+            }
+
             var PlaceAutocompleteElement = placesLibrary.PlaceAutocompleteElement
                 || (google.maps.places && google.maps.places.PlaceAutocompleteElement);
 

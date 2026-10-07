@@ -169,19 +169,39 @@
 }
 
 .loc-wrap--header-compact {
-  min-width: 108px;
-  max-width: 168px;
+  min-width: 140px;
+  max-width: 220px;
+  flex: 0 1 auto;
+  min-height: 36px;
 }
 
 .header-sticky-shell .loc-wrap--header-compact .loc-text-input {
   flex: 1 1 auto;
   width: auto !important;
-  min-width: 48px;
-  max-width: 96px;
+  min-width: 0;
+  max-width: none;
   font-size: 13px;
   font-weight: 600;
   color: #1f2937;
   text-overflow: ellipsis;
+}
+
+.header-sticky-shell .loc-wrap--header-compact .soilnwater-place-autocomplete-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+}
+
+.header-sticky-shell .loc-wrap--header-compact gmp-place-autocomplete {
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .loc-wrap--header-compact {
+    min-width: 168px;
+    max-width: 260px;
+  }
 }
 
 .loc-pin {

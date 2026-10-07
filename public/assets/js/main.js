@@ -826,6 +826,7 @@ function syncLocationToSession(lat, lng) {
 
     window.SoilnWaterGooglePlaces.bindAutocomplete(locationInput, {
       geometry: true,
+      preferLegacy: true,
       onPlaceChanged: function (place) {
         const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
         const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
