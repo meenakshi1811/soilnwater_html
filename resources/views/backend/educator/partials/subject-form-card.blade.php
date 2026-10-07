@@ -22,9 +22,9 @@
     <div>
       <label class="form-label">Classes</label>
       <textarea
-        class="form-control js-lines"
+        class="form-control"
+        name="subjects[{{ $index }}][classes_lines]"
         rows="3"
-        data-name="subjects[{{ $index }}][classes]"
         placeholder="One class per line&#10;Class 9&#10;Class 10"
       >{{ EducatorSubjects::toLines($subjectClasses) }}</textarea>
       <small class="text-muted">Multiple classes allowed — one per line.</small>
@@ -32,9 +32,9 @@
     <div>
       <label class="form-label">Boards</label>
       <textarea
-        class="form-control js-lines"
+        class="form-control"
+        name="subjects[{{ $index }}][boards_lines]"
         rows="3"
-        data-name="subjects[{{ $index }}][boards]"
         placeholder="One board per line&#10;CBSE&#10;GSEB"
       >{{ EducatorSubjects::toLines($subjectBoards) }}</textarea>
       <small class="text-muted">Multiple boards allowed — one per line.</small>

@@ -14,7 +14,7 @@
   $photo = $educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp');
   $modes = collect($educator->teaching_modes ?? []);
   $languages = collect($educator->languages ?? []);
-  $subjects = collect(\App\Support\EducatorSubjects::normalizeList($educator->subjects ?? []));
+  $subjects = collect(\App\Support\EducatorSubjects::forPublicDisplay($educator));
   $experiences = collect($educator->experiences ?? []);
   $qualifications = collect($educator->qualifications ?? []);
   $achievements = collect($educator->achievements ?? []);

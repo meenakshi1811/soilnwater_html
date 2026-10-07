@@ -482,9 +482,9 @@ window.eduAffiliationRoutes = {
       `<button type="button" class="btn btn-outline-danger btn-sm edu-btn-remove js-remove-row" title="Remove subject">&times;</button></div>` +
       `<input type="text" name="subjects[${i}][name]" class="form-control mb-3" placeholder="e.g. Physics">` +
       `<div class="edu-subject-form-card__grid"><div><label class="form-label">Classes</label>` +
-      `<textarea class="form-control js-lines" rows="3" data-name="subjects[${i}][classes]" placeholder="One class per line"></textarea>` +
+      `<textarea class="form-control" name="subjects[${i}][classes_lines]" rows="3" placeholder="One class per line"></textarea>` +
       `<small class="text-muted">Multiple classes allowed — one per line.</small></div><div><label class="form-label">Boards</label>` +
-      `<textarea class="form-control js-lines" rows="3" data-name="subjects[${i}][boards]" placeholder="One board per line"></textarea>` +
+      `<textarea class="form-control" name="subjects[${i}][boards_lines]" rows="3" placeholder="One board per line"></textarea>` +
       `<small class="text-muted">Multiple boards allowed — one per line.</small></div></div>` +
       `<div class="mt-3"><label class="form-label">Years of experience (this subject)</label>` +
       `<input type="text" name="subjects[${i}][years_experience]" class="form-control" placeholder="e.g. 8"></div></div>`,

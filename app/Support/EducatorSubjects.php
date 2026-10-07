@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Educator;
+
 class EducatorSubjects
 {
     /**
@@ -35,11 +37,95 @@ class EducatorSubjects
                     'name' => $name,
                     'classes' => self::normalizeStringList($item['classes'] ?? null, $item['class'] ?? null),
                     'boards' => self::normalizeStringList($item['boards'] ?? null, $item['board'] ?? null),
-                    'years_experience' => trim((string) ($item['years_experience'] ?? '')),
+                    'years_experience' => trim((string) ($item['years_experience'] ?? $item['years'] ?? $item['experience'] ?? '')),
                 ];
             })
             ->filter()
             ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, mixed>  $items
+     * @return list<array{name: string, classes: list<string>, boards: list<string>, years_experience: string}>
+     */
+    public static function fromFormSubmission(array $items): array
+    {
+        $prepared = collect($items)
+            ->map(function ($item) {
+                if (! is_array($item)) {
+                    return $item;
+                }
+
+                $classes = $item['classes'] ?? null;
+                if (! is_array($classes) || $classes === []) {
+                    $classes = self::normalizeStringList($item['classes_lines'] ?? null);
+                } else {
+                    $classes = self::normalizeStringList($classes);
+                }
+
+                $boards = $item['boards'] ?? null;
+                if (! is_array($boards) || $boards === []) {
+                    $boards = self::normalizeStringList($item['boards_lines'] ?? null);
+                } else {
+                    $boards = self::normalizeStringList($boards);
+                }
+
+                return [
+                    'name' => $item['name'] ?? '',
+                    'classes' => $classes,
+                    'boards' => $boards,
+                    'years_experience' => $item['years_experience'] ?? '',
+                ];
+            })
+            ->all();
+
+        return self::normalizeList($prepared);
+    }
+
+    /**
+     * Subjects prepared for the public profile, with legacy profile-level fallbacks.
+     *
+     * @return list<array{name: string, classes: list<string>, boards: list<string>, years_experience: string}>
+     */
+    public static function forPublicDisplay(Educator $educator): array
+    {
+        $subjects = self::normalizeList($educator->subjects ?? []);
+        if ($subjects === []) {
+            return [];
+        }
+
+        $profileClasses = self::normalizeStringList($educator->classes ?? null);
+        $profileBoards = self::normalizeStringList($educator->boards ?? null);
+        $profileYears = trim((string) ($educator->years_experience ?? ''));
+
+        $anySubjectHasClasses = collect($subjects)->contains(fn (array $subject) => ($subject['classes'] ?? []) !== []);
+        $anySubjectHasBoards = collect($subjects)->contains(fn (array $subject) => ($subject['boards'] ?? []) !== []);
+        $anySubjectHasYears = collect($subjects)->contains(fn (array $subject) => ($subject['years_experience'] ?? '') !== '');
+
+        return collect($subjects)
+            ->map(function (array $subject) use (
+                $profileClasses,
+                $profileBoards,
+                $profileYears,
+                $anySubjectHasClasses,
+                $anySubjectHasBoards,
+                $anySubjectHasYears
+            ) {
+                if (($subject['classes'] ?? []) === [] && ! $anySubjectHasClasses && $profileClasses !== []) {
+                    $subject['classes'] = $profileClasses;
+                }
+
+                if (($subject['boards'] ?? []) === [] && ! $anySubjectHasBoards && $profileBoards !== []) {
+                    $subject['boards'] = $profileBoards;
+                }
+
+                if (($subject['years_experience'] ?? '') === '' && ! $anySubjectHasYears && $profileYears !== '') {
+                    $subject['years_experience'] = $profileYears;
+                }
+
+                return $subject;
+            })
             ->all();
     }
 

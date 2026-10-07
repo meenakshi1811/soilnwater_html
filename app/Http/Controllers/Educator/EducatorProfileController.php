@@ -76,6 +76,8 @@ class EducatorProfileController extends Controller
             'subjects.*.boards' => ['nullable', 'array'],
             'subjects.*.boards.*' => ['nullable', 'string', 'max:80'],
             'subjects.*.years_experience' => ['nullable', 'string', 'max:20'],
+            'subjects.*.classes_lines' => ['nullable', 'string', 'max:2000'],
+            'subjects.*.boards_lines' => ['nullable', 'string', 'max:2000'],
             'qualifications' => ['nullable', 'array'],
             'qualifications.*.degree' => ['nullable', 'string', 'max:255'],
             'qualifications.*.institution' => ['nullable', 'string', 'max:255'],
@@ -140,7 +142,7 @@ class EducatorProfileController extends Controller
         $validated['teaching_modes'] = $this->cleanStringList($validated['teaching_modes'] ?? []);
         $validated['achievements'] = $this->cleanStringList($validated['achievements'] ?? []);
         $validated['certifications'] = $this->cleanStringList($validated['certifications'] ?? []);
-        $validated['subjects'] = EducatorSubjects::normalizeList($validated['subjects'] ?? []);
+        $validated['subjects'] = EducatorSubjects::fromFormSubmission($validated['subjects'] ?? []);
         $validated['classes'] = EducatorSubjects::aggregateClasses($validated['subjects']);
         $validated['boards'] = EducatorSubjects::aggregateBoards($validated['subjects']);
         $validated['associated_with_school'] = $request->boolean('associated_with_school');
