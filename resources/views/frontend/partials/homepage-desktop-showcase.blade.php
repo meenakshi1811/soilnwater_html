@@ -60,14 +60,18 @@
                 <a href="{{ $card['url'] }}" class="hp-desktop-card">
                     <div class="hp-desktop-card__media">
                         <img src="{{ $card['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
-                        @if(!empty($card['category_label']))
-                            <span class="hp-desktop-card__badge hp-desktop-card__badge--{{ $card['category_tone'] ?? 'slate' }}">
-                                <i class="fa-solid {{ $card['category_icon'] ?? 'fa-tag' }}" aria-hidden="true"></i>
-                                {{ $card['category_label'] }}
-                            </span>
-                        @endif
-                        @if(!empty($card['discount_badge']))
-                            <span class="hp-desktop-card__discount">{{ $card['discount_badge'] }}</span>
+                        @if(!empty($card['category_label']) || !empty($card['discount_badge']))
+                            <div class="hp-desktop-card__tags">
+                                @if(!empty($card['category_label']))
+                                    <span class="hp-desktop-card__badge hp-desktop-card__badge--{{ $card['category_tone'] ?? 'slate' }}">
+                                        <i class="fa-solid {{ $card['category_icon'] ?? 'fa-tag' }}" aria-hidden="true"></i>
+                                        <span class="hp-desktop-card__badge-text">{{ $card['category_label'] }}</span>
+                                    </span>
+                                @endif
+                                @if(!empty($card['discount_badge']))
+                                    <span class="hp-desktop-card__discount">{{ $card['discount_badge'] }}</span>
+                                @endif
+                            </div>
                         @endif
                     </div>
                     <div class="hp-desktop-card__body">
