@@ -319,14 +319,6 @@
                 <label class="form-label">Languages</label>
                 <textarea class="form-control js-lines" data-name="languages" rows="3" placeholder="One per line">{{ $toLines(old('languages', $educator->languages ?? [])) }}</textarea>
               </div>
-              <div class="edu-tag-field">
-                <label class="form-label">Classes</label>
-                <textarea class="form-control js-lines" data-name="classes" rows="3" placeholder="One per line">{{ $toLines(old('classes', $educator->classes ?? [])) }}</textarea>
-              </div>
-              <div class="edu-tag-field">
-                <label class="form-label">Boards</label>
-                <textarea class="form-control js-lines" data-name="boards" rows="3" placeholder="One per line">{{ $toLines(old('boards', $educator->boards ?? [])) }}</textarea>
-              </div>
             </div>
 
             <div class="edu-stats-grid mt-3">
@@ -353,7 +345,7 @@
             <span class="edu-profile-section__icon edu-profile-section__icon--amber"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
             <div>
               <h3 class="edu-profile-section__title">Subjects</h3>
-              <p class="edu-profile-section__desc">Subjects you teach with class, board, and experience.</p>
+              <p class="edu-profile-section__desc">Add each subject with its classes, boards, and years of experience. These appear together on your public profile card for that subject.</p>
             </div>
           </header>
 
@@ -363,18 +355,12 @@
               <i class="fa-solid fa-plus"></i> Add subject
             </button>
           </div>
-          <div class="edu-repeat-table-head edu-repeat-table-head--subjects edu-repeat-table-head--subjects-ext">
-            <span>Subject</span><span>Class</span><span>Board</span><span>Years of experience</span><span></span>
-          </div>
-          <div id="subjectsWrap">
+          <div id="subjectsWrap" class="edu-subject-form-cards">
             @foreach($subjects as $i => $subject)
-              <div class="edu-repeat-row edu-repeat-row--subject edu-repeat-row--subject-ext js-repeat-row">
-                <input type="text" name="subjects[{{ $i }}][name]" class="form-control" placeholder="Subject" value="{{ $subject['name'] ?? '' }}">
-                <input type="text" name="subjects[{{ $i }}][class]" class="form-control" placeholder="Class" value="{{ $subject['class'] ?? '' }}">
-                <input type="text" name="subjects[{{ $i }}][board]" class="form-control" placeholder="Board" value="{{ $subject['board'] ?? '' }}">
-                <input type="text" name="subjects[{{ $i }}][years_experience]" class="form-control" placeholder="Years" value="{{ $subject['years_experience'] ?? '' }}">
-                <button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button>
-              </div>
+              @include('backend.educator.partials.subject-form-card', [
+                'index' => $i,
+                'subject' => $subject,
+              ])
             @endforeach
           </div>
         </section>
@@ -490,7 +476,18 @@ window.eduAffiliationRoutes = {
   };
 
   const templates = {
-    subject: (i) => `<div class="edu-repeat-row edu-repeat-row--subject edu-repeat-row--subject-ext js-repeat-row"><input type="text" name="subjects[${i}][name]" class="form-control" placeholder="Subject"><input type="text" name="subjects[${i}][class]" class="form-control" placeholder="Class"><input type="text" name="subjects[${i}][board]" class="form-control" placeholder="Board"><input type="text" name="subjects[${i}][years_experience]" class="form-control" placeholder="Years"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
+    subject: (i) =>
+      `<div class="edu-subject-form-card js-repeat-row">` +
+      `<div class="edu-subject-form-card__head"><label class="form-label mb-0">Subject name</label>` +
+      `<button type="button" class="btn btn-outline-danger btn-sm edu-btn-remove js-remove-row" title="Remove subject">&times;</button></div>` +
+      `<input type="text" name="subjects[${i}][name]" class="form-control mb-3" placeholder="e.g. Physics">` +
+      `<div class="edu-subject-form-card__grid"><div><label class="form-label">Classes</label>` +
+      `<textarea class="form-control js-lines" rows="3" data-name="subjects[${i}][classes]" placeholder="One class per line"></textarea>` +
+      `<small class="text-muted">Multiple classes allowed — one per line.</small></div><div><label class="form-label">Boards</label>` +
+      `<textarea class="form-control js-lines" rows="3" data-name="subjects[${i}][boards]" placeholder="One board per line"></textarea>` +
+      `<small class="text-muted">Multiple boards allowed — one per line.</small></div></div>` +
+      `<div class="mt-3"><label class="form-label">Years of experience (this subject)</label>` +
+      `<input type="text" name="subjects[${i}][years_experience]" class="form-control" placeholder="e.g. 8"></div></div>`,
     qualification: (i) => `<div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row"><input type="text" name="qualifications[${i}][degree]" class="form-control" placeholder="Degree"><div class="edu-repeat-field-stack"><input type="text" name="qualifications[${i}][institution]" class="form-control js-school-institute-search" autocomplete="off" placeholder="Search school or institute"><small class="edu-field-hint">Search via Google.</small></div><input type="text" name="qualifications[${i}][year]" class="form-control" placeholder="Year"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,
     experience: (i) => `<div class="experience-card js-repeat-row"><span class="experience-card__badge"><i class="fa-solid fa-briefcase"></i> Experience ${i + 1}</span><div class="experience-card__grid"><div class="experience-card__fields experience-card__fields--top"><div class="experience-field"><label class="form-label">Job title</label><input type="text" name="experiences[${i}][title]" class="form-control" placeholder="Senior Physics Teacher"><small class="edu-field-hint edu-field-hint--placeholder" aria-hidden="true">&nbsp;</small></div><div class="experience-field"><label class="form-label">Place of work</label><input type="text" name="experiences[${i}][organization]" class="form-control js-school-institute-search js-experience-organization" autocomplete="off" placeholder="Search school or institute name"><small class="edu-field-hint">Start typing to search schools via Google.</small></div></div><div class="experience-card__fields experience-card__fields--meta"><div class="experience-field"><label class="form-label">Start year</label><select name="experiences[${i}][start_year]" class="form-select">${experienceYearOptions('')}</select></div><div class="experience-field"><label class="form-label">End year</label><select name="experiences[${i}][end_year]" class="form-select js-exp-end-year">${experienceYearOptions('')}</select></div><div class="experience-field experience-field--current"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><div class="form-check experience-current-check"><input class="form-check-input js-exp-current" type="checkbox" name="experiences[${i}][is_current]" value="1" id="experienceCurrent${i}"><label class="form-check-label" for="experienceCurrent${i}">I still work here</label></div></div><div class="experience-field experience-field--action"><label class="form-label experience-field__label-spacer" aria-hidden="true">&nbsp;</label><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove experience">&times;</button></div></div><div class="experience-field experience-field--full"><label class="form-label">Description</label><textarea name="experiences[${i}][description]" class="form-control" rows="2" placeholder="Teaching responsibilities, achievements, and role details"></textarea></div></div></div>`,
   };

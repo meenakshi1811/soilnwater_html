@@ -487,6 +487,49 @@
   text-transform: capitalize;
 }
 
+.edu-subjects-grid--detailed {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.edu-subject-card--detailed {
+  text-align: left;
+  padding: 1rem;
+}
+
+.edu-subject-card--detailed .edu-subject-card__icon {
+  margin-bottom: 0.65rem;
+}
+
+.edu-subject-card__title {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+}
+
+.edu-subject-card__exp {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--edu-primary);
+}
+
+.edu-subject-card__label {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--edu-muted);
+}
+
+.edu-subject-card__chips {
+  justify-content: flex-start;
+}
+
+.edu-subject-card__chips .edu-chip {
+  font-size: 0.72rem;
+}
+
 .edu-classes-label {
   font-size: 0.88rem;
   font-weight: 600;
@@ -2349,7 +2392,7 @@
 .edu-fees-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 560px;
+  min-width: 760px;
 }
 
 .edu-fees-table th,

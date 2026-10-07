@@ -67,16 +67,14 @@ class EducatorProfileController extends Controller
             'teaching_method' => ['nullable', 'string', 'max:255'],
             'languages' => ['nullable', 'array'],
             'languages.*' => ['nullable', 'string', 'max:80'],
-            'classes' => ['nullable', 'array'],
-            'classes.*' => ['nullable', 'string', 'max:80'],
-            'boards' => ['nullable', 'array'],
-            'boards.*' => ['nullable', 'string', 'max:80'],
             'teaching_modes' => ['nullable', 'array'],
             'teaching_modes.*' => ['nullable', 'string', 'max:80'],
             'subjects' => ['nullable', 'array'],
             'subjects.*.name' => ['nullable', 'string', 'max:120'],
-            'subjects.*.class' => ['nullable', 'string', 'max:80'],
-            'subjects.*.board' => ['nullable', 'string', 'max:80'],
+            'subjects.*.classes' => ['nullable', 'array'],
+            'subjects.*.classes.*' => ['nullable', 'string', 'max:80'],
+            'subjects.*.boards' => ['nullable', 'array'],
+            'subjects.*.boards.*' => ['nullable', 'string', 'max:80'],
             'subjects.*.years_experience' => ['nullable', 'string', 'max:20'],
             'qualifications' => ['nullable', 'array'],
             'qualifications.*.degree' => ['nullable', 'string', 'max:255'],
@@ -139,12 +137,12 @@ class EducatorProfileController extends Controller
         $user->save();
 
         $validated['languages'] = $this->cleanStringList($validated['languages'] ?? []);
-        $validated['classes'] = $this->cleanStringList($validated['classes'] ?? []);
-        $validated['boards'] = $this->cleanStringList($validated['boards'] ?? []);
         $validated['teaching_modes'] = $this->cleanStringList($validated['teaching_modes'] ?? []);
         $validated['achievements'] = $this->cleanStringList($validated['achievements'] ?? []);
         $validated['certifications'] = $this->cleanStringList($validated['certifications'] ?? []);
         $validated['subjects'] = EducatorSubjects::normalizeList($validated['subjects'] ?? []);
+        $validated['classes'] = EducatorSubjects::aggregateClasses($validated['subjects']);
+        $validated['boards'] = EducatorSubjects::aggregateBoards($validated['subjects']);
         $validated['associated_with_school'] = $request->boolean('associated_with_school');
         if (! $validated['associated_with_school']) {
             $validated['associated_institute'] = null;

@@ -663,9 +663,31 @@ class EducatorProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'enquiry_kind' => ['nullable', 'in:general,session'],
             'subject' => ['nullable', 'string', 'max:255'],
+            'preferred_date' => ['nullable', 'date'],
+            'preferred_time' => ['nullable', 'string', 'max:120'],
+            'class_interest' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:5000'],
         ]);
+
+        $isSessionBooking = ($validated['enquiry_kind'] ?? 'general') === 'session';
+        $subjectLine = trim((string) ($validated['subject'] ?? ''));
+        if ($subjectLine === '') {
+            $subjectLine = $isSessionBooking ? 'Session booking' : '';
+        }
+
+        $message = trim((string) $validated['message']);
+        if ($isSessionBooking) {
+            $sessionDetails = array_filter([
+                filled($validated['preferred_date'] ?? null) ? 'Preferred date: '.$validated['preferred_date'] : null,
+                filled($validated['preferred_time'] ?? null) ? 'Preferred time: '.trim((string) $validated['preferred_time']) : null,
+                filled($validated['class_interest'] ?? null) ? 'Class / subject: '.trim((string) $validated['class_interest']) : null,
+            ]);
+            if ($sessionDetails !== []) {
+                $message = implode("\n", $sessionDetails)."\n\n".$message;
+            }
+        }
 
         $enquiry = EducatorEnquiry::create([
             'educator_id' => $educator->id,
@@ -673,8 +695,8 @@ class EducatorProfileController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'] ?? auth()->user()?->email,
             'phone' => $validated['phone'] ?? auth()->user()?->phone_number,
-            'subject' => $validated['subject'] ?? null,
-            'message' => $validated['message'],
+            'subject' => $subjectLine !== '' ? $subjectLine : null,
+            'message' => $message,
             'status' => 'new',
         ]);
 
@@ -683,8 +705,10 @@ class EducatorProfileController extends Controller
 
         PortalNotificationService::notifyUser(
             $owner,
-            'New enquiry received',
-            $fromName.' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.'),
+            $isSessionBooking ? 'New session booking request' : 'New enquiry received',
+            $fromName.($isSessionBooking
+                ? ' requested to book a session'.($enquiry->subject ? ': '.$enquiry->subject : '.')
+                : ' sent you an enquiry'.($enquiry->subject ? ': '.$enquiry->subject : '.')),
             route('educator.enquiries.index'),
             'engagement'
         );
@@ -704,7 +728,9 @@ class EducatorProfileController extends Controller
             }
         }
 
-        $message = 'Your question was sent successfully. You will be notified by email and portal when the teacher responds.'
+        $message = ($isSessionBooking
+            ? 'Your session request was sent successfully. The tutor will confirm timing with you.'
+            : 'Your enquiry was sent successfully. You will be notified by email and portal when the teacher responds.')
             .($emailSent ? ' The educator has been notified by email and portal.' : ' The educator has been notified in the portal.');
 
         if ($request->expectsJson() || $request->ajax()) {

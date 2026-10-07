@@ -14,9 +14,7 @@
   $photo = $educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp');
   $modes = collect($educator->teaching_modes ?? []);
   $languages = collect($educator->languages ?? []);
-  $subjects = collect($educator->subjects ?? []);
-  $classes = collect($educator->classes ?? []);
-  $boards = collect($educator->boards ?? []);
+  $subjects = collect(\App\Support\EducatorSubjects::normalizeList($educator->subjects ?? []));
   $experiences = collect($educator->experiences ?? []);
   $qualifications = collect($educator->qualifications ?? []);
   $achievements = collect($educator->achievements ?? []);
@@ -210,11 +208,11 @@
                 </div>
               @endif
 
-              <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
+              <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry" data-enquiry-kind="general">
                 <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
               </button>
               @if($isTutorProfile)
-                <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry">
+                <button type="button" class="edu-btn edu-btn-outline js-edu-open-enquiry" data-enquiry-kind="session">
                   <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Book a Session
                 </button>
               @endif
@@ -312,54 +310,45 @@
         <section class="edu-section" id="edu-subjects">
           <h2 class="edu-section__title"><i class="fa-solid fa-book" aria-hidden="true"></i> Subjects &amp; Classes</h2>
           @if($subjects->isNotEmpty())
-            <div class="edu-subjects-grid">
+            <div class="edu-subjects-grid edu-subjects-grid--detailed">
               @foreach($subjects as $index => $subject)
                 @php
-                  $name = is_array($subject) ? ($subject['name'] ?? '') : $subject;
-                  $subjectClass = is_array($subject) ? trim((string) ($subject['class'] ?? '')) : '';
-                  $subjectBoard = is_array($subject) ? trim((string) ($subject['board'] ?? '')) : '';
-                  $subjectYears = is_array($subject) ? trim((string) ($subject['years_experience'] ?? '')) : '';
+                  $name = $subject['name'] ?? '';
+                  $subjectClasses = collect($subject['classes'] ?? []);
+                  $subjectBoards = collect($subject['boards'] ?? []);
+                  $subjectYears = trim((string) ($subject['years_experience'] ?? ''));
                   $icon = \App\Support\SubjectPresentation::iconFor($name, $index);
-                  $metaParts = array_filter([
-                    $subjectClass !== '' ? 'Class '.$subjectClass : '',
-                    $subjectBoard !== '' ? $subjectBoard : '',
-                    $subjectYears !== '' ? $subjectYears.' yrs exp.' : '',
-                  ]);
                 @endphp
-                @if($name)
-                  <div class="edu-subject-card">
+                @if($name !== '')
+                  <article class="edu-subject-card edu-subject-card--detailed">
                     <span class="edu-subject-card__icon edu-subject-card__icon--secondary">
                       <i class="fa-solid {{ $icon }}" aria-hidden="true"></i>
                     </span>
-                    <strong>{{ $name }}</strong>
-                    @if($metaParts !== [])
-                      <span>{{ implode(' · ', $metaParts) }}</span>
+                    <strong class="edu-subject-card__title">{{ $name }}</strong>
+                    @if($subjectYears !== '')
+                      <p class="edu-subject-card__exp">{{ $subjectYears }} yrs experience</p>
                     @endif
-                  </div>
+                    @if($subjectClasses->isNotEmpty())
+                      <p class="edu-subject-card__label">Classes</p>
+                      <div class="edu-chip-row edu-subject-card__chips">
+                        @foreach($subjectClasses as $class)
+                          <span class="edu-chip">{{ $class }}</span>
+                        @endforeach
+                      </div>
+                    @endif
+                    @if($subjectBoards->isNotEmpty())
+                      <p class="edu-subject-card__label">Boards</p>
+                      <div class="edu-chip-row edu-subject-card__chips">
+                        @foreach($subjectBoards as $board)
+                          <span class="edu-chip">{{ $board }}</span>
+                        @endforeach
+                      </div>
+                    @endif
+                  </article>
                 @endif
               @endforeach
             </div>
-          @endif
-
-          @if($classes->isNotEmpty())
-            <p class="edu-classes-label">Classes I Teach</p>
-            <div class="edu-chip-row">
-              @foreach($classes as $class)
-                <span class="edu-chip">{{ $class }}</span>
-              @endforeach
-            </div>
-          @endif
-
-          @if($boards->isNotEmpty())
-            <p class="edu-classes-label mt-3">Boards</p>
-            <div class="edu-chip-row">
-              @foreach($boards as $board)
-                <span class="edu-chip">{{ $board }}</span>
-              @endforeach
-            </div>
-          @endif
-
-          @if($subjects->isEmpty() && $classes->isEmpty() && $boards->isEmpty())
+          @else
             <p class="edu-empty">Subjects and classes will appear here once added.</p>
           @endif
         </section>
@@ -581,6 +570,8 @@
                     <th>Class</th>
                     <th>Subject</th>
                     <th>Batch</th>
+                    <th>Batch time</th>
+                    <th>Days</th>
                     <th>Students</th>
                     <th>Cost</th>
                     <th>Seats</th>
@@ -592,6 +583,8 @@
                       <td>{{ $batch['class'] ?: '—' }}</td>
                       <td>{{ $batch['subject'] ?: '—' }}</td>
                       <td>{{ $batch['batch_type'] ?: '—' }}</td>
+                      <td>{{ $batch['batch_time'] ?: '—' }}</td>
+                      <td>{{ $batch['days_label'] ?: '—' }}</td>
                       <td>{{ $batch['student_count'] ?: '—' }}</td>
                       <td><strong>{{ $batch['cost'] ?: '—' }}</strong></td>
                       <td>
@@ -1026,7 +1019,7 @@
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
           @include('frontend.educator.partials.social-links', ['educator' => $educator])
-          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry">
+          <button type="button" class="edu-btn edu-btn-primary js-edu-open-enquiry" data-enquiry-kind="general">
             <i class="fa-solid fa-envelope" aria-hidden="true"></i> Send Enquiry
           </button>
         </div>
@@ -1134,27 +1127,51 @@
     <div class="modal-content">
       <form id="educatorEnquiryForm" method="POST" action="{{ route('educator.enquiry', $educator->slug) }}" novalidate>
         @csrf
+        <input type="hidden" name="enquiry_kind" id="educatorEnquiryKind" value="general">
         <div class="modal-header">
-          <h5 class="modal-title">Send enquiry</h5>
+          <div>
+            <h5 class="modal-title mb-1" id="educatorEnquiryModalTitle">Send enquiry</h5>
+            <p class="text-muted small mb-0" id="educatorEnquiryModalLead">Ask about fees, subjects, availability, or anything else.</p>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           @guest
-            <p class="text-muted">Please <a href="{{ route('login') }}">log in</a> to send an enquiry.</p>
+            <p class="text-muted mb-0" id="educatorEnquiryGuestText">Please <a href="{{ route('login') }}">log in</a> to send an enquiry.</p>
           @else
             <div id="educatorEnquiryAlert" class="alert d-none" role="alert"></div>
             <div class="mb-3"><label class="form-label">Name</label><input type="text" name="name" class="form-control" value="{{ auth()->user()->name }}" required></div>
             <div class="mb-3"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ auth()->user()->email }}"></div>
             <div class="mb-3"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ auth()->user()->phone_number }}"></div>
-            <div class="mb-3"><label class="form-label">Subject</label><input type="text" name="subject" class="form-control"></div>
-            <div class="mb-0"><label class="form-label">Message</label><textarea name="message" class="form-control" rows="4" required></textarea></div>
+            <div id="educatorEnquirySessionFields" class="js-enquiry-session-fields d-none">
+              <div class="mb-3">
+                <label class="form-label" for="educatorEnquiryPreferredDate">Preferred date</label>
+                <input type="date" name="preferred_date" id="educatorEnquiryPreferredDate" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="educatorEnquiryPreferredTime">Preferred time</label>
+                <input type="text" name="preferred_time" id="educatorEnquiryPreferredTime" class="form-control" placeholder="e.g. Weekday evenings, Saturday 10 AM">
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="educatorEnquiryClassInterest">Class / subject</label>
+                <input type="text" name="class_interest" id="educatorEnquiryClassInterest" class="form-control" placeholder="e.g. Class 10 Physics">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="educatorEnquirySubjectLine">Topic</label>
+              <input type="text" name="subject" id="educatorEnquirySubjectLine" class="form-control">
+            </div>
+            <div class="mb-0">
+              <label class="form-label" for="educatorEnquiryMessage">Message</label>
+              <textarea name="message" id="educatorEnquiryMessage" class="form-control" rows="4" required></textarea>
+            </div>
           @endguest
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
           @auth
             <button type="submit" class="btn btn-primary" id="educatorEnquirySubmitBtn">
-              <span class="btn-text">Send</span>
+              <span class="btn-text">Send enquiry</span>
             </button>
           @endauth
         </div>

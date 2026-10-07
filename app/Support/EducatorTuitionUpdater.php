@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Educator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 final class EducatorTuitionUpdater
 {
@@ -19,6 +20,9 @@ final class EducatorTuitionUpdater
             'tuition_batches.*.class' => ['nullable', 'string', 'max:80'],
             'tuition_batches.*.subject' => ['nullable', 'string', 'max:80'],
             'tuition_batches.*.batch_type' => ['nullable', 'string', 'max:80'],
+            'tuition_batches.*.batch_time' => ['nullable', 'string', 'max:120'],
+            'tuition_batches.*.days' => ['nullable', 'array'],
+            'tuition_batches.*.days.*' => ['nullable', 'string', Rule::in(Educator::TUITION_WEEKDAYS)],
             'tuition_batches.*.student_count' => ['nullable', 'string', 'max:20'],
             'tuition_batches.*.cost' => ['nullable', 'string', 'max:120'],
             'tuition_batches.*.seats_status' => ['nullable', 'in:available,full'],
@@ -79,7 +83,7 @@ final class EducatorTuitionUpdater
 
     /**
      * @param  array<int, mixed>  $items
-     * @return list<array{class: string, subject: string, batch_type: string, student_count: string, cost: string, seats_status: string}>
+     * @return list<array{class: string, subject: string, batch_type: string, batch_time: string, days: list<string>, student_count: string, cost: string, seats_status: string}>
      */
     private static function cleanTuitionBatches(array $items): array
     {
@@ -94,10 +98,20 @@ final class EducatorTuitionUpdater
                     $seats = 'available';
                 }
 
+                $days = collect($item['days'] ?? [])
+                    ->map(fn ($day) => trim((string) $day))
+                    ->filter(fn ($day) => in_array($day, Educator::TUITION_WEEKDAYS, true))
+                    ->unique()
+                    ->sortBy(fn ($day) => array_search($day, Educator::TUITION_WEEKDAYS, true))
+                    ->values()
+                    ->all();
+
                 $row = [
                     'class' => trim((string) ($item['class'] ?? '')),
                     'subject' => trim((string) ($item['subject'] ?? '')),
                     'batch_type' => trim((string) ($item['batch_type'] ?? '')),
+                    'batch_time' => trim((string) ($item['batch_time'] ?? '')),
+                    'days' => $days,
                     'student_count' => trim((string) ($item['student_count'] ?? '')),
                     'cost' => trim((string) ($item['cost'] ?? '')),
                     'seats_status' => $seats,

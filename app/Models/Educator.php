@@ -383,8 +383,50 @@ class Educator extends Model
         return static::excerptFromAbout($this->about);
     }
 
+    /** @var list<string> */
+    public const TUITION_WEEKDAYS = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+    ];
+
+    /** @var array<string, string> */
+    private const TUITION_WEEKDAY_SHORT = [
+        'Sunday' => 'Sun',
+        'Monday' => 'Mon',
+        'Tuesday' => 'Tue',
+        'Wednesday' => 'Wed',
+        'Thursday' => 'Thu',
+        'Friday' => 'Fri',
+        'Saturday' => 'Sat',
+    ];
+
     /**
-     * @return list<array{class: string, subject: string, batch_type: string, student_count: string, cost: string}>
+     * @param  list<string>  $days
+     */
+    public static function formatTuitionBatchDaysLabel(array $days): string
+    {
+        $selected = collect($days)
+            ->map(fn ($day) => trim((string) $day))
+            ->filter()
+            ->flip();
+
+        $parts = [];
+        foreach (self::TUITION_WEEKDAYS as $weekday) {
+            if ($selected->has($weekday)) {
+                $parts[] = self::TUITION_WEEKDAY_SHORT[$weekday];
+            }
+        }
+
+        return implode(', ', $parts);
+    }
+
+    /**
+     * @return list<array{class: string, subject: string, batch_type: string, batch_time: string, days: list<string>, days_label: string, student_count: string, cost: string, seats_status: string}>
      */
     public function normalizedTuitionBatches(): array
     {
@@ -421,7 +463,7 @@ class Educator extends Model
 
     /**
      * @param  array<string, mixed>  $item
-     * @return array{class: string, subject: string, batch_type: string, student_count: string, cost: string}
+     * @return array{class: string, subject: string, batch_type: string, batch_time: string, days: list<string>, days_label: string, student_count: string, cost: string, seats_status: string}
      */
     private function formatTuitionBatchRow(array $item): array
     {
@@ -430,10 +472,20 @@ class Educator extends Model
             $seats = 'available';
         }
 
+        $days = collect($item['days'] ?? [])
+            ->map(fn ($day) => trim((string) $day))
+            ->filter(fn ($day) => in_array($day, self::TUITION_WEEKDAYS, true))
+            ->unique()
+            ->values()
+            ->all();
+
         return [
             'class' => trim((string) ($item['class'] ?? '')),
             'subject' => trim((string) ($item['subject'] ?? '')),
             'batch_type' => trim((string) ($item['batch_type'] ?? '')),
+            'batch_time' => trim((string) ($item['batch_time'] ?? '')),
+            'days' => $days,
+            'days_label' => self::formatTuitionBatchDaysLabel($days),
             'student_count' => trim((string) ($item['student_count'] ?? '')),
             'cost' => trim((string) ($item['cost'] ?? '')),
             'seats_status' => $seats,

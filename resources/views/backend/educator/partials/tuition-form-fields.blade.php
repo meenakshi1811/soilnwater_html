@@ -1,6 +1,8 @@
 @php
+  use App\Models\Educator;
   use App\Support\EducatorTuitionDelivery;
-  $tuitionBatches = $tuitionBatches ?? [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
+  $tuitionBatches = $tuitionBatches ?? [['class' => '', 'subject' => '', 'batch_type' => '', 'batch_time' => '', 'days' => [], 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
+  $tuitionWeekdays = Educator::TUITION_WEEKDAYS;
   $availability = $availability ?? [['day' => '', 'slots' => '']];
   $tuitionDeliveryOptions = EducatorTuitionDelivery::normalizeStored($tuitionDeliveryOptions ?? null);
   $deliveryMeta = [
@@ -98,7 +100,7 @@
   </div>
 
   <div class="tuition-batches-table d-none d-md-grid text-muted small fw-semibold px-3 py-2 mb-2">
-    <span>Class</span><span>Subject</span><span>Batch type</span><span>Students</span><span>Cost</span><span>Seats</span><span></span>
+    <span>Class</span><span>Subject</span><span>Batch type</span><span>Batch time</span><span>Students</span><span>Cost</span><span>Seats</span><span></span>
   </div>
 
   <div id="tuitionBatchesWrap" class="tuition-batches-wrap">
@@ -107,6 +109,10 @@
         $seats = old('tuition_batches.'.$i.'.seats_status', $batch['seats_status'] ?? 'available');
         if (! in_array($seats, ['available', 'full'], true)) {
           $seats = 'available';
+        }
+        $batchDays = old('tuition_batches.'.$i.'.days', $batch['days'] ?? []);
+        if (! is_array($batchDays)) {
+          $batchDays = [];
         }
       @endphp
       <div class="tuition-batch-card js-repeat-row">
@@ -122,6 +128,10 @@
           <div>
             <label class="form-label d-md-none">Batch type</label>
             <input type="text" name="tuition_batches[{{ $i }}][batch_type]" class="form-control" placeholder="Small group" value="{{ $batch['batch_type'] ?? '' }}" list="tuitionBatchTypeOptions">
+          </div>
+          <div>
+            <label class="form-label d-md-none">Batch time</label>
+            <input type="text" name="tuition_batches[{{ $i }}][batch_time]" class="form-control" placeholder="5:00 PM – 7:00 PM" value="{{ $batch['batch_time'] ?? '' }}">
           </div>
           <div>
             <label class="form-label d-md-none">Students</label>
@@ -140,6 +150,25 @@
           </div>
           <div class="tuition-batch-card__actions">
             <button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove batch">&times;</button>
+          </div>
+        </div>
+        <div class="tuition-batch-card__days">
+          <span class="form-label mb-1">Days</span>
+          <div class="tuition-batch-days" role="group" aria-label="Batch days">
+            @foreach($tuitionWeekdays as $weekday)
+              @php
+                $weekdayShort = Educator::formatTuitionBatchDaysLabel([$weekday]);
+              @endphp
+              <label class="tuition-batch-day">
+                <input
+                  type="checkbox"
+                  name="tuition_batches[{{ $i }}][days][]"
+                  value="{{ $weekday }}"
+                  @checked(in_array($weekday, $batchDays, true))
+                >
+                <span>{{ $weekdayShort }}</span>
+              </label>
+            @endforeach
           </div>
         </div>
       </div>

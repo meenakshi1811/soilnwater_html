@@ -54,6 +54,32 @@
         );
     }
 
+    function tuitionBatchDaysField(index) {
+        var weekdays = [
+            ['Sunday', 'Sun'],
+            ['Monday', 'Mon'],
+            ['Tuesday', 'Tue'],
+            ['Wednesday', 'Wed'],
+            ['Thursday', 'Thu'],
+            ['Friday', 'Fri'],
+            ['Saturday', 'Sat'],
+        ];
+        var html =
+            '<div class="tuition-batch-card__days"><span class="form-label mb-1">Days</span><div class="tuition-batch-days" role="group" aria-label="Batch days">';
+        weekdays.forEach(function (pair) {
+            html +=
+                '<label class="tuition-batch-day"><input type="checkbox" name="tuition_batches[' +
+                index +
+                '][days][]" value="' +
+                pair[0] +
+                '"><span>' +
+                pair[1] +
+                '</span></label>';
+        });
+        html += '</div></div>';
+        return html;
+    }
+
     var templates = {
         availability: function (i) {
             return (
@@ -79,6 +105,9 @@
                 '<div><label class="form-label d-md-none">Batch type</label><input type="text" name="tuition_batches[' +
                 i +
                 '][batch_type]" class="form-control" placeholder="Small group" list="tuitionBatchTypeOptions"></div>' +
+                '<div><label class="form-label d-md-none">Batch time</label><input type="text" name="tuition_batches[' +
+                i +
+                '][batch_time]" class="form-control" placeholder="5:00 PM – 7:00 PM"></div>' +
                 '<div><label class="form-label d-md-none">Students</label><input type="number" name="tuition_batches[' +
                 i +
                 '][student_count]" class="form-control" min="1" placeholder="8"></div>' +
@@ -89,7 +118,9 @@
                 i +
                 '][seats_status]" class="form-select"><option value="available">Seats available</option><option value="full">Batch full</option></select></div>' +
                 '<div class="tuition-batch-card__actions"><button type="button" class="btn btn-outline-danger edu-btn-remove w-100 js-remove-row" title="Remove batch">&times;</button></div>' +
-                '</div></div>'
+                '</div>' +
+                tuitionBatchDaysField(i) +
+                '</div>'
             );
         },
     };

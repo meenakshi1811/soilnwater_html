@@ -10,7 +10,7 @@
     $tuitionBatches = $educator->normalizedTuitionBatches();
   }
   if (empty($tuitionBatches)) {
-    $tuitionBatches = [['class' => '', 'subject' => '', 'batch_type' => '', 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
+    $tuitionBatches = [['class' => '', 'subject' => '', 'batch_type' => '', 'batch_time' => '', 'days' => [], 'student_count' => '', 'cost' => '', 'seats_status' => 'available']];
   }
   $tuitionDeliveryOptions = $educator->normalizedTuitionDeliveryOptions();
 @endphp

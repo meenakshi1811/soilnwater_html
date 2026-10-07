@@ -68,10 +68,83 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function openEnquiryModal() {
-        if (!isAuth) {
-            return requireAuth('send an enquiry');
+    var enquiryModalCopy = {
+        general: {
+            title: 'Send enquiry',
+            lead: 'Ask about fees, subjects, availability, or anything else.',
+            subjectPlaceholder: 'e.g. Tuition fees & batches',
+            messagePlaceholder: 'Write your question or enquiry here…',
+            submitText: 'Send enquiry',
+            authAction: 'send an enquiry',
+        },
+        session: {
+            title: 'Book a session',
+            lead: 'Request a demo class or tuition session. Share when you are available.',
+            subjectPlaceholder: 'e.g. Demo class / first session',
+            messagePlaceholder: 'Any notes for the tutor (online/offline, location, etc.)…',
+            submitText: 'Request session',
+            authAction: 'book a session',
+        },
+    };
+
+    function configureEnquiryModal(kind) {
+        var mode = kind === 'session' ? 'session' : 'general';
+        var copy = enquiryModalCopy[mode];
+        var kindInput = document.getElementById('educatorEnquiryKind');
+        var titleEl = document.getElementById('educatorEnquiryModalTitle');
+        var leadEl = document.getElementById('educatorEnquiryModalLead');
+        var sessionFields = document.getElementById('educatorEnquirySessionFields');
+        var subjectField = document.getElementById('educatorEnquirySubjectLine');
+        var messageField = document.getElementById('educatorEnquiryMessage');
+        var submitText = document.querySelector('#educatorEnquirySubmitBtn .btn-text');
+
+        if (kindInput) {
+            kindInput.value = mode;
         }
+        if (titleEl) {
+            titleEl.textContent = copy.title;
+        }
+        if (leadEl) {
+            leadEl.textContent = copy.lead;
+        }
+        if (sessionFields) {
+            sessionFields.classList.toggle('d-none', mode !== 'session');
+        }
+        if (subjectField) {
+            subjectField.placeholder = copy.subjectPlaceholder;
+            if (mode === 'session' && !subjectField.value.trim()) {
+                subjectField.value = 'Session booking';
+            }
+            if (mode === 'general' && subjectField.value.trim() === 'Session booking') {
+                subjectField.value = '';
+            }
+        }
+        if (messageField) {
+            messageField.placeholder = copy.messagePlaceholder;
+        }
+        if (submitText) {
+            submitText.textContent = copy.submitText;
+        }
+
+        if (mode === 'general') {
+            ['educatorEnquiryPreferredDate', 'educatorEnquiryPreferredTime', 'educatorEnquiryClassInterest'].forEach(function (id) {
+                var field = document.getElementById(id);
+                if (field) {
+                    field.value = '';
+                }
+            });
+        }
+    }
+
+    function openEnquiryModal(kind) {
+        var mode = kind === 'session' ? 'session' : 'general';
+        var copy = enquiryModalCopy[mode];
+
+        if (!isAuth) {
+            return requireAuth(copy.authAction);
+        }
+
+        configureEnquiryModal(mode);
 
         var modalEl = document.getElementById('enquiryModal');
         if (modalEl && window.bootstrap?.Modal) {
@@ -128,6 +201,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 messageField.value = '';
                 messageField.dispatchEvent(new Event('input'));
             }
+            ['educatorEnquiryPreferredDate', 'educatorEnquiryPreferredTime', 'educatorEnquiryClassInterest'].forEach(function (id) {
+                var field = document.getElementById(id);
+                if (field) {
+                    field.value = '';
+                }
+            });
+            configureEnquiryModal('general');
 
             var modalEl = document.getElementById('enquiryModal');
             if (modalEl && window.bootstrap?.Modal) {
@@ -142,6 +222,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (btnText) {
                 if (form.id === 'eduQuickQuestionForm') {
                     btnText.textContent = 'Send question';
+                } else if (form.id === 'educatorEnquiryForm') {
+                    btnText.textContent = enquiryModalCopy.general.submitText;
                 } else {
                     btnText.textContent = 'Send';
                 }
@@ -459,9 +541,16 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.js-edu-open-enquiry').forEach(function (btn) {
         btn.addEventListener('click', function (event) {
             event.preventDefault();
-            openEnquiryModal();
+            openEnquiryModal(btn.dataset.enquiryKind || 'general');
         });
     });
+
+    var enquiryModalEl = document.getElementById('enquiryModal');
+    if (enquiryModalEl) {
+        enquiryModalEl.addEventListener('hidden.bs.modal', function () {
+            configureEnquiryModal('general');
+        });
+    }
 
     document.querySelectorAll('.js-edu-guest-action').forEach(function (btn) {
         btn.addEventListener('click', function () {
