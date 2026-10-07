@@ -54,14 +54,15 @@
                                 width="640"
                                 height="360"
                             >
-                            <span class="homepage-marketplace-promo-card__discount">
-                                <span class="homepage-marketplace-promo-card__discount-spark" aria-hidden="true"></span>
-                                {{ $card['discount_badge'] }}
-                            </span>
-                            <span class="homepage-marketplace-promo-card__category homepage-marketplace-promo-card__category--{{ $card['category_tone'] }}">
-                                <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
-                                {{ $card['category_label'] }}
-                            </span>
+                            <div class="homepage-marketplace-promo-card__tags">
+                                <span class="homepage-marketplace-promo-card__category homepage-marketplace-promo-card__category--{{ $card['category_tone'] }}">
+                                    <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
+                                    <span class="homepage-marketplace-promo-card__category-text">{{ $card['category_label'] }}</span>
+                                </span>
+                                <span class="homepage-marketplace-promo-card__discount">
+                                    {{ $card['discount_badge'] }}
+                                </span>
+                            </div>
                         </div>
                         <div class="homepage-marketplace-promo-card__body">
                             <h3 class="homepage-marketplace-promo-card__title">{{ $card['title'] }}</h3>
