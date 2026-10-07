@@ -47,7 +47,7 @@
     ['id' => 'edu-overview', 'label' => 'Profile Overview', 'icon' => 'fa-user'],
   ])
     ->when($notices->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn']))
-    ->when($affiliatedInstitutes->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-affiliations', 'label' => 'Schools & Institutes', 'icon' => 'fa-school']))
+    ->when($affiliatedInstitutes->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-affiliations', 'label' => 'Associated Schools & Institutes', 'icon' => 'fa-school']))
     ->push(
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
@@ -260,8 +260,7 @@
 
         @if($affiliatedInstitutes->isNotEmpty())
         <section class="edu-section" id="edu-affiliations">
-          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Schools &amp; Institutes</h2>
-          <p class="edu-section__lead">Registered institutions this teacher is associated with on SoilnWater.</p>
+          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Associated Schools &amp; Institutes</h2>
           <div class="edu-affiliations-grid">
             @foreach($affiliatedInstitutes as $institute)
               <a href="{{ $institute->publicUrl() }}" class="edu-affiliation-card">
@@ -599,7 +598,18 @@
                         @if(($batch['seats_status'] ?? 'available') === 'full')
                           <span class="text-danger fw-semibold">Batch full</span>
                         @else
-                          <span class="text-success fw-semibold">Seats available</span>
+                          <button
+                            type="button"
+                            class="edu-fees-table__enroll-btn js-edu-enroll-seat text-success fw-semibold"
+                            data-class="{{ e($batch['class'] ?? '') }}"
+                            data-subject="{{ e($batch['subject'] ?? '') }}"
+                            data-batch="{{ e($batch['batch_type'] ?? '') }}"
+                            data-cost="{{ e($batch['cost'] ?? '') }}"
+                            data-students="{{ e($batch['student_count'] ?? '') }}"
+                            aria-label="Enroll in {{ e(trim(($batch['class'] ?? '').' '.($batch['subject'] ?? '').' '.($batch['batch_type'] ?? ''))) }}"
+                          >
+                            Seats available
+                          </button>
                         @endif
                       </td>
                     </tr>

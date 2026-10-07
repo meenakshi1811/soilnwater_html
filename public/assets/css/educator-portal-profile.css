@@ -944,16 +944,27 @@ body.soilnwater-google-places-active .edu-profile-page .pac-container:not(:has(.
   width: 48px;
 }
 
+.edu-profile-page .edu-affiliation-form.chart-card {
+  overflow: visible;
+}
+
+.edu-profile-page .edu-affiliation-search-wrap {
+  position: relative;
+}
+
 .edu-profile-page .edu-affiliation-search-results {
   background: #fff;
   border: 1px solid var(--edu-pro-border);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  left: 0;
   margin-top: 0.35rem;
   max-height: 240px;
   overflow: auto;
-  position: relative;
-  z-index: 5;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 1050;
 }
 
 .edu-profile-page .edu-affiliation-search-results__item {

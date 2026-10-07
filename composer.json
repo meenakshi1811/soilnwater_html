@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "fpdf/fpdf": "^1.86",
         "intervention/image": "^4.0",
         "intervention/image-laravel": "^4.0",
         "laravel/framework": "^12.0",
@@ -14,6 +15,7 @@
         "laravel/socialite": "^5.26",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
+        "setasign/fpdi": "^2.6.8",
         "spatie/laravel-permission": "^7.3",
         "yajra/laravel-datatables-oracle": "^12.7"
     },

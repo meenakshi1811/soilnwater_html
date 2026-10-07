@@ -119,7 +119,18 @@ class StudyMaterial extends Model
 
     public function thumbnailUrl(): ?string
     {
-        return filled($this->thumbnail) ? asset($this->thumbnail) : null;
+        return $this->coverImageUrl();
+    }
+
+    public function coverImageUrl(): ?string
+    {
+        if (filled($this->thumbnail)) {
+            return asset($this->thumbnail);
+        }
+
+        $coverUrl = trim((string) data_get($this->meta, 'cover_url'));
+
+        return filled($coverUrl) ? $coverUrl : null;
     }
 
     public function publicUrl(): string

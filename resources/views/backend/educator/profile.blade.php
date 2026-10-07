@@ -171,10 +171,12 @@
             <div class="edu-affiliation-form chart-card border p-3 mb-3">
               <div class="row g-3 align-items-end">
                 <div class="col-md-5">
-                  <label class="form-label" for="eduAffiliationSearch">Search institute</label>
-                  <input type="text" id="eduAffiliationSearch" class="form-control" autocomplete="off" placeholder="Type school or institute name…">
-                  <input type="hidden" id="eduAffiliationInstituteId" value="">
-                  <div id="eduAffiliationSearchResults" class="edu-affiliation-search-results d-none" role="listbox"></div>
+                  <div class="edu-affiliation-search-wrap">
+                    <label class="form-label" for="eduAffiliationSearch">Search institute</label>
+                    <input type="text" id="eduAffiliationSearch" class="form-control" autocomplete="off" placeholder="Type school or institute name…">
+                    <input type="hidden" id="eduAffiliationInstituteId" value="">
+                    <div id="eduAffiliationSearchResults" class="edu-affiliation-search-results d-none" role="listbox" aria-label="Institute search results"></div>
+                  </div>
                 </div>
                 <div class="col-md-3">
                   <label class="form-label" for="eduAffiliationRole">Your role</label>
@@ -437,10 +439,21 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-portal-profile.css') }}?v={{ now()->timestamp }}">
 @endpush
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script>
+window.eduAffiliationRoutes = {
+  search: @json(route('educator.affiliations.search')),
+  store: @json(route('educator.affiliations.store')),
+};
+</script>
+<script src="{{ asset('assets/js/educator-institute-affiliations.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/profile-phone-numbers.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script>
@@ -581,12 +594,5 @@ window.initEducatorExperiencePlacesAutocomplete = function () {
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initEducatorExperiencePlacesAutocomplete"></script>
 @endif
-<script>
-window.eduAffiliationRoutes = {
-  search: @json(route('educator.affiliations.search')),
-  store: @json(route('educator.affiliations.store')),
-};
-</script>
-<script src="{{ asset('assets/js/educator-institute-affiliations.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/educator-profile-school.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

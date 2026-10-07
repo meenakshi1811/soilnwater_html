@@ -51,6 +51,8 @@ class EducatorProfileController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'profile_photo' => [$educator->profile_photo ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -114,6 +116,8 @@ class EducatorProfileController extends Controller
         $user->address = $validated['address'];
         $user->city = $validated['city'];
         $user->pincode = $validated['pincode'];
+        $user->latitude = $validated['latitude'] ?? null;
+        $user->longitude = $validated['longitude'] ?? null;
         $user->date_of_birth = $validated['date_of_birth'];
 
         if ($phoneChanged) {
@@ -157,6 +161,8 @@ class EducatorProfileController extends Controller
         $validated['phone_numbers'] = $phoneNumbers;
         $validated['whatsapp'] = $validated['whatsapp_number'];
         $validated['residential_address'] = $validated['address'];
+        $validated['latitude'] = $validated['latitude'] ?? null;
+        $validated['longitude'] = $validated['longitude'] ?? null;
         $validated['email'] = $user->email;
 
         if ($validated['display_name'] !== $educator->display_name) {

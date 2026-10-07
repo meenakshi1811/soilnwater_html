@@ -597,6 +597,86 @@ document.addEventListener('DOMContentLoaded', function () {
 
     syncQuestionTopics();
 
+    function buildEnrollTopic(data) {
+        var parts = [];
+
+        if (data.class) {
+            parts.push(/^class\b/i.test(data.class) ? data.class : 'Class ' + data.class);
+        }
+        if (data.subject) {
+            parts.push(data.subject);
+        }
+        if (data.batch) {
+            parts.push(data.batch);
+        }
+
+        return parts.join(' · ') || 'Tuition enrollment';
+    }
+
+    function buildEnrollMessage(data) {
+        var lines = ['I want to enroll.', ''];
+
+        if (data.class) {
+            lines.push('Class: ' + data.class);
+        }
+        if (data.subject) {
+            lines.push('Subject: ' + data.subject);
+        }
+        if (data.batch) {
+            lines.push('Batch: ' + data.batch);
+        }
+        if (data.students) {
+            lines.push('Students per batch: ' + data.students);
+        }
+        if (data.cost) {
+            lines.push('Fee: ' + data.cost);
+        }
+
+        return lines.join('\n').trim();
+    }
+
+    function scrollToQuestionForm() {
+        var questionSection = document.getElementById('edu-question');
+
+        if (questionSection) {
+            questionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function prefillEnrollQuestion(data) {
+        if (questionSubjectInput) {
+            questionSubjectInput.value = buildEnrollTopic(data);
+            syncQuestionTopics();
+        }
+
+        if (questionTextarea) {
+            questionTextarea.value = buildEnrollMessage(data);
+            updateQuestionCharCount();
+            questionTextarea.focus();
+        }
+    }
+
+    document.querySelectorAll('.js-edu-enroll-seat').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var data = {
+                class: btn.dataset.class || '',
+                subject: btn.dataset.subject || '',
+                batch: btn.dataset.batch || '',
+                cost: btn.dataset.cost || '',
+                students: btn.dataset.students || '',
+            };
+
+            scrollToQuestionForm();
+
+            if (!isAuth) {
+                requireAuth('enroll in this batch');
+                return;
+            }
+
+            prefillEnrollQuestion(data);
+        });
+    });
+
     if (quickQuestionForm) {
         quickQuestionForm.addEventListener('submit', function (event) {
             event.preventDefault();

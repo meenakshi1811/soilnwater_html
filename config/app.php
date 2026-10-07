@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'study_material_watermark' => env('STUDY_MATERIAL_WATERMARK', 'SOILNWATER'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

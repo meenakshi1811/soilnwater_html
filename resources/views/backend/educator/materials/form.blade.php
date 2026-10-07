@@ -634,11 +634,12 @@
           </div>
         </section>
 
-          <section class="sm-upload-section sm-upload-field-group d-none" data-types="reference_books study_guides videos">
+          <section class="sm-upload-section sm-upload-field-group d-none" data-types="worksheets sample_papers study_guides assignments question_papers reference_books videos notes">
             <div class="sm-upload-section__head">
               <span class="sm-upload-section__num">4</span>
-              <h2 class="sm-upload-section__title">Cover Image / Thumbnail (Optional)</h2>
+              <h2 class="sm-upload-section__title">Cover image for Courses listing (optional)</h2>
             </div>
+            <p class="text-muted small mb-3">Upload a cover image shown on your public profile Courses section. This is not the SoilnWater logo — use your own preview or topic image.</p>
             <div class="sm-upload-cover-grid">
               <div class="sm-upload-cover-box">
                 <i class="fa-solid fa-image fa-2x text-muted mb-2"></i>

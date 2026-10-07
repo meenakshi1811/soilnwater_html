@@ -7,6 +7,7 @@ use App\Models\ListingPaymentSubmission;
 use App\Models\StudyMaterial;
 use App\Models\StudyMaterialReview;
 use App\Services\PortalNotificationService;
+use App\Support\StudyMaterialDownloadWatermark;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -230,7 +231,7 @@ class StudyMaterialLibraryController extends Controller
 
         $material->increment('downloads_count');
 
-        return response()->download(
+        return $this->watermarkedFileDownload(
             public_path($material->file_path),
             $material->file_name ?: basename($material->file_path)
         );
@@ -246,7 +247,7 @@ class StudyMaterialLibraryController extends Controller
         $solutionPath = data_get($material->meta, 'solution_file_path');
         abort_unless(filled($solutionPath) && is_file(public_path($solutionPath)), 404);
 
-        return response()->download(
+        return $this->watermarkedFileDownload(
             public_path($solutionPath),
             $material->solutionFileName() ?: basename($solutionPath)
         );
@@ -262,10 +263,22 @@ class StudyMaterialLibraryController extends Controller
         $filePath = data_get($material->meta, 'solved_worksheet_file_path');
         abort_unless(filled($filePath) && is_file(public_path($filePath)), 404);
 
-        return response()->download(
+        return $this->watermarkedFileDownload(
             public_path($filePath),
             $material->solvedWorksheetFileName() ?: basename($filePath)
         );
+    }
+
+    private function watermarkedFileDownload(string $absolutePath, string $downloadName): BinaryFileResponse
+    {
+        $prepared = StudyMaterialDownloadWatermark::prepare($absolutePath);
+        $response = response()->download($prepared['path'], $downloadName);
+
+        if ($prepared['temporary']) {
+            $response->deleteFileAfterSend(true);
+        }
+
+        return $response;
     }
 
     public function bookmark(Request $request, string $slug): RedirectResponse|JsonResponse

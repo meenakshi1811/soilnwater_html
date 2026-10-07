@@ -684,6 +684,20 @@
   object-fit: cover;
 }
 
+.edu-course-card__thumb-placeholder {
+  align-items: center;
+  color: var(--edu-primary);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.edu-course-card__thumb-placeholder i {
+  font-size: 2.25rem;
+  opacity: 0.55;
+}
+
 .edu-course-card__badge {
   position: absolute;
   top: 0.5rem;
@@ -2360,6 +2374,20 @@
 
 .edu-fees-table td strong {
   color: var(--edu-primary);
+}
+
+.edu-fees-table__enroll-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.edu-fees-table__enroll-btn:hover,
+.edu-fees-table__enroll-btn:focus-visible {
+  text-decoration: none;
 }
 
 .edu-fees-box {

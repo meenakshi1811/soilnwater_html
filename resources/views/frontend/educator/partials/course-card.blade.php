@@ -6,7 +6,13 @@
 <article class="edu-course-card {{ $showActions ? 'edu-course-card--interactive' : '' }}">
   <a href="{{ $course->publicUrl() }}" class="edu-course-card__link">
     <div class="edu-course-card__thumb">
-      <img src="{{ $course->thumbnailUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="">
+      @if($course->coverImageUrl())
+        <img src="{{ $course->coverImageUrl() }}" alt="">
+      @else
+        <div class="edu-course-card__thumb-placeholder edu-course-card__thumb-placeholder--{{ $typeMeta['tone'] }}" aria-hidden="true">
+          <i class="fa-solid {{ $typeMeta['icon'] }}"></i>
+        </div>
+      @endif
       <span class="edu-course-card__badge">{{ $typeMeta['label'] }}</span>
     </div>
     <div class="edu-course-card__body">

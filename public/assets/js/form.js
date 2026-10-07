@@ -572,6 +572,8 @@
                 addressInputId: 'address',
                 cityInputId: 'city',
                 pincodeInputId: 'pincode',
+                latitudeInputId: 'latitude',
+                longitudeInputId: 'longitude',
                 retryMethod: 'initEducatorProfilePlaceAutocomplete'
             });
         },
