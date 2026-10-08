@@ -45,12 +45,12 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 12px;
+    gap: 10px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 14vw;
-    padding: 4px max(12px, 3vw) 8px;
+    scroll-padding-inline: 16px;
+    padding: 4px 16px 8px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
@@ -60,10 +60,10 @@
   }
 
   .homepage-vendors-mobile__item {
-    flex: 0 0 72vw;
-    width: 72vw;
-    max-width: 300px;
-    scroll-snap-align: center;
+    flex: 0 0 min(72vw, 292px);
+    width: min(72vw, 292px);
+    max-width: 292px;
+    scroll-snap-align: start;
     min-width: 0;
     display: flex;
   }
@@ -282,11 +282,11 @@
 
 @media (max-width: 575.98px) {
   .homepage-vendors-mobile__item {
-    flex: 0 0 68vw;
-    width: 68vw;
+    flex: 0 0 min(68vw, 292px);
+    width: min(68vw, 292px);
   }
 
   .homepage-vendors-mobile__scroll {
-    scroll-padding-inline: 16vw;
+    scroll-padding-inline: 16px;
   }
 }

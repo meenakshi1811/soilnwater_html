@@ -855,23 +855,24 @@
   .homepage-discover-carousel .card-carousel-track {
     gap: 10px;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 14vw;
-    padding: 0 max(12px, 3vw) 6px;
+    scroll-padding-inline: 16px;
+    padding: 0 16px 6px;
   }
 
   .homepage-discover-carousel .card-carousel-item {
-    flex: 0 0 72vw;
-    width: 72vw;
+    flex: 0 0 min(72vw, 292px);
+    width: min(72vw, 292px);
     max-width: 292px;
-    scroll-snap-align: center;
+    scroll-snap-align: start;
     display: flex;
     align-items: stretch;
   }
 
   .homepage-discover-community-carousel .card-carousel-item {
-    flex: 0 0 72vw;
-    width: 72vw;
+    flex: 0 0 min(72vw, 292px);
+    width: min(72vw, 292px);
     max-width: 292px;
+    scroll-snap-align: start;
   }
 
   .homepage-discover-card {
@@ -983,12 +984,12 @@
 @media (max-width: 575.98px) {
   .homepage-discover-carousel .card-carousel-item,
   .homepage-discover-community-carousel .card-carousel-item {
-    flex: 0 0 68vw;
-    width: 68vw;
+    flex: 0 0 min(68vw, 292px);
+    width: min(68vw, 292px);
   }
 
   .homepage-discover-carousel .card-carousel-track {
-    scroll-padding-inline: 16vw;
+    scroll-padding-inline: 16px;
   }
 
   .homepage-discover-panel__head {

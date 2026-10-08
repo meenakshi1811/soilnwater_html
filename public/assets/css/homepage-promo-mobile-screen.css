@@ -246,6 +246,7 @@
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
+  /* Tablet uses the same compact mobile layout (2-up grid + card sizes) */
   .homepage-marketplace-promo,
   .homepage-popular-near,
   .homepage-popular-services,
@@ -253,7 +254,7 @@
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    padding: 0 0 44px;
+    padding: 0 0 36px;
   }
 
   .homepage-popular-near__shell,
@@ -262,8 +263,8 @@
   .homepage-study-library__shell,
   .homepage-consultants__shell,
   .homepage-community-hub__shell {
-    margin: 0 22px;
-    padding: 20px 20px 19px;
+    margin: 0 10px;
+    padding: 18px 14px 17px;
   }
 
   .homepage-popular-near__head,
@@ -272,9 +273,8 @@
   .homepage-study-library__head,
   .homepage-consultants__head,
   .homepage-community-hub__head {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
-
 }
 
 @media (min-width: 992px) {
