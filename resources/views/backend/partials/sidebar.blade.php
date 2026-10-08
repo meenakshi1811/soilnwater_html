@@ -41,8 +41,6 @@
     $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.jobs.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
     $parentDashboardActive = request()->routeIs('parent.*');
-    $parentProfilesMenuActive = request()->routeIs('admin.parent-profiles.*');
-    $childProfilesMenuActive = request()->routeIs('admin.child-profiles.*');
     $hasParentProfileEnabled = (bool) $user?->parentProfile?->is_enabled;
     $activeChildProfile = \App\Support\ActiveChildSession::profile();
     $isActingAsChild = $hasParentProfileEnabled && $activeChildProfile && $activeChildProfile->parent_user_id === $user?->id;
@@ -211,18 +209,6 @@
                 <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $parentProfilesMenuActive ? 'active' : '' }}" href="{{ route('admin.parent-profiles.index') }}">
-                    <i class="fa-solid fa-people-roof"></i>
-                    <span>Parent Profiles</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $childProfilesMenuActive ? 'active' : '' }}" href="{{ route('admin.child-profiles.index') }}">
-                    <i class="fa-solid fa-child"></i>
-                    <span>Child Profiles</span>
                 </a>
             </li>
             <li>

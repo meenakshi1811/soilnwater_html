@@ -104,8 +104,24 @@ final class ModuleSidebar
             'education' => [
                 'label' => 'Education',
                 'icon' => 'fa-solid fa-graduation-cap',
-                'active_routes' => ['admin.educators.*', 'admin.study-materials.*', 'admin.schools.*', 'admin.institutes.*'],
+                'active_routes' => [
+                    'admin.educators.*',
+                    'admin.study-materials.*',
+                    'admin.schools.*',
+                    'admin.institutes.*',
+                    'admin.parent-profiles.*',
+                    'admin.child-profiles.*',
+                ],
                 'groups' => [
+                    'parent_child_profiles' => [
+                        'label' => 'Parent & Child',
+                        'icon' => 'fa-solid fa-people-roof',
+                        'active_routes' => ['admin.parent-profiles.*', 'admin.child-profiles.*'],
+                        'items' => [
+                            ['label' => 'Parent Profiles', 'route' => 'admin.parent-profiles.index', 'icon' => 'fa-solid fa-people-roof', 'module' => 'users', 'action' => 'read', 'active' => 'admin.parent-profiles.*'],
+                            ['label' => 'Child Profiles', 'route' => 'admin.child-profiles.index', 'icon' => 'fa-solid fa-child', 'module' => 'users', 'action' => 'read', 'active' => 'admin.child-profiles.*'],
+                        ],
+                    ],
                     'educators' => [
                         'label' => 'Teachers & Tutors',
                         'icon' => 'fa-solid fa-chalkboard-user',
