@@ -163,6 +163,26 @@
     color: #16a34a;
   }
 
+  /* Study material: one row of 3 + horizontal scroll (no 3×2 squeeze) */
+  .hp-desktop--study-material .hp-desktop__carousel {
+    --carousel-visible: 3;
+    --carousel-gap: 12px;
+  }
+
+  .hp-desktop--study-material .hp-desktop__carousel .card-carousel-item {
+    flex: 0 0 calc((100% - (var(--carousel-gap) * 2)) / 3);
+    max-width: calc((100% - (var(--carousel-gap) * 2)) / 3);
+  }
+
+  .hp-desktop--study-material .hp-desktop__carousel .card-carousel-track {
+    flex-wrap: nowrap;
+  }
+
+  .hp-desktop--study-material .hp-desktop__carousel:not(.is-carousel-scrollable) .card-carousel-track {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
   .hp-desktop--consultants .hp-desktop__title-accent {
     color: #1d4ed8;
   }

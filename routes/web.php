@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\CategoryHomepageImageController;
+use App\Http\Controllers\Admin\HomepageSectionHeroImageController;
 use App\Http\Controllers\Admin\HomepageShowcaseItemController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -741,6 +742,12 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'show'])->name('show');
             Route::match(['put', 'patch'], '/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'update'])->name('update');
             Route::delete('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('homepage-section-heroes')->name('homepage-section-heroes.')->group(function () {
+            Route::get('/', [HomepageSectionHeroImageController::class, 'index'])->name('index');
+            Route::post('/{sectionKey}', [HomepageSectionHeroImageController::class, 'update'])->name('update');
+            Route::delete('/{sectionKey}', [HomepageSectionHeroImageController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('category-homepage-images')->name('category-homepage-images.')->group(function () {

@@ -236,6 +236,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.homepage-section-heroes.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-heroes.index') }}">
+                    <i class="fa-solid fa-panorama"></i>
+                    <span>Section Banner Images</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Approval Center</span>

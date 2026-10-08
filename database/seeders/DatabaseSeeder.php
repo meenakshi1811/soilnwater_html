@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(TeacherDemoSeeder::class);
         $this->call(HomepageShowcaseItemSeeder::class);
         $this->call(CategoryHomepageImageSeeder::class);
+        $this->call(HomepageSectionHeroImageSeeder::class);
         $this->call(ParentDemoSeeder::class);
         $this->call(InstituteDemoSeeder::class);
         $this->call(InstituteJobSeeder::class);

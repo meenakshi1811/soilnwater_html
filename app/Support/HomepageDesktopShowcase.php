@@ -11,7 +11,7 @@ final class HomepageDesktopShowcase
      */
     public static function section(string $key): array
     {
-        return match ($key) {
+        $section = match ($key) {
             'offers' => [
                 'key' => 'offers',
                 'title' => 'Latest',
@@ -176,6 +176,11 @@ final class HomepageDesktopShowcase
                 'chips' => [],
             ],
         };
+
+        $defaultHero = $section['hero_bg'] ?? self::HERO_BG;
+        $section['hero_bg'] = HomepageSectionHero::backgroundUrl($key, $defaultHero);
+
+        return $section;
     }
 
     /**

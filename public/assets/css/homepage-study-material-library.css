@@ -122,12 +122,30 @@
 }
 
 .homepage-study-library__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 0;
+  margin: 0;
+  padding: 0 0 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.homepage-study-library__grid::-webkit-scrollbar {
+  display: none;
 }
 
 .homepage-study-library-card {
+  flex: 0 0 min(72vw, 300px);
+  width: min(72vw, 300px);
+  max-width: 300px;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -227,65 +245,63 @@
   overflow: hidden;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 991.98px) {
   .homepage-study-library {
-    padding: 18px 0 8px;
+    padding: 0 0 36px;
   }
 
   .homepage-study-library__shell {
-    margin: 0 24px;
-    padding: 22px 20px 20px;
-    border-radius: 24px;
+    margin: 0 10px;
+    padding: 18px 14px 17px;
+    border-radius: 16px;
+    overflow: hidden;
   }
 
-  .homepage-study-library__nav {
-    font-size: 0.75rem;
-  }
-
-  .homepage-study-library__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-  }
-
-  .homepage-study-library-card__body {
-    padding: 14px 14px 12px;
-  }
-
-  .homepage-study-library-card__title {
-    font-size: 0.9375rem;
-  }
-
-  .homepage-study-library-card__subtitle {
-    font-size: 0.6875rem;
-  }
-
-  .homepage-study-library-card__badge {
-    font-size: 0.625rem;
-    padding: 6px 9px;
-  }
-}
-
-@media (min-width: 992px) {
-  .homepage-study-library__shell {
-    max-width: none;
-    margin: 0 36px;
-    padding: 24px 22px 22px;
-  }
-
-  .homepage-study-library__grid {
-    gap: 16px;
+  .homepage-study-library__head {
+    margin-bottom: 14px;
   }
 
   .homepage-study-library__title {
-    font-size: 1.75rem;
+    font-size: 1rem;
+    line-height: 1.12;
+  }
+
+  .homepage-study-library__nav {
+    font-size: 0.625rem;
+    margin-top: 4px;
+  }
+
+  .homepage-study-library__see-all {
+    font-size: 0.625rem;
+    padding-top: 0;
+  }
+
+  .homepage-study-library-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  }
+
+  .homepage-study-library-card__body {
+    padding: 7px 7px 8px;
   }
 
   .homepage-study-library-card__title {
-    font-size: 1rem;
+    font-size: 0.71875rem;
+    line-height: 1.2;
   }
 
   .homepage-study-library-card__subtitle {
-    font-size: 0.75rem;
+    font-size: 0.59375rem;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+  }
+
+  .homepage-study-library-card__badge {
+    top: 6px;
+    left: 6px;
+    padding: 3px 6px;
+    font-size: 0.5rem;
+    border-radius: 8px;
   }
 }
 
