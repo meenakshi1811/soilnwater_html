@@ -244,6 +244,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.category-homepage-images.*') ? 'active' : '' }}" href="{{ route('admin.category-homepage-images.index') }}">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Category Card Images</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Approval Center</span>

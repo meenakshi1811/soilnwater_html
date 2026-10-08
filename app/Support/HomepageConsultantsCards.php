@@ -69,7 +69,7 @@ final class HomepageConsultantsCards
 
         return [
             'url' => $card['profileUrl'],
-            'image' => $card['coverImage'],
+            'image' => HomepageCategoryCardImage::forConsultant($consultant, $card['coverImage']),
             'title' => $consultant->publicDisplayName(),
             'description' => $description !== '' ? $description : 'Professional consulting services',
             'location' => self::shortLocation($card['locationLabel']),

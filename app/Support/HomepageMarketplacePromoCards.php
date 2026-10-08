@@ -45,17 +45,17 @@ final class HomepageMarketplacePromoCards
      */
     private static function mapOffer(Offer $offer): ?array
     {
-        $imagePath = $offer->banner_image;
-        if (! filled($imagePath)) {
-            return null;
-        }
+        $entityCover = filled($offer->banner_image)
+            ? asset($offer->banner_image)
+            : asset('assets/images/vendor-card-placeholder.svg');
+        $image = HomepageCategoryCardImage::forOffer($offer, $entityCover);
 
         $categoryName = $offer->category?->name ?? $offer->subcategory?->name ?? 'Local offer';
         $categoryMeta = self::categoryMeta($categoryName);
 
         return [
             'url' => $offer->shareUrl(),
-            'image' => asset($imagePath),
+            'image' => $image,
             'discount_badge' => self::formatDiscountBadge($offer->discount_tag, $offer->title),
             'category_label' => $categoryMeta['label'],
             'category_tone' => $categoryMeta['tone'],
@@ -74,7 +74,9 @@ final class HomepageMarketplacePromoCards
      */
     private static function mapAd(UserAd $ad): ?array
     {
-        if (! filled($ad->final_image)) {
+        $entityCover = filled($ad->final_image) ? asset($ad->final_image) : '';
+        $image = HomepageCategoryCardImage::forUserAd($ad, $entityCover);
+        if ($image === '') {
             return null;
         }
 
@@ -83,7 +85,7 @@ final class HomepageMarketplacePromoCards
 
         return [
             'url' => $ad->shareUrl(),
-            'image' => asset($ad->final_image),
+            'image' => $image,
             'discount_badge' => self::formatDiscountBadge(null, $ad->title),
             'category_label' => $categoryMeta['label'],
             'category_tone' => $categoryMeta['tone'],

@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
+use App\Http\Controllers\Admin\CategoryHomepageImageController;
 use App\Http\Controllers\Admin\HomepageShowcaseItemController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -740,6 +741,16 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'show'])->name('show');
             Route::match(['put', 'patch'], '/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'update'])->name('update');
             Route::delete('/{homepageShowcaseItem}', [HomepageShowcaseItemController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('category-homepage-images')->name('category-homepage-images.')->group(function () {
+            Route::get('/', [CategoryHomepageImageController::class, 'index'])->name('index');
+            Route::get('/data', [CategoryHomepageImageController::class, 'data'])->name('data');
+            Route::get('/categories/options', [CategoryHomepageImageController::class, 'categoryOptions'])->name('categories.options');
+            Route::post('/', [CategoryHomepageImageController::class, 'store'])->name('store');
+            Route::get('/{categoryHomepageImage}', [CategoryHomepageImageController::class, 'show'])->name('show');
+            Route::match(['put', 'patch'], '/{categoryHomepageImage}', [CategoryHomepageImageController::class, 'update'])->name('update');
+            Route::delete('/{categoryHomepageImage}', [CategoryHomepageImageController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('vendor-products')->name('vendor-products.')->group(function () {

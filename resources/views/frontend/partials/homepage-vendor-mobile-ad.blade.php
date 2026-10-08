@@ -1,7 +1,14 @@
 @php
+    use App\Support\HomepageCategoryCardImage;
+
     $ad = $ad ?? null;
+    $adImage = '';
+    if ($ad) {
+        $entityCover = filled($ad->final_image) ? asset($ad->final_image) : '';
+        $adImage = HomepageCategoryCardImage::forUserAd($ad, $entityCover);
+    }
 @endphp
-@if ($ad)
+@if ($ad && $adImage !== '')
     <article
         class="homepage-vendors-mobile-ad"
         role="link"
@@ -12,7 +19,7 @@
     >
         <div class="homepage-vendors-mobile-ad__media">
             <img
-                src="{{ asset($ad->final_image) }}"
+                src="{{ $adImage }}"
                 alt="{{ $ad->title }}"
                 loading="lazy"
                 decoding="async"

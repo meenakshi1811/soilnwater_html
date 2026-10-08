@@ -1,8 +1,15 @@
 @php
+    use App\Support\HomepageCategoryCardImage;
+
     $ad = $ad ?? null;
     $meta = $meta ?? 'Sponsored';
+    $adImage = '';
+    if ($ad) {
+        $entityCover = filled($ad->final_image) ? asset($ad->final_image) : '';
+        $adImage = HomepageCategoryCardImage::forUserAd($ad, $entityCover);
+    }
 @endphp
-@if ($ad)
+@if ($ad && $adImage !== '')
     <article
         class="homepage-discover-card homepage-discover-card--ad"
         role="link"
@@ -13,7 +20,7 @@
     >
         <div class="homepage-discover-card__media">
             <img
-                src="{{ asset($ad->final_image) }}"
+                src="{{ $adImage }}"
                 alt="{{ $ad->title }}"
                 loading="lazy"
                 decoding="async"

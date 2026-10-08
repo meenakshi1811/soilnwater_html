@@ -73,7 +73,7 @@ final class HomepagePopularServicesCards
 
         return [
             'url' => $card['profileUrl'],
-            'image' => $card['coverImage'],
+            'image' => HomepageCategoryCardImage::forServiceProvider($serviceProvider, $card['coverImage']),
             'title' => $serviceProvider->publicDisplayName(),
             'description' => $description !== '' ? $description : 'Professional services near you',
             'location' => self::shortLocation($card['locationLabel']),

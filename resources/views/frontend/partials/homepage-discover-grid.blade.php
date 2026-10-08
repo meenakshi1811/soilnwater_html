@@ -1,5 +1,6 @@
 @php
     use App\Support\ConsultantListingCard;
+    use App\Support\HomepageCategoryCardImage;
     use App\Support\ServiceProviderListingCard;
     use App\Support\VendorListingCard;
 
@@ -177,7 +178,8 @@
                                             @php
                                                 $offer = $item['offer'];
                                                 $offerCardDescription = trim(preg_replace('/\s+/', ' ', $offer->short_description ?: 'Special marketplace offer available now.'));
-                                                $offerImage = $offer->banner_image ? asset($offer->banner_image) : asset('assets/images/vendor-card-placeholder.svg');
+                                                $offerCover = $offer->banner_image ? asset($offer->banner_image) : asset('assets/images/vendor-card-placeholder.svg');
+                                                $offerImage = HomepageCategoryCardImage::forOffer($offer, $offerCover);
                                             @endphp
                                             <article
                                                 class="homepage-discover-card homepage-discover-card--offer js-offer-modal-trigger"
@@ -254,7 +256,7 @@
                                             @endphp
                                             @include('frontend.partials.homepage-discover-profile-card', [
                                                 'href' => $card['profileUrl'],
-                                                'image' => $card['coverImage'],
+                                                'image' => HomepageCategoryCardImage::forServiceProvider($item['service_provider'], $card['coverImage']),
                                                 'title' => $item['service_provider']->publicDisplayName(),
                                                 'category' => $card['categoryName'],
                                                 'location' => $cityFromLabel($card['locationLabel']),
@@ -312,7 +314,7 @@
                                             @endphp
                                             @include('frontend.partials.homepage-discover-profile-card', [
                                                 'href' => $card['profileUrl'],
-                                                'image' => $card['coverImage'],
+                                                'image' => HomepageCategoryCardImage::forConsultant($item['consultant'], $card['coverImage']),
                                                 'title' => $item['consultant']->publicDisplayName(),
                                                 'category' => $card['categoryName'],
                                                 'location' => $cityFromLabel($card['locationLabel']),
@@ -376,7 +378,7 @@
                                             @endphp
                                             @include('frontend.partials.homepage-vendor-mobile-card', [
                                                 'href' => $card['storeUrl'],
-                                                'image' => $card['coverImage'],
+                                                'image' => HomepageCategoryCardImage::forVendor($item['vendor'], $card['coverImage']),
                                                 'title' => $item['vendor']->publicDisplayName(),
                                                 'category' => $card['categoryName'],
                                                 'location' => $cityFromLabel($card['locationLabel']),
@@ -425,7 +427,7 @@
                                             @endphp
                                             @include('frontend.partials.homepage-discover-profile-card', [
                                                 'href' => $card['storeUrl'],
-                                                'image' => $card['coverImage'],
+                                                'image' => HomepageCategoryCardImage::forVendor($item['vendor'], $card['coverImage']),
                                                 'title' => $item['vendor']->publicDisplayName(),
                                                 'category' => $card['categoryName'],
                                                 'location' => $cityFromLabel($card['locationLabel']),
