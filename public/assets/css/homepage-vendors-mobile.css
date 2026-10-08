@@ -266,9 +266,9 @@
 
 @media (min-width: 576px) and (max-width: 991.98px) {
   .homepage-vendors-mobile__item {
-    flex: 0 0 calc(100vw - 32px - 44px);
-    width: calc(100vw - 32px - 44px);
-    max-width: none;
+    flex: 0 0 min(72vw, 300px);
+    width: min(72vw, 300px);
+    max-width: 300px;
   }
 }
 

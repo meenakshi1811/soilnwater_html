@@ -690,12 +690,12 @@
   }
 }
 
-/* Tablet: one card + peek of next, flush left with 16px inset (match Explore hub) */
+/* Tablet: same compact card width as phone (one card + peek), left-aligned rail */
 @media (min-width: 576px) and (max-width: 991.98px) {
   .homepage-featured-promo-card {
-    flex: 0 0 calc(100vw - 32px - 44px);
-    width: calc(100vw - 32px - 44px);
-    max-width: none;
+    flex: 0 0 min(72vw, 300px);
+    width: min(72vw, 300px);
+    max-width: 300px;
   }
 }
 
