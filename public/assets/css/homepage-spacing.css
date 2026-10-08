@@ -24,6 +24,13 @@
   padding-bottom: 36px;
 }
 
+@media (max-width: 991.98px) {
+  .homepage-root .hero-hub-cards.hero-hub-cards--mobile-chips {
+    padding-top: 4px;
+    padding-bottom: 6px;
+  }
+}
+
 .homepage-root .cat-bar-inner {
   gap: 14px;
   padding: 10px 0 12px;
