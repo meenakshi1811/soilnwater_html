@@ -1,5 +1,5 @@
 /**
- * Mobile: compact promo sections — 2-column grid, all cards (page scroll, no carousels).
+ * Mobile / tablet: compact gradient promo sections — horizontal card rails (one + peek).
  */
 
 @media (max-width: 991.98px) {
@@ -36,6 +36,7 @@
     margin: 0 10px;
     padding: 18px 14px 17px;
     border-radius: 18px;
+    overflow: hidden;
   }
 
   .homepage-popular-near__head,
@@ -120,11 +121,28 @@
   .homepage-study-library__grid,
   .homepage-consultants__grid,
   .homepage-community-hub__grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 10px;
-    row-gap: 12px;
-    overflow: visible;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0;
+    margin: 0;
+    padding: 0 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .homepage-popular-near__grid::-webkit-scrollbar,
+  .homepage-popular-services__grid::-webkit-scrollbar,
+  .homepage-education-knowledge__grid::-webkit-scrollbar,
+  .homepage-study-library__grid::-webkit-scrollbar,
+  .homepage-consultants__grid::-webkit-scrollbar,
+  .homepage-community-hub__grid::-webkit-scrollbar {
+    display: none;
   }
 
   .homepage-popular-near-card,
@@ -133,6 +151,10 @@
   .homepage-study-library-card,
   .homepage-consultants-card,
   .homepage-community-hub-card {
+    flex: 0 0 min(72vw, 300px);
+    width: min(72vw, 300px);
+    max-width: 300px;
+    scroll-snap-align: start;
     min-width: 0;
     border-radius: 14px;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);

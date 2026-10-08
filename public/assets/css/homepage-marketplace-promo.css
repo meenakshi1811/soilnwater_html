@@ -301,16 +301,9 @@
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
-  /* Match compact mobile sizing on tablet (same card scale, not enlarged grid) */
   .homepage-marketplace-promo__shell {
     margin: 0 10px;
     padding: 18px 14px 17px;
-  }
-
-  .homepage-marketplace-promo__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 14px;
   }
 
   .homepage-marketplace-promo__head {
@@ -372,7 +365,7 @@
   }
 }
 
-/* Mobile: compact offers/ads — 2-column grid, all cards (vertical rows) */
+/* Mobile / tablet: horizontal rail — one card + peek of next inside gradient shell */
 @media (max-width: 991.98px) {
   /* Gray band between stacked gradient section boxes (not extra gap inside white cards) */
   .homepage-marketplace-promo {
@@ -383,6 +376,7 @@
     margin: 0 10px;
     padding: 18px 14px 17px;
     border-radius: 16px;
+    overflow: hidden;
   }
 
   .homepage-marketplace-promo__head {
@@ -422,18 +416,30 @@
   }
 
   .homepage-marketplace-promo__grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 14px;
-    overflow: visible;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0;
+    margin: 0;
+    padding: 0 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
-  .homepage-marketplace-promo__grid .homepage-marketplace-promo-card:nth-child(n + 5) {
+  .homepage-marketplace-promo__grid::-webkit-scrollbar {
     display: none;
   }
 
   .homepage-marketplace-promo-card {
+    flex: 0 0 min(72vw, 300px);
+    width: min(72vw, 300px);
+    max-width: 300px;
+    scroll-snap-align: start;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     min-height: 0;
