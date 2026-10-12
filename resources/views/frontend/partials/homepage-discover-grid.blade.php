@@ -21,6 +21,7 @@
         || $showEducationPanel
         || $showCommunity;
     $showPremiumOptions = data_get($sectionToggles, 'premium_options', true);
+    $discoverCarouselCols = max(2, min(6, (int) ($discoverCarouselCols ?? 2)));
 
     $mergeDiscoverCarousel = static function ($entities, $ads, string $entityType, int $interval = 4) {
         $items = collect();
@@ -117,7 +118,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -160,7 +161,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -239,7 +240,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -297,7 +298,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -509,7 +510,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel homepage-discover-community-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             data-pause-on-hover="false"
@@ -538,7 +539,7 @@
                         <div
                             class="card-carousel homepage-discover-carousel homepage-discover-community-carousel auto-ad-slider"
                             data-slide-by="card"
-                            data-carousel-cols="2"
+                            data-carousel-cols="{{ $discoverCarouselCols }}"
                             data-show-arrows="true"
                             data-show-dots="false"
                             aria-label="Community hub categories"

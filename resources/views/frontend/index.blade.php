@@ -240,7 +240,7 @@
       <div
         class="card-carousel homepage-showcase-carousel d-none d-md-block"
         data-slide-by="card"
-        data-carousel-cols="2"
+        data-carousel-cols="4"
         data-show-arrows="true"
         data-show-dots="false"
         data-pause-on-hover="true"
@@ -312,6 +312,7 @@
 @if ($useHomepageDiscoverGrid)
   @include('frontend.partials.homepage-discover-grid', [
       'discoverSectionClass' => 'homepage-discover-section--panels',
+      'discoverCarouselCols' => 4,
       'showOffersInDiscover' => !empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'],
       'showAdsInDiscover' => false,
       'showVendorsInDiscover' => false,

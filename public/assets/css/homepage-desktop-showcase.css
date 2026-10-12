@@ -51,6 +51,50 @@
   .homepage-desktop-panels .homepage-discover-panel {
     min-width: 0;
     height: 100%;
+    align-self: stretch;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .homepage-desktop-panels .homepage-discover-panel__body {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .homepage-desktop-panels .homepage-discover-carousel,
+  .homepage-desktop-panels .homepage-showcase-carousel {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .homepage-desktop-panels .homepage-discover-carousel .card-carousel-track,
+  .homepage-desktop-panels .homepage-showcase-carousel .card-carousel-track {
+    align-items: stretch;
+  }
+
+  .homepage-desktop-panels .homepage-discover-carousel .card-carousel-item,
+  .homepage-desktop-panels .homepage-showcase-carousel .card-carousel-item {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .homepage-desktop-panels .homepage-discover-card,
+  .homepage-desktop-panels .homepage-showcase-card {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  .homepage-desktop-panels .homepage-discover-card__body {
+    min-height: 0;
   }
 
   .homepage-desktop-panels > .homepage-discover-panel {
