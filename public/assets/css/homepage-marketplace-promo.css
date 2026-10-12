@@ -318,7 +318,7 @@
     padding: 24px 22px 22px;
   }
 
-  .homepage-marketplace-promo__grid {
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
   }
@@ -415,7 +415,7 @@
     padding-top: 0;
   }
 
-  .homepage-marketplace-promo__grid {
+  .homepage-marketplace-promo:not(.homepage-marketplace-promo--ads) .homepage-marketplace-promo__grid {
     display: flex;
     flex-wrap: nowrap;
     align-items: stretch;
@@ -431,11 +431,11 @@
     scrollbar-width: none;
   }
 
-  .homepage-marketplace-promo__grid::-webkit-scrollbar {
+  .homepage-marketplace-promo:not(.homepage-marketplace-promo--ads) .homepage-marketplace-promo__grid::-webkit-scrollbar {
     display: none;
   }
 
-  .homepage-marketplace-promo-card {
+  .homepage-marketplace-promo:not(.homepage-marketplace-promo--ads) .homepage-marketplace-promo-card {
     flex: 0 0 min(72vw, 300px);
     width: min(72vw, 300px);
     max-width: 300px;
@@ -527,9 +527,153 @@
   }
 }
 
+@media (max-width: 767.98px) {
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0;
+    margin: 0;
+    padding: 0 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card {
+    flex: 0 0 min(72vw, 300px);
+    width: min(72vw, 300px);
+    max-width: 300px;
+    scroll-snap-align: start;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    min-height: 0;
+  }
+}
+
+/* Latest Ads: tablet + desktop — 3 per row, up to 6 cards (2 rows) */
+@media (min-width: 768px) {
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card {
+    flex: unset;
+    width: auto;
+    max-width: none;
+    scroll-snap-align: unset;
+    border-radius: 20px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+    min-height: 100%;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 7) {
+    display: none;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__body {
+    padding: 12px 12px 11px;
+    gap: 4px;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__tags {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__title {
+    font-size: 0.9375rem;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__desc {
+    font-size: 0.6875rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__location {
+    font-size: 0.6875rem;
+    display: flex;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+    overflow: visible;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__valid {
+    font-size: 0.625rem;
+    padding: 4px 8px;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__discount,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__category {
+    font-size: 0.625rem;
+    padding: 5px 9px;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 991.98px) {
-  .homepage-marketplace-promo {
+  .homepage-marketplace-promo--ads {
     padding: 0 0 36px;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__title {
+    font-size: 1.35rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__subtitle {
+    font-size: 0.75rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__see-all {
+    font-size: 0.75rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__title {
+    font-size: 0.8125rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__desc {
+    font-size: 0.6875rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__location {
+    font-size: 0.625rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__valid {
+    font-size: 0.5625rem;
+  }
+
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__discount,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__category {
+    font-size: 0.5625rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid {
+    gap: 16px;
   }
 }
 

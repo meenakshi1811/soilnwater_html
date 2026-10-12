@@ -7,7 +7,7 @@
 }
 
 @media (min-width: 992px) {
-  .homepage-marketplace-promo,
+  .homepage-marketplace-promo:not(.homepage-marketplace-promo--ads),
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
@@ -55,6 +55,16 @@
 
   .homepage-desktop-panels > .hp-desktop {
     display: flex;
+  }
+
+  /* Latest Ads: keep gradient promo (3×2 grid in marketplace-promo.css), not carousel panel */
+  .homepage-desktop-panels > .hp-desktop--ads {
+    display: none !important;
+  }
+
+  .homepage-marketplace-promo--ads {
+    display: block !important;
+    padding: 0 0 24px;
   }
 
   /* Community — last homepage block: full row on large screens */
