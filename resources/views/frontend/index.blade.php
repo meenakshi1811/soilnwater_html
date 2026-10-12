@@ -1697,6 +1697,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-consultants.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-community-hub.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-promo-mobile-screen.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-promo-tablet-desktop-grid.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-discover-grid.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-vendors-mobile.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">

@@ -1,0 +1,149 @@
+/**
+ * Homepage gradient promo sections — tablet & desktop: 3×2 card grid (6 visible).
+ * Mobile horizontal rails stay in homepage-promo-mobile-screen.css (≤767px).
+ */
+
+@media (min-width: 768px) {
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid,
+  .homepage-popular-near__grid,
+  .homepage-popular-services__grid,
+  .homepage-education-knowledge__grid,
+  .homepage-study-library__grid,
+  .homepage-consultants__grid,
+  .homepage-community-hub__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card,
+  .homepage-popular-near__grid > .homepage-popular-near-card,
+  .homepage-popular-services__grid > .homepage-popular-services-card,
+  .homepage-education-knowledge__grid > .homepage-education-knowledge-card,
+  .homepage-study-library__grid > .homepage-study-library-card,
+  .homepage-consultants__grid > .homepage-consultants-card,
+  .homepage-community-hub__grid > .homepage-community-hub-card {
+    flex: unset;
+    width: auto;
+    max-width: none;
+    scroll-snap-align: unset;
+    min-width: 0;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 7),
+  .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 7),
+  .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 7),
+  .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 7),
+  .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 7),
+  .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 7) {
+    display: none;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card {
+    border-radius: 20px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+    min-height: 100%;
+  }
+
+  .homepage-popular-near__grid > .homepage-popular-near-card,
+  .homepage-popular-services__grid > .homepage-popular-services-card,
+  .homepage-education-knowledge__grid > .homepage-education-knowledge-card,
+  .homepage-study-library__grid > .homepage-study-library-card,
+  .homepage-consultants__grid > .homepage-consultants-card,
+  .homepage-community-hub__grid > .homepage-community-hub-card {
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+    min-height: 100%;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card__body,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__body,
+  .homepage-popular-near-card__body,
+  .homepage-popular-services-card__body,
+  .homepage-education-knowledge-card__body,
+  .homepage-study-library-card__body,
+  .homepage-consultants-card__body,
+  .homepage-community-hub-card__body {
+    padding: 11px 12px 12px;
+    gap: 4px;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card__title,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__title,
+  .homepage-popular-near-card__title,
+  .homepage-popular-services-card__title,
+  .homepage-education-knowledge-card__title,
+  .homepage-study-library-card__title,
+  .homepage-consultants-card__title,
+  .homepage-community-hub-card__title {
+    font-size: 0.9375rem;
+    line-height: 1.25;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+  }
+
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo-card__desc,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo-card__desc,
+  .homepage-popular-near-card__desc,
+  .homepage-popular-services-card__desc,
+  .homepage-education-knowledge-card__desc,
+  .homepage-study-library-card__subtitle,
+  .homepage-consultants-card__desc,
+  .homepage-community-hub-card__desc {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+  }
+
+  .homepage-popular-near-card__location,
+  .homepage-popular-services-card__location,
+  .homepage-education-knowledge-card__location,
+  .homepage-consultants-card__location,
+  .homepage-community-hub-card__location {
+    font-size: 0.6875rem;
+    display: flex;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .homepage-marketplace-promo--offers,
+  .homepage-marketplace-promo--ads,
+  .homepage-popular-near,
+  .homepage-popular-services,
+  .homepage-education-knowledge,
+  .homepage-study-library,
+  .homepage-consultants,
+  .homepage-community-hub {
+    padding: 0 0 36px;
+  }
+}
+
+@media (min-width: 992px) {
+  .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
+  .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid,
+  .homepage-popular-near__grid,
+  .homepage-popular-services__grid,
+  .homepage-education-knowledge__grid,
+  .homepage-study-library__grid,
+  .homepage-consultants__grid,
+  .homepage-community-hub__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}

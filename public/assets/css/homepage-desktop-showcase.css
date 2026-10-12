@@ -7,14 +7,16 @@
 }
 
 @media (min-width: 992px) {
-  .homepage-marketplace-promo:not(.homepage-marketplace-promo--ads),
+  /* Gradient promo sections (3×2 grid) replace duplicate hp-desktop blocks below Featured Businesses */
+  .homepage-marketplace-promo,
   .homepage-popular-near,
   .homepage-popular-services,
   .homepage-education-knowledge,
   .homepage-study-library,
   .homepage-consultants,
   .homepage-community-hub {
-    display: none !important;
+    display: block !important;
+    grid-column: 1 / -1;
   }
 
   .homepage-showcase-section .homepage-showcase-panel__head.d-none,
@@ -53,22 +55,26 @@
     display: none;
   }
 
-  .homepage-desktop-panels > .hp-desktop {
+  .homepage-desktop-panels > .hp-desktop--featured-businesses {
     display: flex;
   }
 
-  /* Latest Ads: keep gradient promo (3×2 grid in marketplace-promo.css), not carousel panel */
-  .homepage-desktop-panels > .hp-desktop--ads {
+  .homepage-desktop-panels > .hp-desktop:not(.hp-desktop--featured-businesses) {
     display: none !important;
   }
 
-  .homepage-marketplace-promo--ads {
-    display: block !important;
+  .homepage-marketplace-promo,
+  .homepage-popular-near,
+  .homepage-popular-services,
+  .homepage-education-knowledge,
+  .homepage-study-library,
+  .homepage-consultants,
+  .homepage-community-hub {
     padding: 0 0 24px;
   }
 
-  /* Community — last homepage block: full row on large screens */
-  .homepage-desktop-panels > .hp-desktop--community {
+  /* Community — featured businesses panel full row when paired in grid */
+  .homepage-desktop-panels > .hp-desktop--featured-businesses {
     grid-column: 1 / -1;
   }
 
