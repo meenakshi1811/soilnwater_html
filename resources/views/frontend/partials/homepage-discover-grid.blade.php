@@ -95,7 +95,7 @@
 @endphp
 
 @if ($hasDiscoverPanels)
-<section class="homepage-discover-section" aria-label="Discover SoilnWater">
+<section class="homepage-discover-section{{ !empty($discoverSectionClass) ? ' '.$discoverSectionClass : '' }}" aria-label="Discover SoilnWater">
     <div class="homepage-discover-section__inner">
         <div class="homepage-discover-grid">
             @if ($showRecentAds)
@@ -149,8 +149,8 @@
                                 <i class="fa-solid fa-tags"></i>
                             </span>
                             <div>
-                                <h2 class="homepage-discover-panel__title">Recent Offers</h2>
-                                <p class="homepage-discover-panel__subtitle">Exclusive offers and promotions from local businesses.</p>
+                                <h2 class="homepage-discover-panel__title">Latest Offers &amp; Discounts</h2>
+                                <p class="homepage-discover-panel__subtitle">Exclusive offers and promotions from businesses.</p>
                             </div>
                         </div>
                         <a class="homepage-discover-panel__view-all" href="{{ route('frontend.offers.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>

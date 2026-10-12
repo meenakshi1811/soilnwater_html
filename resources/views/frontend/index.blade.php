@@ -309,6 +309,33 @@
   </div>
 </section>
 
+@if ($useHomepageDiscoverGrid)
+  @include('frontend.partials.homepage-discover-grid', [
+      'discoverSectionClass' => 'homepage-discover-section--panels',
+      'showOffersInDiscover' => !empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'],
+      'showAdsInDiscover' => false,
+      'showVendorsInDiscover' => false,
+      'showServicesInDiscover' => $showServiceProvidersSection,
+      'showEducationInDiscover' => $showPremiumOptions,
+      'showConsultantsInDiscover' => $showConsultantsSection,
+      'showCommunityInDiscover' => $showCommunityHubSection,
+      'sectionToggles' => $sectionToggles,
+      'hasLocation' => $hasLocation,
+      'recentApprovedAds' => $recentApprovedAds ?? collect(),
+      'sponsoredListingsAds' => $sponsoredListingsAds ?? collect(),
+      'offers' => $offers ?? collect(),
+      'offerDiscountTopAds' => $offerDiscountTopAds ?? collect(),
+      'offerDiscountSideAds' => $offerDiscountSideAds ?? collect(),
+      'topServiceProviders' => $topServiceProviders ?? collect(),
+      'topConsultants' => $topConsultants ?? collect(),
+      'topVendorCarouselItems' => $topVendorCarouselItems,
+      'topVendorsHeaderAdsList' => $topVendorsHeaderAdsList,
+      'homepageCommunityPosts' => $homepageCommunityPosts,
+      'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+  ])
+@endif
+
+<div class="homepage-desktop-panels__legacy">
 @include('frontend.partials.homepage-desktop-showcase', [
     'section' => \App\Support\HomepageDesktopShowcase::section('featured-businesses'),
     'cards' => \App\Support\HomepageDesktopShowcase::featuredBusinessCards($homepageFeaturedBusinesses ?? []),
@@ -396,6 +423,7 @@
         'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('community', $homepageCommunityHubCards ?? []),
     ])
 @endif
+</div><!-- /.homepage-desktop-panels__legacy -->
 </div><!-- /.homepage-desktop-panels -->
 
 <!-- ══════════════════════════════════════════════════
@@ -405,31 +433,6 @@
 
   <!-- LEFT / MAIN COLUMN -->
   <div class="main-col">
-
-    @if ($useHomepageDiscoverGrid)
-      @include('frontend.partials.homepage-discover-grid', [
-          'showOffersInDiscover' => false,
-          'showAdsInDiscover' => false,
-          'showVendorsInDiscover' => false,
-          'showServicesInDiscover' => false,
-          'showEducationInDiscover' => false,
-          'showConsultantsInDiscover' => false,
-          'showCommunityInDiscover' => false,
-          'sectionToggles' => $sectionToggles,
-          'hasLocation' => $hasLocation,
-          'recentApprovedAds' => $recentApprovedAds ?? collect(),
-          'sponsoredListingsAds' => $sponsoredListingsAds ?? collect(),
-          'offers' => $offers ?? collect(),
-          'offerDiscountTopAds' => $offerDiscountTopAds ?? collect(),
-          'offerDiscountSideAds' => $offerDiscountSideAds ?? collect(),
-          'topServiceProviders' => $topServiceProviders ?? collect(),
-          'topConsultants' => $topConsultants ?? collect(),
-          'topVendorCarouselItems' => $topVendorCarouselItems,
-          'topVendorsHeaderAdsList' => $topVendorsHeaderAdsList,
-          'homepageCommunityPosts' => $homepageCommunityPosts,
-          'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
-      ])
-    @endif
 
     <!-- Top fold layout: categories + listings with right sidebar ads -->
       @if(!empty($sectionToggles['sponsored_listings']) && $sectionToggles['sponsored_listings'])

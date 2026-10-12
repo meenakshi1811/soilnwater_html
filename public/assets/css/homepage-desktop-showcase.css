@@ -6,76 +6,70 @@
   display: none;
 }
 
-@media (min-width: 992px) {
-  /* Gradient promo sections (3×2 grid) replace duplicate hp-desktop blocks below Featured Businesses */
-  .homepage-marketplace-promo,
-  .homepage-popular-near,
-  .homepage-popular-services,
-  .homepage-education-knowledge,
-  .homepage-study-library,
-  .homepage-consultants,
-  .homepage-community-hub {
-    display: block !important;
-    grid-column: 1 / -1;
-  }
-
-  .homepage-showcase-section .homepage-showcase-panel__head.d-none,
-  .homepage-showcase-section .homepage-showcase-carousel,
-  .homepage-featured-promo-rail {
-    display: none !important;
-  }
-
+@media (min-width: 768px) {
   .homepage-desktop-panels {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
     align-items: stretch;
-    padding: 12px 36px 32px;
+    padding: 12px 20px 28px;
     background: #eef2f7;
   }
 
-  .homepage-showcase-section {
-    display: none;
-  }
-
-  .homepage-desktop-panels > .hp-desktop {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: 100%;
-    margin: 0;
-    padding: 18px 16px 20px;
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  }
-
-  .hp-desktop {
-    display: none;
-  }
-
-  .homepage-desktop-panels > .hp-desktop--featured-businesses {
-    display: flex;
-  }
-
-  .homepage-desktop-panels > .hp-desktop:not(.hp-desktop--featured-businesses) {
+  .homepage-desktop-panels__legacy {
     display: none !important;
   }
 
-  .homepage-marketplace-promo,
-  .homepage-popular-near,
-  .homepage-popular-services,
-  .homepage-education-knowledge,
-  .homepage-study-library,
-  .homepage-consultants,
-  .homepage-community-hub {
-    padding: 0 0 24px;
+  .homepage-desktop-panels > .homepage-discover-section--panels {
+    display: contents;
   }
 
-  /* Community — featured businesses panel full row when paired in grid */
-  .homepage-desktop-panels > .hp-desktop--featured-businesses {
+  .homepage-desktop-panels .homepage-discover-section--panels {
+    background: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .homepage-desktop-panels .homepage-discover-section--panels .homepage-discover-section__inner,
+  .homepage-desktop-panels .homepage-discover-section--panels .homepage-discover-grid {
+    display: contents;
+  }
+
+  .homepage-desktop-panels > .homepage-showcase-section {
+    display: block;
+    background: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .homepage-desktop-panels > .homepage-showcase-section,
+  .homepage-desktop-panels > .homepage-showcase-section > .homepage-showcase-section__inner {
+    display: contents;
+  }
+
+  .homepage-desktop-panels .homepage-showcase-panel--businesses,
+  .homepage-desktop-panels .homepage-discover-panel {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-offers)) > .homepage-showcase-panel--businesses,
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-offers)) > .homepage-discover-panel--order-ads,
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-ads)) > .homepage-discover-panel--order-offers,
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-consultants)) > .homepage-discover-panel--order-services,
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-services)) > .homepage-discover-panel--order-consultants,
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-community)) > .homepage-discover-panel--order-education,
+  .homepage-desktop-panels > .homepage-discover-panel--order-vendors {
     grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 992px) {
+  .homepage-desktop-panels {
+    padding-left: 36px;
+    padding-right: 36px;
+    gap: 20px 24px;
+    padding-bottom: 32px;
   }
 
   .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
@@ -564,7 +558,7 @@
   .homepage-desktop-panels {
     padding-left: 48px;
     padding-right: 48px;
-    gap: 24px;
+    gap: 24px 28px;
   }
 
   .hp-desktop__title {
