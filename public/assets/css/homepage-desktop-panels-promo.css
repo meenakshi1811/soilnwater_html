@@ -1,0 +1,121 @@
+/**
+ * Homepage desktop-panels — gradient promo shells in 2-column grid (tablet+).
+ */
+
+@media (min-width: 768px) {
+  .homepage-desktop-panels > .homepage-marketplace-promo,
+  .homepage-desktop-panels > .homepage-popular-near,
+  .homepage-desktop-panels > .homepage-popular-services,
+  .homepage-desktop-panels > .homepage-education-knowledge,
+  .homepage-desktop-panels > .homepage-study-library,
+  .homepage-desktop-panels > .homepage-consultants,
+  .homepage-desktop-panels > .homepage-community-hub {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    min-width: 0;
+    height: 100%;
+    align-self: stretch;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo__shell,
+  .homepage-desktop-panels .homepage-popular-near__shell,
+  .homepage-desktop-panels .homepage-popular-services__shell,
+  .homepage-desktop-panels .homepage-education-knowledge__shell,
+  .homepage-desktop-panels .homepage-study-library__shell,
+  .homepage-desktop-panels .homepage-consultants__shell,
+  .homepage-desktop-panels .homepage-community-hub__shell {
+    margin: 0;
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo__head,
+  .homepage-desktop-panels .homepage-popular-services__head,
+  .homepage-desktop-panels .homepage-popular-near__head,
+  .homepage-desktop-panels .homepage-education-knowledge__head,
+  .homepage-desktop-panels .homepage-study-library__head,
+  .homepage-desktop-panels .homepage-consultants__head,
+  .homepage-desktop-panels .homepage-community-hub__head {
+    flex-shrink: 0;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels .homepage-popular-near__grid,
+  .homepage-desktop-panels .homepage-popular-services__grid,
+  .homepage-desktop-panels .homepage-education-knowledge__grid,
+  .homepage-desktop-panels .homepage-study-library__grid,
+  .homepage-desktop-panels .homepage-consultants__grid,
+  .homepage-desktop-panels .homepage-community-hub__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    margin: 0;
+    padding: 0 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-popular-near__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-popular-services__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-education-knowledge__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-study-library__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-consultants__grid::-webkit-scrollbar,
+  .homepage-desktop-panels .homepage-community-hub__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card,
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card,
+  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card,
+  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card,
+  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card,
+  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card,
+  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card,
+  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card {
+    flex: 0 0 calc(50% - 5px);
+    width: calc(50% - 5px);
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 7) {
+    display: flex;
+  }
+}
+
+@media (min-width: 992px) {
+  .homepage-desktop-panels .homepage-marketplace-promo__shell,
+  .homepage-desktop-panels .homepage-popular-services__shell,
+  .homepage-desktop-panels .homepage-popular-near__shell,
+  .homepage-desktop-panels .homepage-education-knowledge__shell,
+  .homepage-desktop-panels .homepage-study-library__shell,
+  .homepage-desktop-panels .homepage-consultants__shell,
+  .homepage-desktop-panels .homepage-community-hub__shell {
+    padding: 20px 16px 18px;
+  }
+}

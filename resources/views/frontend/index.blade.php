@@ -309,47 +309,10 @@
   </div>
 </section>
 
-@if ($useHomepageDiscoverGrid)
-  @include('frontend.partials.homepage-discover-grid', [
-      'discoverSectionClass' => 'homepage-discover-section--panels',
-      'discoverCarouselCols' => 4,
-      'showOffersInDiscover' => !empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'],
-      'showAdsInDiscover' => false,
-      'showVendorsInDiscover' => false,
-      'showServicesInDiscover' => $showServiceProvidersSection,
-      'showEducationInDiscover' => $showPremiumOptions,
-      'showConsultantsInDiscover' => $showConsultantsSection,
-      'showCommunityInDiscover' => $showCommunityHubSection,
-      'sectionToggles' => $sectionToggles,
-      'hasLocation' => $hasLocation,
-      'recentApprovedAds' => $recentApprovedAds ?? collect(),
-      'sponsoredListingsAds' => $sponsoredListingsAds ?? collect(),
-      'offers' => $offers ?? collect(),
-      'offerDiscountTopAds' => $offerDiscountTopAds ?? collect(),
-      'offerDiscountSideAds' => $offerDiscountSideAds ?? collect(),
-      'topServiceProviders' => $topServiceProviders ?? collect(),
-      'topConsultants' => $topConsultants ?? collect(),
-      'topVendorCarouselItems' => $topVendorCarouselItems,
-      'topVendorsHeaderAdsList' => $topVendorsHeaderAdsList,
-      'homepageCommunityPosts' => $homepageCommunityPosts,
-      'communityHubSections' => $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
-  ])
-@endif
-
-<div class="homepage-desktop-panels__legacy">
-@include('frontend.partials.homepage-desktop-showcase', [
-    'section' => \App\Support\HomepageDesktopShowcase::section('featured-businesses'),
-    'cards' => \App\Support\HomepageDesktopShowcase::featuredBusinessCards($homepageFeaturedBusinesses ?? []),
-])
-
 @if(!empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
     @include('frontend.partials.homepage-marketplace-promo', [
         'variant' => 'offers',
         'cards' => $homepageOfferPromoCards ?? [],
-    ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('offers'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('offers', $homepageOfferPromoCards ?? []),
     ])
 @endif
 
@@ -358,19 +321,11 @@
         'variant' => 'ads',
         'cards' => $homepageAdPromoCards ?? [],
     ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('ads'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('ads', $homepageAdPromoCards ?? []),
-    ])
 @endif
 
 @if(!empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'])
     @include('frontend.partials.homepage-popular-near-you', [
         'cards' => $homepagePopularNearYouCards ?? [],
-    ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('popular-near'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('popular-near', $homepagePopularNearYouCards ?? []),
     ])
 @endif
 
@@ -378,19 +333,11 @@
     @include('frontend.partials.homepage-popular-services', [
         'cards' => $homepagePopularServicesCards ?? [],
     ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('services'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('services', $homepagePopularServicesCards ?? []),
-    ])
 @endif
 
 @if($showPremiumOptions)
     @include('frontend.partials.homepage-education-knowledge', [
         'cards' => $homepageEducationKnowledgeCards ?? [],
-    ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('education'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('education', $homepageEducationKnowledgeCards ?? []),
     ])
 @endif
 
@@ -399,19 +346,11 @@
         'cards' => $homepageStudyMaterialLibraryCards ?? [],
         'navLinks' => $homepageStudyMaterialNavLinks ?? [],
     ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('study-material'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('study-material', $homepageStudyMaterialLibraryCards ?? []),
-    ])
 @endif
 
 @if($showConsultantsSection)
     @include('frontend.partials.homepage-consultants', [
         'cards' => $homepageConsultantsCards ?? [],
-    ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('consultants'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('consultants', $homepageConsultantsCards ?? []),
     ])
 @endif
 
@@ -419,12 +358,7 @@
     @include('frontend.partials.homepage-community-hub', [
         'cards' => $homepageCommunityHubCards ?? [],
     ])
-    @include('frontend.partials.homepage-desktop-showcase', [
-        'section' => \App\Support\HomepageDesktopShowcase::section('community'),
-        'cards' => \App\Support\HomepageDesktopShowcase::prepareCards('community', $homepageCommunityHubCards ?? []),
-    ])
 @endif
-</div><!-- /.homepage-desktop-panels__legacy -->
 </div><!-- /.homepage-desktop-panels -->
 
 <!-- ══════════════════════════════════════════════════
@@ -1693,6 +1627,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-showcase.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-desktop-showcase.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-desktop-panels-promo.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-marketplace-promo.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-popular-near-you.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-popular-services.css') }}?v={{ now()->timestamp }}">

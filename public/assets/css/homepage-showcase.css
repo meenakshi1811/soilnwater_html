@@ -298,10 +298,6 @@
 }
 
 @media (max-width: 767.98px) {
-  .homepage-desktop-panels .homepage-discover-section--panels {
-    display: none !important;
-  }
-
   .homepage-desktop-panels {
     width: 100%;
     max-width: none;
