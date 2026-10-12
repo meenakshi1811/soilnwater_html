@@ -43,56 +43,76 @@
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   }
 
-  .homepage-desktop-panels .homepage-showcase-carousel {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid {
     flex: 1 1 auto;
-    min-height: 258px;
+    min-height: 0;
+    padding: 0;
   }
 
-  .homepage-desktop-panels .homepage-showcase-carousel .card-carousel-track {
-    align-items: stretch;
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .ad-slider-arrows {
+    display: none !important;
+  }
+
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-track {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+    align-items: stretch;
+    overflow: visible !important;
+    flex-wrap: unset !important;
+    scroll-snap-type: none !important;
+    padding: 0;
   }
 
-  .homepage-desktop-panels .homepage-showcase-carousel .card-carousel-item {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-item {
+    flex: unset !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
     display: flex;
     align-items: stretch;
   }
 
-  .homepage-desktop-panels .homepage-showcase-card {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-item:nth-child(n + 5) {
+    display: none;
+  }
+
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card {
     width: 100%;
     height: 100%;
-    min-height: 252px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.85);
     border-radius: 14px;
     background: #fff;
     overflow: hidden;
     box-shadow:
-      0 2px 4px rgba(15, 23, 42, 0.05),
-      0 8px 22px rgba(15, 23, 42, 0.08);
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
+      0 2px 6px rgba(15, 23, 42, 0.06),
+      0 10px 24px rgba(22, 101, 52, 0.1);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   }
 
-  .homepage-desktop-panels .homepage-discover-card:hover,
-  .homepage-desktop-panels .homepage-showcase-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(34, 197, 94, 0.35);
+    box-shadow:
+      0 8px 20px rgba(15, 23, 42, 0.1),
+      0 14px 32px rgba(22, 101, 52, 0.14);
   }
 
-  .homepage-desktop-panels .homepage-discover-card__media,
-  .homepage-desktop-panels .homepage-showcase-card__media {
-    flex: 0 0 96px;
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__media {
+    flex: 0 0 auto;
     width: 100%;
-    height: 96px;
-    min-height: 96px;
-    max-height: 96px;
-    background: linear-gradient(145deg, #e2e8f0 0%, #f8fafc 100%);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(145deg, #dcfce7 0%, #e2e8f0 55%, #f8fafc 100%);
     overflow: hidden;
   }
 
-  .homepage-desktop-panels .homepage-discover-card__media img,
-  .homepage-desktop-panels .homepage-showcase-card__media img {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -101,59 +121,32 @@
     transition: transform 0.35s ease;
   }
 
-  .homepage-desktop-panels .homepage-discover-card:hover .homepage-discover-card__media img,
-  .homepage-desktop-panels .homepage-showcase-card:hover .homepage-showcase-card__media img {
-    transform: scale(1.05);
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card:hover .homepage-showcase-card__media img {
+    transform: scale(1.04);
   }
 
-  .homepage-desktop-panels .homepage-discover-card--ad .homepage-discover-card__media {
-    background: linear-gradient(165deg, #ecfdf5 0%, #d1fae5 40%, #f0fdf4 100%);
-  }
-
-  .homepage-desktop-panels .homepage-discover-card--ad .homepage-discover-card__media img {
-    object-fit: cover;
-    padding: 0;
-  }
-
-  .homepage-desktop-panels .homepage-discover-card__ad-badge {
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.82);
-    backdrop-filter: blur(4px);
-    font-size: 0.5625rem;
-    letter-spacing: 0.06em;
-  }
-
-  .homepage-desktop-panels .homepage-discover-card__body,
-  .homepage-desktop-panels .homepage-showcase-card__body {
-    min-height: 148px;
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__body {
+    min-height: 102px;
     padding: 10px 11px 11px;
-    gap: 3px;
+    gap: 2px;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
   }
 
-  .homepage-desktop-panels .homepage-showcase-card__rating {
-    margin-top: auto;
-  }
-
-  .homepage-desktop-panels .homepage-discover-card__title,
-  .homepage-desktop-panels .homepage-showcase-card__name {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__name {
     font-size: 0.8125rem;
     font-weight: 800;
-    line-height: 1.3;
+    line-height: 1.28;
     color: #0f172a;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
     margin: 0;
-    word-break: break-word;
   }
 
-  .homepage-desktop-panels .homepage-discover-card__meta,
-  .homepage-desktop-panels .homepage-showcase-card__meta {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__meta {
     font-size: 0.6875rem;
     color: #64748b;
     margin: 0;
@@ -162,8 +155,8 @@
     text-overflow: ellipsis;
   }
 
-  .homepage-desktop-panels .homepage-showcase-card__loc,
-  .homepage-desktop-panels .homepage-showcase-card__rating {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc,
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
     font-size: 0.6875rem;
     margin: 0;
     white-space: nowrap;
@@ -171,37 +164,18 @@
     text-overflow: ellipsis;
   }
 
-  .homepage-desktop-panels .homepage-showcase-card__loc i {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc i {
     color: #dc2626;
   }
 
-  .homepage-desktop-panels .homepage-showcase-card__rating i {
-    color: #eab308;
-  }
-
-  .homepage-desktop-panels .homepage-discover-card--ad .homepage-discover-card__loc {
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
     margin-top: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    width: fit-content;
-    max-width: 100%;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    color: #1d4ed8;
-    font-size: 0.625rem;
-    font-weight: 700;
-    white-space: nowrap;
+    font-weight: 600;
+    color: #334155;
   }
 
-  .homepage-desktop-panels .homepage-discover-card--ad .homepage-discover-card__loc i {
-    color: #2563eb;
-    margin: 0;
-  }
-
-  .homepage-desktop-panels .homepage-discover-card--ad .homepage-discover-card__rating--ad-spacer {
-    display: none;
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating i {
+    color: #eab308;
   }
 
   .homepage-desktop-panels:not(:has(.homepage-marketplace-promo--offers)) > .homepage-showcase-panel--businesses {

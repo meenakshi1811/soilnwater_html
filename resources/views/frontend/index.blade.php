@@ -238,13 +238,13 @@
       </header>
 
       <div
-        class="card-carousel homepage-showcase-carousel d-none d-md-block"
+        class="card-carousel homepage-showcase-carousel homepage-showcase-carousel--featured-grid d-none d-md-block"
         data-slide-by="card"
-        data-carousel-cols="4"
-        data-show-arrows="true"
+        data-carousel-cols="2"
+        data-show-arrows="false"
         data-show-dots="false"
         data-pause-on-hover="true"
-        aria-label="Featured businesses carousel"
+        aria-label="Featured businesses"
       >
         <div class="card-carousel-track">
           @foreach($homepageFeaturedBusinesses as $business)
