@@ -181,14 +181,6 @@
   .homepage-desktop-panels:not(:has(.homepage-marketplace-promo--offers)) > .homepage-showcase-panel--businesses {
     grid-column: 1 / -1;
   }
-
-  .homepage-desktop-panels:not(:has(.homepage-consultants)) > .homepage-popular-services {
-    grid-column: 1 / -1;
-  }
-
-  .homepage-desktop-panels:not(:has(.homepage-community-hub)) > .homepage-education-knowledge {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (min-width: 992px) {
