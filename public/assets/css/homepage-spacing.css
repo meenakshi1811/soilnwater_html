@@ -293,3 +293,62 @@
     height: 40px;
   }
 }
+
+/* Tablet + desktop: homepage sections use full viewport width */
+@media (min-width: 768px) {
+  .homepage-root .hero--discover__container {
+    max-width: none;
+    width: 100%;
+    padding-left: clamp(16px, 3vw, 36px);
+    padding-right: clamp(16px, 3vw, 36px);
+    box-sizing: border-box;
+  }
+
+  .homepage-root .hero-hub-cards__inner {
+    max-width: none;
+    width: 100%;
+  }
+
+  .homepage-root .main-wrap,
+  .homepage-root .main-col {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .homepage-root .main-wrap {
+    padding-left: clamp(16px, 3vw, 36px);
+    padding-right: clamp(16px, 3vw, 36px);
+  }
+
+  .homepage-root .top-fold-upper > [class*="col-lg-"],
+  .homepage-root .row.align-items-start > [class*="col-lg-"],
+  .homepage-root .row.align-items-stretch > [class*="col-lg-"],
+  .homepage-root .section-with-side-ad > [class*="col-lg-"],
+  .homepage-root .ecommerce-with-side-ad > [class*="col-lg-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .homepage-root .row > .col-xl-8,
+  .homepage-root .row > .col-xl-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .homepage-root .content-with-ad-rail,
+  .homepage-root .content-main-stack,
+  .homepage-root .top-fold-layout,
+  .homepage-root .top-fold-main {
+    width: 100%;
+    max-width: none;
+  }
+
+  .homepage-root .sec {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}

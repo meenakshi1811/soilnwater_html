@@ -23,7 +23,8 @@
   }
 
   .homepage-desktop-panels > :last-child {
-    grid-column: 1 / -1;
+    grid-column: 1;
+    width: 100%;
   }
 
   .homepage-desktop-panels > .homepage-marketplace-promo,
