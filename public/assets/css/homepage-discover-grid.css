@@ -644,6 +644,52 @@
   grid-column: 1 / -1;
 }
 
+@media (min-width: 768px) {
+  .homepage-discover-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .homepage-discover-panel--order-vendors,
+  .homepage-discover-panel--order-ads,
+  .homepage-discover-panel--order-offers,
+  .homepage-discover-panel--order-services,
+  .homepage-discover-panel--order-consultants,
+  .homepage-discover-panel--order-education,
+  .homepage-discover-panel--order-community,
+  .homepage-discover-grid:not(:has(.homepage-discover-panel--order-offers)) .homepage-discover-panel--order-ads,
+  .homepage-discover-grid:not(:has(.homepage-discover-panel--order-ads)) .homepage-discover-panel--order-offers,
+  .homepage-discover-grid:not(:has(.homepage-discover-panel--order-consultants)) .homepage-discover-panel--order-services,
+  .homepage-discover-grid:not(:has(.homepage-discover-panel--order-services)) .homepage-discover-panel--order-consultants,
+  .homepage-discover-grid:not(:has(.homepage-discover-panel--order-community)) .homepage-discover-panel--order-education {
+    grid-column: auto;
+  }
+
+  /* Tablet: same panel + carousel treatment as desktop, full-width stack */
+  .homepage-root .main-col > .homepage-discover-section {
+    width: auto;
+    max-width: none;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+  }
+
+  .homepage-discover-section__inner {
+    max-width: none;
+    margin: 0;
+    gap: 16px;
+  }
+
+  .homepage-discover-carousel {
+    --carousel-visible: 3;
+  }
+
+  .homepage-discover-carousel--wide[data-carousel-cols="4"] {
+    --carousel-visible: 3;
+  }
+}
+
 @media (min-width: 992px) {
   /* Bleed into main-wrap padding — avoids 100vw scrollbar overflow */
   .homepage-root .main-col > .homepage-discover-section {
@@ -679,7 +725,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 767.98px) {
   .homepage-root .main-col > .homepage-discover-section {
     margin-left: -16px;
     margin-right: -16px;

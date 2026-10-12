@@ -224,7 +224,7 @@
 <section class="homepage-showcase-section" aria-label="Featured businesses">
   <div class="homepage-showcase-section__inner homepage-showcase-section__inner--businesses-only">
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
-      <header class="homepage-showcase-panel__head d-none d-lg-flex">
+      <header class="homepage-showcase-panel__head d-none d-md-flex">
         <div class="homepage-showcase-panel__title-wrap">
           <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--business" aria-hidden="true">
             <i class="fa-solid fa-store"></i>
@@ -238,7 +238,7 @@
       </header>
 
       <div
-        class="card-carousel homepage-showcase-carousel d-none d-lg-block"
+        class="card-carousel homepage-showcase-carousel d-none d-md-block"
         data-slide-by="card"
         data-carousel-cols="2"
         data-show-arrows="true"
@@ -271,7 +271,7 @@
         </div>
       </div>
 
-      <div class="homepage-featured-promo-rail d-lg-none" aria-label="Featured business promotions">
+      <div class="homepage-featured-promo-rail d-md-none" aria-label="Featured business promotions">
         <div class="homepage-featured-promo-rail__scroll">
           @foreach($homepageFeaturedBusinesses as $business)
             <article class="homepage-featured-promo-card homepage-featured-promo-card--{{ $business['theme'] }}">
