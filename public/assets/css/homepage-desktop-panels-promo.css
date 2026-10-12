@@ -52,6 +52,7 @@
     flex-direction: column;
     border-radius: 16px;
     overflow: hidden;
+    padding: 12px 10px 10px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo__head,
@@ -62,6 +63,7 @@
   .homepage-desktop-panels .homepage-consultants__head,
   .homepage-desktop-panels .homepage-community-hub__head {
     flex-shrink: 0;
+    margin-bottom: 8px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
@@ -74,7 +76,7 @@
   .homepage-desktop-panels .homepage-community-hub__grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 6px;
     align-items: stretch;
     overflow: visible !important;
     margin: 0;
@@ -100,9 +102,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
   }
 
@@ -136,8 +138,19 @@
   .homepage-desktop-panels .homepage-study-library-card__media,
   .homepage-desktop-panels .homepage-consultants-card__media,
   .homepage-desktop-panels .homepage-community-hub-card__media {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     flex-shrink: 0;
+    max-height: 64px;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo-card__media img,
+  .homepage-desktop-panels .homepage-popular-near-card__media img,
+  .homepage-desktop-panels .homepage-popular-services-card__media img,
+  .homepage-desktop-panels .homepage-education-knowledge-card__media img,
+  .homepage-desktop-panels .homepage-study-library-card__media img,
+  .homepage-desktop-panels .homepage-consultants-card__media img,
+  .homepage-desktop-panels .homepage-community-hub-card__media img {
+    object-fit: cover;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__body,
@@ -148,11 +161,11 @@
   .homepage-desktop-panels .homepage-consultants-card__body,
   .homepage-desktop-panels .homepage-community-hub-card__body {
     flex: 1 1 auto;
-    min-height: 102px;
+    min-height: 68px;
     display: flex;
     flex-direction: column;
-    padding: 10px 11px 11px;
-    gap: 3px;
+    padding: 6px 7px 7px;
+    gap: 2px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__title,
@@ -162,8 +175,8 @@
   .homepage-desktop-panels .homepage-study-library-card__title,
   .homepage-desktop-panels .homepage-consultants-card__title,
   .homepage-desktop-panels .homepage-community-hub-card__title {
-    font-size: 0.8125rem;
-    line-height: 1.28;
+    font-size: 0.75rem;
+    line-height: 1.25;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -174,8 +187,8 @@
   .homepage-desktop-panels .homepage-marketplace-promo-card__desc,
   .homepage-desktop-panels .homepage-popular-services-card__desc,
   .homepage-desktop-panels .homepage-consultants-card__desc {
-    font-size: 0.6875rem;
-    -webkit-line-clamp: 2;
+    font-size: 0.625rem;
+    -webkit-line-clamp: 1;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -191,20 +204,43 @@
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__tags {
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    gap: 5px;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    gap: 4px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__discount {
-    font-size: 0.625rem;
-    padding: 4px 8px;
+    font-size: 0.5625rem;
+    padding: 3px 6px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__category {
+    font-size: 0.5625rem;
+    padding: 3px 6px;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo-card__location,
+  .homepage-desktop-panels .homepage-popular-services-card__location,
+  .homepage-desktop-panels .homepage-consultants-card__location {
     font-size: 0.625rem;
-    padding: 4px 8px;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo-card__valid {
+    font-size: 0.5625rem;
+    padding: 2px 6px;
+  }
+
+  /* Full-width last section — 4 cards in one row */
+  .homepage-desktop-panels > :last-child .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels > :last-child .homepage-popular-near__grid,
+  .homepage-desktop-panels > :last-child .homepage-popular-services__grid,
+  .homepage-desktop-panels > :last-child .homepage-education-knowledge__grid,
+  .homepage-desktop-panels > :last-child .homepage-study-library__grid,
+  .homepage-desktop-panels > :last-child .homepage-consultants__grid,
+  .homepage-desktop-panels > :last-child .homepage-community-hub__grid,
+  .homepage-desktop-panels > :last-child .homepage-showcase-carousel--featured-grid .card-carousel-track {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }
 
@@ -216,6 +252,16 @@
   .homepage-desktop-panels .homepage-study-library__shell,
   .homepage-desktop-panels .homepage-consultants__shell,
   .homepage-desktop-panels .homepage-community-hub__shell {
-    padding: 20px 16px 18px;
+    padding: 16px 14px 14px;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo__head,
+  .homepage-desktop-panels .homepage-popular-services__head,
+  .homepage-desktop-panels .homepage-popular-near__head,
+  .homepage-desktop-panels .homepage-education-knowledge__head,
+  .homepage-desktop-panels .homepage-study-library__head,
+  .homepage-desktop-panels .homepage-consultants__head,
+  .homepage-desktop-panels .homepage-community-hub__head {
+    margin-bottom: 10px;
   }
 }
