@@ -80,7 +80,7 @@
   .homepage-desktop-panels .homepage-community-hub__grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 12px;
     align-items: stretch;
     overflow: visible !important;
     margin: 0;
@@ -124,14 +124,15 @@
     box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
   }
 
-  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 4),
-  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 4) {
+  /* 6 cards per section: 3 on top, 3 below */
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 7),
+  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 7) {
     display: none;
   }
 
@@ -236,18 +237,7 @@
     padding: 2px 6px;
   }
 
-  /* Full-width last section — 4 cards in one row */
-  .homepage-desktop-panels > :last-child .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-study-library__grid > .homepage-study-library-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-consultants__grid > .homepage-consultants-card:nth-child(4),
-  .homepage-desktop-panels > :last-child .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(4) {
-    display: flex;
-  }
-
+  /* Full-width last section — same 6 cards in one row, so cards stay the same size as in the half-width panels */
   .homepage-desktop-panels > :last-child .homepage-marketplace-promo__grid,
   .homepage-desktop-panels > :last-child .homepage-popular-near__grid,
   .homepage-desktop-panels > :last-child .homepage-popular-services__grid,
@@ -256,7 +246,7 @@
   .homepage-desktop-panels > :last-child .homepage-consultants__grid,
   .homepage-desktop-panels > :last-child .homepage-community-hub__grid,
   .homepage-desktop-panels > :last-child .homepage-showcase-carousel--featured-grid .card-carousel-track {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
   }
 }
 
@@ -269,6 +259,17 @@
   .homepage-desktop-panels .homepage-consultants__shell,
   .homepage-desktop-panels .homepage-community-hub__shell {
     padding: 16px 14px 14px;
+  }
+
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels .homepage-popular-near__grid,
+  .homepage-desktop-panels .homepage-popular-services__grid,
+  .homepage-desktop-panels .homepage-education-knowledge__grid,
+  .homepage-desktop-panels .homepage-study-library__grid,
+  .homepage-desktop-panels .homepage-consultants__grid,
+  .homepage-desktop-panels .homepage-community-hub__grid {
+    gap: 16px 14px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo__head,

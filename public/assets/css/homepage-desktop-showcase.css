@@ -81,7 +81,7 @@
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-track {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 12px;
     align-items: stretch;
     overflow: visible !important;
     flex-wrap: unset !important;
@@ -98,7 +98,8 @@
     align-items: stretch;
   }
 
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-item:nth-child(n + 4) {
+  /* 6 cards: 3 on top, 3 below */
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-item:nth-child(n + 7) {
     display: none;
   }
 
@@ -212,6 +213,10 @@
   .homepage-desktop-panels {
     padding: 12px 36px 32px;
     gap: 20px 24px;
+  }
+
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-track {
+    gap: 16px 14px;
   }
 
   .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {

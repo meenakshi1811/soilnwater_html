@@ -313,8 +313,9 @@
     width: 100%;
   }
 
+  /* 26px + rail (6px) + scroll (4px) bottom padding = 36px, matching the gap below the offers/ads promo sections */
   .homepage-showcase-section {
-    padding: 0 0 12px;
+    padding: 0 0 26px;
     background: #e3f3ea;
     border-bottom: none;
   }

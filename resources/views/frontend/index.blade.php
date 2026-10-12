@@ -171,8 +171,8 @@
           @foreach($popularSearches as $term)
             <a href="{{ route($term['route'], ['category_id' => $term['category_id']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
           @endforeach
-          <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
         </div>
+        <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
       </div>
       @endif
     </div>
