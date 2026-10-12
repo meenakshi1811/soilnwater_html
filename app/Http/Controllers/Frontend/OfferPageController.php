@@ -114,7 +114,35 @@ class OfferPageController extends Controller
             ? HomepageShowcaseItems::toOfferPromoArrays($offerShowcaseItems)
             : HomepageMarketplacePromoCards::fromOffers($offers, 8);
 
+        // Popular searches are built from the real top categories (ordered by live
+        // listing count) so every tag links to a listing page that actually has results.
+        $popularSearches = collect()
+            ->merge($this->topServiceProviderCategories(3)
+                ->filter(fn ($category) => (int) $category->service_provider_count > 0)
+                ->map(fn ($category) => [
+                    'label' => $category->name,
+                    'route' => 'frontend.service_providers.index',
+                    'category_id' => $category->id,
+                ]))
+            ->merge($this->topVendorCategories(3)
+                ->filter(fn ($category) => (int) $category->vendor_count > 0)
+                ->map(fn ($category) => [
+                    'label' => $category->name,
+                    'route' => 'frontend.vendors.index',
+                    'category_id' => $category->id,
+                ]))
+            ->merge($this->topConsultantCategories(3)
+                ->filter(fn ($category) => (int) $category->consultant_count > 0)
+                ->map(fn ($category) => [
+                    'label' => $category->name,
+                    'route' => 'frontend.consultants.index',
+                    'category_id' => $category->id,
+                ]))
+            ->values()
+            ->all();
+
         return view('frontend.index', [
+            'popularSearches' => $popularSearches,
             'offers' => $offers,
             'topCategoriesSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_1')->values(),
             'topSidebarSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_2')->values(),

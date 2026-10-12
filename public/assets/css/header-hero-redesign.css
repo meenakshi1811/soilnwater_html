@@ -438,7 +438,7 @@
 }
 
 .hero--discover__title-line {
-  display: block;
+  display: inline;
 }
 
 .hero--discover__title-line.hero--discover__accent,

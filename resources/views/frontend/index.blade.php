@@ -44,17 +44,7 @@
   ]));
   $resolvedHeroBannerPath = collect($heroBannerCandidates)->first(fn ($path) => is_file(public_path($path)));
   $heroBackgroundUrl = asset($resolvedHeroBannerPath ?: 'assets/images/hero-banner-community.jpg');
-  $popularSearches = [
-    ['label' => 'Plumber', 'module' => 'services', 'q' => 'Plumber'],
-    ['label' => 'Electrician', 'module' => 'services', 'q' => 'Electrician'],
-    ['label' => 'School', 'module' => 'vendors', 'q' => 'School'],
-    ['label' => 'Tutor', 'module' => 'consultants', 'q' => 'Tutor'],
-    ['label' => 'Doctor', 'module' => 'consultants', 'q' => 'Doctor'],
-    ['label' => 'Consultant', 'module' => 'consultants', 'q' => 'Consultant'],
-    ['label' => 'Salon', 'module' => 'vendors', 'q' => 'Salon'],
-    ['label' => 'Real Estate', 'module' => 'offers', 'q' => 'Real Estate'],
-    ['label' => 'Café', 'module' => 'vendors', 'q' => 'Cafe'],
-  ];
+  $popularSearches = $popularSearches ?? [];
   $homepageFeaturedBusinesses = collect($homepageFeaturedBusinesses ?? [])->all();
   $vendorEnquiryCategoryTree = ($vendorEnquiryCategories ?? collect())
     ->map(function ($category) {
@@ -174,15 +164,17 @@
           'searchSubmitText' => 'Search',
         ])
       </div>
+      @if(!empty($popularSearches))
       <div class="hero--discover__popular">
         <span class="hero--discover__popular-label">Popular Searches:</span>
         <div class="hero--discover__popular-tags">
           @foreach($popularSearches as $term)
-            <a href="{{ route('frontend.search', ['module' => $term['module'], 'q' => $term['q']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
+            <a href="{{ route($term['route'], ['category_id' => $term['category_id']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
           @endforeach
           <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
         </div>
       </div>
+      @endif
     </div>
   </div>
 </section>

@@ -10,90 +10,7 @@
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
 
-  @if($isHomepage)
-    <div class="header-mobile-home-search d-lg-none" id="homepageMobileSearchDock">
-      @include('frontend.partials.header-search-form', [
-        'searchWrapClass' => 'search-wrap search-wrap--mobile-home',
-        'searchFormId' => 'mobileHomeSearchForm',
-        'searchInputId' => 'mobileHomeSearchQuery',
-        'showModuleSelect' => false,
-        'activeSearchModule' => 'offers',
-        'searchPlaceholderOverride' => 'Search…',
-        'searchSubmitText' => 'Search',
-      ])
-    </div>
-  @endif
-
-  <nav class="header-main-nav d-none d-xl-flex" aria-label="Main navigation">
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navBusinesses" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Businesses</button>
-      <ul class="dropdown-menu" aria-labelledby="navBusinesses">
-        <li><a class="dropdown-item" href="{{ route('frontend.vendors.index') }}">Browse Businesses</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.vendors.categories') }}">Categories</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.vendors.listings') }}">Listings</a></li>
-      </ul>
-    </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navServices" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Services</button>
-      <ul class="dropdown-menu" aria-labelledby="navServices">
-        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.index') }}">Browse Services</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.categories') }}">Categories</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.service_providers.listings') }}">Listings</a></li>
-      </ul>
-    </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navConsultants" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Consultants</button>
-      <ul class="dropdown-menu" aria-labelledby="navConsultants">
-        <li><a class="dropdown-item" href="{{ route('frontend.consultants.index') }}">Browse Consultants</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.consultants.categories') }}">Categories</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.consultants.listings') }}">Listings</a></li>
-      </ul>
-    </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navEducation" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Education</button>
-      <ul class="dropdown-menu" aria-labelledby="navEducation">
-        <li><a class="dropdown-item" href="{{ route('schools.index') }}">Schools</a></li>
-        <li><a class="dropdown-item" href="{{ route('institutes.index') }}">Institutes</a></li>
-        <li><a class="dropdown-item" href="{{ route('educator.index') }}">Teachers &amp; Tutors</a></li>
-        <li><a class="dropdown-item" href="{{ route('study-materials.library') }}">Study Materials</a></li>
-      </ul>
-    </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navOffers" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Offers</button>
-      <ul class="dropdown-menu" aria-labelledby="navOffers">
-        <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Browse Offers</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Browse Ads</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a></li>
-        <li><a class="dropdown-item" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
-      </ul>
-    </div>
-    <div class="dropdown header-nav-dropdown">
-      <button class="header-nav-link dropdown-toggle" type="button" id="navProperties" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Properties</button>
-      <ul class="dropdown-menu" aria-labelledby="navProperties">
-        <li><a class="dropdown-item" href="{{ route('frontend.ads.index') }}">Property Ads</a></li>
-        <li><a class="dropdown-item" href="{{ route('frontend.offers.index') }}">Property Offers</a></li>
-      </ul>
-    </div>
-    <a class="header-nav-link header-nav-link--plain" href="{{ route('community.index') }}">Community</a>
-  </nav>
-
   <div class="header-right-cluster">
-    @if($isHomepage)
-      @include('frontend.partials.header-location', ['locWrapClass' => 'loc-wrap--header-compact homepage-loc-host'])
-    @endif
-
-    <div class="header-utilities">
-      @if($isHomepage)
-        <button type="button" class="header-search-jump d-none d-md-inline-flex" id="headerSearchJump" aria-label="Jump to search">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-      @else
-        @include('frontend.partials.header-location')
-        @include('frontend.partials.header-search-form')
-      @endif
-    </div>
-
     <div class="header-actions header-actions-desktop">
     @auth
       <div class="dropdown user-menu-dropdown">
@@ -130,7 +47,7 @@
         </ul>
       </div>
     @else
-      <a class="btn-login btn-login--outline" href="{{ route('login') }}">Login</a>
+      <a class="btn-login btn-login--outline" href="{{ route('login') }}">Sign In</a>
       <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
     @endauth
     </div>
@@ -147,20 +64,11 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <a class="btn-offer" href="{{ route('frontend.vendors.index') }}">Businesses</a>
-    <a class="btn-offer" href="{{ route('frontend.service_providers.index') }}">Services</a>
-    <a class="btn-offer" href="{{ route('frontend.consultants.index') }}">Consultants</a>
-    <a class="btn-offer" href="{{ route('schools.index') }}">Education</a>
-    <a class="btn-offer" href="{{ route('frontend.offers.index') }}">Offers</a>
-    <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
-    @if($isHomepage)
-      <button type="button" class="btn-offer header-mobile-search-jump" id="mobileHeaderSearchJump">Search on page</button>
-    @endif
-    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
-    <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
-
     @auth
       <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
+      <a class="btn-offer" href="{{ route('employee.login') }}">Employee portal</a>
+      <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
+      <a class="btn-offer" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
       @if($user->isVendor() && ! $user->vendor?->is_premium)
         <a class="btn-offer" href="{{ route('frontend.premium.show', 'vendor') }}">Get Premium</a>
       @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
@@ -173,9 +81,8 @@
         <button type="submit" class="btn-login">Logout</button>
       </form>
     @else
-      <a class="btn-login" href="{{ route('login') }}">Login</a>
+      <a class="btn-login" href="{{ route('login') }}">Sign In</a>
       <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
-      <a class="btn-login" href="{{ route('employee.login') }}">Employee</a>
     @endauth
   </div>
 </header>
