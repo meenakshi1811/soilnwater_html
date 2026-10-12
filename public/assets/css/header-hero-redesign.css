@@ -411,7 +411,7 @@
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 44px 40px 32px;
+  padding: 18px 40px 20px;
   box-sizing: border-box;
 }
 
@@ -424,7 +424,7 @@
 
 .hero--discover__copy {
   max-width: 640px;
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .hero--discover__title {
@@ -434,7 +434,7 @@
   line-height: 1.06;
   letter-spacing: -0.035em;
   color: var(--hero-headline-navy);
-  margin: 0 0 1.125rem;
+  margin: 0;
 }
 
 .hero--discover__title-line {
@@ -1019,7 +1019,7 @@
   }
 
   .hero--discover__container {
-    padding: 28px 18px 24px;
+    padding: 16px 18px 12px;
   }
 
   .hero--discover__inner {
@@ -1511,7 +1511,7 @@
   }
 
   .hero--discover__container {
-    padding: 28px 16px 20px;
+    padding: 14px 16px 10px;
   }
 
   .hero--discover__search-block {

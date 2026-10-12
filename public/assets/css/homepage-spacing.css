@@ -297,7 +297,7 @@
   .homepage-root .hero--discover__container {
     max-width: none;
     width: 100%;
-    padding: 44px 20px 28px;
+    padding: 18px 20px 16px;
     box-sizing: border-box;
   }
 
@@ -326,7 +326,7 @@
 
 @media (min-width: 992px) {
   .homepage-root .hero--discover__container {
-    padding: 44px 36px 28px;
+    padding: 18px 36px 16px;
   }
 
   .homepage-root .hero--discover__search-block {

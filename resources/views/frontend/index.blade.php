@@ -140,14 +140,16 @@
           <span class="hero--discover__title-line">Discover What's</span>
           <span class="hero--discover__title-line hero--discover__accent">Around You</span>
         </h1>
-        <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p>
+        {{-- <p class="hero--discover__lead">Find businesses, services, offers, professionals, education and local communities — wherever you are.</p> --}}
       </div>
+      {{--
       <div class="hero--discover__script" aria-hidden="true">
         <p>Local Businesses</p>
         <p>Real People</p>
         <p>Stronger Communities</p>
         <span class="hero--discover__script-swoosh" aria-hidden="true"></span>
       </div>
+      --}}
     </div>
   </div>
 
