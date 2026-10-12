@@ -149,8 +149,10 @@
         <span class="hero--discover__script-swoosh" aria-hidden="true"></span>
       </div>
     </div>
+  </div>
 
-    <div class="hero--discover__search-block" id="heroSearchDock">
+  <div class="hero--discover__search-block" id="heroSearchDock">
+    <div class="hero--discover__search-block-inner">
       <div class="hero--discover__search-row">
         <div class="hero-search-card hero-search-card--location hero-loc-trigger" id="heroLocationTrigger" role="button" tabindex="0" aria-label="Select location">
           <span class="hero-search-card__icon hero-search-card__icon--pin"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>

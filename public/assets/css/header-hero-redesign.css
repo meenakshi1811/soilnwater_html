@@ -364,11 +364,12 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
   min-height: 0;
   padding: 0;
   border-bottom: none;
   overflow: hidden;
-  background: #dbeafe;
+  background: #eef2f7;
 }
 
 .hero--discover__bg {
@@ -410,7 +411,7 @@
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 44px 40px 40px;
+  padding: 44px 40px 32px;
   box-sizing: border-box;
 }
 
@@ -483,8 +484,26 @@
 }
 
 .hero--discover__search-block {
-  margin-top: 2rem;
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 20px 40px 24px;
+  background: linear-gradient(180deg, #e8f4fc 0%, #eef2f7 55%, #eef2f7 100%);
+  box-sizing: border-box;
+}
+
+.hero--discover__search-block-inner {
+  width: 100%;
   max-width: 920px;
+  margin: 0 auto;
+}
+
+.hero--discover__search-block .hero--discover__popular-label {
+  color: var(--hero-headline-navy);
+  text-shadow: none;
 }
 
 .hero--discover__search-row {
@@ -1492,11 +1511,11 @@
   }
 
   .hero--discover__container {
-    padding: 28px 16px 24px;
+    padding: 28px 16px 20px;
   }
 
   .hero--discover__search-block {
-    margin-top: 1.25rem;
+    padding: 16px 16px 20px;
   }
 
   .hero--discover .search-wrap--hero {

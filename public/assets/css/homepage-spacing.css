@@ -297,8 +297,18 @@
   .homepage-root .hero--discover__container {
     max-width: none;
     width: 100%;
-    padding: 44px 20px 40px;
+    padding: 44px 20px 28px;
     box-sizing: border-box;
+  }
+
+  .homepage-root .hero--discover__search-block {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .homepage-root .hero--discover__search-block-inner {
+    max-width: none;
+    width: 100%;
   }
 
   .homepage-root .hero-hub-cards__inner {
@@ -316,7 +326,12 @@
 
 @media (min-width: 992px) {
   .homepage-root .hero--discover__container {
-    padding: 44px 36px 40px;
+    padding: 44px 36px 28px;
+  }
+
+  .homepage-root .hero--discover__search-block {
+    padding-left: 36px;
+    padding-right: 36px;
   }
 
   .homepage-root .homepage-desktop-panels {
