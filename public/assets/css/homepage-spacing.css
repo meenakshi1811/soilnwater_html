@@ -8,9 +8,7 @@
 }
 
 .homepage-root .hero.hero--discover {
-  min-height: 520px;
-  padding-top: 48px;
-  padding-bottom: 44px;
+  min-height: 0;
 }
 
 @media (max-width: 991px) {
@@ -299,8 +297,7 @@
   .homepage-root .hero--discover__container {
     max-width: none;
     width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 44px 20px 40px;
     box-sizing: border-box;
   }
 
@@ -319,8 +316,7 @@
 
 @media (min-width: 992px) {
   .homepage-root .hero--discover__container {
-    padding-left: 36px;
-    padding-right: 36px;
+    padding: 44px 36px 40px;
   }
 
   .homepage-root .homepage-desktop-panels {
