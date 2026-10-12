@@ -17,42 +17,6 @@
 
     <div class="footer-links-grid">
       <div class="footer-col footer-panel">
-        <h4 class="footer-col-title">Marketplace</h4>
-        <ul class="footer-list">
-          <li><a href="{{ route('frontend.ads.index') }}"><i class="fa-solid fa-chevron-right"></i> Ads</a></li>
-          <li><a href="{{ route('frontend.offers.index') }}"><i class="fa-solid fa-chevron-right"></i> Offers</a></li>
-          <li><a href="{{ route('frontend.vendors.index') }}"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
-          <li><a href="{{ route('frontend.consultants.index') }}"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
-          <li><a href="{{ route('frontend.service_providers.index') }}"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
-          <li><a href="{{ route('educator.index') }}"><i class="fa-solid fa-chevron-right"></i> Teachers &amp; Tutors</a></li>
-          <li><a href="{{ route('schools.index') }}"><i class="fa-solid fa-chevron-right"></i> Schools</a></li>
-          <li><a href="{{ route('institutes.index') }}"><i class="fa-solid fa-chevron-right"></i> Institutes</a></li>
-          <li><a href="{{ route('study-materials.library') }}"><i class="fa-solid fa-chevron-right"></i> Study Materials</a></li>
-          <li><a href="{{ route('community.index') }}"><i class="fa-solid fa-chevron-right"></i> Community</a></li>
-          {{--
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Properties</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Builders</a></li>
-          <li><a href="https://www.facebook.com" target="_blank" rel="noopener"><i class="fa-solid fa-chevron-right"></i> Social Media</a></li>
-          --}}
-        </ul>
-      </div>
-
-      {{--
-      <div class="footer-col footer-panel">
-        <h4 class="footer-col-title">For Business</h4>
-        <ul class="footer-list">
-          <li><a href="{{ auth()->check() ? route('ads.create.size') : route('login') }}"><i class="fa-solid fa-chevron-right"></i> Post an Ad</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Sponsored Listings</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Premium Packages</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Seller Dashboard</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Partner with Us</a></li>
-        </ul>
-      </div>
-      --}}
-
-      <div class="footer-col footer-panel">
         <h4 class="footer-col-title">Contact Us</h4>
         <ul class="footer-list footer-contact-list">
           <li><i class="fa-solid fa-phone"></i> +91 7055533011</li>
