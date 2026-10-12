@@ -3,11 +3,6 @@
  */
 
 @media (min-width: 768px) {
-  .homepage-desktop-panels {
-    --hp-panel-card-media-h: 78px;
-    --hp-panel-card-body-min: 122px;
-  }
-
   .homepage-desktop-panels > .homepage-marketplace-promo,
   .homepage-desktop-panels > .homepage-popular-near,
   .homepage-desktop-panels > .homepage-popular-services,
@@ -143,11 +138,10 @@
   .homepage-desktop-panels .homepage-study-library-card__media,
   .homepage-desktop-panels .homepage-consultants-card__media,
   .homepage-desktop-panels .homepage-community-hub-card__media {
-    aspect-ratio: unset;
-    flex: 0 0 var(--hp-panel-card-media-h);
-    height: var(--hp-panel-card-media-h);
-    min-height: var(--hp-panel-card-media-h);
-    max-height: var(--hp-panel-card-media-h);
+    aspect-ratio: 16 / 10;
+    flex-shrink: 0;
+    max-height: none;
+    min-height: 76px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__media img,
@@ -168,7 +162,7 @@
   .homepage-desktop-panels .homepage-consultants-card__body,
   .homepage-desktop-panels .homepage-community-hub-card__body {
     flex: 1 1 auto;
-    min-height: var(--hp-panel-card-body-min);
+    min-height: 82px;
     display: flex;
     flex-direction: column;
     padding: 8px 8px 9px;
@@ -184,7 +178,6 @@
   .homepage-desktop-panels .homepage-community-hub-card__title {
     font-size: 0.75rem;
     line-height: 1.25;
-    min-height: calc(0.75rem * 1.25 * 2);
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -196,32 +189,15 @@
   .homepage-desktop-panels .homepage-popular-services-card__desc,
   .homepage-desktop-panels .homepage-consultants-card__desc {
     font-size: 0.625rem;
-    line-height: 1.3;
-    min-height: calc(0.625rem * 1.3 * 2);
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    flex-shrink: 0;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__meta {
     margin-top: auto;
     gap: 4px;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-  }
-
-  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
-  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo__grid {
-    min-height: calc(var(--hp-panel-card-media-h) + var(--hp-panel-card-body-min));
-  }
-
-  .homepage-desktop-panels .homepage-showcase-panel__head,
-  .homepage-desktop-panels .homepage-marketplace-promo__head {
-    min-height: 68px;
-    align-items: flex-start;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__valid {
