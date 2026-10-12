@@ -1,5 +1,5 @@
 /**
- * Homepage desktop-panels — gradient shells, 2×2 card grid per section (tablet+).
+ * Homepage desktop-panels — gradient shells, 3-across card row per section (tablet+).
  */
 
 @media (min-width: 768px) {
@@ -75,7 +75,7 @@
   .homepage-desktop-panels .homepage-consultants__grid,
   .homepage-desktop-panels .homepage-community-hub__grid {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     align-items: stretch;
     overflow: visible !important;
@@ -120,14 +120,14 @@
     box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
   }
 
-  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 5),
-  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 5) {
+  .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-study-library__grid > .homepage-study-library-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-consultants__grid > .homepage-consultants-card:nth-child(n + 4),
+  .homepage-desktop-panels .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(n + 4) {
     display: none;
   }
 
@@ -140,7 +140,8 @@
   .homepage-desktop-panels .homepage-community-hub-card__media {
     aspect-ratio: 16 / 10;
     flex-shrink: 0;
-    max-height: 64px;
+    max-height: none;
+    min-height: 76px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo-card__media img,
@@ -161,10 +162,10 @@
   .homepage-desktop-panels .homepage-consultants-card__body,
   .homepage-desktop-panels .homepage-community-hub-card__body {
     flex: 1 1 auto;
-    min-height: 68px;
+    min-height: 82px;
     display: flex;
     flex-direction: column;
-    padding: 6px 7px 7px;
+    padding: 8px 8px 9px;
     gap: 2px;
   }
 
@@ -232,6 +233,17 @@
   }
 
   /* Full-width last section — 4 cards in one row */
+  .homepage-desktop-panels > :last-child .homepage-marketplace-promo--offers .homepage-marketplace-promo-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-marketplace-promo--ads .homepage-marketplace-promo-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-popular-near__grid > .homepage-popular-near-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-popular-services__grid > .homepage-popular-services-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-education-knowledge__grid > .homepage-education-knowledge-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-study-library__grid > .homepage-study-library-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-consultants__grid > .homepage-consultants-card:nth-child(4),
+  .homepage-desktop-panels > :last-child .homepage-community-hub__grid > .homepage-community-hub-card:nth-child(4) {
+    display: flex;
+  }
+
   .homepage-desktop-panels > :last-child .homepage-marketplace-promo__grid,
   .homepage-desktop-panels > :last-child .homepage-popular-near__grid,
   .homepage-desktop-panels > :last-child .homepage-popular-services__grid,
