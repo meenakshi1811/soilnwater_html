@@ -20,14 +20,8 @@
 
 .homepage-showcase-section__inner--businesses-only {
   grid-template-columns: minmax(0, 1fr);
-  max-width: 720px;
-}
-
-@media (min-width: 992px) {
-  .homepage-showcase-section__inner--businesses-only {
-    max-width: none;
-    width: 100%;
-  }
+  max-width: none;
+  width: 100%;
 }
 
 @media (min-width: 992px) {

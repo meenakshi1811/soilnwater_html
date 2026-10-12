@@ -14,15 +14,28 @@
     align-items: stretch;
     width: 100%;
     max-width: none;
-    padding: 12px clamp(16px, 3vw, 36px) 24px;
+    padding: 12px 20px 24px;
     background: #eef2f7;
     box-sizing: border-box;
+  }
+
+  .homepage-desktop-panels > .homepage-showcase-section,
+  .homepage-desktop-panels > .homepage-marketplace-promo,
+  .homepage-desktop-panels > .homepage-popular-near,
+  .homepage-desktop-panels > .homepage-popular-services,
+  .homepage-desktop-panels > .homepage-education-knowledge,
+  .homepage-desktop-panels > .homepage-study-library,
+  .homepage-desktop-panels > .homepage-consultants,
+  .homepage-desktop-panels > .homepage-community-hub {
+    width: 100%;
+    max-width: none;
   }
 
   .homepage-desktop-panels > .homepage-showcase-section {
     display: block;
     background: transparent;
     padding: 0;
+    margin: 0;
     border: none;
   }
 
@@ -31,7 +44,16 @@
     display: contents;
   }
 
+  .homepage-desktop-panels .homepage-showcase-section__inner,
+  .homepage-desktop-panels .homepage-showcase-section__inner--businesses-only {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
   .homepage-desktop-panels .homepage-showcase-panel--businesses {
+    width: 100%;
+    max-width: none;
     min-width: 0;
     height: 100%;
     align-self: stretch;
@@ -185,10 +207,8 @@
 
 @media (min-width: 992px) {
   .homepage-desktop-panels {
-    padding-left: 36px;
-    padding-right: 36px;
-    gap: 20px 24px;
-    padding-bottom: 32px;
+    padding: 12px 36px 32px;
+    gap: 14px;
   }
 
   .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
