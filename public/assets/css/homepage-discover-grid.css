@@ -629,18 +629,18 @@
   min-height: 2.7em;
 }
 
-/* Solo panel in first row: span full width when its pair is hidden */
-.homepage-discover-grid:not(:has(.homepage-discover-panel--order-offers)) .homepage-discover-panel--order-ads,
-.homepage-discover-grid:not(:has(.homepage-discover-panel--order-ads)) .homepage-discover-panel--order-offers {
+/* Solo panel: span full width when its pair is hidden (main-col discover grid only) */
+.homepage-discover-section:not(.homepage-discover-section--panels) .homepage-discover-grid:not(:has(.homepage-discover-panel--order-offers)) .homepage-discover-panel--order-ads,
+.homepage-discover-section:not(.homepage-discover-section--panels) .homepage-discover-grid:not(:has(.homepage-discover-panel--order-ads)) .homepage-discover-panel--order-offers {
   grid-column: 1 / -1;
 }
 
-.homepage-discover-grid:not(:has(.homepage-discover-panel--order-consultants)) .homepage-discover-panel--order-services,
-.homepage-discover-grid:not(:has(.homepage-discover-panel--order-services)) .homepage-discover-panel--order-consultants {
+.homepage-discover-section:not(.homepage-discover-section--panels) .homepage-discover-grid:not(:has(.homepage-discover-panel--order-consultants)) .homepage-discover-panel--order-services,
+.homepage-discover-section:not(.homepage-discover-section--panels) .homepage-discover-grid:not(:has(.homepage-discover-panel--order-services)) .homepage-discover-panel--order-consultants {
   grid-column: 1 / -1;
 }
 
-.homepage-discover-grid:not(:has(.homepage-discover-panel--order-community)) .homepage-discover-panel--order-education {
+.homepage-discover-section:not(.homepage-discover-section--panels) .homepage-discover-grid:not(:has(.homepage-discover-panel--order-community)) .homepage-discover-panel--order-education {
   grid-column: 1 / -1;
 }
 

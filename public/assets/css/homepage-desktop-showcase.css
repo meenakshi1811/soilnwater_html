@@ -53,13 +53,20 @@
     height: 100%;
   }
 
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-offers)) > .homepage-showcase-panel--businesses,
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-offers)) > .homepage-discover-panel--order-ads,
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-ads)) > .homepage-discover-panel--order-offers,
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-consultants)) > .homepage-discover-panel--order-services,
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-services)) > .homepage-discover-panel--order-consultants,
-  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-community)) > .homepage-discover-panel--order-education,
-  .homepage-desktop-panels > .homepage-discover-panel--order-vendors {
+  .homepage-desktop-panels > .homepage-discover-panel {
+    grid-column: auto;
+  }
+
+  /* Full width only when the paired panel in this row is disabled — not when Ads/Vendors are omitted */
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-offers)) > .homepage-showcase-panel--businesses {
+    grid-column: 1 / -1;
+  }
+
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-consultants)) > .homepage-discover-panel--order-services {
+    grid-column: 1 / -1;
+  }
+
+  .homepage-desktop-panels:not(:has(.homepage-discover-panel--order-community)) > .homepage-discover-panel--order-education {
     grid-column: 1 / -1;
   }
 }
