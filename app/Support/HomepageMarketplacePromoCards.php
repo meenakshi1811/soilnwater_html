@@ -50,8 +50,7 @@ final class HomepageMarketplacePromoCards
             : asset('assets/images/vendor-card-placeholder.svg');
         $image = HomepageCategoryCardImage::forOffer($offer, $entityCover);
 
-        $categoryName = $offer->category?->name ?? $offer->subcategory?->name ?? 'Local offer';
-        $categoryMeta = self::categoryMeta($categoryName);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForOffer($offer));
 
         return [
             'url' => $offer->shareUrl(),
@@ -80,8 +79,7 @@ final class HomepageMarketplacePromoCards
             return null;
         }
 
-        $categoryName = $ad->category?->name ?? 'Featured ad';
-        $categoryMeta = self::categoryMeta($categoryName);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForAd($ad));
 
         return [
             'url' => $ad->shareUrl(),

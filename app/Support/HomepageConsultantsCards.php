@@ -61,7 +61,7 @@ final class HomepageConsultantsCards
     private static function mapConsultant(Consultant $consultant, bool $hasLocation): ?array
     {
         $card = ConsultantListingCard::data($consultant, $hasLocation);
-        $categoryMeta = self::categoryMeta($card['categoryName']);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForConsultant($consultant));
         $description = $card['featuredLabel'] ?? '';
         if ($description === '' && ! empty($card['serviceTags'])) {
             $description = implode(', ', array_slice($card['serviceTags'], 0, 3));

@@ -17,6 +17,8 @@ class CategoryHomepageImage extends Model
 
     public const CONTEXT_CONSULTANTS = 'consultants';
 
+    public const CONTEXT_EDUCATION = 'education';
+
     protected $fillable = [
         'category_id',
         'context',
@@ -53,6 +55,7 @@ class CategoryHomepageImage extends Model
             self::CONTEXT_VENDORS => 'Vendors',
             self::CONTEXT_SERVICES => 'Services',
             self::CONTEXT_CONSULTANTS => 'Consultants',
+            self::CONTEXT_EDUCATION => 'Education & knowledge',
         ];
     }
 }

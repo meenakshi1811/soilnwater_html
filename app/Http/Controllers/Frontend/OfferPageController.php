@@ -62,7 +62,7 @@ class OfferPageController extends Controller
             ->get(['id', 'title', 'size_type', 'final_image']);
 
         $recentApprovedAdsQuery = UserAd::query()
-            ->with(['category:id,name'])
+            ->with(['category:id,name', 'subcategory:id,name'])
             ->where('status', 'approved')
             ->whereDoesntHave('adSize', fn (Builder $query) => $query->where('admin_only', true))
             ->where(function (Builder $query) {
@@ -709,8 +709,8 @@ class OfferPageController extends Controller
             ->with([
                 'products' => fn ($productQuery) => $productQuery
                     ->where('status', 'approved')
-                    ->select(['id', 'vendor_id', 'name', 'images', 'latitude', 'longitude', 'category_id', 'subcategory_id', 'is_online_sale'])
-                    ->with(['category:id,name', 'subcategory:id,name']),
+                    ->select(['id', 'vendor_id', 'name', 'images', 'latitude', 'longitude', 'category_id', 'subcategory_id', 'child_category_id', 'is_online_sale'])
+                    ->with(['category:id,name', 'subcategory:id,name', 'childCategory:id,name']),
                 'branches:id,vendor_id,address,city,state,is_primary',
                 'bannerSlides:id,vendor_id,image_path,sort_order',
             ])

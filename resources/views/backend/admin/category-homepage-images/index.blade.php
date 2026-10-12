@@ -13,7 +13,7 @@
         <div>
             <p class="ems-kicker mb-1">Homepage only</p>
             <h2 class="admin-title mb-1">Category Card Images</h2>
-            <p class="mb-0 text-secondary">Set default card images per category for ads, offers, vendors, services, and consultants on the homepage. Listing and detail pages keep their own images.</p>
+            <p class="mb-0 text-secondary">Set default card images per category or subcategory (pick the child in the dropdown) for homepage sections: ads, offers, vendors, services, consultants, and education &amp; knowledge. Listing and detail pages keep their own images.</p>
         </div>
         <button type="button" class="btn btn-primary js-open-category-image-modal" data-mode="create">
             <i class="fa-solid fa-plus me-1"></i> Add mapping

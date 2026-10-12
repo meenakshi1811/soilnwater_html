@@ -59,7 +59,7 @@ final class HomepagePopularNearYouCards
     private static function mapVendor(Vendor $vendor, bool $hasLocation): ?array
     {
         $card = VendorListingCard::data($vendor, $hasLocation);
-        $categoryMeta = self::categoryMeta($card['categoryName']);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForVendor($vendor));
 
         $description = $card['featuredLabel'] ?? '';
         if ($description === '' && ! empty($card['serviceTags'])) {
@@ -88,7 +88,7 @@ final class HomepagePopularNearYouCards
     private static function mapServiceProvider(ServiceProvider $serviceProvider, bool $hasLocation): ?array
     {
         $card = ServiceProviderListingCard::data($serviceProvider, $hasLocation);
-        $categoryMeta = self::categoryMeta($card['categoryName']);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForServiceProvider($serviceProvider));
         $description = $card['featuredLabel'] ?? '';
         if ($description === '' && ! empty($card['serviceTags'])) {
             $description = implode(', ', array_slice($card['serviceTags'], 0, 3));

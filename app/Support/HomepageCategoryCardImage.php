@@ -31,41 +31,27 @@ final class HomepageCategoryCardImage
 
     public static function forVendor(Vendor $vendor, string $entityCover): string
     {
-        $product = $vendor->products->first();
-
         return self::resolve(
             CategoryHomepageImage::CONTEXT_VENDORS,
-            self::idsFromProductLike($product),
+            HomepageCardCategory::idsForVendor($vendor),
             $entityCover
         );
     }
 
     public static function forServiceProvider(ServiceProvider $serviceProvider, string $entityCover): string
     {
-        $service = $serviceProvider->services->first();
-
         return self::resolve(
             CategoryHomepageImage::CONTEXT_SERVICES,
-            [
-                'category_id' => $service?->category_id,
-                'subcategory_id' => $service?->subcategory_id,
-                'child_category_id' => null,
-            ],
+            HomepageCardCategory::idsForServiceProvider($serviceProvider),
             $entityCover
         );
     }
 
     public static function forConsultant(Consultant $consultant, string $entityCover): string
     {
-        $service = $consultant->services->first();
-
         return self::resolve(
             CategoryHomepageImage::CONTEXT_CONSULTANTS,
-            [
-                'category_id' => $service?->category_id,
-                'subcategory_id' => $service?->subcategory_id,
-                'child_category_id' => null,
-            ],
+            HomepageCardCategory::idsForConsultant($consultant),
             $entityCover
         );
     }
@@ -74,11 +60,7 @@ final class HomepageCategoryCardImage
     {
         return self::resolve(
             CategoryHomepageImage::CONTEXT_OFFERS,
-            [
-                'category_id' => $offer->category_id,
-                'subcategory_id' => $offer->subcategory_id,
-                'child_category_id' => null,
-            ],
+            HomepageCardCategory::idsForOffer($offer),
             $entityCover
         );
     }
@@ -87,11 +69,19 @@ final class HomepageCategoryCardImage
     {
         return self::resolve(
             CategoryHomepageImage::CONTEXT_ADS,
-            [
-                'category_id' => $ad->category_id,
-                'subcategory_id' => $ad->subcategory_id,
-                'child_category_id' => null,
-            ],
+            HomepageCardCategory::idsForAd($ad),
+            $entityCover
+        );
+    }
+
+    /**
+     * @param  list<string>  $keywords
+     */
+    public static function forEducation(array $keywords, string $entityCover): string
+    {
+        return self::resolve(
+            CategoryHomepageImage::CONTEXT_EDUCATION,
+            HomepageCardCategory::idsFromKeywords($keywords),
             $entityCover
         );
     }
@@ -115,26 +105,6 @@ final class HomepageCategoryCardImage
         }
 
         return $entityCover;
-    }
-
-    /**
-     * @return array{category_id: ?int, subcategory_id: ?int, child_category_id: ?int}
-     */
-    private static function idsFromProductLike(?object $product): array
-    {
-        if ($product === null) {
-            return [
-                'category_id' => null,
-                'subcategory_id' => null,
-                'child_category_id' => null,
-            ];
-        }
-
-        return [
-            'category_id' => $product->category_id ?? null,
-            'subcategory_id' => $product->subcategory_id ?? null,
-            'child_category_id' => $product->child_category_id ?? null,
-        ];
     }
 
     private static function formatPath(string $path): string

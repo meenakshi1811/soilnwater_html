@@ -27,12 +27,12 @@ final class HomepageEducationKnowledgeCards
     public static function build(?float $lat, ?float $lng): array
     {
         $cards = [
-            self::hydrateSlot(self::coachingSlot(), self::findCoachingInstitute($lat, $lng)),
-            self::hydrateSlot(self::skillsSlot(), self::findSkillsInstitute($lat, $lng)),
-            self::hydrateSlot(self::articlesSlot(), self::findFeaturedArticle()),
-            self::hydrateSlot(self::careerSlot(), self::findCareerGuide($lat, $lng)),
-            self::onlineCoursesSlot(),
-            self::studyLibrarySlot(),
+            self::applyHomepageImage(self::hydrateSlot(self::coachingSlot(), self::findCoachingInstitute($lat, $lng))),
+            self::applyHomepageImage(self::hydrateSlot(self::skillsSlot(), self::findSkillsInstitute($lat, $lng))),
+            self::applyHomepageImage(self::hydrateSlot(self::articlesSlot(), self::findFeaturedArticle())),
+            self::applyHomepageImage(self::hydrateSlot(self::careerSlot(), self::findCareerGuide($lat, $lng))),
+            self::applyHomepageImage(self::onlineCoursesSlot()),
+            self::applyHomepageImage(self::studyLibrarySlot()),
         ];
 
         return array_values(array_filter($cards));
@@ -72,9 +72,11 @@ final class HomepageEducationKnowledgeCards
     {
         $institute->loadCount('enquiries');
 
+        $cover = self::instituteCoverImage($institute, $slot['image']);
+
         return array_merge($slot, [
             'url' => $institute->publicUrl(),
-            'image' => self::instituteCoverImage($institute, $slot['image']),
+            'image' => $cover,
             'title' => $institute->publicDisplayName(),
             'description' => self::instituteDescription($institute, $slot['description']),
             'location' => self::shortLocation($institute->locationLabel() ?: 'India'),
@@ -133,11 +135,18 @@ final class HomepageEducationKnowledgeCards
      */
     private static function fromConsultant(array $slot, Consultant $consultant): array
     {
+        $consultant->loadMissing([
+            'services' => fn ($serviceQuery) => $serviceQuery
+                ->where('status', 'approved')
+                ->select(['id', 'consultant_id', 'name', 'image_path', 'category_id', 'subcategory_id'])
+                ->with(['categoryModel:id,name', 'subcategoryModel:id,name']),
+        ]);
+
         $card = ConsultantListingCard::data($consultant, false);
 
         return array_merge($slot, [
             'url' => $card['profileUrl'],
-            'image' => $card['coverImage'],
+            'image' => HomepageCategoryCardImage::forConsultant($consultant, $card['coverImage']),
             'title' => $consultant->publicDisplayName(),
             'description' => $card['featuredLabel'] ?: $slot['description'],
             'location' => self::shortLocation($card['locationLabel']),
@@ -282,6 +291,27 @@ final class HomepageEducationKnowledgeCards
     }
 
     /**
+     * @param  array<string, mixed>|null  $card
+     * @return array<string, mixed>|null
+     */
+    private static function applyHomepageImage(?array $card): ?array
+    {
+        if ($card === null) {
+            return null;
+        }
+
+        $keywords = $card['image_keywords'] ?? [];
+        if (! is_array($keywords) || $keywords === []) {
+            return $card;
+        }
+
+        $card['image'] = HomepageCategoryCardImage::forEducation($keywords, (string) $card['image']);
+        unset($card['image_keywords']);
+
+        return $card;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private static function coachingSlot(): array
@@ -289,6 +319,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('institutes.index', ['type' => 'coaching']),
             'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80',
+            'image_keywords' => ['coaching', 'classes', 'education'],
             'title' => 'Bright Future Academy',
             'description' => 'JEE, NEET, CUET & Board Exam Coaching',
             'location' => 'Rajpur Road, Dehradun',
@@ -308,6 +339,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('institutes.index'),
             'image' => 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80',
+            'image_keywords' => ['skill', 'training'],
             'title' => 'SkillUp Learning Hub',
             'description' => 'Digital Marketing, Web Development, Graphic Design & More',
             'location' => 'Dalanwala, Dehradun',
@@ -327,6 +359,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('community.index'),
             'image' => 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80',
+            'image_keywords' => ['article', 'insight', 'community'],
             'title' => 'Dehradun: A City in Transition',
             'description' => 'Urban Development, Environment & Lifestyle',
             'location' => 'Dehradun',
@@ -346,6 +379,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('educator.index'),
             'image' => 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+            'image_keywords' => ['career', 'guidance'],
             'title' => 'Career Compass',
             'description' => 'Career Options, Exam Guidance & Expert Advice',
             'location' => 'Dehradun',
@@ -365,6 +399,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('institutes.index'),
             'image' => 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80',
+            'image_keywords' => ['online', 'course'],
             'title' => 'SkillUp Learning Hub',
             'description' => 'Language, Computer, Digital Marketing & Professional Courses',
             'location' => 'Dehradun',
@@ -384,6 +419,7 @@ final class HomepageEducationKnowledgeCards
         return [
             'url' => route('study-materials.library'),
             'image' => 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80',
+            'image_keywords' => ['study', 'material', 'library'],
             'title' => 'Study Material Library',
             'description' => 'Notes, Question Papers, Solved Papers & Reference Resources',
             'location' => 'Dehradun',

@@ -65,7 +65,7 @@ final class HomepagePopularServicesCards
     private static function mapServiceProvider(ServiceProvider $serviceProvider, bool $hasLocation): ?array
     {
         $card = ServiceProviderListingCard::data($serviceProvider, $hasLocation);
-        $categoryMeta = self::categoryMeta($card['categoryName']);
+        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForServiceProvider($serviceProvider));
         $description = $card['featuredLabel'] ?? '';
         if ($description === '' && ! empty($card['serviceTags'])) {
             $description = implode(', ', array_slice($card['serviceTags'], 0, 3));
