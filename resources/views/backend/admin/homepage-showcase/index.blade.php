@@ -5,6 +5,15 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+    /* The form wraps the modal header/body/footer, so it has to be the shrinking flex column
+       for .modal-dialog-scrollable to scroll the body instead of clipping it */
+    #homepageShowcaseForm {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+</style>
 @endpush
 
 @section('content')
