@@ -50,6 +50,7 @@
                                     {{ number_format($card['rating_score'], 1) }}
                                 </p>
                             </div>
+                            <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
                             <div class="homepage-popular-services-card__desc-row">
                                 <p class="homepage-popular-services-card__desc">{{ $card['description'] }}</p>
                                 <span class="homepage-popular-services-card__reviews">({{ number_format($card['rating_count']) }})</span>

@@ -162,8 +162,8 @@
     transform: scale(1.04);
   }
 
-  /* Text sizes and spacing match the offers/ads promo cards so paired panels look the same;
-     name + category sit at the top, location + rating at the bottom (like the offer meta) */
+  /* Same body spacing and name size as the other sections' cards: name, then a pill
+     (discount, or the category when no discount is set — see .homepage-card-pill) */
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__body {
     min-height: 0;
     padding: 11px 12px 12px;
@@ -182,44 +182,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__meta {
-    font-size: 0.6875rem;
-    line-height: 1.35;
-    color: #64748b;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc,
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
-    font-size: 0.6875rem;
-    line-height: 1.35;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc {
-    margin-top: auto;
-    padding-top: 6px;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc i {
-    color: #dc2626;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
-    font-weight: 600;
-    color: #334155;
-  }
-
-  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating i {
-    color: #eab308;
   }
 
   .homepage-desktop-panels:not(:has(.homepage-marketplace-promo--offers)) > .homepage-showcase-panel--businesses {

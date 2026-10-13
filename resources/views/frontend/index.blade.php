@@ -247,15 +247,11 @@
                 </div>
                 <div class="homepage-showcase-card__body">
                   <h3 class="homepage-showcase-card__name">{{ $business['name'] }}</h3>
-                  <p class="homepage-showcase-card__meta">{{ $business['category'] }}</p>
-                  <p class="homepage-showcase-card__loc">
-                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                    {{ $business['location'] }}
-                  </p>
-                  <p class="homepage-showcase-card__rating">
-                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                    {{ $business['rating'] }} ({{ $business['reviews'] }})
-                  </p>
+                  @if(!empty($business['discount']))
+                    <span class="homepage-card-pill homepage-card-pill--deal">{{ $business['discount'] }}</span>
+                  @else
+                    <span class="homepage-card-pill homepage-card-pill--tag">{{ $business['category'] }}</span>
+                  @endif
                 </div>
               </a>
             </div>

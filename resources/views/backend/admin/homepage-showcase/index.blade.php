@@ -105,7 +105,7 @@
                             <label class="form-label">Category icon</label>
                             <input type="text" name="category_icon" class="form-control" placeholder="fa-store">
                         </div>
-                        <div class="col-md-6 js-field-offer">
+                        <div class="col-md-6">
                             <label class="form-label">Discount badge</label>
                             <input type="text" name="discount_badge" class="form-control" placeholder="30% OFF">
                         </div>

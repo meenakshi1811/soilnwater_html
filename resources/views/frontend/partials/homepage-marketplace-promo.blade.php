@@ -66,6 +66,8 @@
                         </div>
                         <div class="homepage-marketplace-promo-card__body">
                             <h3 class="homepage-marketplace-promo-card__title">{{ $card['title'] }}</h3>
+                            {{-- Compact name + discount pill; shown only in the desktop panels --}}
+                            <span class="homepage-card-pill homepage-card-pill--deal">{{ $card['discount_badge'] }}</span>
                             <p class="homepage-marketplace-promo-card__desc">{{ $card['description'] }}</p>
                             <div class="homepage-marketplace-promo-card__meta">
                                 <p class="homepage-marketplace-promo-card__location">

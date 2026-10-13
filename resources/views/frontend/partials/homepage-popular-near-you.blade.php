@@ -63,6 +63,11 @@
                                     <small>({{ number_format($card['rating_count']) }})</small>
                                 </p>
                             </div>
+                            @if(filled($card['offer_badge']))
+                                <span class="homepage-card-pill homepage-card-pill--deal">{{ $card['offer_badge'] }}@if(filled($card['offer_badge_highlight'])) {{ $card['offer_badge_highlight'] }}@endif</span>
+                            @else
+                                <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
+                            @endif
                             <p class="homepage-popular-near-card__desc">{{ $card['description'] }}</p>
                             <p class="homepage-popular-near-card__location">
                                 <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
