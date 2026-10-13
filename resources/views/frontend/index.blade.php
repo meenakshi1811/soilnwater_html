@@ -265,16 +265,8 @@
             <article class="homepage-featured-promo-card homepage-featured-promo-card--{{ $business['theme'] }}">
               <a href="{{ $business['url'] }}" class="homepage-featured-promo-card__link">
                 <div class="homepage-featured-promo-card__frame">
-                  <div class="homepage-featured-promo-card__copy">
-                    <h3 class="homepage-featured-promo-card__headline">{{ $business['headline'] }}</h3>
-                    <p class="homepage-featured-promo-card__subheadline">{{ $business['subheadline'] }}</p>
-                  </div>
                   <div class="homepage-featured-promo-card__hero">
                     <img src="{{ $business['image'] }}" alt="{{ $business['name'] }}" loading="lazy" decoding="async" width="900" height="560">
-                  </div>
-                  <div class="homepage-featured-promo-card__footer">
-                    <span class="homepage-featured-promo-card__pause" aria-hidden="true"><i class="fa-solid fa-pause"></i></span>
-                    <span class="homepage-featured-promo-card__tc">*T&amp;C apply</span>
                   </div>
                 </div>
               </a>

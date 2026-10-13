@@ -385,31 +385,23 @@
     color: inherit;
   }
 
+  /* The card is just the uploaded creative (any message is designed into the image) inside a
+     coloured border; the colour comes from the item's category tone (slate when unknown) */
   .homepage-featured-promo-card__frame {
     position: relative;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    border-radius: 12px;
-    padding: 11px 10px 8px;
-    color: #fff;
+    border-radius: 14px;
+    padding: 6px;
     overflow: hidden;
+    background: linear-gradient(165deg, #94a3b8 0%, #475569 45%, #1e293b 100%);
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
   }
 
-  .homepage-featured-promo-card__frame::before {
-    content: "";
-    position: absolute;
-    inset: 8px;
-    border: 2px dashed rgba(255, 255, 255, 0.55);
-    border-radius: 10px;
-    pointer-events: none;
-    z-index: 1;
-  }
-
   .homepage-featured-promo-card--orange .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #fb923c 0%, #ea580c 42%, #c2410c 100%);
+    background: linear-gradient(165deg, #fb923c 0%, #ea580c 45%, #c2410c 100%);
   }
 
   .homepage-featured-promo-card--green .homepage-featured-promo-card__frame {
@@ -420,55 +412,42 @@
     background: linear-gradient(165deg, #f87171 0%, #dc2626 45%, #991b1b 100%);
   }
 
-  .homepage-featured-promo-card__copy {
-    position: relative;
-    z-index: 2;
-    flex: 0 0 auto;
-    min-height: 4.25rem;
-    padding: 2px 6px 10px;
+  .homepage-featured-promo-card--purple .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #c084fc 0%, #9333ea 45%, #6b21a8 100%);
   }
 
-  .homepage-featured-promo-card__headline {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    margin: 0 0 4px;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+  .homepage-featured-promo-card--blue .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #60a5fa 0%, #2563eb 45%, #1e40af 100%);
   }
 
-  .homepage-featured-promo-card__subheadline {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    line-height: 1.3;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.92);
-    max-width: 100%;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+  .homepage-featured-promo-card--brown .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #d6a06b 0%, #a16207 45%, #713f12 100%);
   }
 
-  /* The uploaded image is the card's creative: shown whole, never cropped. The white frame fills
-     the rest of the card so cards in the rail stay equal when image shapes differ (very tall
-     images are capped and shrunk to fit) */
+  .homepage-featured-promo-card--teal .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #2dd4bf 0%, #0d9488 45%, #115e59 100%);
+  }
+
+  .homepage-featured-promo-card--pink .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #f472b6 0%, #db2777 45%, #9d174d 100%);
+  }
+
+  .homepage-featured-promo-card--indigo .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #818cf8 0%, #4f46e5 45%, #3730a3 100%);
+  }
+
+  .homepage-featured-promo-card--amber .homepage-featured-promo-card__frame {
+    background: linear-gradient(165deg, #fbbf24 0%, #d97706 45%, #92400e 100%);
+  }
+
+  /* Image shown whole, never cropped; the white backing fills the card so cards in the rail stay
+     equal when image shapes differ (very tall images are capped and shrunk to fit) */
   .homepage-featured-promo-card__hero {
-    position: relative;
-    z-index: 2;
     flex: 1 1 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 4px;
-    border-radius: 10px;
+    border-radius: 9px;
     overflow: hidden;
     background: #fff;
   }
@@ -477,38 +456,8 @@
     display: block;
     width: 100%;
     height: 100%;
-    max-height: 22rem;
+    max-height: 28rem;
     object-fit: contain;
-  }
-
-  .homepage-featured-promo-card__footer {
-    position: relative;
-    z-index: 2;
-    flex: 0 0 auto;
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 2px 0;
-  }
-
-  .homepage-featured-promo-card__pause {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(15, 23, 42, 0.72);
-    color: #fff;
-    font-size: 0.65rem;
-  }
-
-  .homepage-featured-promo-card__tc {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.88);
   }
 
   .homepage-showcase-panel--offers {
