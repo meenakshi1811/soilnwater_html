@@ -1338,15 +1338,18 @@
     opacity: 1;
     pointer-events: auto;
   }
+}
 
+/* Phones: Explore SoilnWater shows the same pastel cards as desktop (icon, title, description), 2 x 2 */
+@media (max-width: 767.98px) {
   .homepage-root .hero-hub-cards--mobile-chips {
-    padding: 4px 0 6px;
+    padding: 8px 16px 12px;
     background: #fff;
     border-bottom: 1px solid #e8eef4;
   }
 
   .homepage-root .hero-hub-cards__mobile-kicker {
-    margin: 0 16px 4px;
+    margin: 0 0 8px;
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     font-weight: 700;
@@ -1355,130 +1358,49 @@
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-cards__inner {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: 16px;
-    padding: 0 16px 2px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-cards__inner::-webkit-scrollbar {
-    display: none;
+    padding: 0;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card {
-    flex: 0 0 3.875rem;
-    width: 3.875rem;
-    scroll-snap-align: start;
     min-height: 0;
-    padding: 0;
-    border-radius: 0;
-    background: transparent !important;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    grid-template-rows: unset;
-    text-align: center;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card:active .hero-hub-card__icon {
-    transform: scale(0.94);
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card:hover {
-    transform: none;
-    box-shadow: none;
+    padding: 12px 10px;
+    border-radius: 12px;
+    grid-template-rows: auto auto 1fr;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__icon {
-    width: 3.375rem;
-    height: 3.375rem;
-    max-width: 3.375rem;
-    aspect-ratio: 1;
-    margin: 0;
-    border-radius: 50%;
-    font-size: 1.35rem;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--businesses .hero-hub-card__icon {
-    background: #fff7ed;
-    color: #ea580c;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--services .hero-hub-card__icon {
-    background: #ecfdf5;
-    color: #16a34a;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--consultants .hero-hub-card__icon {
-    background: #f5f3ff;
-    color: #9333ea;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--education .hero-hub-card__icon {
-    background: #eff6ff;
-    color: #2563eb;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--offers-ads .hero-hub-card__icon {
-    background: #fff1f2;
-    color: #ef4444;
-    position: relative;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__ad-badge {
-    right: 1px;
-    bottom: 1px;
-    padding: 2px 4px;
-    font-size: 0.4375rem;
-    border-radius: 4px;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card--community .hero-hub-card__icon {
-    background: #f0fdf4;
-    color: #166534;
+    width: 28px;
+    height: 28px;
+    margin: 0 0 6px;
+    font-size: 1.25rem;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin: 0;
-    color: #1e293b;
-    letter-spacing: -0.01em;
-    width: 100%;
-    min-height: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    margin: 0 0 3px;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-full {
-    display: none;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-short {
     display: inline;
   }
 
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-short {
+    display: none;
+  }
+
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__desc {
-    display: none !important;
+    display: -webkit-box;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    margin: 0;
+    max-width: none;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
   }
 }
 
@@ -1713,18 +1635,6 @@
     padding: 8px 10px;
     font-size: 0.75rem;
     text-align: center;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card {
-    flex: 0 0 3.625rem;
-    width: 3.625rem;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__icon {
-    width: 3.125rem;
-    height: 3.125rem;
-    max-width: 3.125rem;
-    font-size: 1.2rem;
   }
 
   .header-mobile-menu.show,
