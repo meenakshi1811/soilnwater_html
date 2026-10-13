@@ -1,15 +1,58 @@
 /**
- * Homepage sections — bright yellow-to-orange gradient shells with dark headings,
- * and white cards whose image sits inset inside a white border.
- * Overrides the per-section gradients and white heading text set in each
- * section's own stylesheet; load after them.
+ * Homepage sections — bright gradient shells (each section keeps its own colour, light at the
+ * top-left to vivid at the bottom-right) with dark headings, and white cards whose image sits
+ * inset inside a white border. Overrides the dark per-section gradients and white heading text
+ * set in each section's own stylesheet; load after them.
  */
 
 .homepage-root {
-  --hp-section-bg: linear-gradient(115deg, #ffc21a 0%, #ff9f1a 40%, #ff7a00 75%, #ff6200 100%);
   --hp-section-text: #0f1111;
   --hp-section-muted: rgba(15, 17, 17, 0.78);
+}
+
+/* Per-section palette: --hp-section-bg (shell) and --hp-section-accent (highlighted title word) */
+.homepage-root .homepage-desktop-panels .homepage-showcase-panel--businesses {
+  --hp-section-bg: linear-gradient(115deg, #dcfce7 0%, #86efac 45%, #22c55e 100%);
+}
+
+.homepage-root .homepage-marketplace-promo--offers {
+  --hp-section-bg: linear-gradient(115deg, #ffd0a8 0%, #ff9a62 45%, #ff5a36 100%);
   --hp-section-accent: #b42318;
+}
+
+.homepage-root .homepage-marketplace-promo--ads {
+  --hp-section-bg: linear-gradient(115deg, #cffafe 0%, #67e8f9 45%, #06b6d4 100%);
+  --hp-section-accent: #155e75;
+}
+
+.homepage-root .homepage-popular-near {
+  --hp-section-bg: linear-gradient(115deg, #bbf7d0 0%, #4ade80 50%, #16a34a 100%);
+  --hp-section-accent: #14532d;
+}
+
+.homepage-root .homepage-popular-services {
+  --hp-section-bg: linear-gradient(115deg, #ecfccb 0%, #a3e635 45%, #65a30d 100%);
+  --hp-section-accent: #365314;
+}
+
+.homepage-root .homepage-education-knowledge {
+  --hp-section-bg: linear-gradient(115deg, #bfdbfe 0%, #60a5fa 45%, #2563eb 100%);
+  --hp-section-accent: #1e3a8a;
+}
+
+.homepage-root .homepage-study-library {
+  --hp-section-bg: linear-gradient(115deg, #ddd6fe 0%, #a78bfa 45%, #7c3aed 100%);
+  --hp-section-accent: #4c1d95;
+}
+
+.homepage-root .homepage-consultants {
+  --hp-section-bg: linear-gradient(115deg, #c7d2fe 0%, #818cf8 45%, #4f46e5 100%);
+  --hp-section-accent: #312e81;
+}
+
+.homepage-root .homepage-community-hub {
+  --hp-section-bg: linear-gradient(115deg, #fed7aa 0%, #fb923c 45%, #ea580c 100%);
+  --hp-section-accent: #7c2d12;
 }
 
 /* ── Section shells ── */
@@ -78,7 +121,7 @@
 
 .homepage-root .homepage-showcase-panel__icon--business {
   background: #fff;
-  color: #ea580c;
+  color: #dc2626;
 }
 
 .homepage-root .homepage-popular-near__pin-wave {
