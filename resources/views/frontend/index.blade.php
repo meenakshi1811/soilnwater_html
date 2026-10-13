@@ -270,18 +270,7 @@
                     <p class="homepage-featured-promo-card__subheadline">{{ $business['subheadline'] }}</p>
                   </div>
                   <div class="homepage-featured-promo-card__hero">
-                    <img src="{{ $business['image'] }}" alt="" loading="lazy" decoding="async" width="900" height="560">
-                    <div class="homepage-featured-promo-card__overlay">
-                      <span class="homepage-featured-promo-card__badge">{{ $business['promo_badge'] }}</span>
-                      <strong class="homepage-featured-promo-card__promo-title">{{ $business['promo_title'] }}</strong>
-                      <span class="homepage-featured-promo-card__promo-sub">{{ $business['promo_sub'] }}</span>
-                    </div>
-                  </div>
-                  <div class="homepage-featured-promo-card__strip homepage-featured-promo-card__strip--primary">
-                    {{ $business['strip_primary'] }}
-                  </div>
-                  <div class="homepage-featured-promo-card__strip homepage-featured-promo-card__strip--secondary">
-                    {{ $business['strip_secondary'] }}
+                    <img src="{{ $business['image'] }}" alt="{{ $business['name'] }}" loading="lazy" decoding="async" width="900" height="560">
                   </div>
                   <div class="homepage-featured-promo-card__footer">
                     <span class="homepage-featured-promo-card__pause" aria-hidden="true"><i class="fa-solid fa-pause"></i></span>
