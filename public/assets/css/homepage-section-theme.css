@@ -1,0 +1,121 @@
+/**
+ * Homepage sections — bright yellow-to-orange gradient shells with dark headings,
+ * and white cards whose image sits inset inside a white border.
+ * Overrides the per-section gradients and white heading text set in each
+ * section's own stylesheet; load after them.
+ */
+
+.homepage-root {
+  --hp-section-bg: linear-gradient(115deg, #ffc21a 0%, #ff9f1a 40%, #ff7a00 75%, #ff6200 100%);
+  --hp-section-text: #0f1111;
+  --hp-section-muted: rgba(15, 17, 17, 0.78);
+  --hp-section-accent: #b42318;
+}
+
+/* ── Section shells ── */
+.homepage-root .homepage-marketplace-promo__shell,
+.homepage-root .homepage-popular-near__shell,
+.homepage-root .homepage-popular-services__shell,
+.homepage-root .homepage-education-knowledge__shell,
+.homepage-root .homepage-study-library__shell,
+.homepage-root .homepage-consultants__shell,
+.homepage-root .homepage-community-hub__shell,
+.homepage-root .homepage-desktop-panels .homepage-showcase-panel--businesses {
+  background: var(--hp-section-bg);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+/* ── Headings ── */
+.homepage-root .homepage-marketplace-promo__title,
+.homepage-root .homepage-popular-near__title,
+.homepage-root .homepage-popular-services__title,
+.homepage-root .homepage-education-knowledge__title,
+.homepage-root .homepage-study-library__title,
+.homepage-root .homepage-consultants__title,
+.homepage-root .homepage-community-hub__title,
+.homepage-root .homepage-showcase-panel__title {
+  color: var(--hp-section-text);
+}
+
+.homepage-root .homepage-marketplace-promo__title-accent,
+.homepage-root .homepage-popular-near__title-accent,
+.homepage-root .homepage-popular-services__title-accent,
+.homepage-root .homepage-education-knowledge__title-accent,
+.homepage-root .homepage-study-library__title-accent,
+.homepage-root .homepage-consultants__title-accent,
+.homepage-root .homepage-community-hub__title-accent {
+  color: var(--hp-section-accent);
+}
+
+.homepage-root .homepage-marketplace-promo__subtitle,
+.homepage-root .homepage-popular-near__subtitle,
+.homepage-root .homepage-popular-services__subtitle,
+.homepage-root .homepage-education-knowledge__subtitle,
+.homepage-root .homepage-consultants__subtitle,
+.homepage-root .homepage-community-hub__subtitle,
+.homepage-root .homepage-showcase-panel__subtitle {
+  color: var(--hp-section-muted);
+}
+
+.homepage-root .homepage-marketplace-promo__head-icon,
+.homepage-root .homepage-popular-near__pin,
+.homepage-root .homepage-popular-services__head-icon,
+.homepage-root .homepage-education-knowledge__head-icon,
+.homepage-root .homepage-study-library__head-icon,
+.homepage-root .homepage-consultants__head-icon,
+.homepage-root .homepage-community-hub__head-icon,
+.homepage-root .homepage-marketplace-promo__see-all,
+.homepage-root .homepage-popular-near__see-all,
+.homepage-root .homepage-popular-services__see-all,
+.homepage-root .homepage-education-knowledge__see-all,
+.homepage-root .homepage-study-library__see-all,
+.homepage-root .homepage-consultants__see-all,
+.homepage-root .homepage-community-hub__see-all,
+.homepage-root .homepage-showcase-panel__view-all,
+.homepage-root .homepage-showcase-panel__view-all:hover {
+  color: var(--hp-section-text);
+}
+
+.homepage-root .homepage-showcase-panel__icon--business {
+  background: #fff;
+  color: #ea580c;
+}
+
+.homepage-root .homepage-popular-near__pin-wave {
+  background: var(--hp-section-text);
+}
+
+.homepage-root .homepage-marketplace-promo__spark,
+.homepage-root .homepage-education-knowledge__spark,
+.homepage-root .homepage-study-library__spark {
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.homepage-root .homepage-consultants__enquiry {
+  background: #fff;
+  color: var(--hp-section-text);
+}
+
+.homepage-root .homepage-study-library__nav a {
+  color: var(--hp-section-text);
+}
+
+.homepage-root .homepage-study-library__nav-dot {
+  color: rgba(15, 17, 17, 0.45);
+}
+
+/* ── Cards: image inset inside a white border ── */
+.homepage-root .homepage-marketplace-promo-card__media,
+.homepage-root .homepage-popular-near-card__media,
+.homepage-root .homepage-popular-services-card__media,
+.homepage-root .homepage-education-knowledge-card__media,
+.homepage-root .homepage-study-library-card__media,
+.homepage-root .homepage-consultants-card__media,
+.homepage-root .homepage-community-hub-card__media,
+.homepage-root .homepage-desktop-panels .homepage-showcase-card__media {
+  width: auto;
+  margin: 8px 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}

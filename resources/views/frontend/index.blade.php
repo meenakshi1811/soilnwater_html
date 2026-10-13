@@ -187,7 +187,6 @@
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
       <h2 class="hero-hub-card__title">Businesses</h2>
       <p class="hero-hub-card__desc">Vendors, consultants &amp; services</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
@@ -196,7 +195,6 @@
         <span class="hero-hub-card__title-short" aria-hidden="true">Education</span>
       </h2>
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('frontend.offers_ads.hub') }}" class="hero-hub-card hero-hub-card--offers-ads">
       <span class="hero-hub-card__icon" aria-hidden="true">
@@ -205,13 +203,11 @@
       </span>
       <h2 class="hero-hub-card__title">Offers</h2>
       <p class="hero-hub-card__desc">Deals, discounts &amp; classified ads</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <a href="{{ route('community.index') }}" class="hero-hub-card hero-hub-card--community">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
       <h2 class="hero-hub-card__title">Community</h2>
       <p class="hero-hub-card__desc">Stories, people, ideas and local voices</p>
-      <span class="hero-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
     </a>
   </div>
 </section>
@@ -1636,6 +1632,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-discover-grid.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-vendors-mobile.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/homepage-spacing.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/homepage-section-theme.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/community-hub-listing.css') }}?v={{ file_exists(public_path('assets/css/community-hub-listing.css')) ? filemtime(public_path('assets/css/community-hub-listing.css')) : time() }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
