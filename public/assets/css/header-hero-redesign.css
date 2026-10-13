@@ -1340,7 +1340,7 @@
   }
 }
 
-/* Phones: Explore SoilnWater shows the same pastel cards as desktop (icon, title, description), 2 x 2 */
+/* Phones: Explore SoilnWater shows small pastel cards (icon + short title), all four in one row */
 @media (max-width: 767.98px) {
   .homepage-root .hero-hub-cards--mobile-chips {
     padding: 8px 16px 12px;
@@ -1359,48 +1359,53 @@
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-cards__inner {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
     padding: 0;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card {
     min-height: 0;
-    padding: 12px 10px;
-    border-radius: 12px;
-    grid-template-rows: auto auto 1fr;
+    padding: 10px 4px 9px;
+    border-radius: 10px;
+    grid-template-rows: auto auto;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__icon {
-    width: 28px;
-    height: 28px;
-    margin: 0 0 6px;
-    font-size: 1.25rem;
+    width: 24px;
+    height: 24px;
+    margin: 0 0 5px;
+    font-size: 1.125rem;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title {
-    font-size: 0.875rem;
-    line-height: 1.25;
-    margin: 0 0 3px;
+    font-size: min(0.75rem, 3.3vw);
+    line-height: 1.2;
+    margin: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-full {
-    display: inline;
-  }
-
-  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-short {
     display: none;
   }
 
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__title-short {
+    display: inline;
+  }
+
   .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__desc {
-    display: -webkit-box;
-    font-size: 0.6875rem;
-    line-height: 1.35;
-    margin: 0;
-    max-width: none;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+    display: none;
+  }
+
+  .homepage-root .hero-hub-cards--mobile-chips .hero-hub-card__ad-badge {
+    right: -6px;
+    bottom: -3px;
+    padding: 2px 4px;
+    font-size: 0.4375rem;
+    border-radius: 4px;
   }
 }
 
