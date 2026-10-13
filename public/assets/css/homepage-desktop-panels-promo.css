@@ -27,6 +27,8 @@
     width: 100%;
   }
 
+  /* Section and shell pass the two panel rows (head, cards) through via subgrid
+     (row span is set in homepage-desktop-showcase.css) */
   .homepage-desktop-panels > .homepage-marketplace-promo,
   .homepage-desktop-panels > .homepage-popular-near,
   .homepage-desktop-panels > .homepage-popular-services,
@@ -37,6 +39,9 @@
     padding: 0;
     margin: 0;
     background: transparent;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo__shell,
@@ -49,10 +54,11 @@
     margin: 0 !important;
     max-width: none !important;
     width: 100%;
-    height: 100%;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
+    grid-row: span 2;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
     border-radius: 16px;
     overflow: hidden;
     padding: 12px 10px 10px;
@@ -66,8 +72,7 @@
   .homepage-desktop-panels .homepage-study-library__head,
   .homepage-desktop-panels .homepage-consultants__head,
   .homepage-desktop-panels .homepage-community-hub__head {
-    flex-shrink: 0;
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
@@ -80,6 +85,8 @@
   .homepage-desktop-panels .homepage-community-hub__grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Always two equal rows filling the panel, so cards in side-by-side panels match */
+    grid-template-rows: repeat(2, 1fr);
     gap: 12px;
     align-items: stretch;
     overflow: visible !important;
@@ -247,6 +254,7 @@
   .homepage-desktop-panels > :last-child .homepage-community-hub__grid,
   .homepage-desktop-panels > :last-child .homepage-showcase-carousel--featured-grid .card-carousel-track {
     grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-template-rows: none;
   }
 }
 
@@ -259,6 +267,7 @@
   .homepage-desktop-panels .homepage-consultants__shell,
   .homepage-desktop-panels .homepage-community-hub__shell {
     padding: 16px 14px 14px;
+    gap: 10px;
   }
 
   .homepage-desktop-panels .homepage-marketplace-promo--offers .homepage-marketplace-promo__grid,
@@ -270,15 +279,5 @@
   .homepage-desktop-panels .homepage-consultants__grid,
   .homepage-desktop-panels .homepage-community-hub__grid {
     gap: 16px 14px;
-  }
-
-  .homepage-desktop-panels .homepage-marketplace-promo__head,
-  .homepage-desktop-panels .homepage-popular-services__head,
-  .homepage-desktop-panels .homepage-popular-near__head,
-  .homepage-desktop-panels .homepage-education-knowledge__head,
-  .homepage-desktop-panels .homepage-study-library__head,
-  .homepage-desktop-panels .homepage-consultants__head,
-  .homepage-desktop-panels .homepage-community-hub__head {
-    margin-bottom: 10px;
   }
 }

@@ -51,25 +51,34 @@
     margin: 0 !important;
   }
 
+  /* Every panel spans two rows of the panels grid (head, cards) and shares them with the panel
+     beside it via subgrid, so heads and card grids line up across side-by-side panels */
+  .homepage-desktop-panels > *,
+  .homepage-desktop-panels .homepage-showcase-panel--businesses {
+    grid-row: span 2;
+  }
+
   .homepage-desktop-panels .homepage-showcase-panel--businesses {
     width: 100%;
     max-width: none;
     min-width: 0;
-    height: 100%;
     align-self: stretch;
     box-sizing: border-box;
     background: linear-gradient(180deg, #ecfdf3 0%, #e3f3ea 55%, #d8f0e3 100%);
-    border: 1px solid rgba(22, 163, 74, 0.14);
+    /* Inset shadow instead of a border so the content box is exactly as wide as the promo shells */
+    border: 0;
     border-radius: 16px;
     padding: 12px 10px 10px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    box-shadow:
+      inset 0 0 0 1px rgba(22, 163, 74, 0.14),
+      0 4px 14px rgba(15, 23, 42, 0.06);
   }
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid {
-    flex: 1 1 auto;
     min-height: 0;
     padding: 0;
   }
@@ -78,9 +87,12 @@
     display: none !important;
   }
 
+  /* Two equal rows filling the panel, so cards match the paired panel's cards */
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-track {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, 1fr);
+    height: 100%;
     gap: 12px;
     align-items: stretch;
     overflow: visible !important;
@@ -109,7 +121,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(255, 255, 255, 0.85);
+    border: 0;
     border-radius: 12px;
     background: #fff;
     overflow: hidden;
@@ -121,7 +133,6 @@
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(34, 197, 94, 0.35);
     box-shadow:
       0 8px 20px rgba(15, 23, 42, 0.1),
       0 14px 32px rgba(22, 101, 52, 0.14);
@@ -151,29 +162,31 @@
     transform: scale(1.04);
   }
 
+  /* Text sizes and spacing match the offers/ads promo cards so paired panels look the same;
+     name + category sit at the top, location + rating at the bottom (like the offer meta) */
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__body {
-    min-height: 82px;
-    padding: 8px 8px 9px;
-    gap: 2px;
+    min-height: 0;
+    padding: 11px 12px 12px;
+    gap: 4px;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
   }
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__name {
-    font-size: 0.75rem;
+    font-size: 0.9375rem;
     font-weight: 800;
     line-height: 1.25;
     color: #0f172a;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
     margin: 0;
   }
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__meta {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
+    line-height: 1.35;
     color: #64748b;
     margin: 0;
     white-space: nowrap;
@@ -183,11 +196,17 @@
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc,
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
+    line-height: 1.35;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc {
+    margin-top: auto;
+    padding-top: 6px;
   }
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__loc i {
@@ -195,7 +214,6 @@
   }
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .homepage-showcase-card__rating {
-    margin-top: auto;
     font-weight: 600;
     color: #334155;
   }
@@ -217,6 +235,12 @@
 
   .homepage-desktop-panels .homepage-showcase-carousel--featured-grid .card-carousel-track {
     gap: 16px 14px;
+  }
+
+  /* Same padding and head spacing as the promo section shells */
+  .homepage-desktop-panels .homepage-showcase-panel--businesses {
+    padding: 16px 14px 14px;
+    gap: 10px;
   }
 
   .hp-desktop--community .hp-desktop__carousel.card-carousel[data-carousel-cols="3"] {
