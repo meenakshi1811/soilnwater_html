@@ -479,7 +479,7 @@
     --fp-cols: 3;
     --fp-gap: 16px;
     gap: var(--fp-gap);
-    padding: 2px 0 14px;
+    padding: 2px 0 10px;
   }
 
   .homepage-featured-promo-rail__arrow {

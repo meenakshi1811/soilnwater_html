@@ -10,6 +10,14 @@
   --hp-section-muted: rgba(15, 17, 17, 0.78);
 }
 
+/* Featured businesses row (tablet + desktop): bright green panel behind the image cards */
+@media (min-width: 768px) {
+  .homepage-root .homepage-desktop-panels .homepage-showcase-panel--businesses {
+    background: linear-gradient(115deg, #dcfce7 0%, #86efac 45%, #22c55e 100%);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+}
+
 /* Per-section palette: --hp-section-bg (shell) and --hp-section-accent (highlighted title word) */
 .homepage-root .homepage-marketplace-promo--offers {
   --hp-section-bg: linear-gradient(115deg, #ffd0a8 0%, #ff9a62 45%, #ff5a36 100%);
