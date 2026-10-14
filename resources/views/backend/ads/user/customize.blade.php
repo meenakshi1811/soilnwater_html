@@ -886,7 +886,13 @@
         }
 
         if (locationInput) {
-            locationInput.addEventListener('input', function () {
+            locationInput.addEventListener('input', function (event) {
+                // Only real typing invalidates the picked place; the Places widget fires a synthetic
+                // 'input' right after a suggestion is picked, which must not wipe its coordinates
+                if (!event.isTrusted) {
+                    return;
+                }
+
                 if (locationLatInput) locationLatInput.value = '';
                 if (locationLngInput) locationLngInput.value = '';
             });

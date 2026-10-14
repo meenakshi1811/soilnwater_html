@@ -11213,7 +11213,13 @@ The mountains keep.</pre>
             },
         });
 
-        locationInput.addEventListener('input', function () {
+        locationInput.addEventListener('input', function (event) {
+            // Only real typing invalidates the picked place. The Places widget fires a synthetic
+            // 'input' right after a suggestion is picked, which must not wipe the coordinates it set.
+            if (!event.isTrusted) {
+                return;
+            }
+
             if (latitudeInput) latitudeInput.value = '';
             if (longitudeInput) longitudeInput.value = '';
         });
