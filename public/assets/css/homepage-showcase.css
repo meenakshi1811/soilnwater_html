@@ -473,8 +473,8 @@
 }
 
 /* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
-   3 cards up to 1199px (extra cards reached with the arrows), then all 9 featured businesses in
-   one row from 1200px; the arrows only appear if more than 9 are added */
+   3 cards up to 1199px (extra cards reached with the arrows), then 7 featured businesses in one
+   row from 1200px; the arrows only appear if more than 7 are added */
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 3;
@@ -543,7 +543,7 @@
 
 @media (min-width: 1200px) {
   .homepage-featured-promo-rail__scroll {
-    --fp-cols: 9;
+    --fp-cols: 7;
     --fp-gap: 12px;
   }
 
