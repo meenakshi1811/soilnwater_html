@@ -466,8 +466,9 @@
   object-fit: contain;
 }
 
-/* Tablet + desktop: one full-width row — 3 cards on tablets, 4 on small laptops, 6 on wider
-   screens; extra cards scroll sideways (thin scrollbar so mouse users can reach them) */
+/* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
+   3 cards up to 1199px, 4 from 1200px, 5 from 1600px; extra cards scroll sideways (thin
+   scrollbar so mouse users can reach them) */
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 3;
@@ -481,17 +482,31 @@
     flex: 0 0 calc((100% - var(--fp-gap) * (var(--fp-cols) - 1)) / var(--fp-cols));
     width: calc((100% - var(--fp-gap) * (var(--fp-cols) - 1)) / var(--fp-cols));
   }
-}
 
-@media (min-width: 992px) {
-  .homepage-featured-promo-rail__scroll {
-    --fp-cols: 4;
+  .homepage-featured-promo-card__frame {
+    padding: 6px;
+    border-radius: 14px;
+  }
+
+  .homepage-featured-promo-card__hero {
+    flex: 0 0 auto;
+    aspect-ratio: 3 / 4;
+  }
+
+  .homepage-featured-promo-card__hero img {
+    max-height: none;
   }
 }
 
 @media (min-width: 1200px) {
   .homepage-featured-promo-rail__scroll {
-    --fp-cols: 6;
+    --fp-cols: 4;
+  }
+}
+
+@media (min-width: 1600px) {
+  .homepage-featured-promo-rail__scroll {
+    --fp-cols: 5;
   }
 }
 
