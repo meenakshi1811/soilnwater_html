@@ -339,11 +339,6 @@
   .homepage-featured-promo-rail__scroll {
     scroll-padding-inline: 16px;
     padding: 0 16px 4px;
-    scrollbar-width: none;
-  }
-
-  .homepage-featured-promo-rail__scroll::-webkit-scrollbar {
-    display: none;
   }
 
   .homepage-featured-promo-card {
@@ -357,6 +352,7 @@
    The card is just the uploaded creative (any message is designed into the image) inside a
    coloured border; the colour comes from the item's category tone (slate when unknown). */
 .homepage-featured-promo-rail {
+  position: relative;
   width: 100%;
   max-width: none;
   overflow: hidden;
@@ -373,6 +369,16 @@
   overflow-y: hidden;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.homepage-featured-promo-rail__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prev/next arrows: tablet + desktop only (phones swipe); shown by JS only when the row overflows */
+.homepage-featured-promo-rail__arrow {
+  display: none;
 }
 
 .homepage-featured-promo-card {
@@ -467,15 +473,51 @@
 }
 
 /* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
-   3 cards up to 1199px, 4 from 1200px, 5 from 1600px; extra cards scroll sideways (thin
-   scrollbar so mouse users can reach them) */
+   3 cards up to 1199px, 4 from 1200px, 5 from 1600px; extra cards are reached with the arrows */
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 3;
     --fp-gap: 16px;
     gap: var(--fp-gap);
     padding: 2px 0 14px;
-    scrollbar-width: thin;
+  }
+
+  .homepage-featured-promo-rail__arrow {
+    position: absolute;
+    top: calc(50% - 6px);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.9375rem;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .homepage-featured-promo-rail__arrow:hover {
+    background: #f1f5f9;
+  }
+
+  .homepage-featured-promo-rail__arrow:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  .homepage-featured-promo-rail__arrow--prev {
+    left: 10px;
+  }
+
+  .homepage-featured-promo-rail__arrow--next {
+    right: 10px;
   }
 
   .homepage-featured-promo-card {

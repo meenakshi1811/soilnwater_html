@@ -218,6 +218,12 @@
     @if(!empty($homepageFeaturedBusinesses))
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
       <div class="homepage-featured-promo-rail" aria-label="Featured business promotions">
+        <button type="button" class="homepage-featured-promo-rail__arrow homepage-featured-promo-rail__arrow--prev" aria-label="Previous featured businesses" hidden>
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="homepage-featured-promo-rail__arrow homepage-featured-promo-rail__arrow--next" aria-label="More featured businesses" hidden>
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
         <div class="homepage-featured-promo-rail__scroll">
           @foreach($homepageFeaturedBusinesses as $business)
             <article class="homepage-featured-promo-card homepage-featured-promo-card--{{ $business['theme'] }}">
@@ -1959,6 +1965,37 @@
     window.soilnwaterBindInstagramShareButton('offerShareInstagram', 'offerShareLink', {
       title: 'SoilnWater Offer',
       text: 'Check this offer on SoilnWater',
+    });
+  });
+</script>
+<script>
+  // Featured business row: prev/next arrows (tablet + desktop) instead of a visible scrollbar;
+  // each arrow shows only while there are more cards in its direction.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.homepage-featured-promo-rail').forEach(function (rail) {
+      const track = rail.querySelector('.homepage-featured-promo-rail__scroll');
+      const prev = rail.querySelector('.homepage-featured-promo-rail__arrow--prev');
+      const next = rail.querySelector('.homepage-featured-promo-rail__arrow--next');
+      if (!track || !prev || !next) return;
+
+      const step = function () {
+        const card = track.querySelector('.homepage-featured-promo-card');
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+        return card ? card.getBoundingClientRect().width + gap : track.clientWidth;
+      };
+
+      const update = function () {
+        const max = track.scrollWidth - track.clientWidth;
+        prev.hidden = track.scrollLeft <= 1;
+        next.hidden = track.scrollLeft >= max - 1;
+      };
+
+      prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+      next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+      track.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      window.addEventListener('load', update);
+      update();
     });
   });
 </script>
