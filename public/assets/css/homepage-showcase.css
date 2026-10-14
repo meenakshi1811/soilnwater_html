@@ -331,31 +331,14 @@
     margin: 0;
   }
 
-  .homepage-showcase-carousel {
-    --carousel-visible: 2;
-  }
-
+  /* Phones: swipe row, one card + a peek of the next */
   .homepage-featured-promo-rail {
-    width: 100%;
-    max-width: none;
-    overflow: hidden;
-    padding: 6px 0 6px;
-    margin: 0;
+    padding: 6px 0;
   }
 
   .homepage-featured-promo-rail__scroll {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline-start: 16px;
-    scroll-padding-inline-end: 16px;
+    scroll-padding-inline: 16px;
     padding: 0 16px 4px;
-    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
 
@@ -367,99 +350,152 @@
     flex: 0 0 min(72vw, 292px);
     width: min(72vw, 292px);
     max-width: 292px;
-    scroll-snap-align: start;
-    scroll-margin-inline-start: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-self: stretch;
+  }
+}
+
+/* ── Featured business promo cards (all screen sizes) ──
+   The card is just the uploaded creative (any message is designed into the image) inside a
+   coloured border; the colour comes from the item's category tone (slate when unknown). */
+.homepage-featured-promo-rail {
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+  margin: 0;
+}
+
+.homepage-featured-promo-rail__scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.homepage-featured-promo-card {
+  scroll-snap-align: start;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.homepage-featured-promo-card__link {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.homepage-featured-promo-card__frame {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-radius: 16px;
+  padding: 10px;
+  overflow: hidden;
+  background: linear-gradient(165deg, #94a3b8 0%, #475569 45%, #1e293b 100%);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+}
+
+.homepage-featured-promo-card--orange .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #fb923c 0%, #ea580c 45%, #c2410c 100%);
+}
+
+.homepage-featured-promo-card--green .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #22c55e 0%, #15803d 45%, #14532d 100%);
+}
+
+.homepage-featured-promo-card--red .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #f87171 0%, #dc2626 45%, #991b1b 100%);
+}
+
+.homepage-featured-promo-card--purple .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #c084fc 0%, #9333ea 45%, #6b21a8 100%);
+}
+
+.homepage-featured-promo-card--blue .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #60a5fa 0%, #2563eb 45%, #1e40af 100%);
+}
+
+.homepage-featured-promo-card--brown .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #d6a06b 0%, #a16207 45%, #713f12 100%);
+}
+
+.homepage-featured-promo-card--teal .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #2dd4bf 0%, #0d9488 45%, #115e59 100%);
+}
+
+.homepage-featured-promo-card--pink .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #f472b6 0%, #db2777 45%, #9d174d 100%);
+}
+
+.homepage-featured-promo-card--indigo .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #818cf8 0%, #4f46e5 45%, #3730a3 100%);
+}
+
+.homepage-featured-promo-card--amber .homepage-featured-promo-card__frame {
+  background: linear-gradient(165deg, #fbbf24 0%, #d97706 45%, #92400e 100%);
+}
+
+/* Image shown whole, never cropped; the white backing fills the card so cards in the row stay
+   equal when image shapes differ (very tall images are capped and shrunk to fit) */
+.homepage-featured-promo-card__hero {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.homepage-featured-promo-card__hero img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 28rem;
+  object-fit: contain;
+}
+
+/* Tablet + desktop: one full-width row — 3 cards on tablets, 4 on small laptops, 6 on wider
+   screens; extra cards scroll sideways (thin scrollbar so mouse users can reach them) */
+@media (min-width: 768px) {
+  .homepage-featured-promo-rail__scroll {
+    --fp-cols: 3;
+    --fp-gap: 16px;
+    gap: var(--fp-gap);
+    padding: 2px 0 14px;
+    scrollbar-width: thin;
   }
 
-  .homepage-featured-promo-card__link {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    height: 100%;
-    min-height: 100%;
-    text-decoration: none;
-    color: inherit;
+  .homepage-featured-promo-card {
+    flex: 0 0 calc((100% - var(--fp-gap) * (var(--fp-cols) - 1)) / var(--fp-cols));
+    width: calc((100% - var(--fp-gap) * (var(--fp-cols) - 1)) / var(--fp-cols));
   }
+}
 
-  /* The card is just the uploaded creative (any message is designed into the image) inside a
-     coloured border; the colour comes from the item's category tone (slate when unknown) */
-  .homepage-featured-promo-card__frame {
-    position: relative;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-    border-radius: 16px;
-    padding: 10px;
-    overflow: hidden;
-    background: linear-gradient(165deg, #94a3b8 0%, #475569 45%, #1e293b 100%);
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+@media (min-width: 992px) {
+  .homepage-featured-promo-rail__scroll {
+    --fp-cols: 4;
   }
+}
 
-  .homepage-featured-promo-card--orange .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #fb923c 0%, #ea580c 45%, #c2410c 100%);
+@media (min-width: 1200px) {
+  .homepage-featured-promo-rail__scroll {
+    --fp-cols: 6;
   }
+}
 
-  .homepage-featured-promo-card--green .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #22c55e 0%, #15803d 45%, #14532d 100%);
-  }
-
-  .homepage-featured-promo-card--red .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #f87171 0%, #dc2626 45%, #991b1b 100%);
-  }
-
-  .homepage-featured-promo-card--purple .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #c084fc 0%, #9333ea 45%, #6b21a8 100%);
-  }
-
-  .homepage-featured-promo-card--blue .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #60a5fa 0%, #2563eb 45%, #1e40af 100%);
-  }
-
-  .homepage-featured-promo-card--brown .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #d6a06b 0%, #a16207 45%, #713f12 100%);
-  }
-
-  .homepage-featured-promo-card--teal .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #2dd4bf 0%, #0d9488 45%, #115e59 100%);
-  }
-
-  .homepage-featured-promo-card--pink .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #f472b6 0%, #db2777 45%, #9d174d 100%);
-  }
-
-  .homepage-featured-promo-card--indigo .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #818cf8 0%, #4f46e5 45%, #3730a3 100%);
-  }
-
-  .homepage-featured-promo-card--amber .homepage-featured-promo-card__frame {
-    background: linear-gradient(165deg, #fbbf24 0%, #d97706 45%, #92400e 100%);
-  }
-
-  /* Image shown whole, never cropped; the white backing fills the card so cards in the rail stay
-     equal when image shapes differ (very tall images are capped and shrunk to fit) */
-  .homepage-featured-promo-card__hero {
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-    overflow: hidden;
-    background: #fff;
-  }
-
-  .homepage-featured-promo-card__hero img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    max-height: 28rem;
-    object-fit: contain;
-  }
-
+@media (max-width: 767.98px) {
   .homepage-showcase-panel--offers {
     margin: 0;
     padding: 0;

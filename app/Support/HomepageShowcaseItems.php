@@ -20,7 +20,6 @@ final class HomepageShowcaseItems
                 return [
                     'name' => $item->title,
                     'category' => $category,
-                    'discount' => filled($item->discount_badge) ? strtoupper(trim((string) $item->discount_badge)) : '',
                     'location' => $item->location ?? '',
                     'rating' => number_format((float) ($item->rating ?? 4.5), 1),
                     'reviews' => (int) ($item->review_count ?? 0),

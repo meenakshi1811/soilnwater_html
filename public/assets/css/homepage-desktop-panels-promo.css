@@ -27,7 +27,9 @@
     background: transparent;
   }
 
-  .homepage-desktop-panels > :last-child {
+  /* The featured row (first child) spans the full width, so the other sections pair up from the
+     second child on; a last section left alone in its row (even position) takes the full width */
+  .homepage-desktop-panels > :last-child:nth-child(even) {
     grid-column: 1 / -1;
     width: 100%;
   }
@@ -313,14 +315,13 @@
   }
 
   /* Full-width last section — same 6 cards in one row, so cards stay the same size as in the half-width panels */
-  .homepage-desktop-panels > :last-child .homepage-marketplace-promo__grid,
-  .homepage-desktop-panels > :last-child .homepage-popular-near__grid,
-  .homepage-desktop-panels > :last-child .homepage-popular-services__grid,
-  .homepage-desktop-panels > :last-child .homepage-education-knowledge__grid,
-  .homepage-desktop-panels > :last-child .homepage-study-library__grid,
-  .homepage-desktop-panels > :last-child .homepage-consultants__grid,
-  .homepage-desktop-panels > :last-child .homepage-community-hub__grid,
-  .homepage-desktop-panels > :last-child .homepage-showcase-carousel--featured-grid .card-carousel-track {
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-marketplace-promo__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-popular-near__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-popular-services__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-education-knowledge__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-study-library__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-consultants__grid,
+  .homepage-desktop-panels > :last-child:nth-child(even) .homepage-community-hub__grid {
     grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
     grid-template-rows: none;
   }

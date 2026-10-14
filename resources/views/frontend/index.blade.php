@@ -215,51 +215,9 @@
 <div class="homepage-desktop-panels">
 <section class="homepage-showcase-section" aria-label="Featured businesses">
   <div class="homepage-showcase-section__inner homepage-showcase-section__inner--businesses-only">
+    @if(!empty($homepageFeaturedBusinesses))
     <div class="homepage-showcase-panel homepage-showcase-panel--businesses">
-      <header class="homepage-showcase-panel__head d-none d-md-flex">
-        <div class="homepage-showcase-panel__title-wrap">
-          <span class="homepage-showcase-panel__icon homepage-showcase-panel__icon--business" aria-hidden="true">
-            <i class="fa-solid fa-store"></i>
-          </span>
-          <div>
-            <h2 class="homepage-showcase-panel__title">Featured Businesses</h2>
-            <p class="homepage-showcase-panel__subtitle">Explore local businesses and see what they offer.</p>
-          </div>
-        </div>
-        <a class="homepage-showcase-panel__view-all" href="{{ route('frontend.vendors.index') }}">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-      </header>
-
-      <div
-        class="card-carousel homepage-showcase-carousel homepage-showcase-carousel--featured-grid d-none d-md-block"
-        data-slide-by="card"
-        data-carousel-cols="2"
-        data-show-arrows="false"
-        data-show-dots="false"
-        data-pause-on-hover="true"
-        aria-label="Featured businesses"
-      >
-        <div class="card-carousel-track">
-          @foreach($homepageFeaturedBusinesses as $business)
-            <div class="card-carousel-item">
-              <a href="{{ $business['url'] }}" class="homepage-showcase-card homepage-showcase-card--business">
-                <div class="homepage-showcase-card__media">
-                  <img src="{{ $business['image'] }}" alt="" loading="lazy" decoding="async" width="640" height="400">
-                </div>
-                <div class="homepage-showcase-card__body">
-                  <h3 class="homepage-showcase-card__name">{{ $business['name'] }}</h3>
-                  @if(!empty($business['discount']))
-                    <span class="homepage-card-pill homepage-card-pill--deal">{{ $business['discount'] }}</span>
-                  @else
-                    <span class="homepage-card-pill homepage-card-pill--tag">{{ $business['category'] }}</span>
-                  @endif
-                </div>
-              </a>
-            </div>
-          @endforeach
-        </div>
-      </div>
-
-      <div class="homepage-featured-promo-rail d-md-none" aria-label="Featured business promotions">
+      <div class="homepage-featured-promo-rail" aria-label="Featured business promotions">
         <div class="homepage-featured-promo-rail__scroll">
           @foreach($homepageFeaturedBusinesses as $business)
             <article class="homepage-featured-promo-card homepage-featured-promo-card--{{ $business['theme'] }}">
@@ -275,6 +233,7 @@
         </div>
       </div>
     </div>
+    @endif
   </div>
 </section>
 
