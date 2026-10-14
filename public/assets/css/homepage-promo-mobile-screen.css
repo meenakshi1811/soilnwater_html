@@ -299,7 +299,8 @@
   }
 }
 
-@media (min-width: 992px) {
+/* "Explore more" is the phone label; tablets and up show "See all" (the phone rule above hides that below 768px) */
+@media (min-width: 768px) {
   .hp-promo-see-all-label__sm {
     display: none;
   }
