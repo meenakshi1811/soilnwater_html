@@ -2385,6 +2385,10 @@ The mountains keep.</pre>
                                     <div class="col-md-6" id="communitySpecificLocationWrap">
                                         <label class="form-label" id="locationLabel">Location <span class="text-danger">*</span></label>
                                         <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off">
+                                        {{-- Coordinates for the simple location. Like every field in this slot they are disabled
+                                             while the structured location block (with its own location_lat/lng) is in use. --}}
+                                        <input type="hidden" name="location_lat" id="communityCommonLocationLat" value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}">
+                                        <input type="hidden" name="location_lng" id="communityCommonLocationLng" value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}">
                                         <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
                                     </div>
                                 </div>
@@ -9243,13 +9247,21 @@ The mountains keep.</pre>
             return;
         }
 
+        const nextTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
+
+        // Also runs on blur and on submit: with nothing typed there is nothing to add, so no limit
+        // warning (the box blurs itself when it is disabled at the 10th tag)
+        if (!nextTags.length) {
+            tagInput.value = '';
+            return;
+        }
+
         if (tags.length >= MAX_COMMUNITY_TAGS) {
             notify('error', 'You can add up to ' + MAX_COMMUNITY_TAGS + ' tags only.');
             tagInput.value = '';
             return;
         }
 
-        const nextTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
         let limitReached = false;
 
         nextTags.forEach((tag) => {
@@ -11179,8 +11191,8 @@ The mountains keep.</pre>
         }
 
         const locationInput = document.getElementById('communityLocation');
-        const latitudeInput = document.getElementById('communityLocationLat');
-        const longitudeInput = document.getElementById('communityLocationLng');
+        const latitudeInput = document.getElementById('communityCommonLocationLat');
+        const longitudeInput = document.getElementById('communityCommonLocationLng');
         if (!locationInput || locationInput.dataset.autocompleteBound) {
             return;
         }
@@ -11619,8 +11631,13 @@ The mountains keep.</pre>
         } else {
             const locationType = document.getElementById('communityLocationType')?.value || 'global';
             if (requiresSpecificCommunityLocation(locationType)) {
-                if (!document.getElementById('communityLocation')?.value.trim()) {
+                // Publishing needs the coordinates too, and only picking a suggestion fills them
+                const hasLocationText = Boolean(document.getElementById('communityLocation')?.value.trim());
+                const hasCoordinates = Boolean(document.getElementById('communityCommonLocationLat')?.value
+                    && document.getElementById('communityCommonLocationLng')?.value);
+                if (!hasLocationText || (!isDraftSave && !hasCoordinates)) {
                     notify('error', 'Please select a location from the Google Places suggestions.');
+                    document.getElementById('communityLocation')?.focus();
                     return;
                 }
             }

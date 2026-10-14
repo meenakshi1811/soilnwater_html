@@ -4839,7 +4839,10 @@ class CommunityPostController extends Controller
         }
 
         CommunityPostUploadSanitizer::pruneUnreadableUploads($request);
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'location_lat.required' => 'Please select a location from the Google Places suggestions.',
+            'location_lng.required' => 'Please select a location from the Google Places suggestions.',
+        ]);
         $this->assertFeaturedImageLimit($request, $post);
         $this->assertAwarenessCampaignBanner($request, $post);
         $this->assertEnvironmentFeaturedImage($request, $post);
