@@ -18,13 +18,10 @@
                         <h2 class="homepage-popular-near__title">
                             Popular <span class="homepage-popular-near__title-accent">Near</span> You
                         </h2>
-                        <p class="homepage-popular-near__subtitle">
-                            Discover top businesses, services, offers and more in your area.
-                        </p>
                     </div>
                 </div>
                 <a class="homepage-popular-near__see-all" href="{{ $viewAllUrl }}">
-                    @include('frontend.partials.homepage-promo-see-all-label') <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
             </header>
 

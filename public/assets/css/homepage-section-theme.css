@@ -80,6 +80,8 @@
 .homepage-root .homepage-consultants__title,
 .homepage-root .homepage-community-hub__title {
   color: var(--hp-section-text);
+  /* Longer titles ("… Near You") wrap into two even lines instead of leaving one word alone */
+  text-wrap: balance;
 }
 
 .homepage-root .homepage-marketplace-promo__title-accent,

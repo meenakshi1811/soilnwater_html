@@ -4,11 +4,8 @@
     $isOffers = $variant === 'offers';
     $viewAllUrl = $viewAllUrl ?? ($isOffers ? route('frontend.offers.index') : route('frontend.ads.index'));
     $titleHighlight = $isOffers ? 'Offers' : 'Ads';
-    $titleRest = $isOffers ? ' &amp; Discounts Near&nbsp;You' : ' & Listings';
-    // Offers: the title says "near you", so no subtitle
-    $subtitle = $isOffers
-        ? null
-        : 'Discover sponsored listings and marketplace ads near you';
+    // Both titles end in "Near You" (kept together on one line), so there is no subtitle
+    $titleRest = $isOffers ? ' &amp; Discounts Near&nbsp;You' : ' &amp; Listings Near&nbsp;You';
 @endphp
 
 @if(count($cards) > 0)
@@ -35,18 +32,10 @@
                         <h2 class="homepage-marketplace-promo__title">
                             Latest <span class="homepage-marketplace-promo__title-accent">{{ $titleHighlight }}</span>{!! $titleRest !!}
                         </h2>
-                        @if($subtitle)
-                            <p class="homepage-marketplace-promo__subtitle">{{ $subtitle }}</p>
-                        @endif
                     </div>
                 </div>
                 <a class="homepage-marketplace-promo__see-all" href="{{ $viewAllUrl }}">
-                    @if($isOffers)
-                        Explore more
-                    @else
-                        @include('frontend.partials.homepage-promo-see-all-label')
-                    @endif
-                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
             </header>
 

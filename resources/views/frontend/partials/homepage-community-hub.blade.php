@@ -13,7 +13,7 @@
                     </span>
                     <div class="homepage-community-hub__head-copy">
                         <h2 class="homepage-community-hub__title">
-                            SoilnWater <span class="homepage-community-hub__title-accent">Community</span>
+                            Stories From Your <span class="homepage-community-hub__title-accent">Community</span>
                         </h2>
                         <p class="homepage-community-hub__subtitle">
                             Stories · People · Memories · Ideas

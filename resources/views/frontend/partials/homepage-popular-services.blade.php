@@ -13,15 +13,12 @@
                     </span>
                     <div class="homepage-popular-services__head-copy">
                         <h2 class="homepage-popular-services__title">
-                            Popular <span class="homepage-popular-services__title-accent">Services</span>
+                            Popular <span class="homepage-popular-services__title-accent">Services</span> Near&nbsp;You
                         </h2>
-                        <p class="homepage-popular-services__subtitle">
-                            Find trusted service providers near you
-                        </p>
                     </div>
                 </div>
                 <a class="homepage-popular-services__see-all" href="{{ $viewAllUrl }}">
-                    @include('frontend.partials.homepage-promo-see-all-label') <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
             </header>
 

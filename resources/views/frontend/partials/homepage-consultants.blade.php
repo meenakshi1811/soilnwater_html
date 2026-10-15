@@ -1,7 +1,6 @@
 @php
     $cards = $cards ?? [];
     $viewAllUrl = $viewAllUrl ?? route('frontend.consultants.index');
-    $showEnquiry = $showEnquiry ?? true;
 @endphp
 
 @if(count($cards) > 0)
@@ -14,26 +13,13 @@
                     </span>
                     <div class="homepage-consultants__head-copy">
                         <h2 class="homepage-consultants__title">
-                            Expert <span class="homepage-consultants__title-accent">Consultants</span>
+                            Expert <span class="homepage-consultants__title-accent">Consultants</span> Near&nbsp;You
                         </h2>
-                        <p class="homepage-consultants__subtitle">
-                            Connect with trusted professionals who can help you
-                        </p>
                     </div>
                 </div>
                 <div class="homepage-consultants__head-actions">
-                    @if($showEnquiry)
-                        <button
-                            type="button"
-                            class="homepage-consultants__enquiry"
-                            data-bs-toggle="modal"
-                            data-bs-target="#consultantEnquiryModal"
-                        >
-                            Enquiry
-                        </button>
-                    @endif
                     <a class="homepage-consultants__see-all" href="{{ $viewAllUrl }}">
-                        @include('frontend.partials.homepage-promo-see-all-label') <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
             </header>
