@@ -235,10 +235,32 @@
                   </div>
                 </div>
               </a>
+              {{-- Touch screens (no hover): open the image larger --}}
+              <button
+                type="button"
+                class="homepage-featured-promo-card__zoom"
+                data-zoom-src="{{ $business['image'] }}"
+                data-zoom-alt="{{ $business['name'] }}"
+                data-zoom-href="{{ $business['url'] }}"
+                aria-label="View larger image of {{ $business['name'] }}"
+              >
+                <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>
+              </button>
             </article>
           @endforeach
         </div>
       </div>
+      <dialog class="homepage-featured-zoom" id="featuredZoomDialog" aria-label="Featured business image">
+        <div class="homepage-featured-zoom__body">
+          <button type="button" class="homepage-featured-zoom__close" aria-label="Close">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+          <img class="homepage-featured-zoom__img" alt="">
+          <a class="homepage-featured-zoom__visit" href="{{ route('frontend.vendors.index') }}">
+            View business <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </dialog>
     </div>
     @endif
   </div>
@@ -1998,6 +2020,33 @@
       window.addEventListener('load', update);
       update();
     });
+
+    // Featured business image zoom (magnifier button on touch screens)
+    const zoomDialog = document.getElementById('featuredZoomDialog');
+    if (zoomDialog && typeof zoomDialog.showModal === 'function') {
+      const zoomImg = zoomDialog.querySelector('.homepage-featured-zoom__img');
+      const zoomVisit = zoomDialog.querySelector('.homepage-featured-zoom__visit');
+
+      document.querySelectorAll('.homepage-featured-promo-card__zoom').forEach(function (button) {
+        button.addEventListener('click', function () {
+          zoomImg.src = button.dataset.zoomSrc || '';
+          zoomImg.alt = button.dataset.zoomAlt || '';
+          zoomVisit.href = button.dataset.zoomHref || zoomVisit.href;
+          zoomDialog.showModal();
+        });
+      });
+
+      zoomDialog.querySelector('.homepage-featured-zoom__close').addEventListener('click', function () {
+        zoomDialog.close();
+      });
+
+      // A tap on the dark backdrop (outside the image box) closes it too
+      zoomDialog.addEventListener('click', function (event) {
+        if (event.target === zoomDialog) {
+          zoomDialog.close();
+        }
+      });
+    }
   });
 </script>
 @endpush

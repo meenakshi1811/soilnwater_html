@@ -382,11 +382,112 @@
 }
 
 .homepage-featured-promo-card {
+  position: relative;
   scroll-snap-align: start;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-self: stretch;
+}
+
+/* Magnifier button: touch screens only (mouse users get the hover zoom instead) */
+.homepage-featured-promo-card__zoom {
+  display: none;
+}
+
+@media (hover: none) {
+  .homepage-featured-promo-card__zoom {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.25);
+  }
+}
+
+/* Larger image popup opened by the magnifier */
+.homepage-featured-zoom {
+  /* The site-wide reset zeroes margins; auto margins are what centre a modal dialog */
+  margin: auto;
+  width: min(92vw, 520px);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.homepage-featured-zoom::backdrop {
+  background: rgba(15, 23, 42, 0.82);
+}
+
+body:has(.homepage-featured-zoom[open]) {
+  overflow: hidden;
+}
+
+.homepage-featured-zoom__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.homepage-featured-zoom__img {
+  display: block;
+  width: 100%;
+  /* Leave room for the "View business" button and some margin on short screens */
+  max-height: 78vh;
+  max-height: calc(100dvh - 110px);
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+}
+
+.homepage-featured-zoom__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #0f172a;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.homepage-featured-zoom__visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .homepage-featured-promo-card__link {
@@ -472,6 +573,35 @@
   object-fit: contain;
 }
 
+/* Mouse devices: the hovered (or keyboard-focused) card grows a little */
+@media (hover: hover) and (min-width: 768px) {
+  .homepage-featured-promo-card {
+    transition: transform 0.25s ease;
+  }
+
+  .homepage-featured-promo-card__frame {
+    transition: box-shadow 0.25s ease;
+  }
+
+  .homepage-featured-promo-card:hover,
+  .homepage-featured-promo-card:focus-within {
+    z-index: 1;
+    transform: scale(1.05);
+  }
+
+  .homepage-featured-promo-card:hover .homepage-featured-promo-card__frame,
+  .homepage-featured-promo-card:focus-within .homepage-featured-promo-card__frame {
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-featured-promo-card,
+  .homepage-featured-promo-card__frame {
+    transition: none;
+  }
+}
+
 /* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
    3 cards up to 1199px, then 6 cards plus a peek of the 7th from 1200px; extra cards are
    reached with the arrows */
@@ -480,7 +610,10 @@
     --fp-cols: 3;
     --fp-gap: 16px;
     gap: var(--fp-gap);
-    padding: 2px 0 10px;
+    /* Room inside the strip so a hovered card can grow 5% without being clipped; the panel's
+       own padding is reduced by the same amount, so cards sit where they did */
+    padding: 12px 8px 14px;
+    scroll-padding-inline: 8px;
   }
 
   .homepage-featured-promo-rail__arrow {
@@ -514,11 +647,11 @@
   }
 
   .homepage-featured-promo-rail__arrow--prev {
-    left: 10px;
+    left: 18px;
   }
 
   .homepage-featured-promo-rail__arrow--next {
-    right: 10px;
+    right: 18px;
   }
 
   .homepage-featured-promo-card {

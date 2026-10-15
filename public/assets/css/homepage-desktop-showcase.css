@@ -58,15 +58,16 @@
   }
 
   /* Featured businesses: a full-width panel of image cards above the paired panels (card styles in
-     homepage-showcase.css, panel colour in homepage-section-theme.css). The rail adds 2px above
-     and 10px below the cards for their shadow, so 14px top / 6px bottom balances the padding. */
+     homepage-showcase.css, panel colour in homepage-section-theme.css). The scrolling strip adds
+     12px above, 14px below and 8px at the sides (room for the hover zoom), so cards still sit
+     16px from the top/bottom and 14px from the sides of the panel. */
   .homepage-desktop-panels .homepage-showcase-panel--businesses {
     grid-column: 1 / -1;
     width: 100%;
     max-width: none;
     min-width: 0;
     margin: 0;
-    padding: 14px 14px 6px;
+    padding: 4px 6px 2px;
     border: 0;
     border-radius: 16px;
   }
