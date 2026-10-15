@@ -26,6 +26,7 @@
 }
 
 .header-inner {
+  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
@@ -71,8 +72,13 @@
   display: block;
 }
 
-/* Brand name beside the logo: "Soil" in the leaf green, "Water" in the drop blue, a quiet "n" */
+/* Brand name in the middle of the header bar (the logo stays at the left; both are one home
+   link): "Soil" in the leaf green, "Water" in the drop blue, a quiet "n" */
 .logo-wordmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-family: 'Manrope', 'Inter', system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
