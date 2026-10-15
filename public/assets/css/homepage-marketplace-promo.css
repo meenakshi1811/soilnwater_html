@@ -84,6 +84,8 @@
   line-height: 1.15;
   letter-spacing: -0.03em;
   color: #fff;
+  /* When the title wraps, split it into two even lines instead of leaving one word alone */
+  text-wrap: balance;
 }
 
 .homepage-marketplace-promo__title-accent {
