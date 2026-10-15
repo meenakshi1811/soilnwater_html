@@ -57,11 +57,12 @@ class CategoryHomepageImageController extends Controller
                     return '—';
                 }
 
+                // Plain text: DataTables escapes non-raw columns itself (escaping here too showed "&amp;")
                 if ($category->parent) {
-                    return e($category->parent->name.' → '.$category->name);
+                    return $category->parent->name.' › '.$category->name;
                 }
 
-                return e($category->name);
+                return $category->name;
             })
             ->addColumn('context_label', fn (CategoryHomepageImage $row) => CategoryHomepageImage::contextLabels()[$row->context] ?? $row->context)
             ->addColumn('thumb', function (CategoryHomepageImage $row) {
