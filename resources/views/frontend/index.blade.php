@@ -126,7 +126,8 @@
   <div class="hero--discover__container">
     <div class="hero--discover__inner">
       <div class="hero--discover__copy">
-        <h1 class="hero--discover__title">
+        {{-- Not shown on the banner; kept for screen readers and search engines (the page's only h1) --}}
+        <h1 class="hero--discover__title visually-hidden">
           <span class="hero--discover__title-line">Discover What's</span>
           <span class="hero--discover__title-line hero--discover__accent">Around You</span>
         </h1>
