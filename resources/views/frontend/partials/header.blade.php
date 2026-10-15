@@ -226,7 +226,7 @@
         });
       }
 
-      headerLocationInput.addEventListener('input', syncLocationLabels);
+      // Only a picked/detected place updates the labels (main.js fires "change"), not typing
       headerLocationInput.addEventListener('change', syncLocationLabels);
       syncLocationLabels();
     }

@@ -305,9 +305,16 @@
         pac.style.pointerEvents = 'none';
     }
 
+    // Google adds its suggestion box hidden and empty, then fills and shows it as results arrive.
+    // Removing it while it is still empty leaves Google filling a detached box, so suggestions
+    // never appear: only clean up boxes that are actually on screen.
+    function isPacHidden(pac) {
+        return pac.style.display === 'none' || window.getComputedStyle(pac).display === 'none';
+    }
+
     function hideOrphanPacContainers() {
         document.querySelectorAll('.pac-container').forEach(function (pac) {
-            if (countPacItems(pac) > 0) {
+            if (countPacItems(pac) > 0 || isPacHidden(pac)) {
                 return;
             }
 
@@ -333,6 +340,11 @@
         var primary = pacs[0];
 
         for (var i = 1; i < pacs.length; i++) {
+            // A hidden box belongs to another address field on the page; keep it for that field
+            if (isPacHidden(pacs[i])) {
+                continue;
+            }
+
             hidePacContainer(pacs[i]);
 
             if (pacs[i].parentNode) {
