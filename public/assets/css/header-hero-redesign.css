@@ -723,7 +723,7 @@
   align-items: center;
   flex-shrink: 0;
   white-space: nowrap;
-  padding: 7px 16px;
+  padding: 7px 13px;
   border-radius: 999px;
   background: #fff;
   color: var(--hero-headline-navy);

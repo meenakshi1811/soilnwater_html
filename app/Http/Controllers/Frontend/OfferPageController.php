@@ -120,21 +120,24 @@ class OfferPageController extends Controller
             ->merge($this->topServiceProviderCategories(3)
                 ->filter(fn ($category) => (int) $category->service_provider_count > 0)
                 ->map(fn ($category) => [
-                    'label' => $category->name,
+                    'label' => self::popularSearchLabel($category->name),
+                    'title' => $category->name,
                     'route' => 'frontend.service_providers.index',
                     'category_id' => $category->id,
                 ]))
             ->merge($this->topVendorCategories(3)
                 ->filter(fn ($category) => (int) $category->vendor_count > 0)
                 ->map(fn ($category) => [
-                    'label' => $category->name,
+                    'label' => self::popularSearchLabel($category->name),
+                    'title' => $category->name,
                     'route' => 'frontend.vendors.index',
                     'category_id' => $category->id,
                 ]))
             ->merge($this->topConsultantCategories(3)
                 ->filter(fn ($category) => (int) $category->consultant_count > 0)
                 ->map(fn ($category) => [
-                    'label' => $category->name,
+                    'label' => self::popularSearchLabel($category->name),
+                    'title' => $category->name,
                     'route' => 'frontend.consultants.index',
                     'category_id' => $category->id,
                 ]))
@@ -215,6 +218,42 @@ class OfferPageController extends Controller
     /**
      * @return \Illuminate\Support\Collection<int, CommunityPost>
      */
+    /**
+     * Short, readable chip label for a category name: drop a trailing "Services"/"Service"/"Ads"
+     * and turn ALL-CAPS names into title case ("FURNITURE & CARPENTRY SERVICES" → "Furniture &
+     * Carpentry"), keeping short acronyms such as AC or IT in capitals.
+     */
+    private static function popularSearchLabel(string $name): string
+    {
+        $name = trim((string) preg_replace('/\s+/', ' ', $name));
+        $short = trim((string) preg_replace('/\s+(services?|ads)$/i', '', $name));
+        if ($short === '' || $short === '&') {
+            $short = $name;
+        }
+
+        if (mb_strtoupper($short) !== $short) {
+            return $short;
+        }
+
+        $smallWords = ['and', 'or', 'of', 'for', 'to', 'in', 'on', 'the', 'a', 'an', 'at', 'by', 'with'];
+        $acronyms = ['HVAC', 'CCTV', 'GST', 'UPSC', 'SSC', 'NEET', 'JEE', 'IELTS', 'TOEFL', 'EV', 'RO', 'DTH'];
+
+        $words = explode(' ', mb_strtolower($short));
+        foreach ($words as $index => $word) {
+            $upper = mb_strtoupper($word);
+            if (in_array($upper, $acronyms, true) || (mb_strlen($word) <= 2 && ! in_array($word, $smallWords, true) && preg_match('/^\pL+$/u', $word))) {
+                $words[$index] = $upper;
+            } elseif ($index > 0 && in_array($word, $smallWords, true)) {
+                $words[$index] = $word;
+            } else {
+                // Capitalise each part of hyphen/slash compounds too ("e-commerce" → "E-Commerce")
+                $words[$index] = (string) preg_replace_callback('/(^|[-\/(])(\pL)/u', fn (array $m): string => $m[1].mb_strtoupper($m[2]), $word);
+            }
+        }
+
+        return implode(' ', $words);
+    }
+
     private function homepageCommunityPosts(int $limit = 6): Collection
     {
         return CommunityPost::query()

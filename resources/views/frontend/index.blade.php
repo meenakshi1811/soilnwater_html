@@ -209,7 +209,7 @@
         <span class="hero--discover__popular-label">Popular Searches:</span>
         <div class="hero--discover__popular-tags">
           @foreach($popularSearches as $term)
-            <a href="{{ route($term['route'], ['category_id' => $term['category_id']]) }}" class="hero-popular-tag">{{ $term['label'] }}</a>
+            <a href="{{ route($term['route'], ['category_id' => $term['category_id']]) }}" class="hero-popular-tag" title="{{ $term['title'] ?? $term['label'] }}">{{ $term['label'] }}</a>
           @endforeach
         </div>
         <a href="{{ route('frontend.search') }}" class="hero-popular-tag hero-popular-tag--more">More...</a>
