@@ -1406,3 +1406,12 @@
 .community-post-type-card--competitions { background: #f9a825 !important; background-color: #f9a825 !important; border-color: #f9a825 !important; }
 .ems-page .community-post-type-card--discussions,
 .community-post-type-card--discussions { background: #607d8b !important; background-color: #607d8b !important; border-color: #607d8b !important; }
+
+/* Scrollable modal whose <form> wraps the header, body and footer: the form has to be the
+   shrinking flex column, otherwise .modal-dialog-scrollable clips the content instead of
+   scrolling the body (and hides the footer buttons) */
+.modal-dialog-scrollable .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
