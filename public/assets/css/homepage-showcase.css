@@ -603,7 +603,7 @@ body:has(.homepage-featured-zoom[open]) {
 }
 
 /* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
-   3 cards up to 1199px, then 6 cards plus a peek of the 7th from 1200px; extra cards are
+   3 cards up to 1199px, then 5 cards plus a peek of the 6th from 1200px; extra cards are
    reached with the arrows */
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
@@ -676,11 +676,11 @@ body:has(.homepage-featured-zoom[open]) {
 
 @media (min-width: 1200px) {
   .homepage-featured-promo-rail__scroll {
-    --fp-cols: 6;
+    --fp-cols: 5;
     --fp-gap: 20px;
   }
 
-  /* 6 full cards plus about a third of the 7th, so it is clear the row continues */
+  /* 5 full cards plus about a third of the 6th, so it is clear the row continues */
   .homepage-featured-promo-card {
     flex-basis: calc((100% - var(--fp-gap) * var(--fp-cols)) / (var(--fp-cols) + 0.35));
     width: calc((100% - var(--fp-gap) * var(--fp-cols)) / (var(--fp-cols) + 0.35));
