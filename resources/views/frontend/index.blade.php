@@ -112,6 +112,45 @@
   </button>
 </div>
 
+{{-- Location picker opened by the banner location box and the mobile location bar. The input is
+     the one main.js wires up (Google address search, auto-detect, saving to the session). A plain
+     overlay, not a modal <dialog>: Google's suggestion list (z-index 20000) must show above it. --}}
+@php
+  $registeredLocation = auth()->check()
+      ? collect([auth()->user()->address, auth()->user()->city, auth()->user()->pincode])->filter()->implode(', ')
+      : '';
+@endphp
+<div class="location-picker" id="locationPickerDialog" hidden>
+  <div class="location-picker__panel" role="dialog" aria-modal="true" aria-labelledby="locationPickerTitle">
+  <div class="location-picker__head">
+    <h2 class="location-picker__title" id="locationPickerTitle">Choose your location</h2>
+    <button type="button" class="location-picker__close" id="locationPickerClose" aria-label="Close">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+  </div>
+  <label class="location-picker__label" for="headerCurrentLocation">Search city, area or address</label>
+  <div class="location-picker__field">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input
+      id="headerCurrentLocation"
+      class="loc-text-input location-picker__input"
+      type="text"
+      data-default-location=""
+      data-registered-location="{{ $registeredLocation }}"
+      placeholder="e.g. Rajpur Road, Dehradun"
+      autocomplete="off"
+    >
+  </div>
+  <p class="location-picker__hint">Pick a suggestion from the list to set your location.</p>
+  <div class="location-picker__divider"><span>or</span></div>
+  <button type="button" class="location-picker__gps" id="locationPickerUseGps">
+    <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+    Use my current location
+  </button>
+  <p class="location-picker__error" id="locationPickerError" role="alert" hidden></p>
+  </div>
+</div>
+
 <section class="hero hero--discover">
   <img
     class="hero--discover__bg"
@@ -159,9 +198,9 @@
           'searchWrapClass' => 'search-wrap search-wrap--hero hero-search-card hero-search-card--query',
           'searchFormId' => 'heroSearchForm',
           'searchInputId' => 'heroSearchQuery',
-          'showModuleSelect' => false,
-          'activeSearchModule' => 'offers',
-          'searchPlaceholderOverride' => 'Search businesses, services, schools, offers…',
+          // Search goes to the chosen section (it used to always go to Offers)
+          'showModuleSelect' => true,
+          'activeSearchModule' => 'vendors',
           'searchSubmitText' => 'Search',
         ])
       </div>

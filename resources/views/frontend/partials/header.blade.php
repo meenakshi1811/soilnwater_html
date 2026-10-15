@@ -144,57 +144,91 @@
       });
     }
 
-    const heroLocationTrigger = document.getElementById('heroLocationTrigger');
+    // Homepage location: the banner box and the mobile bar open the location picker; their
+    // labels follow the chosen place (the input is wired up in main.js)
     const headerLocationInput = document.getElementById('headerCurrentLocation');
-    const heroLocationTitle = document.getElementById('heroLocationTitle');
-    if (heroLocationTrigger && headerLocationInput) {
-      const syncHeroLocationLabel = function () {
-        if (!heroLocationTitle) return;
-        const value = (headerLocationInput.value || '').trim();
-        heroLocationTitle.textContent = value || 'Select Location';
-      };
-      heroLocationTrigger.addEventListener('click', function () {
-        headerLocationInput.focus();
-        headerLocationInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-      heroLocationTrigger.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          headerLocationInput.focus();
-        }
-      });
-      headerLocationInput.addEventListener('input', syncHeroLocationLabel);
-      headerLocationInput.addEventListener('change', syncHeroLocationLabel);
-      syncHeroLocationLabel();
-    }
+    const locationPicker = document.getElementById('locationPickerDialog');
+    const locationTriggers = [document.getElementById('heroLocationTrigger'), document.getElementById('mobileHomeLocBar')].filter(Boolean);
+    const locationLabels = [
+      { el: document.getElementById('heroLocationTitle'), fallback: 'Select Location' },
+      { el: document.getElementById('mobileHomeLocLabel'), fallback: 'Select location' },
+    ].filter(function (label) { return label.el; });
 
-    const mobileHomeLocBar = document.getElementById('mobileHomeLocBar');
-    const mobileHomeLocLabel = document.getElementById('mobileHomeLocLabel');
-    if (mobileHomeLocBar && headerLocationInput) {
-      const syncMobileHomeLocLabel = function () {
-        if (!mobileHomeLocLabel) return;
+    if (headerLocationInput && locationPicker) {
+      const pickerError = document.getElementById('locationPickerError');
+      const gpsButton = document.getElementById('locationPickerUseGps');
+
+      const syncLocationLabels = function () {
         const value = (headerLocationInput.value || '').trim();
-        mobileHomeLocLabel.textContent = value || 'Select Location';
+        locationLabels.forEach(function (label) {
+          label.el.textContent = value || label.fallback;
+        });
       };
-      mobileHomeLocBar.addEventListener('click', function () {
-        const locHost = document.getElementById('headerLocationToggle');
-        if (locHost) {
-          locHost.classList.add('is-mobile-loc-open');
-        }
+
+      let pickerOpener = null;
+
+      const openPicker = function (event) {
+        pickerOpener = event && event.currentTarget ? event.currentTarget : null;
+        if (pickerError) pickerError.hidden = true;
+        locationPicker.hidden = false;
+        document.body.classList.add('location-picker-open');
         headerLocationInput.focus();
-      });
-      headerLocationInput.addEventListener('blur', function () {
-        window.setTimeout(function () {
-          const locHost = document.getElementById('headerLocationToggle');
-          const active = document.activeElement;
-          if (locHost && active !== headerLocationInput && !locHost.contains(active)) {
-            locHost.classList.remove('is-mobile-loc-open');
+        headerLocationInput.select();
+      };
+
+      const closePicker = function () {
+        if (locationPicker.hidden) return;
+        locationPicker.hidden = true;
+        document.body.classList.remove('location-picker-open');
+        if (pickerOpener) pickerOpener.focus();
+      };
+
+      locationTriggers.forEach(function (trigger) {
+        trigger.addEventListener('click', openPicker);
+        trigger.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openPicker(event);
           }
-        }, 180);
+        });
       });
-      headerLocationInput.addEventListener('input', syncMobileHomeLocLabel);
-      headerLocationInput.addEventListener('change', syncMobileHomeLocLabel);
-      syncMobileHomeLocLabel();
+
+      document.getElementById('locationPickerClose')?.addEventListener('click', closePicker);
+
+      // The dark backdrop closes it (Google's suggestion list is outside the overlay, so a
+      // click on a suggestion never lands here)
+      locationPicker.addEventListener('click', function (event) {
+        if (event.target === locationPicker) {
+          closePicker();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !locationPicker.hidden) {
+          closePicker();
+        }
+      });
+
+      if (gpsButton) {
+        gpsButton.addEventListener('click', function () {
+          if (typeof window.soilnwaterUseMyLocation !== 'function') return;
+          if (pickerError) pickerError.hidden = true;
+          gpsButton.disabled = true;
+          gpsButton.textContent = 'Detecting your location…';
+          window.soilnwaterUseMyLocation(function (message) {
+            gpsButton.disabled = false;
+            gpsButton.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Use my current location';
+            if (pickerError) {
+              pickerError.textContent = message;
+              pickerError.hidden = false;
+            }
+          });
+        });
+      }
+
+      headerLocationInput.addEventListener('input', syncLocationLabels);
+      headerLocationInput.addEventListener('change', syncLocationLabels);
+      syncLocationLabels();
     }
 
     if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {

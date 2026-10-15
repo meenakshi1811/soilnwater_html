@@ -735,6 +735,8 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     if (!locationInput) return;
     locationInput.value = resolved;
     locationInput.setAttribute('title', resolved);
+    // Let the location labels on the page (banner box, mobile bar) follow the detected place
+    locationInput.dispatchEvent(new Event('change'));
   }
 
   function getRegisteredLocationLabel() {
@@ -846,6 +848,29 @@ function syncLocationToSession(lat, lng) {
   };
 
   window.initHeaderLocationAutocomplete();
+
+  // "Use my current location" button in the location picker
+  window.soilnwaterUseMyLocation = function soilnwaterUseMyLocation(onError) {
+    if (!navigator.geolocation) {
+      if (typeof onError === 'function') onError('Your browser cannot share its location.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const name = await fetchLocationName(lat, lng);
+      const resolvedName = name || 'Current location';
+
+      updateLocationLabel(resolvedName);
+      localStorage.setItem('frontendLocationName', resolvedName);
+      syncLocationToSession(lat, lng).then(() => {
+        sessionStorage.setItem('frontendLocationSynced', '1');
+      });
+    }, () => {
+      if (typeof onError === 'function') onError('Location access was blocked. Search for your city or area instead.');
+    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
+  };
 
   const searchParams = new URLSearchParams(window.location.search);
   const rawLat = searchParams.get('lat');
