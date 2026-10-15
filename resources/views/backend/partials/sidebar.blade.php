@@ -26,6 +26,7 @@
     $communityAuthorQuestionsActive = request()->routeIs('community.author-questions.*');
     $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*') || request()->routeIs('community.saved.*') || request()->routeIs('community.subscriptions.*');
     $communityChatMenuActive = request()->routeIs('admin.community-chats.*') || request()->routeIs('admin.foul-words.*');
+    $homepageMenuActive = request()->routeIs('admin.homepage-settings.*') || request()->routeIs('admin.homepage-section-order.*') || request()->routeIs('admin.homepage-showcase.*') || request()->routeIs('admin.category-homepage-images.*') || request()->routeIs('admin.homepage-section-heroes.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -217,35 +218,48 @@
                     <span>Categories</span>
                 </a>
             </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.homepage-settings.*') ? 'active' : '' }}" href="{{ route('admin.homepage-settings.edit') }}">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Page Setting</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.homepage-section-order.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-order.index') }}">
-                    <i class="fa-solid fa-arrow-down-short-wide"></i>
-                    <span>Homepage Section Order</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.homepage-showcase.*') ? 'active' : '' }}" href="{{ route('admin.homepage-showcase.index') }}">
-                    <i class="fa-solid fa-table-columns"></i>
-                    <span>Homepage Showcase</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.category-homepage-images.*') ? 'active' : '' }}" href="{{ route('admin.category-homepage-images.index') }}">
-                    <i class="fa-solid fa-images"></i>
-                    <span>Category Card Images</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.homepage-section-heroes.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-heroes.index') }}">
-                    <i class="fa-solid fa-panorama"></i>
-                    <span>Section Banner Images</span>
-                </a>
+            <li class="admin-sidebar-group">
+                <details {{ $homepageMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $homepageMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Homepage</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.homepage-settings.*') ? 'active' : '' }}" href="{{ route('admin.homepage-settings.edit') }}">
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>Page Setting</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.homepage-section-order.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-order.index') }}">
+                                <i class="fa-solid fa-arrow-down-short-wide"></i>
+                                <span>Section Order</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.homepage-showcase.*') ? 'active' : '' }}" href="{{ route('admin.homepage-showcase.index') }}">
+                                <i class="fa-solid fa-table-columns"></i>
+                                <span>Showcase</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.category-homepage-images.*') ? 'active' : '' }}" href="{{ route('admin.category-homepage-images.index') }}">
+                                <i class="fa-solid fa-images"></i>
+                                <span>Category Card Images</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.homepage-section-heroes.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-heroes.index') }}">
+                                <i class="fa-solid fa-panorama"></i>
+                                <span>Section Banner Images</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
             <li>
                 <a class="{{ $approvalCenterActive ? 'active' : '' }}" href="{{ route('admin.approvals.index') }}">
