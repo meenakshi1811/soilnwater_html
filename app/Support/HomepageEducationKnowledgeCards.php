@@ -39,6 +39,29 @@ final class HomepageEducationKnowledgeCards
     }
 
     /**
+     * Keyword sets the education cards use to find their category card image, one per card
+     * (the admin category-image form offers only the categories these resolve to).
+     *
+     * @return list<list<string>>
+     */
+    public static function imageKeywordSets(): array
+    {
+        $slots = [
+            self::coachingSlot(),
+            self::skillsSlot(),
+            self::articlesSlot(),
+            self::careerSlot(),
+            self::onlineCoursesSlot(),
+            self::studyLibrarySlot(),
+        ];
+
+        return array_values(array_filter(array_map(
+            fn (array $slot): ?array => $slot['image_keywords'] ?? null,
+            $slots
+        )));
+    }
+
+    /**
      * @param array<string, mixed> $slot
      * @param Institute|CommunityPost|Educator|Consultant|null $entity
      * @return array<string, mixed>|null

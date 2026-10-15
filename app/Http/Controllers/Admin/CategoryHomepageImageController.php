@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
+use App\Support\HomepageCardCategory;
+use App\Support\HomepageEducationKnowledgeCards;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -15,6 +18,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CategoryHomepageImageController extends Controller
 {
+    /**
+     * Category module whose items each homepage section shows (education is keyword-based, below).
+     */
+    private const CONTEXT_MODULES = [
+        CategoryHomepageImage::CONTEXT_ADS => 'ads',
+        CategoryHomepageImage::CONTEXT_OFFERS => 'offers',
+        CategoryHomepageImage::CONTEXT_VENDORS => 'vendors',
+        CategoryHomepageImage::CONTEXT_SERVICES => 'service_providers',
+        CategoryHomepageImage::CONTEXT_CONSULTANTS => 'consultants',
+    ];
+
     public function index(): View
     {
         return view('backend.admin.category-homepage-images.index', [
@@ -66,25 +80,84 @@ class CategoryHomepageImageController extends Controller
             ->make(true);
     }
 
-    public function categoryOptions(): JsonResponse
+    /**
+     * Categories for the chosen homepage section only. `include` keeps an existing item's
+     * category selectable when editing, even if it does not belong to the section.
+     */
+    public function categoryOptions(Request $request): JsonResponse
     {
+        $context = $request->string('context')->toString();
+        $includeId = $request->integer('include') ?: null;
+
         $categories = Category::query()
-            ->with(['parent:id,name'])
+            ->with(['parent:id,name,parent_id', 'parent.parent:id,name'])
+            ->where(function (Builder $query) use ($context, $includeId): void {
+                $this->restrictToContext($query, $context);
+
+                if ($includeId) {
+                    $query->orWhere('id', $includeId);
+                }
+            })
             ->orderBy('name')
             ->get(['id', 'name', 'parent_id']);
 
-        $options = $categories->map(function (Category $category) {
-            $label = $category->parent
-                ? $category->parent->name.' → '.$category->name
-                : $category->name;
+        // Grouped by main category for a searchable, readable dropdown: the main category itself
+        // is "Entire category", deeper levels read "Subcategory › Child"; label is the full path
+        $options = $categories->map(function (Category $category): array {
+            $parent = $category->parent;
+            $grandparent = $parent?->parent;
+
+            if ($parent === null) {
+                return ['id' => $category->id, 'group' => $category->name, 'text' => 'Entire category', 'depth' => 0, 'label' => $category->name];
+            }
+
+            if ($grandparent === null) {
+                return ['id' => $category->id, 'group' => $parent->name, 'text' => $category->name, 'depth' => 1, 'label' => $parent->name.' › '.$category->name];
+            }
 
             return [
                 'id' => $category->id,
-                'label' => $label,
+                'group' => $grandparent->name,
+                'text' => $parent->name.' › '.$category->name,
+                'depth' => 2,
+                'label' => $grandparent->name.' › '.$parent->name.' › '.$category->name,
             ];
-        })->values();
+        })
+            ->sortBy(fn (array $option): array => [mb_strtolower($option['group']), $option['depth'] === 0 ? 0 : 1, mb_strtolower($option['text'])])
+            ->values();
 
         return response()->json(['categories' => $options]);
+    }
+
+    private function restrictToContext(Builder $query, string $context): void
+    {
+        // Education cards look their category up by keywords: offer exactly the categories
+        // (and parent levels) those keywords resolve to
+        if ($context === CategoryHomepageImage::CONTEXT_EDUCATION) {
+            $ids = collect(HomepageEducationKnowledgeCards::imageKeywordSets())
+                ->flatMap(fn (array $keywords): array => array_values(array_filter(HomepageCardCategory::idsFromKeywords($keywords))))
+                ->unique()
+                ->values()
+                ->all();
+
+            $query->whereIn('id', $ids === [] ? [0] : $ids);
+
+            return;
+        }
+
+        $module = self::CONTEXT_MODULES[$context] ?? null;
+        if ($module === null) {
+            $query->whereRaw('1 = 1');
+
+            return;
+        }
+
+        // The category itself or one of its parent levels belongs to the module
+        $query->where(function (Builder $moduleQuery) use ($module): void {
+            $moduleQuery->forModule($module)
+                ->orWhereHas('parent', fn (Builder $parent) => $parent->forModule($module))
+                ->orWhereHas('parent.parent', fn (Builder $grandparent) => $grandparent->forModule($module));
+        });
     }
 
     public function show(CategoryHomepageImage $categoryHomepageImage): JsonResponse

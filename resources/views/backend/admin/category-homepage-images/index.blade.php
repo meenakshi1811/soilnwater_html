@@ -5,6 +5,48 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<style>
+    /* Searchable category picker: same height as the other form fields, grouped by main category */
+    #categoryHomepageImageModal .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+
+    #categoryHomepageImageModal .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+        color: #212529;
+    }
+
+    #categoryHomepageImageModal .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+
+    #categoryHomepageImageModal .select2-search--dropdown .select2-search__field {
+        padding: 6px 10px;
+        border-radius: 0.375rem;
+    }
+
+    #categoryHomepageImageModal .select2-results__group {
+        padding: 8px 10px 4px;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    #categoryHomepageImageModal .select2-results__options--nested .select2-results__option {
+        padding-left: 1.5rem;
+    }
+
+    #categoryHomepageImageModal .category-image-option--entire {
+        font-weight: 600;
+        color: #1d4ed8;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -57,7 +99,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label">Homepage section</label>
                             <select name="context" id="categoryImageContext" class="form-select" required>
                                 @foreach($contexts as $value => $label)
@@ -65,7 +107,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label">Category</label>
                             <select name="category_id" id="categoryImageCategoryId" class="form-select" required>
                                 <option value="">Select category…</option>
@@ -95,6 +137,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function () {
     var routes = {
@@ -108,21 +151,99 @@
 
     var csrf = @json(csrf_token());
     var activeContext = '';
-    var categoryOptionsLoaded = false;
 
-    function loadCategories(selectedId) {
-        return $.getJSON(routes.categories).done(function (response) {
-            var $select = $('#categoryImageCategoryId');
+    // Only the categories of the chosen homepage section. keepSavedCategory (editing an
+    // existing item) also includes its saved category so it stays selected.
+    function loadCategories(selectedId, keepSavedCategory) {
+        var $select = $('#categoryImageCategoryId');
+        var params = { context: $('#categoryImageContext').val() || '' };
+        if (selectedId && keepSavedCategory) {
+            params.include = selectedId;
+        }
+
+        $select.prop('disabled', true);
+
+        return $.getJSON(routes.categories, params).done(function (response) {
+            $select.find('optgroup').remove();
             $select.find('option:not(:first)').remove();
+
+            // One group per main category; the server sends them already sorted
+            var groups = {};
             (response.categories || []).forEach(function (row) {
-                $select.append($('<option>', { value: row.id, text: row.label }));
+                if (!groups[row.group]) {
+                    groups[row.group] = $('<optgroup>', { label: row.group }).appendTo($select);
+                }
+                $('<option>', { value: row.id, text: row.text })
+                    .attr('data-label', row.label)
+                    .attr('data-depth', row.depth)
+                    .appendTo(groups[row.group]);
             });
-            if (selectedId) {
-                $select.val(String(selectedId));
-            }
-            categoryOptionsLoaded = true;
+
+            $select.val(selectedId && $select.find('option[value="' + selectedId + '"]').length ? String(selectedId) : '');
+            initCategorySelect();
+            $select.trigger('change.select2');
+        }).always(function () {
+            $select.prop('disabled', false);
         });
     }
+
+    // Search matches an option or its main category (typing a main category shows all of it)
+    function matchCategory(params, data) {
+        var term = $.trim(params.term || '').toLowerCase();
+        if (term === '') {
+            return data;
+        }
+
+        if (data.children && data.children.length) {
+            var groupMatches = data.text.toLowerCase().indexOf(term) > -1;
+            var children = groupMatches ? data.children : data.children.filter(function (child) {
+                return child.text.toLowerCase().indexOf(term) > -1;
+            });
+
+            if (!children.length) {
+                return null;
+            }
+
+            var group = $.extend({}, data, true);
+            group.children = children;
+
+            return group;
+        }
+
+        return data.text.toLowerCase().indexOf(term) > -1 ? data : null;
+    }
+
+    function initCategorySelect() {
+        var $select = $('#categoryImageCategoryId');
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        $select.select2({
+            width: '100%',
+            placeholder: 'Search category…',
+            dropdownParent: $('#categoryHomepageImageModal'),
+            matcher: matchCategory,
+            templateResult: function (data) {
+                if (!data.element || data.element.tagName !== 'OPTION' || !data.id) {
+                    return data.text;
+                }
+
+                return String(data.element.getAttribute('data-depth')) === '0'
+                    ? $('<span class="category-image-option--entire">').text(data.text)
+                    : data.text;
+            },
+            // The chosen value shows its full path ("Main › Sub"), not just "Entire category"
+            templateSelection: function (data) {
+                return (data.element && data.element.getAttribute('data-label')) || data.text;
+            },
+        });
+    }
+
+    // Changing the section reloads its categories (keeping the choice if it still belongs)
+    $('#categoryImageContext').on('change', function () {
+        loadCategories($('#categoryImageCategoryId').val());
+    });
 
     var table = $('#categoryHomepageImagesTable').DataTable({
         processing: true,
@@ -184,7 +305,7 @@
                 $('#categoryImagePreview').attr('src', response.image_url);
                 $('#categoryImagePreviewWrap').show();
             }
-            loadCategories(item.category_id).always(function () {
+            loadCategories(item.category_id, true).always(function () {
                 modal && modal.show();
             });
         });
