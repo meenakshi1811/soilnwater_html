@@ -48,7 +48,6 @@
                     <th>Location</th>
                     <th>Order</th>
                     <th>Status</th>
-                    <th>Created</th>
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>
@@ -82,35 +81,35 @@
                             <label class="form-label">Sort order</label>
                             <input type="number" name="sort_order" class="form-control" min="0" value="0">
                         </div>
+                        {{-- Only the fields the homepage uses: shared ones, then the offer-only ones --}}
                         <div class="col-12">
                             <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="2" placeholder="Offer description or extra details"></textarea>
+                            <small class="text-muted js-field-featured">Business name, used as the image's alternative text.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Link URL</label>
                             <input type="url" name="link_url" class="form-control" required placeholder="https://">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Location</label>
-                            <input type="text" name="location" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Category label</label>
-                            <input type="text" name="category_label" class="form-control" placeholder="Restaurant">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Category tone</label>
+                            <label class="form-label">Colour</label>
                             <select name="category_tone" class="form-select">
                                 @foreach($tones as $tone)
                                     <option value="{{ $tone }}">{{ ucfirst($tone) }}</option>
                                 @endforeach
                             </select>
+                            <small class="text-muted js-field-featured">Border colour around the card.</small>
+                            <small class="text-muted js-field-offer">Colour of the category tag.</small>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 js-field-offer">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="Short offer description"></textarea>
+                        </div>
+                        <div class="col-md-6 js-field-offer">
+                            <label class="form-label">Category label</label>
+                            <input type="text" name="category_label" class="form-control" placeholder="Restaurant">
+                        </div>
+                        <div class="col-md-6 js-field-offer">
                             <label class="form-label">Category icon</label>
                             <input type="text" name="category_icon" class="form-control" placeholder="fa-store">
                         </div>
@@ -119,49 +118,19 @@
                             <input type="text" name="discount_badge" class="form-control" placeholder="30% OFF">
                         </div>
                         <div class="col-md-6 js-field-offer">
+                            <label class="form-label">Location</label>
+                            <input type="text" name="location" class="form-control">
+                        </div>
+                        <div class="col-md-6 js-field-offer">
                             <label class="form-label">Valid until</label>
                             <input type="date" name="valid_until" class="form-control">
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Rating</label>
-                            <input type="number" name="rating" class="form-control" min="0" max="5" step="0.1">
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Review count</label>
-                            <input type="number" name="review_count" class="form-control" min="0">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Image</label>
                             <input type="file" name="image" id="showcaseImage" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            <small class="text-muted js-field-featured">Portrait design, 3:4 (e.g. 900 × 1200 px). Any message goes in the image itself.</small>
+                            <small class="text-muted js-field-offer">Landscape photo, 16:10 (e.g. 960 × 600 px).</small>
                             <img id="showcaseImagePreview" src="" alt="" class="img-thumbnail mt-2 d-none" style="max-height:120px">
-                        </div>
-                        <div class="col-12 js-field-featured">
-                            <hr class="my-1">
-                            <p class="small fw-semibold text-muted mb-2">Mobile promo rail (optional)</p>
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Headline</label>
-                            <input type="text" name="headline" class="form-control">
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Subheadline</label>
-                            <input type="text" name="subheadline" class="form-control">
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Promo badge</label>
-                            <input type="text" name="promo_badge" class="form-control">
-                        </div>
-                        <div class="col-md-6 js-field-featured">
-                            <label class="form-label">Promo sub line</label>
-                            <input type="text" name="promo_sub" class="form-control">
-                        </div>
-                        <div class="col-12 js-field-featured">
-                            <label class="form-label">Strip primary</label>
-                            <input type="text" name="strip_primary" class="form-control">
-                        </div>
-                        <div class="col-12 js-field-featured">
-                            <label class="form-label">Strip secondary</label>
-                            <input type="text" name="strip_secondary" class="form-control">
                         </div>
                         <div class="col-12">
                             <div class="form-check">
@@ -225,7 +194,6 @@
             { data: 'location', name: 'location' },
             { data: 'sort_order', name: 'sort_order' },
             { data: 'status_badge', name: 'is_active', orderable: false },
-            { data: 'created_at', name: 'created_at' },
             { data: 'actions', orderable: false, searchable: false }
         ],
         order: [[5, 'asc']]
@@ -283,14 +251,6 @@
                 $form.find('[name="category_icon"]').val(item.category_icon || 'fa-store');
                 $form.find('[name="discount_badge"]').val(item.discount_badge || '');
                 $form.find('[name="valid_until"]').val(item.valid_until ? item.valid_until.substring(0, 10) : '');
-                $form.find('[name="rating"]').val(item.rating ?? '');
-                $form.find('[name="review_count"]').val(item.review_count ?? '');
-                $form.find('[name="headline"]').val(item.headline || '');
-                $form.find('[name="subheadline"]').val(item.subheadline || '');
-                $form.find('[name="promo_badge"]').val(item.promo_badge || '');
-                $form.find('[name="promo_sub"]').val(item.promo_sub || '');
-                $form.find('[name="strip_primary"]').val(item.strip_primary || '');
-                $form.find('[name="strip_secondary"]').val(item.strip_secondary || '');
                 $form.find('[name="sort_order"]').val(item.sort_order ?? 0);
                 $('#showcaseIsActive').prop('checked', !!item.is_active);
                 if (res.image_url) {

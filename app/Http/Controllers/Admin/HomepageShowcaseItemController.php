@@ -37,7 +37,6 @@ class HomepageShowcaseItemController extends Controller
             'sort_order',
             'is_active',
             'image_path',
-            'created_at',
         ]);
 
         if ($type !== '') {
@@ -54,7 +53,9 @@ class HomepageShowcaseItemController extends Controller
             ->addColumn('status_badge', fn (HomepageShowcaseItem $item) => $item->is_active
                 ? '<span class="badge text-bg-success">Active</span>'
                 : '<span class="badge text-bg-secondary">Inactive</span>')
-            ->editColumn('created_at', fn (HomepageShowcaseItem $item) => $item->created_at?->format('d M Y') ?? '-')
+            // Category and location only appear on offer cards; featured cards are image-only
+            ->editColumn('category_label', fn (HomepageShowcaseItem $item) => $item->type === HomepageShowcaseItem::TYPE_OFFER_PROMO && filled($item->category_label) ? $item->category_label : '—')
+            ->editColumn('location', fn (HomepageShowcaseItem $item) => $item->type === HomepageShowcaseItem::TYPE_OFFER_PROMO && filled($item->location) ? $item->location : '—')
             ->addColumn('actions', function (HomepageShowcaseItem $item) {
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-showcase-item" data-id="'.$item->id.'"><i class="fa-solid fa-pen"></i></button>'
