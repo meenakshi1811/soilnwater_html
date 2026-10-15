@@ -143,7 +143,13 @@ final class ModulePermissions
         }
 
         foreach (ModuleSidebar::sections() as $section) {
-            foreach ($section['items'] as $item) {
+            // A section lists its items directly or splits them into groups (e.g. "Offers & Ads")
+            $items = $section['items'] ?? [];
+            foreach ($section['groups'] ?? [] as $group) {
+                $items = array_merge($items, $group['items'] ?? []);
+            }
+
+            foreach ($items as $item) {
                 if (! self::routeMatchesPattern($routeName, $item['active'])) {
                     continue;
                 }
