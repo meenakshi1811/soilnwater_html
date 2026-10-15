@@ -131,6 +131,19 @@ class Employee extends Authenticatable
         return false;
     }
 
+    /**
+     * Employees reach offers and ads through their module permissions, never as owners.
+     */
+    public function canManageOwnOffersAndAds(): bool
+    {
+        return false;
+    }
+
+    public function canPublishStudyMaterials(): bool
+    {
+        return false;
+    }
+
     public function portalRoutePrefix(): string
     {
         return 'school';
