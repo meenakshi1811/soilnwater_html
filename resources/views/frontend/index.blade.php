@@ -266,56 +266,25 @@
   </div>
 </section>
 
-@if(!empty($sectionToggles['offer_discount']) && $sectionToggles['offer_discount'])
-    @include('frontend.partials.homepage-marketplace-promo', [
-        'variant' => 'offers',
-        'cards' => $homepageOfferPromoCards ?? [],
-    ])
-@endif
-
-@if(!empty($sectionToggles['recent_ads']) && $sectionToggles['recent_ads'])
-    @include('frontend.partials.homepage-marketplace-promo', [
-        'variant' => 'ads',
-        'cards' => $homepageAdPromoCards ?? [],
-    ])
-@endif
-
-@if(!empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'])
-    @include('frontend.partials.homepage-popular-near-you', [
-        'cards' => $homepagePopularNearYouCards ?? [],
-    ])
-@endif
-
-@if($showServiceProvidersSection)
-    @include('frontend.partials.homepage-popular-services', [
-        'cards' => $homepagePopularServicesCards ?? [],
-    ])
-@endif
-
-@if($showPremiumOptions)
-    @include('frontend.partials.homepage-education-knowledge', [
-        'cards' => $homepageEducationKnowledgeCards ?? [],
-    ])
-@endif
-
-@if($showPremiumOptions)
-    @include('frontend.partials.homepage-study-material-library', [
-        'cards' => $homepageStudyMaterialLibraryCards ?? [],
-        'navLinks' => $homepageStudyMaterialNavLinks ?? [],
-    ])
-@endif
-
-@if($showConsultantsSection)
-    @include('frontend.partials.homepage-consultants', [
-        'cards' => $homepageConsultantsCards ?? [],
-    ])
-@endif
-
-@if($showCommunityHubSection)
-    @include('frontend.partials.homepage-community-hub', [
-        'cards' => $homepageCommunityHubCards ?? [],
-    ])
-@endif
+@php
+  // Homepage panel sections, shown in the order set in Admin → Homepage Section Order
+  // (each still only when switched on in Page Setting)
+  $homepageSectionViews = [
+      'offers' => ['frontend.partials.homepage-marketplace-promo', ['variant' => 'offers', 'cards' => $homepageOfferPromoCards ?? []]],
+      'ads' => ['frontend.partials.homepage-marketplace-promo', ['variant' => 'ads', 'cards' => $homepageAdPromoCards ?? []]],
+      'popular_near_you' => ['frontend.partials.homepage-popular-near-you', ['cards' => $homepagePopularNearYouCards ?? []]],
+      'popular_services' => ['frontend.partials.homepage-popular-services', ['cards' => $homepagePopularServicesCards ?? []]],
+      'education_knowledge' => ['frontend.partials.homepage-education-knowledge', ['cards' => $homepageEducationKnowledgeCards ?? []]],
+      'study_material' => ['frontend.partials.homepage-study-material-library', ['cards' => $homepageStudyMaterialLibraryCards ?? [], 'navLinks' => $homepageStudyMaterialNavLinks ?? []]],
+      'consultants' => ['frontend.partials.homepage-consultants', ['cards' => $homepageConsultantsCards ?? []]],
+      'community_hub' => ['frontend.partials.homepage-community-hub', ['cards' => $homepageCommunityHubCards ?? []]],
+  ];
+@endphp
+@foreach(\App\Support\HomepageSectionOrder::keys(data_get($homepageSetting ?? null, 'section_order')) as $homepageSectionKey)
+    @if(\App\Support\HomepageSectionOrder::isEnabled($homepageSectionKey, $sectionToggles))
+        @include($homepageSectionViews[$homepageSectionKey][0], $homepageSectionViews[$homepageSectionKey][1])
+    @endif
+@endforeach
 </div><!-- /.homepage-desktop-panels -->
 
 <!-- ══════════════════════════════════════════════════

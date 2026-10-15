@@ -13,6 +13,7 @@ class HomepageSetting extends Model
         'hero_button_text',
         'hero_button_link',
         'section_toggles',
+        'section_order',
         'vendor_enquiry_send_to',
         'consultant_enquiry_send_to',
         'service_provider_enquiry_send_to',
@@ -20,5 +21,6 @@ class HomepageSetting extends Model
 
     protected $casts = [
         'section_toggles' => 'array',
+        'section_order' => 'array',
     ];
 }

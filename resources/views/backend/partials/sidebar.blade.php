@@ -224,6 +224,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.homepage-section-order.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-order.index') }}">
+                    <i class="fa-solid fa-arrow-down-short-wide"></i>
+                    <span>Homepage Section Order</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.homepage-showcase.*') ? 'active' : '' }}" href="{{ route('admin.homepage-showcase.index') }}">
                     <i class="fa-solid fa-table-columns"></i>
                     <span>Homepage Showcase</span>

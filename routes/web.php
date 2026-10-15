@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
+use App\Http\Controllers\Admin\HomepageSectionOrderController;
 use App\Http\Controllers\Admin\CategoryHomepageImageController;
 use App\Http\Controllers\Admin\HomepageSectionHeroImageController;
 use App\Http\Controllers\Admin\HomepageShowcaseItemController;
@@ -734,6 +735,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
 
         Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
         Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
+
+        Route::prefix('homepage-section-order')->name('homepage-section-order.')->group(function () {
+            Route::get('/', [HomepageSectionOrderController::class, 'index'])->name('index');
+            Route::get('/data', [HomepageSectionOrderController::class, 'data'])->name('data');
+            Route::put('/', [HomepageSectionOrderController::class, 'update'])->name('update');
+            Route::delete('/', [HomepageSectionOrderController::class, 'reset'])->name('reset');
+        });
 
         Route::prefix('homepage-showcase')->name('homepage-showcase.')->group(function () {
             Route::get('/', [HomepageShowcaseItemController::class, 'index'])->name('index');
