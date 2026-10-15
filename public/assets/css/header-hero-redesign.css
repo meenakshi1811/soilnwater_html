@@ -80,7 +80,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: 'Manrope', 'Inter', system-ui, sans-serif;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.035em;
@@ -102,13 +102,13 @@
   }
 
   .logo-wordmark {
-    font-size: 1.25rem;
+    font-size: 1.625rem;
   }
 }
 
 @media (max-width: 575px) {
   .logo-wordmark {
-    font-size: 1.125rem;
+    font-size: 1.375rem;
   }
 }
 
