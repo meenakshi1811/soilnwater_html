@@ -7,7 +7,8 @@
 <header class="header{{ $isHomepage ? ' header--homepage' : '' }}" id="frontendHeader">
   <div class="header-inner">
   <a href="/" class="logo">
-    <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
+    <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="">
+    <span class="logo-wordmark"><span class="logo-wordmark__soil">Soil</span>n<span class="logo-wordmark__water">Water</span></span>
   </a>
 
   <div class="header-right-cluster">
