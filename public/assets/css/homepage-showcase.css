@@ -473,8 +473,8 @@
 }
 
 /* Tablet + desktop: one full-width row of tall portrait (3:4) cards with a thinner border —
-   3 cards up to 1199px (extra cards reached with the arrows), then 7 featured businesses in one
-   row from 1200px; the arrows only appear if more than 7 are added */
+   3 cards up to 1199px, then 6 cards plus a peek of the 7th from 1200px; extra cards are
+   reached with the arrows */
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 3;
@@ -543,11 +543,17 @@
 
 @media (min-width: 1200px) {
   .homepage-featured-promo-rail__scroll {
-    --fp-cols: 7;
-    --fp-gap: 12px;
+    --fp-cols: 6;
+    --fp-gap: 20px;
   }
 
-  /* Small cards: a 4px border leaves the image as much room as possible */
+  /* 6 full cards plus about a third of the 7th, so it is clear the row continues */
+  .homepage-featured-promo-card {
+    flex-basis: calc((100% - var(--fp-gap) * var(--fp-cols)) / (var(--fp-cols) + 0.35));
+    width: calc((100% - var(--fp-gap) * var(--fp-cols)) / (var(--fp-cols) + 0.35));
+  }
+
+  /* A 4px border leaves the image as much room as possible */
   .homepage-featured-promo-card__frame {
     padding: 4px;
     border-radius: 12px;
