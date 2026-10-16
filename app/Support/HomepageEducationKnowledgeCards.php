@@ -7,6 +7,7 @@ use App\Models\Consultant;
 use App\Models\Educator;
 use App\Models\Institute;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 final class HomepageEducationKnowledgeCards
 {
@@ -35,7 +36,11 @@ final class HomepageEducationKnowledgeCards
             self::applyHomepageImage(self::studyLibrarySlot()),
         ];
 
-        return array_values(array_filter($cards));
+        // A new order on every page load, like the other homepage card sections
+        $cards = array_values(array_filter($cards));
+        shuffle($cards);
+
+        return $cards;
     }
 
     /**
@@ -190,7 +195,7 @@ final class HomepageEducationKnowledgeCards
                     ->orWhere('about', 'like', '%coaching%');
             });
 
-        return $query->first();
+        return self::randomMatch($query, $lat !== null && $lng !== null);
     }
 
     private static function findSkillsInstitute(?float $lat, ?float $lng): ?Institute
@@ -205,57 +210,55 @@ final class HomepageEducationKnowledgeCards
             })
             ->where('institution_type', '!=', 'coaching');
 
-        return $query->first();
+        return self::randomMatch($query, $lat !== null && $lng !== null);
     }
 
     private static function findFeaturedArticle(): ?CommunityPost
     {
-        return CommunityPost::query()
+        return self::randomMatch(CommunityPost::query()
             ->publiclyListed()
             ->visibleInCommunityListing(auth()->user())
             ->withAvg('starRatings', 'rating')
-            ->withCount('starRatings')
-            ->orderByDesc('is_featured')
-            ->orderByDesc('is_highlighted')
-            ->orderByDesc('published_at')
-            ->first();
+            ->withCount('starRatings'), false);
     }
 
     private static function findCareerGuide(?float $lat, ?float $lng): Educator|Consultant|null
     {
-        $educator = Educator::query()
+        $educator = self::randomMatch(Educator::query()
             ->approved()
             ->where(function (Builder $builder): void {
                 $builder->where('professional_headline', 'like', '%career%')
                     ->orWhere('about', 'like', '%career%');
-            })
-            ->orderByDesc('average_rating')
-            ->orderByDesc('is_verified')
-            ->first();
+            }), false);
 
         if ($educator instanceof Educator) {
             return $educator;
         }
 
-        $consultant = Consultant::query()
+        $consultant = self::randomMatch(Consultant::query()
             ->where('status', 'approved')
             ->where(function (Builder $builder): void {
                 $builder->where('description', 'like', '%career%')
                     ->orWhere('hero_main_heading', 'like', '%career%')
                     ->orWhere('hero_sub_heading', 'like', '%career%');
-            })
-            ->latest('updated_at')
-            ->first();
+            }), false);
 
         if ($consultant instanceof Consultant) {
             return $consultant;
         }
 
-        return Educator::query()
-            ->approved()
-            ->orderByDesc('average_rating')
-            ->orderByDesc('is_verified')
-            ->first();
+        return self::randomMatch(Educator::query()->approved(), false);
+    }
+
+    /**
+     * A random match on every page load, so each one gets a turn. With a location, one of the
+     * nearest few (the query's own order) to stay local.
+     */
+    private static function randomMatch(Builder $query, bool $hasLocation): ?Model
+    {
+        return $hasLocation
+            ? $query->limit(3)->get()->shuffle()->first()
+            : $query->reorder()->inRandomOrder()->first();
     }
 
     private static function instituteBaseQuery(?float $lat, ?float $lng): Builder
