@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
         $this->call(AdTemplateSeeder::class);
         $this->call(FoulWordSeeder::class);
         $this->call(TeacherDemoSeeder::class);
-        $this->call(HomepageShowcaseItemSeeder::class);
+        // Live homepage content (featured/offer cards, section order, study material cards)
+        $this->call(HomepageLiveContentSeeder::class);
         $this->call(CategoryHomepageImageSeeder::class);
         $this->call(HomepageSectionHeroImageSeeder::class);
         $this->call(ParentDemoSeeder::class);
