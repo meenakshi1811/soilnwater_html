@@ -31,8 +31,8 @@ final class HomepageCardCategory
         $name = self::displayNameForProduct($vendor->products->first());
 
         // No categorised product: fall back to the business subcategory/category set in Admin → Vendors
-        if ($name === 'General') {
-            return $vendor->businessSubcategory?->name ?: $vendor->businessCategory?->name ?: $name;
+        if ($name === '') {
+            return $vendor->businessSubcategory?->name ?: $vendor->businessCategory?->name ?: '';
         }
 
         return $name;
@@ -178,38 +178,41 @@ final class HomepageCardCategory
         return null;
     }
 
+    /**
+     * Empty when no category is known: the homepage card then shows no category label.
+     */
     private static function displayNameForService(?ServiceProviderService $service): string
     {
         if (! $service instanceof ServiceProviderService) {
-            return 'General';
+            return '';
         }
 
         return $service->subcategoryModel?->name
             ?: $service->categoryModel?->name
-            ?: (filled($service->category) ? (string) $service->category : 'General');
+            ?: (filled($service->category) ? (string) $service->category : '');
     }
 
     private static function displayNameForConsultantService(?object $service): string
     {
         if ($service === null) {
-            return 'General';
+            return '';
         }
 
         return $service->subcategoryModel?->name
             ?: $service->categoryModel?->name
-            ?: (filled($service->category ?? null) ? (string) $service->category : 'General');
+            ?: (filled($service->category ?? null) ? (string) $service->category : '');
     }
 
     private static function displayNameForProduct(?VendorProduct $product): string
     {
         if (! $product instanceof VendorProduct) {
-            return 'General';
+            return '';
         }
 
         return $product->subcategory?->name
             ?: $product->childCategory?->name
             ?: $product->category?->name
-            ?: 'General';
+            ?: '';
     }
 
     /**

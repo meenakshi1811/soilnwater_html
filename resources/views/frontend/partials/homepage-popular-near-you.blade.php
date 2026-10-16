@@ -37,11 +37,13 @@
                                 width="640"
                                 height="360"
                             >
-                            <span class="homepage-popular-near-card__category homepage-popular-near-card__category--{{ $card['category_tone'] }}">
-                                <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
-                                <span class="homepage-popular-near-card__category-divider" aria-hidden="true"></span>
-                                {{ $card['category_label'] }}
-                            </span>
+                            @if(filled($card['category_label']))
+                                <span class="homepage-popular-near-card__category homepage-popular-near-card__category--{{ $card['category_tone'] }}">
+                                    <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
+                                    <span class="homepage-popular-near-card__category-divider" aria-hidden="true"></span>
+                                    {{ $card['category_label'] }}
+                                </span>
+                            @endif
                             @if(filled($card['offer_badge']))
                                 <span class="homepage-popular-near-card__offer">
                                     {{ $card['offer_badge'] }}
@@ -62,7 +64,7 @@
                             </div>
                             @if(filled($card['offer_badge']))
                                 <span class="homepage-card-pill homepage-card-pill--deal">{{ $card['offer_badge'] }}@if(filled($card['offer_badge_highlight'])) {{ $card['offer_badge_highlight'] }}@endif</span>
-                            @else
+                            @elseif(filled($card['category_label']))
                                 <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
                             @endif
                             <p class="homepage-popular-near-card__desc">{{ $card['description'] }}</p>

@@ -36,10 +36,12 @@
                                 width="640"
                                 height="360"
                             >
-                            <span class="homepage-consultants-card__category homepage-consultants-card__category--{{ $card['category_tone'] }}">
-                                <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
-                                {{ $card['category_label'] }}
-                            </span>
+                            @if(filled($card['category_label']))
+                                <span class="homepage-consultants-card__category homepage-consultants-card__category--{{ $card['category_tone'] }}">
+                                    <i class="fa-solid {{ $card['category_icon'] }}" aria-hidden="true"></i>
+                                    {{ $card['category_label'] }}
+                                </span>
+                            @endif
                         </div>
                         <div class="homepage-consultants-card__body">
                             <div class="homepage-consultants-card__title-row">
@@ -49,7 +51,9 @@
                                     {{ number_format($card['rating_score'], 1) }}
                                 </p>
                             </div>
-                            <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
+                            @if(filled($card['category_label']))
+                                <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
+                            @endif
                             <div class="homepage-consultants-card__desc-row">
                                 <p class="homepage-consultants-card__desc">{{ $card['description'] }}</p>
                                 <span class="homepage-consultants-card__reviews">({{ number_format($card['rating_count']) }})</span>

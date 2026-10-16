@@ -128,7 +128,7 @@ final class HomepagePopularServicesCards
         }
 
         return [
-            'label' => Str::limit($rawName !== '' ? $rawName : 'Services', 22, ''),
+            'label' => Str::limit($rawName, 22, ''),
             'tone' => 'slate',
             'icon' => 'fa-screwdriver-wrench',
         ];

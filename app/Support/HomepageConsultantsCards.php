@@ -120,7 +120,7 @@ final class HomepageConsultantsCards
         }
 
         return [
-            'label' => Str::limit($rawName !== '' ? $rawName : 'Consulting', 22, ''),
+            'label' => Str::limit($rawName, 22, ''),
             'tone' => 'slate',
             'icon' => 'fa-user-tie',
         ];
