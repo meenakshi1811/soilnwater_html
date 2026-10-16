@@ -46,6 +46,25 @@
         font-weight: 600;
         color: #1d4ed8;
     }
+
+    #categoryHomepageImageModal .category-image-option {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    #categoryHomepageImageModal .category-image-option__count {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    #categoryHomepageImageModal .select2-results__option--highlighted .category-image-option--entire,
+    #categoryHomepageImageModal .select2-results__option--highlighted .category-image-option__count {
+        color: inherit;
+    }
 </style>
 @endpush
 
@@ -177,6 +196,7 @@
                 $('<option>', { value: row.id, text: row.text })
                     .attr('data-label', row.label)
                     .attr('data-depth', row.depth)
+                    .attr('data-count', row.count_label || '')
                     .appendTo(groups[row.group]);
             });
 
@@ -235,9 +255,17 @@
                     return data.text;
                 }
 
-                return String(data.element.getAttribute('data-depth')) === '0'
-                    ? $('<span class="category-image-option--entire">').text(data.text)
-                    : data.text;
+                var $name = $('<span>').text(data.text);
+                if (String(data.element.getAttribute('data-depth')) === '0') {
+                    $name.addClass('category-image-option--entire');
+                }
+
+                // How many postings use it, e.g. "3 vendors"
+                var count = data.element.getAttribute('data-count');
+
+                return count
+                    ? $('<span class="category-image-option">').append($name, $('<span class="category-image-option__count">').text(count))
+                    : $name;
             },
             // The chosen value shows its full path ("Main › Sub"), not just "Entire category"
             templateSelection: function (data) {

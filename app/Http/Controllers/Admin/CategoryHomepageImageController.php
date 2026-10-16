@@ -25,18 +25,38 @@ use Yajra\DataTables\Facades\DataTables;
 class CategoryHomepageImageController extends Controller
 {
     /**
-     * Where each homepage section's items keep their category: model => category columns
-     * (education is keyword-based, below).
+     * Where each homepage section's postings keep their category: the model, the column naming
+     * whose posting it is (counted once per category) and its category columns. Education is
+     * keyword-based, below.
      */
     private const CONTEXT_CATEGORY_SOURCES = [
-        CategoryHomepageImage::CONTEXT_ADS => [UserAd::class => ['category_id', 'subcategory_id']],
-        CategoryHomepageImage::CONTEXT_OFFERS => [Offer::class => ['category_id', 'subcategory_id']],
-        CategoryHomepageImage::CONTEXT_VENDORS => [
-            VendorProduct::class => ['category_id', 'subcategory_id', 'child_category_id'],
-            Vendor::class => ['business_category_id', 'business_subcategory_id'],
+        CategoryHomepageImage::CONTEXT_ADS => [
+            ['model' => UserAd::class, 'owner' => 'id', 'columns' => ['category_id', 'subcategory_id']],
         ],
-        CategoryHomepageImage::CONTEXT_SERVICES => [ServiceProviderService::class => ['category_id', 'subcategory_id']],
-        CategoryHomepageImage::CONTEXT_CONSULTANTS => [ConsultantService::class => ['category_id', 'subcategory_id']],
+        CategoryHomepageImage::CONTEXT_OFFERS => [
+            ['model' => Offer::class, 'owner' => 'id', 'columns' => ['category_id', 'subcategory_id']],
+        ],
+        CategoryHomepageImage::CONTEXT_VENDORS => [
+            ['model' => VendorProduct::class, 'owner' => 'vendor_id', 'columns' => ['category_id', 'subcategory_id', 'child_category_id']],
+            ['model' => Vendor::class, 'owner' => 'id', 'columns' => ['business_category_id', 'business_subcategory_id']],
+        ],
+        CategoryHomepageImage::CONTEXT_SERVICES => [
+            ['model' => ServiceProviderService::class, 'owner' => 'service_provider_id', 'columns' => ['category_id', 'subcategory_id']],
+        ],
+        CategoryHomepageImage::CONTEXT_CONSULTANTS => [
+            ['model' => ConsultantService::class, 'owner' => 'consultant_id', 'columns' => ['category_id', 'subcategory_id']],
+        ],
+    ];
+
+    /**
+     * What the count next to each category counts: [singular, plural].
+     */
+    private const CONTEXT_COUNT_NOUNS = [
+        CategoryHomepageImage::CONTEXT_ADS => ['ad', 'ads'],
+        CategoryHomepageImage::CONTEXT_OFFERS => ['offer', 'offers'],
+        CategoryHomepageImage::CONTEXT_VENDORS => ['vendor', 'vendors'],
+        CategoryHomepageImage::CONTEXT_SERVICES => ['service provider', 'service providers'],
+        CategoryHomepageImage::CONTEXT_CONSULTANTS => ['consultant', 'consultants'],
     ];
 
     public function index(): View
@@ -92,18 +112,21 @@ class CategoryHomepageImageController extends Controller
     }
 
     /**
-     * Categories that have postings in the chosen homepage section. `include` keeps an existing
-     * item's category selectable when editing, even if nothing uses it any more.
+     * Categories that have postings in the chosen homepage section, each with how many it has.
+     * `include` keeps an existing item's category selectable when editing, even if nothing
+     * uses it any more.
      */
     public function categoryOptions(Request $request): JsonResponse
     {
         $context = $request->string('context')->toString();
         $includeId = $request->integer('include') ?: null;
+        $counts = $this->postingCounts($context);
+        $nouns = self::CONTEXT_COUNT_NOUNS[$context] ?? null;
 
         $categories = Category::query()
             ->with(['parent:id,name,parent_id', 'parent.parent:id,name'])
-            ->where(function (Builder $query) use ($context, $includeId): void {
-                $this->restrictToContext($query, $context);
+            ->where(function (Builder $query) use ($context, $counts, $includeId): void {
+                $this->restrictToContext($query, $context, $counts);
 
                 if ($includeId) {
                     $query->orWhere('id', $includeId);
@@ -114,25 +137,29 @@ class CategoryHomepageImageController extends Controller
 
         // Grouped by main category for a searchable, readable dropdown: the main category itself
         // is "Entire category", deeper levels read "Subcategory › Child"; label is the full path
-        $options = $categories->map(function (Category $category): array {
+        $options = $categories->map(function (Category $category) use ($counts, $nouns): array {
             $parent = $category->parent;
             $grandparent = $parent?->parent;
 
             if ($parent === null) {
-                return ['id' => $category->id, 'group' => $category->name, 'text' => 'Entire category', 'depth' => 0, 'label' => $category->name];
+                $option = ['id' => $category->id, 'group' => $category->name, 'text' => 'Entire category', 'depth' => 0, 'label' => $category->name];
+            } elseif ($grandparent === null) {
+                $option = ['id' => $category->id, 'group' => $parent->name, 'text' => $category->name, 'depth' => 1, 'label' => $parent->name.' › '.$category->name];
+            } else {
+                $option = [
+                    'id' => $category->id,
+                    'group' => $grandparent->name,
+                    'text' => $parent->name.' › '.$category->name,
+                    'depth' => 2,
+                    'label' => $grandparent->name.' › '.$parent->name.' › '.$category->name,
+                ];
             }
 
-            if ($grandparent === null) {
-                return ['id' => $category->id, 'group' => $parent->name, 'text' => $category->name, 'depth' => 1, 'label' => $parent->name.' › '.$category->name];
-            }
+            // e.g. "3 vendors"; none for education, which has no postings to count
+            $count = $counts === null ? null : ($counts[$category->id] ?? 0);
+            $option['count_label'] = $count === null || $nouns === null ? null : $count.' '.($count === 1 ? $nouns[0] : $nouns[1]);
 
-            return [
-                'id' => $category->id,
-                'group' => $grandparent->name,
-                'text' => $parent->name.' › '.$category->name,
-                'depth' => 2,
-                'label' => $grandparent->name.' › '.$parent->name.' › '.$category->name,
-            ];
+            return $option;
         })
             ->sortBy(fn (array $option): array => [mb_strtolower($option['group']), $option['depth'] === 0 ? 0 : 1, mb_strtolower($option['text'])])
             ->values();
@@ -140,8 +167,18 @@ class CategoryHomepageImageController extends Controller
         return response()->json(['categories' => $options]);
     }
 
-    private function restrictToContext(Builder $query, string $context): void
+    /**
+     * @param  array<int, int>|null  $counts  posting counts of the section, when it has postings
+     */
+    private function restrictToContext(Builder $query, string $context, ?array $counts): void
     {
+        if ($counts !== null) {
+            $ids = array_keys($counts);
+            $query->whereIn('id', $ids === [] ? [0] : $ids);
+
+            return;
+        }
+
         // Education cards look their category up by keywords: offer exactly the categories
         // (and parent levels) those keywords resolve to
         if ($context === CategoryHomepageImage::CONTEXT_EDUCATION) {
@@ -156,38 +193,69 @@ class CategoryHomepageImageController extends Controller
             return;
         }
 
-        $sources = self::CONTEXT_CATEGORY_SOURCES[$context] ?? null;
-        if ($sources === null) {
-            $query->whereRaw('1 = 1');
-
-            return;
-        }
-
-        $ids = $this->usedCategoryIds($sources);
-        $query->whereIn('id', $ids === [] ? [0] : $ids);
+        $query->whereRaw('1 = 1');
     }
 
     /**
-     * Categories at least one item uses, plus their parent levels so a whole category can
-     * get an image too.
+     * How many vendors / service providers / consultants / offers / ads use each category of the
+     * section, each counted once. A posting under a subcategory also counts for its parent levels,
+     * so "Entire category" shows the whole category's total. Null for sections without postings.
      *
-     * @param  array<class-string<\Illuminate\Database\Eloquent\Model>, list<string>>  $sources
-     * @return list<int>
+     * @return array<int, int>|null category id => count
      */
-    private function usedCategoryIds(array $sources): array
+    private function postingCounts(string $context): ?array
     {
-        $ids = collect();
-        foreach ($sources as $model => $columns) {
-            foreach ($columns as $column) {
-                $ids = $ids->merge($model::query()->whereNotNull($column)->distinct()->pluck($column));
+        $sources = self::CONTEXT_CATEGORY_SOURCES[$context] ?? null;
+        if ($sources === null) {
+            return null;
+        }
+
+        // category id => [owner id => true]
+        $owners = [];
+        foreach ($sources as $source) {
+            foreach ($source['columns'] as $column) {
+                $pairs = $source['model']::query()->toBase()
+                    ->whereNotNull($column)
+                    ->distinct()
+                    ->get([$column.' as category_id', $source['owner'].' as owner_id']);
+
+                foreach ($pairs as $pair) {
+                    $owners[(int) $pair->category_id][(int) $pair->owner_id] = true;
+                }
             }
         }
 
-        $ids = $ids->map(fn ($id): int => (int) $id)->unique()->values();
-        $parentIds = $ids->isEmpty() ? collect() : Category::query()->whereIn('id', $ids)->whereNotNull('parent_id')->pluck('parent_id');
-        $grandparentIds = $parentIds->isEmpty() ? collect() : Category::query()->whereIn('id', $parentIds)->whereNotNull('parent_id')->pluck('parent_id');
+        $parents = $this->parentMap(array_keys($owners));
+        $totals = [];
+        foreach ($owners as $categoryId => $ownerIds) {
+            // The category, its parent and grandparent (three levels at most)
+            for ($id = $categoryId, $level = 0; $id !== null && $level < 3; $id = $parents[$id] ?? null, $level++) {
+                $totals[$id] = ($totals[$id] ?? []) + $ownerIds;
+            }
+        }
 
-        return $ids->merge($parentIds)->merge($grandparentIds)->map(fn ($id): int => (int) $id)->unique()->values()->all();
+        return array_map('count', $totals);
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @return array<int, int|null> category id => parent id, for these categories and their parent levels
+     */
+    private function parentMap(array $ids): array
+    {
+        $map = [];
+        while ($ids !== []) {
+            $next = [];
+            foreach (Category::query()->whereIn('id', $ids)->pluck('parent_id', 'id') as $id => $parentId) {
+                $map[(int) $id] = $parentId === null ? null : (int) $parentId;
+                if ($parentId !== null) {
+                    $next[] = (int) $parentId;
+                }
+            }
+            $ids = array_values(array_unique(array_diff($next, array_keys($map))));
+        }
+
+        return $map;
     }
 
     public function show(CategoryHomepageImage $categoryHomepageImage): JsonResponse
