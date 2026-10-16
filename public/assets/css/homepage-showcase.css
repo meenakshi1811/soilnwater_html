@@ -608,7 +608,7 @@ body:has(.homepage-featured-zoom[open]) {
 @media (min-width: 768px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 3;
-    --fp-gap: 16px;
+    --fp-gap: 20px;
     gap: var(--fp-gap);
     /* Room inside the strip so a hovered card can grow 5% without being clipped; the panel's
        own padding is reduced by the same amount, so cards sit where they did */
@@ -677,7 +677,7 @@ body:has(.homepage-featured-zoom[open]) {
 @media (min-width: 1200px) {
   .homepage-featured-promo-rail__scroll {
     --fp-cols: 5;
-    --fp-gap: 20px;
+    --fp-gap: 28px;
   }
 
   /* 5 full cards plus about a third of the 6th, so it is clear the row continues */
