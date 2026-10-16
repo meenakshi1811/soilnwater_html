@@ -4,7 +4,7 @@
 @endphp
 
 @if(count($cards) > 0)
-    <section class="homepage-popular-near" aria-label="Popular near you">
+    <section class="homepage-popular-near" aria-label="Popular businesses near you">
         <div class="homepage-popular-near__shell">
             <header class="homepage-popular-near__head">
                 <div class="homepage-popular-near__head-main">
@@ -16,7 +16,7 @@
                     </span>
                     <div class="homepage-popular-near__head-copy">
                         <h2 class="homepage-popular-near__title">
-                            Popular <span class="homepage-popular-near__title-accent">Near</span> You
+                            Popular <span class="homepage-popular-near__title-accent">Businesses</span> Near&nbsp;You
                         </h2>
                     </div>
                 </div>

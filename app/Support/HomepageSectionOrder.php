@@ -19,7 +19,7 @@ final class HomepageSectionOrder
         return [
             'offers' => ['label' => 'Latest Offers & Discounts', 'icon' => 'fa-solid fa-tags', 'toggle' => 'offer_discount', 'toggle_default' => false],
             'ads' => ['label' => 'Latest Ads & Listings', 'icon' => 'fa-solid fa-rectangle-ad', 'toggle' => 'recent_ads', 'toggle_default' => false],
-            'popular_near_you' => ['label' => 'Popular Near You', 'icon' => 'fa-solid fa-location-dot', 'toggle' => 'top_vendors', 'toggle_default' => false],
+            'popular_near_you' => ['label' => 'Popular Businesses Near You', 'icon' => 'fa-solid fa-location-dot', 'toggle' => 'top_vendors', 'toggle_default' => false],
             'popular_services' => ['label' => 'Popular Services', 'icon' => 'fa-solid fa-screwdriver-wrench', 'toggle' => 'popular_services', 'toggle_default' => false],
             'education_knowledge' => ['label' => 'Education & Knowledge', 'icon' => 'fa-solid fa-graduation-cap', 'toggle' => 'premium_options', 'toggle_default' => true],
             'study_material' => ['label' => 'Study Material Library', 'icon' => 'fa-solid fa-book', 'toggle' => 'premium_options', 'toggle_default' => true],
