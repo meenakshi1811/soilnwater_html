@@ -5,6 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
+use App\Models\ConsultantService;
+use App\Models\Offer;
+use App\Models\ServiceProviderService;
+use App\Models\UserAd;
+use App\Models\Vendor;
+use App\Models\VendorProduct;
 use App\Support\HomepageCardCategory;
 use App\Support\HomepageEducationKnowledgeCards;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,14 +25,18 @@ use Yajra\DataTables\Facades\DataTables;
 class CategoryHomepageImageController extends Controller
 {
     /**
-     * Category module whose items each homepage section shows (education is keyword-based, below).
+     * Where each homepage section's items keep their category: model => category columns
+     * (education is keyword-based, below).
      */
-    private const CONTEXT_MODULES = [
-        CategoryHomepageImage::CONTEXT_ADS => 'ads',
-        CategoryHomepageImage::CONTEXT_OFFERS => 'offers',
-        CategoryHomepageImage::CONTEXT_VENDORS => 'vendors',
-        CategoryHomepageImage::CONTEXT_SERVICES => 'service_providers',
-        CategoryHomepageImage::CONTEXT_CONSULTANTS => 'consultants',
+    private const CONTEXT_CATEGORY_SOURCES = [
+        CategoryHomepageImage::CONTEXT_ADS => [UserAd::class => ['category_id', 'subcategory_id']],
+        CategoryHomepageImage::CONTEXT_OFFERS => [Offer::class => ['category_id', 'subcategory_id']],
+        CategoryHomepageImage::CONTEXT_VENDORS => [
+            VendorProduct::class => ['category_id', 'subcategory_id', 'child_category_id'],
+            Vendor::class => ['business_category_id', 'business_subcategory_id'],
+        ],
+        CategoryHomepageImage::CONTEXT_SERVICES => [ServiceProviderService::class => ['category_id', 'subcategory_id']],
+        CategoryHomepageImage::CONTEXT_CONSULTANTS => [ConsultantService::class => ['category_id', 'subcategory_id']],
     ];
 
     public function index(): View
@@ -82,8 +92,8 @@ class CategoryHomepageImageController extends Controller
     }
 
     /**
-     * Categories for the chosen homepage section only. `include` keeps an existing item's
-     * category selectable when editing, even if it does not belong to the section.
+     * Categories that have postings in the chosen homepage section. `include` keeps an existing
+     * item's category selectable when editing, even if nothing uses it any more.
      */
     public function categoryOptions(Request $request): JsonResponse
     {
@@ -146,19 +156,38 @@ class CategoryHomepageImageController extends Controller
             return;
         }
 
-        $module = self::CONTEXT_MODULES[$context] ?? null;
-        if ($module === null) {
+        $sources = self::CONTEXT_CATEGORY_SOURCES[$context] ?? null;
+        if ($sources === null) {
             $query->whereRaw('1 = 1');
 
             return;
         }
 
-        // The category itself or one of its parent levels belongs to the module
-        $query->where(function (Builder $moduleQuery) use ($module): void {
-            $moduleQuery->forModule($module)
-                ->orWhereHas('parent', fn (Builder $parent) => $parent->forModule($module))
-                ->orWhereHas('parent.parent', fn (Builder $grandparent) => $grandparent->forModule($module));
-        });
+        $ids = $this->usedCategoryIds($sources);
+        $query->whereIn('id', $ids === [] ? [0] : $ids);
+    }
+
+    /**
+     * Categories at least one item uses, plus their parent levels so a whole category can
+     * get an image too.
+     *
+     * @param  array<class-string<\Illuminate\Database\Eloquent\Model>, list<string>>  $sources
+     * @return list<int>
+     */
+    private function usedCategoryIds(array $sources): array
+    {
+        $ids = collect();
+        foreach ($sources as $model => $columns) {
+            foreach ($columns as $column) {
+                $ids = $ids->merge($model::query()->whereNotNull($column)->distinct()->pluck($column));
+            }
+        }
+
+        $ids = $ids->map(fn ($id): int => (int) $id)->unique()->values();
+        $parentIds = $ids->isEmpty() ? collect() : Category::query()->whereIn('id', $ids)->whereNotNull('parent_id')->pluck('parent_id');
+        $grandparentIds = $parentIds->isEmpty() ? collect() : Category::query()->whereIn('id', $parentIds)->whereNotNull('parent_id')->pluck('parent_id');
+
+        return $ids->merge($parentIds)->merge($grandparentIds)->map(fn ($id): int => (int) $id)->unique()->values()->all();
     }
 
     public function show(CategoryHomepageImage $categoryHomepageImage): JsonResponse
