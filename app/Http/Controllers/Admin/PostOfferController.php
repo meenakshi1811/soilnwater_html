@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AuthActor;
 use App\Services\ListingPaymentReviewService;
 use App\Services\OfferPriceService;
 use App\Services\PortalNotificationService;
@@ -103,8 +104,11 @@ class PostOfferController extends Controller
             $validated['banner_image'] = $this->storeGeneratedBanner($validated['generated_banner_data']);
         }
 
-        // Attach the authenticated user
-        $validated['user_id'] = auth()->id();
+        // Owner (users table): the signed-in user, or for employees the admin team (see AuthActor)
+        $validated['user_id'] = AuthActor::ownerUserId();
+        if ($validated['user_id'] === null) {
+            return response()->json(['message' => 'No admin account is available to own this offer.'], 422);
+        }
         unset($validated['accept_terms'], $validated['generated_banner_data']);
 
         if (! empty($validated['subcategory_id'])) {
@@ -146,7 +150,7 @@ class PostOfferController extends Controller
             $offer->update([
                 'approval_status' => $offer->status === 'active' ? 'approved' : 'pending',
                 'approval_reviewed_at' => $offer->status === 'active' ? now() : null,
-                'approval_reviewed_by' => $offer->status === 'active' ? $request->user()->id : null,
+                'approval_reviewed_by' => $offer->status === 'active' ? AuthActor::usersTableId() : null,
             ]);
         } else {
             PortalNotificationService::notifyAdminsOfApprovalRequest('Offer', $offer->title, route('offers.index'));
@@ -345,7 +349,7 @@ class PostOfferController extends Controller
                 'status' => $reviewedStatus,
                 'approval_status' => $reviewedStatus === 'active' ? 'approved' : 'declined',
                 'approval_reviewed_at' => now(),
-                'approval_reviewed_by' => $user->id,
+                'approval_reviewed_by' => AuthActor::usersTableId(),
             ]);
 
             if (isset($validated['status'])) {
@@ -392,7 +396,7 @@ class PostOfferController extends Controller
         } elseif (isset($validated['status'])) {
             $validated['approval_status'] = $validated['status'] === 'active' ? 'approved' : 'declined';
             $validated['approval_reviewed_at'] = now();
-            $validated['approval_reviewed_by'] = $user->id;
+            $validated['approval_reviewed_by'] = AuthActor::usersTableId();
         }
 
         unset($validated['accept_terms']);
@@ -424,7 +428,7 @@ class PostOfferController extends Controller
             'status' => $validated['status'],
             'approval_status' => $validated['status'] === 'active' ? 'approved' : 'declined',
             'approval_reviewed_at' => now(),
-            'approval_reviewed_by' => $user->id,
+            'approval_reviewed_by' => AuthActor::usersTableId(),
         ]);
 
         PortalNotificationService::notifyOwnerOfReview(
