@@ -216,6 +216,14 @@
   background: linear-gradient(135deg, #6d28d9, #7c3aed);
 }
 
+.homepage-study-library-card__badge--red {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+.homepage-study-library-card__badge--indigo {
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+}
+
 .homepage-study-library-card__body {
   padding: 12px 12px 11px;
   display: flex;

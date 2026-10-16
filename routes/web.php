@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FoulWordController;
 use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\HomepageSectionOrderController;
+use App\Http\Controllers\Admin\HomepageStudyMaterialCardController;
 use App\Http\Controllers\Admin\CategoryHomepageImageController;
 use App\Http\Controllers\Admin\HomepageSectionHeroImageController;
 use App\Http\Controllers\Admin\HomepageShowcaseItemController;
@@ -741,6 +742,16 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/data', [HomepageSectionOrderController::class, 'data'])->name('data');
             Route::put('/', [HomepageSectionOrderController::class, 'update'])->name('update');
             Route::delete('/', [HomepageSectionOrderController::class, 'reset'])->name('reset');
+        });
+
+        Route::prefix('homepage-study-material-cards')->name('homepage-study-material-cards.')->group(function () {
+            Route::get('/', [HomepageStudyMaterialCardController::class, 'index'])->name('index');
+            Route::get('/data', [HomepageStudyMaterialCardController::class, 'data'])->name('data');
+            Route::put('/order', [HomepageStudyMaterialCardController::class, 'reorder'])->name('reorder');
+            Route::post('/', [HomepageStudyMaterialCardController::class, 'store'])->name('store');
+            Route::get('/{homepageStudyMaterialCard}', [HomepageStudyMaterialCardController::class, 'show'])->name('show');
+            Route::match(['put', 'patch'], '/{homepageStudyMaterialCard}', [HomepageStudyMaterialCardController::class, 'update'])->name('update');
+            Route::delete('/{homepageStudyMaterialCard}', [HomepageStudyMaterialCardController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('homepage-showcase')->name('homepage-showcase.')->group(function () {

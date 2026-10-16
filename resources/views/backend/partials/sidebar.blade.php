@@ -26,7 +26,7 @@
     $communityAuthorQuestionsActive = request()->routeIs('community.author-questions.*');
     $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*') || request()->routeIs('community.saved.*') || request()->routeIs('community.subscriptions.*');
     $communityChatMenuActive = request()->routeIs('admin.community-chats.*') || request()->routeIs('admin.foul-words.*');
-    $homepageMenuActive = request()->routeIs('admin.homepage-settings.*') || request()->routeIs('admin.homepage-section-order.*') || request()->routeIs('admin.homepage-showcase.*') || request()->routeIs('admin.category-homepage-images.*') || request()->routeIs('admin.homepage-section-heroes.*');
+    $homepageMenuActive = request()->routeIs('admin.homepage-settings.*') || request()->routeIs('admin.homepage-section-order.*') || request()->routeIs('admin.homepage-showcase.*') || request()->routeIs('admin.category-homepage-images.*') || request()->routeIs('admin.homepage-section-heroes.*') || request()->routeIs('admin.homepage-study-material-cards.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -256,6 +256,12 @@
                             <a class="{{ request()->routeIs('admin.homepage-section-heroes.*') ? 'active' : '' }}" href="{{ route('admin.homepage-section-heroes.index') }}">
                                 <i class="fa-solid fa-panorama"></i>
                                 <span>Section Banner Images</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.homepage-study-material-cards.*') ? 'active' : '' }}" href="{{ route('admin.homepage-study-material-cards.index') }}">
+                                <i class="fa-solid fa-book"></i>
+                                <span>Study Material Cards</span>
                             </a>
                         </li>
                     </ul>

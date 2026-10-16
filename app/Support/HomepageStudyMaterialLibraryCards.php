@@ -2,8 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\HomepageStudyMaterialCard;
 use App\Models\StudyMaterial;
 use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 final class HomepageStudyMaterialLibraryCards
 {
@@ -20,6 +22,13 @@ final class HomepageStudyMaterialLibraryCards
      */
     public static function build(): array
     {
+        // Cards managed in Admin → Homepage → Study Material Cards, in their saved order
+        $managed = self::managedCards();
+        if ($managed !== null) {
+            return $managed;
+        }
+
+        // Before the cards table exists (or while it is empty): the original built-in cards
         $definitions = [
             [
                 'material_type' => 'question_papers',
@@ -111,6 +120,44 @@ final class HomepageStudyMaterialLibraryCards
         }
 
         return $cards;
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    private static function managedCards(): ?array
+    {
+        try {
+            $cards = HomepageStudyMaterialCard::query()->active()->ordered()->get();
+        } catch (Throwable) {
+            // Table not migrated yet
+            return null;
+        }
+
+        if ($cards->isEmpty()) {
+            return null;
+        }
+
+        return $cards->map(function (HomepageStudyMaterialCard $card): array {
+            $subtitle = (string) ($card->subtitle ?? '');
+            $icon = str_starts_with((string) $card->icon, 'fa-') ? (string) $card->icon : 'fa-book-open';
+
+            return [
+                'url' => $card->linkUrl(),
+                'image' => $card->imageUrl(),
+                'title' => $card->title,
+                'subtitle' => $subtitle,
+                'description' => $subtitle,
+                'badge_label' => $card->title,
+                'category_label' => $card->title,
+                'badge_tone' => $card->tone,
+                'category_tone' => $card->tone,
+                'badge_icon' => $icon,
+                'category_icon' => $icon,
+                'footer_note' => $subtitle,
+                'location' => 'Dehradun',
+            ];
+        })->values()->all();
     }
 
     /**
