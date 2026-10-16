@@ -8,7 +8,7 @@
 <section class="auth-page-wrap">
     <div class="container">
         <div class="auth-layout">
-            <aside class="auth-intro d-none d-lg-block">
+            <aside class="auth-intro auth-intro-login d-none d-lg-block">
                 <span class="intro-pill">EMPLOYEE SIGN UP</span>
                 <h1>Create a staff account</h1>
                 <p>Employee accounts live on a separate table from users, so this email can also belong to a regular portal user.</p>
