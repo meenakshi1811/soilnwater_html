@@ -187,17 +187,22 @@
         });
     }
 
+    // Lower-case without accents, so "home decor" finds "Home Décor"
+    function normalize(text) {
+        return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
     // Search matches an option or its main category (typing a main category shows all of it)
     function matchCategory(params, data) {
-        var term = $.trim(params.term || '').toLowerCase();
+        var term = normalize($.trim(params.term || ''));
         if (term === '') {
             return data;
         }
 
         if (data.children && data.children.length) {
-            var groupMatches = data.text.toLowerCase().indexOf(term) > -1;
+            var groupMatches = normalize(data.text).indexOf(term) > -1;
             var children = groupMatches ? data.children : data.children.filter(function (child) {
-                return child.text.toLowerCase().indexOf(term) > -1;
+                return normalize(child.text).indexOf(term) > -1;
             });
 
             if (!children.length) {
@@ -210,7 +215,7 @@
             return group;
         }
 
-        return data.text.toLowerCase().indexOf(term) > -1 ? data : null;
+        return normalize(data.text).indexOf(term) > -1 ? data : null;
     }
 
     function initCategorySelect() {
