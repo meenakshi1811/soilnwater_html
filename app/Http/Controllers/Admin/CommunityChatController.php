@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
+use App\Support\AuthActor;
 
 class CommunityChatController extends Controller
 {
@@ -209,7 +210,7 @@ class CommunityChatController extends Controller
             ], 422);
         }
 
-        if ($request->user() && $request->user()->id === $user->id) {
+        if (AuthActor::usersTableId() === $user->id) {
             return response()->json([
                 'message' => 'You cannot block your own chat access.',
             ], 422);

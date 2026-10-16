@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
+use App\Support\AuthActor;
 
 class CommunityPostApprovalController extends Controller
 {
@@ -115,7 +116,7 @@ class CommunityPostApprovalController extends Controller
 
     public function preview(CommunityPost $post): View
     {
-        abort_unless($post->isPendingApproval() || auth()->user()?->isAdmin(), 404);
+        abort_unless($post->isPendingApproval() || auth()->user()?->isAdmin() || auth()->user()?->isEmployee(), 404);
 
         $post->load([
             'user',
@@ -139,7 +140,7 @@ class CommunityPostApprovalController extends Controller
                     ->limit(10)
                     ->get()
                 : collect(),
-            'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            'engagement' => CommunityEngagementController::engagementStateForUser(AuthActor::usersTableId()),
         ], app(CommunityPostController::class)->participationViewData($post)));
     }
 
@@ -152,7 +153,7 @@ class CommunityPostApprovalController extends Controller
             'published_at' => $post->published_at ?? now(),
             'submitted_at' => $post->isPendingApproval() ? ($post->submitted_at ?? now()) : null,
             'reviewed_at' => now(),
-            'reviewed_by' => $request->user()->id,
+            'reviewed_by' => AuthActor::usersTableId(),
             'review_note' => null,
         ]);
 
@@ -220,7 +221,7 @@ class CommunityPostApprovalController extends Controller
             'status' => CommunityPost::STATUS_DECLINED,
             'published_at' => null,
             'reviewed_at' => now(),
-            'reviewed_by' => $request->user()->id,
+            'reviewed_by' => AuthActor::usersTableId(),
             'review_note' => $data['review_note'] ?? 'Rejected by admin.',
         ]);
 
@@ -238,7 +239,7 @@ class CommunityPostApprovalController extends Controller
             'published_at' => null,
             'submitted_at' => null,
             'reviewed_at' => now(),
-            'reviewed_by' => $request->user()->id,
+            'reviewed_by' => AuthActor::usersTableId(),
             'review_note' => null,
         ]);
 
@@ -251,7 +252,7 @@ class CommunityPostApprovalController extends Controller
             'status' => CommunityPost::STATUS_ARCHIVED,
             'published_at' => null,
             'reviewed_at' => now(),
-            'reviewed_by' => $request->user()->id,
+            'reviewed_by' => AuthActor::usersTableId(),
         ]);
 
         return response()->json(['message' => 'Community post archived.']);

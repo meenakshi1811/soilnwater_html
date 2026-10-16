@@ -31,6 +31,7 @@ final class ModulePermissions
             'offers' => 'Offers',
             'ads' => 'Ads',
             'user_enquiry' => 'User Enquery',
+            'community' => 'Community',
         ];
     }
 
@@ -78,6 +79,7 @@ final class ModulePermissions
             'institutes' => 'admin.institutes.index',
             'offers' => 'offers.index',
             'ads' => 'ads.index',
+            'community' => 'admin.community-posts.index',
         ];
     }
 
@@ -107,6 +109,9 @@ final class ModulePermissions
             'offers.' => 'offers',
             'admin.ads.' => 'ads',
             'ads.' => 'ads',
+            'admin.community-posts.' => 'community',
+            'admin.community-chats.' => 'community',
+            'admin.foul-words.' => 'community',
         ];
 
         foreach ($prefixMap as $prefix => $module) {
@@ -136,6 +141,25 @@ final class ModulePermissions
             'admin.users.destroy' => 'delete',
             'admin.users.toggle-block' => 'write',
             'admin.users.toggle-status' => 'write',
+
+            // Community: reviewing posts needs "approve", moderation changes "add"/"write"/"delete"
+            'admin.community-posts.approve' => 'approve',
+            'admin.community-posts.reject' => 'approve',
+            'admin.community-posts.decline' => 'approve',
+            'admin.community-posts.draft' => 'approve',
+            'admin.community-posts.archive' => 'approve',
+            'admin.community-posts.feature' => 'approve',
+            'admin.community-posts.sponsor' => 'approve',
+            'admin.community-posts.highlight' => 'approve',
+            'admin.community-posts.quality-score' => 'approve',
+            'admin.community-posts.recalculate-score' => 'approve',
+            'admin.community-posts.article-badge' => 'approve',
+            'admin.community-posts.reports.delete-post' => 'delete',
+            'admin.community-chats.users.toggle-block' => 'write',
+            'admin.foul-words.store' => 'add',
+            'admin.foul-words.update' => 'write',
+            'admin.foul-words.toggle-status' => 'write',
+            'admin.foul-words.destroy' => 'delete',
         ];
 
         if (isset($overrides[$routeName])) {

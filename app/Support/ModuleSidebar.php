@@ -149,6 +149,21 @@ final class ModuleSidebar
                     ],
                 ],
             ],
+            // Admins keep their own Community / Community Chat menus, so this one is for employees
+            'community' => [
+                'label' => 'Community',
+                'icon' => 'fa-solid fa-pen-nib',
+                'hidden_for_admin' => true,
+                'active_routes' => ['admin.community-posts.*', 'admin.community-chats.*', 'admin.foul-words.*'],
+                'items' => [
+                    ['label' => 'Post Approvals', 'route' => 'admin.community-posts.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.*', 'active_except' => ['admin.community-posts.all.*', 'admin.community-posts.reports.*']],
+                    ['label' => 'All Posts', 'route' => 'admin.community-posts.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.all.*'],
+                    ['label' => 'Reported Posts', 'route' => 'admin.community-posts.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.reports.*'],
+                    ['label' => 'Chat Topics', 'route' => 'admin.community-chats.index', 'icon' => 'fa-solid fa-comments', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-chats.*', 'active_except' => ['admin.community-chats.users*']],
+                    ['label' => 'Chat Users', 'route' => 'admin.community-chats.users', 'icon' => 'fa-solid fa-user-slash', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-chats.users*'],
+                    ['label' => 'Foul Words', 'route' => 'admin.foul-words.index', 'icon' => 'fa-solid fa-filter', 'module' => 'community', 'action' => 'read', 'active' => 'admin.foul-words.*'],
+                ],
+            ],
         ];
     }
 
@@ -160,6 +175,10 @@ final class ModuleSidebar
         $sections = [];
 
         foreach (self::sections() as $key => $section) {
+            if ($isAdmin && ! empty($section['hidden_for_admin'])) {
+                continue;
+            }
+
             if (isset($section['groups'])) {
                 $groups = [];
 
