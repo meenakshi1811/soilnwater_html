@@ -76,6 +76,24 @@
                                 <option value="rejected">Rejected</option>
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vendorBusinessCategory">Business category</label>
+                            <select name="business_category_id" id="vendorBusinessCategory" class="form-select">
+                                <option value="">— Not set —</option>
+                                @foreach($businessCategories as $businessCategory)
+                                    <option value="{{ $businessCategory->id }}">{{ $businessCategory->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vendorBusinessSubcategory">Business subcategory <span class="text-muted fw-normal">(optional)</span></label>
+                            <select name="business_subcategory_id" id="vendorBusinessSubcategory" class="form-select" disabled>
+                                <option value="">— None —</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-1">
+                            <small class="text-muted">Used on homepage cards (label and category image) while this vendor has no product with a category.</small>
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label">Phone</label>
                             <input type="text" name="phone" id="vendorPhone" class="form-control">

@@ -17,6 +17,8 @@ class Vendor extends Model
 
     protected $fillable = [
         'user_id',
+        'business_category_id',
+        'business_subcategory_id',
         'company_name',
         'contact_person',
         'slug',
@@ -71,6 +73,22 @@ class Vendor extends Model
             'public_page_submitted_at' => 'datetime',
             'public_page_approved_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Main business category (Admin → Vendors); used when the vendor has no categorised product.
+     */
+    public function businessCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'business_category_id');
+    }
+
+    /**
+     * Optional subcategory of the business category.
+     */
+    public function businessSubcategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'business_subcategory_id');
     }
 
     public function user(): BelongsTo

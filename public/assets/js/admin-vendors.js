@@ -42,6 +42,8 @@
                     $('#vendorContact').val(v.contact_person || '');
                     $('#vendorSlug').val(v.slug || '').trigger('input');
                     $('#vendorStatus').val(v.status || 'pending');
+                    $('#vendorBusinessCategory').val(v.business_category_id ? String(v.business_category_id) : '');
+                    self.loadBusinessSubcategories(v.business_subcategory_id);
                     $('#vendorPhone').val(v.phone || '');
                     $('#vendorWhatsapp').val(v.whatsapp || '');
                     $('#vendorEmail').val(v.email || '');
@@ -59,6 +61,10 @@
                 }).fail(function () {
                     FormHelper.showToast('danger', 'Unable to load vendor.');
                 });
+            });
+
+            $('#vendorBusinessCategory').on('change', function () {
+                self.loadBusinessSubcategories(null);
             });
 
             $('#vendorSlug').on('input', function () {
@@ -115,6 +121,31 @@
                     .always(function () {
                         checkbox.prop('disabled', false);
                     });
+            });
+        },
+
+        // Fills "Business subcategory" with the chosen business category's subcategories
+        loadBusinessSubcategories: function (selectedId) {
+            var $select = $('#vendorBusinessSubcategory');
+            var categoryId = $('#vendorBusinessCategory').val();
+            var request = (this.subcategoryRequest || 0) + 1;
+            this.subcategoryRequest = request;
+
+            $select.find('option:not(:first)').remove();
+            $select.val('').prop('disabled', true);
+            if (!categoryId) return;
+
+            var self = this;
+            $.get('/admin/vendors/categories/' + categoryId + '/subcategories').done(function (r) {
+                if (self.subcategoryRequest !== request) return; // category changed again meanwhile
+                $.each(r.subcategories || [], function (i, sub) {
+                    $('<option>').val(String(sub.id)).text(sub.name).appendTo($select);
+                });
+                $select.prop('disabled', false);
+                if (selectedId) $select.val(String(selectedId));
+            }).fail(function () {
+                if (self.subcategoryRequest !== request) return;
+                FormHelper.showToast('danger', 'Unable to load subcategories.');
             });
         },
 

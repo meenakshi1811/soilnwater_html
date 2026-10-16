@@ -780,6 +780,9 @@ class OfferPageController extends Controller
                     ->with(['category:id,name', 'subcategory:id,name', 'childCategory:id,name']),
                 'branches:id,vendor_id,address,city,state,is_primary',
                 'bannerSlides:id,vendor_id,image_path,sort_order',
+                'businessCategory:id,name,parent_id',
+                'businessSubcategory:id,name,parent_id',
+                'businessSubcategory.parent:id,name,parent_id',
             ])
             ->withCount([
                 'products' => fn (Builder $productQuery) => $productQuery->where('status', 'approved'),

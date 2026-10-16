@@ -8,6 +8,7 @@ use App\Services\AccountConversionReversalService;
 use App\Services\PortalNotificationService;
 use App\Mail\VendorPublicPageApprovedMail;
 use App\Mail\VendorStatusMail;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Support\VendorFileUploader;
@@ -24,7 +25,10 @@ class VendorController extends Controller
 {
     public function index(): View
     {
-        return view('backend.vendors.index');
+        return view('backend.vendors.index', [
+            // Main vendor categories for the "Business category" field
+            'businessCategories' => Category::query()->whereNull('parent_id')->forModule('vendors')->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function data(Request $request): JsonResponse
@@ -131,6 +135,18 @@ class VendorController extends Controller
             ->make(true);
     }
 
+    /**
+     * Subcategories of a vendor business category, for the "Business subcategory" dropdown.
+     */
+    public function businessSubcategories(Category $category): JsonResponse
+    {
+        abort_unless($category->parent_id === null && $category->hasModule('vendors'), 404);
+
+        return response()->json([
+            'subcategories' => $category->children()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
     public function show(Vendor $vendor): View
     {
         $vendor->load(['user', 'branches', 'bannerSlides', 'pageSections', 'approver:id,name']);
@@ -161,6 +177,8 @@ class VendorController extends Controller
                 'gst_number' => $vendor->gst_number,
                 'government_certificate_number' => $vendor->government_certificate_number,
                 'description' => $vendor->description,
+                'business_category_id' => $vendor->business_category_id,
+                'business_subcategory_id' => $vendor->business_subcategory_id,
                 'status' => $vendor->status,
                 'owner_name' => $vendor->user?->name,
                 'owner_email' => $vendor->user?->email,
@@ -188,6 +206,15 @@ class VendorController extends Controller
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
+            'business_category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')->whereJsonContains('modules', 'vendors')),
+            ],
+            // Optional; must belong to the chosen business category
+            'business_subcategory_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->where('parent_id', $request->input('business_category_id'))),
+            ],
             'status' => ['required', 'in:pending,approved,rejected'],
         ]);
 
@@ -195,6 +222,11 @@ class VendorController extends Controller
             $validated['gst_number'] = null;
         }
         unset($validated['has_gst']);
+
+        // A disabled (not yet loaded) subcategory dropdown isn't submitted: clear it rather than keep a stale one
+        $validated['business_subcategory_id'] = empty($validated['business_category_id'])
+            ? null
+            : ($validated['business_subcategory_id'] ?? null);
 
         $originalStatus = $vendor->status;
         $wasNeverApproved = $vendor->approved_at === null;

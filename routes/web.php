@@ -797,6 +797,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
         Route::prefix('vendors')->name('vendors.')->group(function () {
             Route::get('/', [VendorController::class, 'index'])->name('index');
             Route::get('/data', [VendorController::class, 'data'])->name('data');
+            Route::get('/categories/{category}/subcategories', [VendorController::class, 'businessSubcategories'])->name('categories.subcategories');
             Route::get('/{vendor}', [VendorController::class, 'show'])->name('show');
             Route::get('/{vendor}/edit', [VendorController::class, 'edit'])->name('edit');
             Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');

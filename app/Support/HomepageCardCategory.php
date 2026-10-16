@@ -28,7 +28,14 @@ final class HomepageCardCategory
 
     public static function displayNameForVendor(Vendor $vendor): string
     {
-        return self::displayNameForProduct($vendor->products->first());
+        $name = self::displayNameForProduct($vendor->products->first());
+
+        // No categorised product: fall back to the business subcategory/category set in Admin → Vendors
+        if ($name === 'General') {
+            return $vendor->businessSubcategory?->name ?: $vendor->businessCategory?->name ?: $name;
+        }
+
+        return $name;
     }
 
     public static function displayNameForConsultant(Consultant $consultant): string
@@ -63,7 +70,14 @@ final class HomepageCardCategory
      */
     public static function idsForVendor(Vendor $vendor): array
     {
-        return self::idsFromProduct($vendor->products->first());
+        $ids = self::idsFromProduct($vendor->products->first());
+
+        // No categorised product: use the business subcategory/category set in Admin → Vendors
+        if (array_filter($ids) === []) {
+            return self::hierarchyIds($vendor->businessSubcategory ?? $vendor->businessCategory);
+        }
+
+        return $ids;
     }
 
     /**
