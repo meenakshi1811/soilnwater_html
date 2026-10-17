@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CategoryHomepageImage;
 use App\Models\Offer;
 use App\Models\UserAd;
 use Illuminate\Support\Collection;
@@ -17,11 +18,7 @@ final class HomepageMarketplacePromoCards
             ->values()
             ->all();
 
-        if (count($cards) >= 4) {
-            return $cards;
-        }
-
-        return array_slice(array_merge($cards, self::fallbackOfferCards()), 0, $limit);
+        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_OFFERS, $cards, $limit);
     }
 
     public static function fromAds(Collection $ads, int $limit = 8): array
@@ -33,11 +30,7 @@ final class HomepageMarketplacePromoCards
             ->values()
             ->all();
 
-        if (count($cards) >= 4) {
-            return $cards;
-        }
-
-        return array_slice(array_merge($cards, self::fallbackAdCards()), 0, $limit);
+        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_ADS, $cards, $limit);
     }
 
     /**
@@ -130,6 +123,14 @@ final class HomepageMarketplacePromoCards
         }
 
         return 'SPECIAL OFFER';
+    }
+
+    /**
+     * @return array{label: string, tone: string, icon: string}
+     */
+    public static function categoryMetaForName(string $rawName): array
+    {
+        return self::categoryMeta($rawName);
     }
 
     /**

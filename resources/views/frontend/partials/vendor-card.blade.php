@@ -1,10 +1,18 @@
 @php
+    use App\Support\HomepageCategoryCardImage;
+    use App\Support\VendorListingCard;
+
     $firstProduct = $vendor->products->first();
     $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
     $productImage = !empty($productImages) ? asset($productImages[0]) : null;
     $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
     $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-    $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&q=85&auto=format&fit=crop';
+    $vendorCardImage = $coverImageOverride ?? null;
+    if ($vendorCardImage === null && ($useHomepageCategoryImage ?? false)) {
+        $listingCard = VendorListingCard::data($vendor, $hasLocation ?? false);
+        $vendorCardImage = HomepageCategoryCardImage::forVendor($vendor, $listingCard['coverImage']);
+    }
+    $vendorCardImage ??= $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&q=85&auto=format&fit=crop';
     $primaryBranch = $vendor->branches->first();
     $storeUrl = route('store.show', $vendor->slug);
     $hasLocation = $hasLocation ?? false;

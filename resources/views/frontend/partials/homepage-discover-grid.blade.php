@@ -1,6 +1,8 @@
 @php
+    use App\Models\CategoryHomepageImage;
     use App\Support\ConsultantListingCard;
     use App\Support\HomepageCategoryCardImage;
+    use App\Support\HomepageCategoryListingCards;
     use App\Support\ServiceProviderListingCard;
     use App\Support\VendorListingCard;
 
@@ -22,6 +24,21 @@
         || $showCommunity;
     $showPremiumOptions = data_get($sectionToggles, 'premium_options', true);
     $discoverCarouselCols = max(2, min(6, (int) ($discoverCarouselCols ?? 2)));
+
+    $prependCategoryListingCards = static function ($items, array $categoryCards) {
+        $prefixed = collect();
+        foreach ($categoryCards as $card) {
+            $prefixed->push(['type' => 'category_listing', 'card' => $card]);
+        }
+
+        return $prefixed->concat(collect($items)->values());
+    };
+
+    $categoryListingCarouselItems = static function (string $context, int $limit) {
+        return collect(HomepageCategoryListingCards::carouselEntityCards($context, $limit))
+            ->map(fn (array $card): array => ['type' => 'category_listing', 'card' => $card])
+            ->values();
+    };
 
     $mergeDiscoverCarousel = static function ($entities, $ads, string $entityType, int $interval = 4) {
         $items = collect();
@@ -58,38 +75,62 @@
     $sponsoredForRecent = collect($sponsoredListingsAds ?? [])->reject(
         fn ($ad) => $recentApprovedAdsList->contains('id', $ad->id)
     );
-    $recentAdsCarouselItems = $recentApprovedAdsList
-        ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
-        ->concat($sponsoredForRecent->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad]))
-        ->values();
+    $recentAdsCarouselItems = $prependCategoryListingCards(
+        $recentApprovedAdsList
+            ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
+            ->concat($sponsoredForRecent->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad]))
+            ->values(),
+        $homepageAdCategoryListingCards ?? []
+    );
+    if ($recentAdsCarouselItems->isEmpty()) {
+        $recentAdsCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_ADS, 6);
+    }
 
     $offersList = collect($offers ?? []);
-    $offerCarouselItems = collect($offerDiscountTopAds ?? [])
-        ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
-        ->concat($mergeDiscoverCarousel(
-            $offersList,
-            collect($offerDiscountSideAds ?? []),
-            'offer',
-            3
-        ))
-        ->values();
+    $offerCarouselItems = $prependCategoryListingCards(
+        collect($offerDiscountTopAds ?? [])
+            ->map(fn ($ad) => ['type' => 'ad', 'ad' => $ad])
+            ->concat($mergeDiscoverCarousel(
+                $offersList,
+                collect($offerDiscountSideAds ?? []),
+                'offer',
+                3
+            ))
+            ->values(),
+        $homepageOfferCategoryListingCards ?? []
+    );
+    if ($offerCarouselItems->isEmpty()) {
+        $offerCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_OFFERS, 6);
+    }
 
     $vendorCarouselItems = collect($topVendorCarouselItems ?? []);
     $vendorHeaderAdsList = collect($topVendorsHeaderAdsList ?? []);
 
-    $serviceCarouselItems = $mergeDiscoverCarousel(
-        collect($topServiceProviders ?? []),
-        collect($sponsoredListingsAds ?? []),
-        'service_provider',
-        4
+    $serviceCarouselItems = $prependCategoryListingCards(
+        $mergeDiscoverCarousel(
+            collect($topServiceProviders ?? []),
+            collect($sponsoredListingsAds ?? []),
+            'service_provider',
+            4
+        ),
+        $homepageServiceCategoryListingCards ?? []
     );
+    if ($serviceCarouselItems->isEmpty()) {
+        $serviceCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_SERVICES, 6);
+    }
 
-    $consultantCarouselItems = $mergeDiscoverCarousel(
-        collect($topConsultants ?? []),
-        collect($topVendorsSideAds ?? []),
-        'consultant',
-        4
+    $consultantCarouselItems = $prependCategoryListingCards(
+        $mergeDiscoverCarousel(
+            collect($topConsultants ?? []),
+            collect($topVendorsSideAds ?? []),
+            'consultant',
+            4
+        ),
+        $homepageConsultantCategoryListingCards ?? []
     );
+    if ($consultantCarouselItems->isEmpty()) {
+        $consultantCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_CONSULTANTS, 6);
+    }
 
     $communityPosts = collect($homepageCommunityPosts ?? [])->take(8);
     $communityHubSections = $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
@@ -127,10 +168,14 @@
                             <div class="card-carousel-track">
                                 @foreach ($recentAdsCarouselItems as $item)
                                     <div class="card-carousel-item">
-                                        @include('frontend.partials.homepage-discover-ad-card', [
-                                            'ad' => $item['ad'],
-                                            'meta' => 'Marketplace ad',
-                                        ])
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @else
+                                            @include('frontend.partials.homepage-discover-ad-card', [
+                                                'ad' => $item['ad'],
+                                                'meta' => 'Marketplace ad',
+                                            ])
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
@@ -170,7 +215,9 @@
                             <div class="card-carousel-track">
                                 @foreach ($offerCarouselItems as $item)
                                     <div class="card-carousel-item">
-                                        @if ($item['type'] === 'ad')
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @elseif ($item['type'] === 'ad')
                                             @include('frontend.partials.homepage-discover-ad-card', [
                                                 'ad' => $item['ad'],
                                                 'meta' => 'Sponsored offer',
@@ -249,7 +296,9 @@
                             <div class="card-carousel-track">
                                 @foreach ($serviceCarouselItems as $item)
                                     <div class="card-carousel-item">
-                                        @if ($item['type'] === 'ad')
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @elseif ($item['type'] === 'ad')
                                             @include('frontend.partials.homepage-discover-ad-card', ['ad' => $item['ad'], 'meta' => 'Sponsored'])
                                         @else
                                             @php
@@ -307,7 +356,9 @@
                             <div class="card-carousel-track">
                                 @foreach ($consultantCarouselItems as $item)
                                     <div class="card-carousel-item">
-                                        @if ($item['type'] === 'ad')
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @elseif ($item['type'] === 'ad')
                                             @include('frontend.partials.homepage-discover-ad-card', ['ad' => $item['ad'], 'meta' => 'Sponsored'])
                                         @else
                                             @php
@@ -371,7 +422,9 @@
                             <div class="homepage-vendors-mobile__scroll">
                                 @foreach ($vendorCarouselItems as $item)
                                     <div class="homepage-vendors-mobile__item">
-                                        @if ($item['type'] === 'ad')
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @elseif ($item['type'] === 'ad')
                                             @include('frontend.partials.homepage-vendor-mobile-ad', ['ad' => $item['ad']])
                                         @else
                                             @php
@@ -420,7 +473,9 @@
                             <div class="card-carousel-track">
                                 @foreach ($vendorCarouselItems as $item)
                                     <div class="card-carousel-item">
-                                        @if ($item['type'] === 'ad')
+                                        @if ($item['type'] === 'category_listing')
+                                            @include('frontend.partials.homepage-category-listing-card', ['card' => $item['card']])
+                                        @elseif ($item['type'] === 'ad')
                                             @include('frontend.partials.homepage-discover-ad-card', ['ad' => $item['ad'], 'meta' => 'Featured ad'])
                                         @else
                                             @php

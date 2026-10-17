@@ -11,6 +11,9 @@
   $topVendorsSideAdsList = collect($topVendorsSideAds ?? [])->values();
   $topVendorSlideSize = $topVendorsSideAdsList->isNotEmpty() ? 4 : 5;
   $topVendorCarouselItems = collect();
+  foreach ($homepageVendorCategoryListingCards ?? [] as $categoryListingCard) {
+    $topVendorCarouselItems->push(['type' => 'category_listing', 'card' => $categoryListingCard]);
+  }
   if ($topVendorsList->isNotEmpty()) {
     $topVendorCount = 0;
     foreach ($topVendorsList as $vendor) {
@@ -27,6 +30,10 @@
   } elseif ($topVendorsSideAdsList->isNotEmpty()) {
     foreach ($topVendorsSideAdsList as $sideAd) {
       $topVendorCarouselItems->push(['type' => 'ad', 'ad' => $sideAd]);
+    }
+  } elseif ($topVendorCarouselItems->isEmpty()) {
+    foreach (\App\Support\HomepageCategoryListingCards::carouselEntityCards(\App\Models\CategoryHomepageImage::CONTEXT_VENDORS, 6) as $categoryListingCard) {
+      $topVendorCarouselItems->push(['type' => 'category_listing', 'card' => $categoryListingCard]);
     }
   }
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
@@ -1094,8 +1101,10 @@
               <div class="card-carousel-track">
                 @forelse ($topVendorCarouselItems as $carouselItem)
                   <div class="card-carousel-item">
-                    @if ($carouselItem['type'] === 'vendor')
-                      @include('frontend.partials.vendor-card', ['vendor' => $carouselItem['vendor']])
+                    @if ($carouselItem['type'] === 'category_listing')
+                      @include('frontend.partials.homepage-category-listing-card', ['card' => $carouselItem['card']])
+                    @elseif ($carouselItem['type'] === 'vendor')
+                      @include('frontend.partials.vendor-card', ['vendor' => $carouselItem['vendor'], 'useHomepageCategoryImage' => true, 'hasLocation' => $hasLocation ?? false])
                     @else
                       @php($sideAd = $carouselItem['ad'])
                       <article class="prod-card recent-ad-card top-vendors-ad-card"

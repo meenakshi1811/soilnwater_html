@@ -5,12 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
-use App\Models\ConsultantService;
-use App\Models\Offer;
-use App\Models\ServiceProviderService;
-use App\Models\UserAd;
-use App\Models\Vendor;
-use App\Models\VendorProduct;
+use App\Support\CategoryHomepagePostingCounts;
 use App\Support\HomepageCardCategory;
 use App\Support\HomepageEducationKnowledgeCards;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,30 +19,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CategoryHomepageImageController extends Controller
 {
-    /**
-     * Where each homepage section's postings keep their category: the model, the column naming
-     * whose posting it is (counted once per category) and its category columns. Education is
-     * keyword-based, below.
-     */
-    private const CONTEXT_CATEGORY_SOURCES = [
-        CategoryHomepageImage::CONTEXT_ADS => [
-            ['model' => UserAd::class, 'owner' => 'id', 'columns' => ['category_id', 'subcategory_id']],
-        ],
-        CategoryHomepageImage::CONTEXT_OFFERS => [
-            ['model' => Offer::class, 'owner' => 'id', 'columns' => ['category_id', 'subcategory_id']],
-        ],
-        CategoryHomepageImage::CONTEXT_VENDORS => [
-            ['model' => VendorProduct::class, 'owner' => 'vendor_id', 'columns' => ['category_id', 'subcategory_id', 'child_category_id']],
-            ['model' => Vendor::class, 'owner' => 'id', 'columns' => ['business_category_id', 'business_subcategory_id']],
-        ],
-        CategoryHomepageImage::CONTEXT_SERVICES => [
-            ['model' => ServiceProviderService::class, 'owner' => 'service_provider_id', 'columns' => ['category_id', 'subcategory_id']],
-        ],
-        CategoryHomepageImage::CONTEXT_CONSULTANTS => [
-            ['model' => ConsultantService::class, 'owner' => 'consultant_id', 'columns' => ['category_id', 'subcategory_id']],
-        ],
-    ];
-
     /**
      * What the count next to each category counts: [singular, plural].
      */
@@ -120,7 +91,7 @@ class CategoryHomepageImageController extends Controller
     {
         $context = $request->string('context')->toString();
         $includeId = $request->integer('include') ?: null;
-        $counts = $this->postingCounts($context);
+        $counts = CategoryHomepagePostingCounts::forContext($context);
         $nouns = self::CONTEXT_COUNT_NOUNS[$context] ?? null;
 
         $categories = Category::query()
@@ -194,68 +165,6 @@ class CategoryHomepageImageController extends Controller
         }
 
         $query->whereRaw('1 = 1');
-    }
-
-    /**
-     * How many vendors / service providers / consultants / offers / ads use each category of the
-     * section, each counted once. A posting under a subcategory also counts for its parent levels,
-     * so "Entire category" shows the whole category's total. Null for sections without postings.
-     *
-     * @return array<int, int>|null category id => count
-     */
-    private function postingCounts(string $context): ?array
-    {
-        $sources = self::CONTEXT_CATEGORY_SOURCES[$context] ?? null;
-        if ($sources === null) {
-            return null;
-        }
-
-        // category id => [owner id => true]
-        $owners = [];
-        foreach ($sources as $source) {
-            foreach ($source['columns'] as $column) {
-                $pairs = $source['model']::query()->toBase()
-                    ->whereNotNull($column)
-                    ->distinct()
-                    ->get([$column.' as category_id', $source['owner'].' as owner_id']);
-
-                foreach ($pairs as $pair) {
-                    $owners[(int) $pair->category_id][(int) $pair->owner_id] = true;
-                }
-            }
-        }
-
-        $parents = $this->parentMap(array_keys($owners));
-        $totals = [];
-        foreach ($owners as $categoryId => $ownerIds) {
-            // The category, its parent and grandparent (three levels at most)
-            for ($id = $categoryId, $level = 0; $id !== null && $level < 3; $id = $parents[$id] ?? null, $level++) {
-                $totals[$id] = ($totals[$id] ?? []) + $ownerIds;
-            }
-        }
-
-        return array_map('count', $totals);
-    }
-
-    /**
-     * @param  list<int>  $ids
-     * @return array<int, int|null> category id => parent id, for these categories and their parent levels
-     */
-    private function parentMap(array $ids): array
-    {
-        $map = [];
-        while ($ids !== []) {
-            $next = [];
-            foreach (Category::query()->whereIn('id', $ids)->pluck('parent_id', 'id') as $id => $parentId) {
-                $map[(int) $id] = $parentId === null ? null : (int) $parentId;
-                if ($parentId !== null) {
-                    $next[] = (int) $parentId;
-                }
-            }
-            $ids = array_values(array_unique(array_diff($next, array_keys($map))));
-        }
-
-        return $map;
     }
 
     public function show(CategoryHomepageImage $categoryHomepageImage): JsonResponse

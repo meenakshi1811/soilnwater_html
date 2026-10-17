@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Models\Category;
+use App\Models\CategoryHomepageImage;
 use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\HomepageSetting;
@@ -14,6 +15,7 @@ use App\Models\ServiceProvider;
 use App\Models\UserAd;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Support\HomepageCategoryListingCards;
 use App\Support\HomepageMarketplacePromoCards;
 use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
@@ -227,6 +229,31 @@ class OfferPageController extends Controller
             'homepageCommunityHubCards' => HomepageCommunityHubCards::build(
                 $this->randomPick($this->homepageCommunityPostsQuery(), false, 6),
                 6
+            ),
+            'homepageVendorCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
+                CategoryHomepageImage::CONTEXT_VENDORS,
+                6,
+                fn (string $name): array => ['label' => \Illuminate\Support\Str::limit($name, 16, ''), 'tone' => 'slate', 'icon' => 'fa-store']
+            ),
+            'homepageServiceCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
+                CategoryHomepageImage::CONTEXT_SERVICES,
+                6,
+                fn (string $name): array => ['label' => \Illuminate\Support\Str::limit($name, 22, ''), 'tone' => 'slate', 'icon' => 'fa-screwdriver-wrench']
+            ),
+            'homepageConsultantCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
+                CategoryHomepageImage::CONTEXT_CONSULTANTS,
+                6,
+                fn (string $name): array => ['label' => \Illuminate\Support\Str::limit($name, 22, ''), 'tone' => 'slate', 'icon' => 'fa-briefcase']
+            ),
+            'homepageOfferCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
+                CategoryHomepageImage::CONTEXT_OFFERS,
+                6,
+                fn (string $name): array => HomepageMarketplacePromoCards::categoryMetaForName($name)
+            ),
+            'homepageAdCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
+                CategoryHomepageImage::CONTEXT_ADS,
+                6,
+                fn (string $name): array => HomepageMarketplacePromoCards::categoryMetaForName($name)
             ),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CategoryHomepageImage;
 use App\Models\ServiceProvider;
 use App\Models\Vendor;
 use Illuminate\Support\Collection;
@@ -27,7 +28,7 @@ final class HomepagePopularNearYouCards
             }
 
             if (count($cards) >= $limit) {
-                return $cards;
+                break;
             }
         }
 
@@ -42,15 +43,16 @@ final class HomepagePopularNearYouCards
             }
 
             if (count($cards) >= $limit) {
-                return $cards;
+                break;
             }
         }
 
-        if (count($cards) >= 4) {
-            return array_slice($cards, 0, $limit);
-        }
-
-        return array_slice(array_merge($cards, self::fallbackCards()), 0, $limit);
+        return HomepageCategoryListingCards::mergeEntityCardsMulti(
+            [CategoryHomepageImage::CONTEXT_VENDORS, CategoryHomepageImage::CONTEXT_SERVICES],
+            $cards,
+            $limit,
+            fn (string $name): array => self::categoryMeta($name)
+        );
     }
 
     /**

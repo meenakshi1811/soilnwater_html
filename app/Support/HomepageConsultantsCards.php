@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CategoryHomepageImage;
 use App\Models\Consultant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -37,11 +38,16 @@ final class HomepageConsultantsCards
             }
 
             if (count($cards) >= $limit) {
-                return $cards;
+                break;
             }
         }
 
-        return array_slice(array_merge($cards, self::fallbackCards()), 0, $limit);
+        return HomepageCategoryListingCards::mergeEntityCards(
+            CategoryHomepageImage::CONTEXT_CONSULTANTS,
+            $cards,
+            $limit,
+            fn (string $name): array => self::categoryMeta($name)
+        );
     }
 
     /**

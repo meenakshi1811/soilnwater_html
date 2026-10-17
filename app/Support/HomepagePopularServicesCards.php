@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CategoryHomepageImage;
 use App\Models\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -37,15 +38,16 @@ final class HomepagePopularServicesCards
             }
 
             if (count($cards) >= $limit) {
-                return $cards;
+                break;
             }
         }
 
-        if (count($cards) >= $limit) {
-            return array_slice($cards, 0, $limit);
-        }
-
-        return array_slice(array_merge($cards, self::fallbackCards()), 0, $limit);
+        return HomepageCategoryListingCards::mergeEntityCards(
+            CategoryHomepageImage::CONTEXT_SERVICES,
+            $cards,
+            $limit,
+            fn (string $name): array => self::categoryMeta($name)
+        );
     }
 
     /**
