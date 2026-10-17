@@ -46,17 +46,21 @@
                         <div class="homepage-consultants-card__body">
                             <div class="homepage-consultants-card__title-row">
                                 <h3 class="homepage-consultants-card__title">{{ $card['title'] }}</h3>
-                                <p class="homepage-consultants-card__rating">
-                                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                    {{ number_format($card['rating_score'], 1) }}
-                                </p>
+                                @if(($card['rating_count'] ?? 0) > 0)
+                                    <p class="homepage-consultants-card__rating">
+                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                        {{ number_format($card['rating_score'], 1) }}
+                                    </p>
+                                @endif
                             </div>
                             @if(filled($card['category_label']))
                                 <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
                             @endif
                             <div class="homepage-consultants-card__desc-row">
                                 <p class="homepage-consultants-card__desc">{{ $card['description'] }}</p>
-                                <span class="homepage-consultants-card__reviews">({{ number_format($card['rating_count']) }})</span>
+                                @if(($card['rating_count'] ?? 0) > 0)
+                                    <span class="homepage-consultants-card__reviews">({{ number_format($card['rating_count']) }})</span>
+                                @endif
                             </div>
                             <p class="homepage-consultants-card__location">
                                 <i class="fa-solid fa-location-dot" aria-hidden="true"></i>

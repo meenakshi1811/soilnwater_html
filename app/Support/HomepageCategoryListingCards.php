@@ -58,6 +58,34 @@ final class HomepageCategoryListingCards
     }
 
     /**
+     * Cards built only from Admin → Category Card Images (no live vendor/consultant photos).
+     *
+     * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
+     * @return list<array<string, mixed>>
+     */
+    public static function adminCategoryEntityCards(string $context, int $limit, callable $categoryMeta): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        $cards = [];
+        foreach (self::rowsForContext($context) as $row) {
+            $card = self::toCard($row, $context, $categoryMeta, 'entity');
+            if ($card === null) {
+                continue;
+            }
+
+            $cards[] = $card;
+            if (count($cards) >= $limit) {
+                break;
+            }
+        }
+
+        return $cards;
+    }
+
+    /**
      * Admin category images for categories that currently have no listings in this homepage section.
      *
      * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
@@ -169,7 +197,9 @@ final class HomepageCategoryListingCards
         }
 
         $displayName = self::displayName($category);
-        $meta = $categoryMeta($displayName);
+        $category->loadMissing('parent');
+        $badgeName = $category->parent?->name ?? $category->name;
+        $meta = $categoryMeta($badgeName);
         $url = self::listingUrl($context, $category);
 
         if ($shape === 'promo') {

@@ -119,18 +119,17 @@
         $serviceCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_SERVICES, 6);
     }
 
-    $consultantCarouselItems = $prependCategoryListingCards(
-        $mergeDiscoverCarousel(
-            collect($topConsultants ?? []),
-            collect($topVendorsSideAds ?? []),
-            'consultant',
-            4
-        ),
-        $homepageConsultantCategoryListingCards ?? []
-    );
-    if ($consultantCarouselItems->isEmpty()) {
-        $consultantCarouselItems = $categoryListingCarouselItems(CategoryHomepageImage::CONTEXT_CONSULTANTS, 6);
-    }
+    $consultantCarouselItems = collect(
+        HomepageCategoryListingCards::adminCategoryEntityCards(
+            CategoryHomepageImage::CONTEXT_CONSULTANTS,
+            8,
+            fn (string $name): array => [
+                'label' => \Illuminate\Support\Str::limit($name, 22, ''),
+                'tone' => 'slate',
+                'icon' => 'fa-user-tie',
+            ]
+        )
+    )->map(fn (array $card): array => ['type' => 'category_listing', 'card' => $card])->values();
 
     $communityPosts = collect($homepageCommunityPosts ?? [])->take(8);
     $communityHubSections = $communityHubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();

@@ -68,9 +68,15 @@ final class HomepagePopularNearYouCards
             $description = implode(', ', array_slice($card['serviceTags'], 0, 3));
         }
 
+        $categoryIds = HomepageCardCategory::idsForVendor($vendor);
+        $image = HomepageCategoryCardImage::configuredImage(CategoryHomepageImage::CONTEXT_VENDORS, $categoryIds);
+        if ($image === '') {
+            return null;
+        }
+
         return [
             'url' => $card['storeUrl'],
-            'image' => HomepageCategoryCardImage::forVendor($vendor, $card['coverImage']),
+            'image' => $image,
             'title' => $vendor->publicDisplayName(),
             'description' => $description !== '' ? $description : 'Explore products and services',
             'location' => self::shortLocation($card['locationLabel']),
@@ -96,9 +102,15 @@ final class HomepagePopularNearYouCards
             $description = implode(', ', array_slice($card['serviceTags'], 0, 3));
         }
 
+        $categoryIds = HomepageCardCategory::idsForServiceProvider($serviceProvider);
+        $image = HomepageCategoryCardImage::configuredImage(CategoryHomepageImage::CONTEXT_SERVICES, $categoryIds);
+        if ($image === '') {
+            return null;
+        }
+
         return [
             'url' => $card['profileUrl'],
-            'image' => HomepageCategoryCardImage::forServiceProvider($serviceProvider, $card['coverImage']),
+            'image' => $image,
             'title' => $serviceProvider->publicDisplayName(),
             'description' => $description !== '' ? $description : 'Professional services near you',
             'location' => self::shortLocation($card['locationLabel']),

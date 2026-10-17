@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\CategoryHomepageImage;
-use App\Models\Consultant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -25,73 +24,13 @@ final class HomepageConsultantsCards
      */
     public static function build(Collection $consultants, bool $hasLocation, int $limit = 4): array
     {
-        $cards = [];
+        unset($consultants, $hasLocation);
 
-        foreach ($consultants as $consultant) {
-            if (! $consultant instanceof Consultant) {
-                continue;
-            }
-
-            $mapped = self::mapConsultant($consultant, $hasLocation);
-            if ($mapped !== null) {
-                $cards[] = $mapped;
-            }
-
-            if (count($cards) >= $limit) {
-                break;
-            }
-        }
-
-        return HomepageCategoryListingCards::mergeEntityCards(
+        return HomepageCategoryListingCards::adminCategoryEntityCards(
             CategoryHomepageImage::CONTEXT_CONSULTANTS,
-            $cards,
             $limit,
             fn (string $name): array => self::categoryMeta($name)
         );
-    }
-
-    /**
-     * @return array{
-     *     url: string,
-     *     image: string,
-     *     title: string,
-     *     description: string,
-     *     location: string,
-     *     rating_score: float,
-     *     rating_count: int,
-     *     category_label: string,
-     *     category_tone: string,
-     *     category_icon: string
-     * }|null
-     */
-    private static function mapConsultant(Consultant $consultant, bool $hasLocation): ?array
-    {
-        $card = ConsultantListingCard::data($consultant, $hasLocation);
-        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForConsultant($consultant));
-        $description = $card['featuredLabel'] ?? '';
-        if ($description === '' && ! empty($card['serviceTags'])) {
-            $description = implode(', ', array_slice($card['serviceTags'], 0, 3));
-        }
-
-        return [
-            'url' => $card['profileUrl'],
-            'image' => HomepageCategoryCardImage::forConsultant($consultant, $card['coverImage']),
-            'title' => $consultant->publicDisplayName(),
-            'description' => $description !== '' ? $description : 'Professional consulting services',
-            'location' => self::shortLocation($card['locationLabel']),
-            'rating_score' => $card['ratingScore'],
-            'rating_count' => $card['ratingCount'],
-            'category_label' => $categoryMeta['label'],
-            'category_tone' => $categoryMeta['tone'],
-            'category_icon' => $categoryMeta['icon'],
-        ];
-    }
-
-    private static function shortLocation(string $label): string
-    {
-        $parts = array_map('trim', explode(',', $label));
-
-        return implode(', ', array_slice($parts, 0, 2));
     }
 
     /**
@@ -125,104 +64,22 @@ final class HomepageConsultantsCards
             return ['label' => 'Health Consulting', 'tone' => 'pink', 'icon' => 'fa-heart-pulse'];
         }
 
+        if (str_contains($name, 'astro') || str_contains($name, 'vastu') || str_contains($name, 'jyotish')) {
+            return ['label' => 'Astrology & Vastu', 'tone' => 'pink', 'icon' => 'fa-om'];
+        }
+
+        if (str_contains($name, 'education') || str_contains($name, 'coaching')) {
+            return ['label' => 'Education Consulting', 'tone' => 'blue', 'icon' => 'fa-graduation-cap'];
+        }
+
+        if (str_contains($name, 'organic') || str_contains($name, 'agri') || str_contains($name, 'farm')) {
+            return ['label' => 'Agriculture Consulting', 'tone' => 'green', 'icon' => 'fa-seedling'];
+        }
+
         return [
             'label' => Str::limit($rawName, 22, ''),
             'tone' => 'slate',
             'icon' => 'fa-user-tie',
-        ];
-    }
-
-    /**
-     * @return list<array{
-     *     url: string,
-     *     image: string,
-     *     title: string,
-     *     description: string,
-     *     location: string,
-     *     rating_score: float,
-     *     rating_count: int,
-     *     category_label: string,
-     *     category_tone: string,
-     *     category_icon: string
-     * }>
-     */
-    private static function fallbackCards(): array
-    {
-        $indexUrl = route('frontend.consultants.index');
-
-        return [
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
-                'title' => 'LegalEdge Advisors',
-                'description' => 'Corporate Law, Contracts & Compliance',
-                'location' => 'Rajpur Road, Dehradun',
-                'rating_score' => 4.7,
-                'rating_count' => 118,
-                'category_label' => 'Legal Advisory',
-                'category_tone' => 'indigo',
-                'category_icon' => 'fa-scale-balanced',
-            ],
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
-                'title' => 'FinTax Consultants',
-                'description' => 'Tax Planning, GST & Accounting',
-                'location' => 'Dalanwala, Dehradun',
-                'rating_score' => 4.5,
-                'rating_count' => 92,
-                'category_label' => 'Tax & Finance',
-                'category_tone' => 'teal',
-                'category_icon' => 'fa-calculator',
-            ],
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80',
-                'title' => 'GrowthBridge Consulting',
-                'description' => 'Business Strategy & Startup Advisory',
-                'location' => 'Patel Nagar, Dehradun',
-                'rating_score' => 4.6,
-                'rating_count' => 105,
-                'category_label' => 'Business Consulting',
-                'category_tone' => 'blue',
-                'category_icon' => 'fa-briefcase',
-            ],
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1521737711867-e3b97375f020?w=800&q=80',
-                'title' => 'CareerPath Mentors',
-                'description' => 'Career Planning & Interview Coaching',
-                'location' => 'Dehradun',
-                'rating_score' => 4.4,
-                'rating_count' => 86,
-                'category_label' => 'Career Guidance',
-                'category_tone' => 'purple',
-                'category_icon' => 'fa-user-tie',
-            ],
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
-                'title' => 'Modern Space Architects',
-                'description' => 'Architectural design, interior planning & turnkey solutions',
-                'location' => 'Dehradun',
-                'rating_score' => 4.5,
-                'rating_count' => 78,
-                'category_label' => 'Architecture',
-                'category_tone' => 'orange',
-                'category_icon' => 'fa-compass-drafting',
-            ],
-            [
-                'url' => $indexUrl,
-                'image' => 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
-                'title' => 'Vedic Jyotish & Vastu Solutions',
-                'description' => 'Astrology, vastu & life guidance consultations',
-                'location' => 'Dehradun',
-                'rating_score' => 4.6,
-                'rating_count' => 91,
-                'category_label' => 'Astrology & Vastu',
-                'category_tone' => 'pink',
-                'category_icon' => 'fa-om',
-            ],
         ];
     }
 }

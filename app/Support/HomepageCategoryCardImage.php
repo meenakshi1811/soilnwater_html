@@ -91,6 +91,18 @@ final class HomepageCategoryCardImage
      */
     public static function resolve(string $context, array $ids, string $entityCover): string
     {
+        $configured = self::configuredImage($context, $ids);
+
+        return $configured !== '' ? $configured : $entityCover;
+    }
+
+    /**
+     * Admin category card image only; empty when none is configured for this context.
+     *
+     * @param  array{category_id: ?int, subcategory_id: ?int, child_category_id: ?int}  $ids
+     */
+    public static function configuredImage(string $context, array $ids): string
+    {
         self::warmCache();
 
         foreach ([$ids['child_category_id'] ?? null, $ids['subcategory_id'] ?? null, $ids['category_id'] ?? null] as $categoryId) {
@@ -104,7 +116,7 @@ final class HomepageCategoryCardImage
             }
         }
 
-        return $entityCover;
+        return '';
     }
 
     private static function formatPath(string $path): string
