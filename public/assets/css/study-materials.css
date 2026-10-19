@@ -1211,6 +1211,8 @@
 }
 
 .sm-grid-card {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--sm-line);
   border-radius: 14px;
   overflow: hidden;
@@ -1253,7 +1255,11 @@
   object-fit: cover;
 }
 
+/* The rating/downloads/views line sits at the bottom, so cards in a row line up */
 .sm-grid-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 0.85rem;
 }
 
@@ -1273,8 +1279,47 @@
 .sm-grid-card__meta {
   display: flex;
   gap: 0.75rem;
+  margin-top: auto;
   font-size: 0.76rem;
   color: var(--sm-text-soft);
+}
+
+/* Subject, school/institute, class and year; long values cut to one line */
+.sm-grid-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 0.75rem;
+  margin: 0.3rem 0 0.65rem;
+}
+
+.sm-grid-card__detail {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.sm-grid-card__detail--wide {
+  grid-column: 1 / -1;
+}
+
+.sm-grid-card__detail dt {
+  flex-shrink: 0;
+  width: 1rem;
+  margin: 0;
+  font-weight: 400;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.sm-grid-card__detail dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sm-right-sidebar {
