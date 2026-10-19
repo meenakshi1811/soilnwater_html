@@ -47,21 +47,28 @@
                         </div>
                         <div class="homepage-education-knowledge-card__body">
                             <div class="homepage-education-knowledge-card__title-row">
-                                <h3 class="homepage-education-knowledge-card__title">{{ $card['title'] }}</h3>
-                                <p class="homepage-education-knowledge-card__rating">
-                                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                    {{ number_format($card['rating_score'], 1) }}
-                                </p>
+                                {{-- An image card has no title; the blank line keeps the cards aligned --}}
+                                <h3 class="homepage-education-knowledge-card__title">@if(filled($card['title'])){{ $card['title'] }}@else&nbsp;@endif</h3>
+                                @if($card['rating_count'] > 0)
+                                    <p class="homepage-education-knowledge-card__rating">
+                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                        {{ number_format($card['rating_score'], 1) }}
+                                    </p>
+                                @endif
                             </div>
                             <span class="homepage-card-pill homepage-card-pill--tag">{{ $card['category_label'] }}</span>
                             <div class="homepage-education-knowledge-card__desc-row">
                                 <p class="homepage-education-knowledge-card__desc">{{ $card['description'] }}</p>
-                                <span class="homepage-education-knowledge-card__reviews">({{ number_format($card['rating_count']) }})</span>
+                                @if($card['rating_count'] > 0)
+                                    <span class="homepage-education-knowledge-card__reviews">({{ number_format($card['rating_count']) }})</span>
+                                @endif
                             </div>
-                            <p class="homepage-education-knowledge-card__location">
-                                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                {{ $card['location'] }}
-                            </p>
+                            @if(filled($card['location']))
+                                <p class="homepage-education-knowledge-card__location">
+                                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                    {{ $card['location'] }}
+                                </p>
+                            @endif
                         </div>
                     </a>
                 @endforeach

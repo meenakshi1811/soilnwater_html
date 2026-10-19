@@ -11,9 +11,10 @@ final class HomepageEducationKnowledgeCards
 {
     /**
      * Teachers & tutors, institutes and schools only, taking turns so the cards mix all three: a
-     * fresh random pick on every page load (with a location, from the nearest ones). A listing
-     * whose image would repeat one already on the homepage is skipped, so there may be fewer
-     * than $limit cards.
+     * fresh random pick on every page load (with a location, from the nearest ones). The
+     * Education images come first: listings showing one of their kind's, then any image nothing
+     * shows as a card of its own, then listings with their own photo. An image is never repeated
+     * on the homepage, so there may be fewer than $limit cards.
      *
      * @return list<array{
      *     url: string,
@@ -37,32 +38,107 @@ final class HomepageEducationKnowledgeCards
         $pools = [
             self::pool(self::educatorQuery($lat, $lng), $hasLocation, $poolSize)
                 ->map(fn (Educator $educator): array => self::fromEducator($educator))
+                ->values()
                 ->all(),
             self::pool(self::instituteQuery($lat, $lng)->institutes(), $hasLocation, $poolSize)
                 ->map(fn (Institute $institute): array => self::fromInstitute($institute, 'institutes'))
+                ->values()
                 ->all(),
             self::pool(self::instituteQuery($lat, $lng)->schools(), $hasLocation, $poolSize)
                 ->map(fn (Institute $school): array => self::fromInstitute($school, 'schools'))
+                ->values()
                 ->all(),
         ];
 
-        // Teacher, institute, school, teacher, … skipping kinds that run out
+        // 1. Listings with an Education image of their kind (teacher, institute, school, teacher, …)
         $cards = [];
-        while (count($cards) < $limit && array_filter($pools) !== []) {
-            foreach (array_keys($pools) as $kind) {
-                while (count($cards) < $limit && $pools[$kind] !== []) {
-                    $card = self::withImage(array_shift($pools[$kind]), $images);
-                    if ($card !== null) {
-                        $cards[] = $card;
-                        break;
-                    }
-                }
+        $withoutCategoryImage = [];
+        foreach (self::takeTurns($pools) as $candidate) {
+            if (count($cards) >= $limit) {
+                break;
+            }
+
+            $card = self::withImage($candidate, $images, true);
+            if ($card !== null) {
+                $cards[] = $card;
+            } else {
+                $withoutCategoryImage[] = $candidate;
+            }
+        }
+
+        // 2. Education images no listing shows: the image alone
+        $categoryImages = HomepageCategoryCardImage::educationImages();
+        shuffle($categoryImages);
+        foreach ($categoryImages as $row) {
+            if (count($cards) >= $limit) {
+                break;
+            }
+
+            if (! $images->isUsed($row['image'])) {
+                $images->claim($row['image']);
+                $cards[] = self::imageCard($row);
+            }
+        }
+
+        // 3. Any slots left: listings with their own photo or a stock picture
+        foreach ($withoutCategoryImage as $candidate) {
+            if (count($cards) >= $limit) {
+                break;
+            }
+
+            $card = self::withImage($candidate, $images);
+            if ($card !== null) {
+                $cards[] = $card;
             }
         }
 
         shuffle($cards);
 
         return $cards;
+    }
+
+    /**
+     * The pools' items taking turns (one of each kind, then the next of each…), skipping kinds
+     * that run out.
+     *
+     * @param  list<list<array<string, mixed>>>  $pools
+     * @return list<array<string, mixed>>
+     */
+    private static function takeTurns(array $pools): array
+    {
+        $items = [];
+        for ($i = 0; $i < max(array_map('count', $pools)); $i++) {
+            foreach ($pools as $pool) {
+                if (isset($pool[$i])) {
+                    $items[] = $pool[$i];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * An Education image nothing else shows, on its own: no listing to name, so no title (as
+     * for the vendor category cards); it opens the section's "See all" page.
+     *
+     * @param  array{image: string, name: string}  $row
+     * @return array<string, mixed>
+     */
+    private static function imageCard(array $row): array
+    {
+        return [
+            'url' => route('schools.index'),
+            'image' => $row['image'],
+            'title' => '',
+            'description' => 'Teachers, institutes and schools',
+            'location' => '',
+            'rating_score' => 0.0,
+            'rating_count' => 0,
+            'category_label' => $row['name'],
+            'category_tone' => 'orange',
+            'category_icon' => 'fa-graduation-cap',
+        ];
     }
 
     /**
@@ -146,18 +222,19 @@ final class HomepageEducationKnowledgeCards
     }
 
     /**
-     * The card with the first of its images not already on the homepage; null when all are.
+     * The card with the first of its images not already on the homepage (only its Education
+     * category images with $categoryOnly); null when there is none.
      *
      * @param  array<string, mixed>  $card
      * @return array<string, mixed>|null
      */
-    private static function withImage(array $card, HomepageImageRegistry $images): ?array
+    private static function withImage(array $card, HomepageImageRegistry $images, bool $categoryOnly = false): ?array
     {
         $options = $card['image_options'];
         unset($card['image_options']);
 
         foreach ($options as $option) {
-            if (trim($option['image']) === '' || $images->isUsed($option['image'])) {
+            if (($categoryOnly && $option['label'] === null) || trim($option['image']) === '' || $images->isUsed($option['image'])) {
                 continue;
             }
 

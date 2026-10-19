@@ -14,8 +14,8 @@ final class HomepageCategoryCardImage
     /** @var array<string, string>|null */
     private static ?array $cache = null;
 
-    /** @var array<string, list<array{image: string, name: string}>>|null */
-    private static ?array $educationModuleImages = null;
+    /** @var list<array{image: string, name: string, modules: list<string>}>|null */
+    private static ?array $educationImages = null;
 
     public static function warmCache(): void
     {
@@ -111,15 +111,15 @@ final class HomepageCategoryCardImage
     }
 
     /**
-     * Education & knowledge images set on the categories of a module (Admin → Categories:
-     * educators, schools or institutes), each with its category's name.
+     * The Education & knowledge images (Admin → Category Card Images), each with its category's
+     * name and modules (Admin → Categories: educators, schools, institutes).
      *
-     * @return list<array{image: string, name: string}>
+     * @return list<array{image: string, name: string, modules: list<string>}>
      */
-    public static function educationImagesForModule(string $module): array
+    public static function educationImages(): array
     {
-        if (self::$educationModuleImages === null) {
-            self::$educationModuleImages = [];
+        if (self::$educationImages === null) {
+            self::$educationImages = [];
 
             $rows = CategoryHomepageImage::query()
                 ->where('context', CategoryHomepageImage::CONTEXT_EDUCATION)
@@ -132,13 +132,28 @@ final class HomepageCategoryCardImage
                     continue;
                 }
 
-                foreach ((array) ($row->category->modules ?? []) as $categoryModule) {
-                    self::$educationModuleImages[$categoryModule][] = ['image' => $image, 'name' => (string) $row->category->name];
-                }
+                self::$educationImages[] = [
+                    'image' => $image,
+                    'name' => (string) $row->category->name,
+                    'modules' => array_values((array) ($row->category->modules ?? [])),
+                ];
             }
         }
 
-        return self::$educationModuleImages[$module] ?? [];
+        return self::$educationImages;
+    }
+
+    /**
+     * The Education & knowledge images on the categories of one module.
+     *
+     * @return list<array{image: string, name: string, modules: list<string>}>
+     */
+    public static function educationImagesForModule(string $module): array
+    {
+        return array_values(array_filter(
+            self::educationImages(),
+            fn (array $row): bool => in_array($module, $row['modules'], true)
+        ));
     }
 
     private static function formatPath(string $path): string
