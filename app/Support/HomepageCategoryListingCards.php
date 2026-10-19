@@ -127,7 +127,7 @@ final class HomepageCategoryListingCards
             $counts = $countsByContext[$context];
             $rows = self::rowsForContext($context);
 
-            // Vendor category cards are titled with the vendors in that category, not its name
+            // Vendor category cards are titled with a vendor in that category, not its name
             $vendorNames = $shape === 'entity' && $context === CategoryHomepageImage::CONTEXT_VENDORS
                 ? self::vendorNamesByCategory(array_map(fn (CategoryHomepageImage $row): int => (int) $row->category_id, $rows))
                 : null;
@@ -139,7 +139,7 @@ final class HomepageCategoryListingCards
                 }
 
                 if ($vendorNames !== null) {
-                    $card = self::titledWithNames($card, $vendorNames[(int) $row->category_id] ?? []);
+                    $card = self::titledWithRandomName($card, $vendorNames[(int) $row->category_id] ?? []);
                 }
 
                 $fill[] = $card;
@@ -218,19 +218,16 @@ final class HomepageCategoryListingCards
     }
 
     /**
-     * Titles the card with the first of the names (shuffled) and, when there are several, lists
-     * them all for the card to show one after another. No names leaves the title empty.
+     * Titles the card with one of the names, a different random one on each page load. No
+     * names leaves the title empty.
      *
      * @param  array<string, mixed>  $card
      * @param  list<string>  $names
      * @return array<string, mixed>
      */
-    private static function titledWithNames(array $card, array $names): array
+    private static function titledWithRandomName(array $card, array $names): array
     {
-        shuffle($names);
-
-        $card['title'] = $names[0] ?? '';
-        $card['title_names'] = count($names) > 1 ? $names : [];
+        $card['title'] = $names === [] ? '' : $names[array_rand($names)];
 
         return $card;
     }
