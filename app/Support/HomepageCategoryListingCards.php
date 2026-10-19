@@ -77,12 +77,9 @@ final class HomepageCategoryListingCards
             }
 
             $cards[] = $card;
-            if (count($cards) >= $limit) {
-                break;
-            }
         }
 
-        return $cards;
+        return array_slice(self::shuffleCards($cards), 0, $limit);
     }
 
     /**
@@ -110,12 +107,9 @@ final class HomepageCategoryListingCards
             }
 
             $cards[] = $card;
-            if (count($cards) >= $limit) {
-                break;
-            }
         }
 
-        return $cards;
+        return array_slice(self::shuffleCards($cards), 0, $limit);
     }
 
     /**
@@ -153,7 +147,12 @@ final class HomepageCategoryListingCards
             }
         }
 
-        $merged = self::uniqueByUrl(array_merge($priority, $entityCards));
+        $merged = self::uniqueByUrl(array_merge(
+            self::shuffleCards($priority),
+            self::shuffleCards($entityCards)
+        ));
+
+        $fill = self::shuffleCards($fill);
 
         foreach ($fill as $card) {
             if (count($merged) >= $limit) {
@@ -164,7 +163,7 @@ final class HomepageCategoryListingCards
             }
         }
 
-        return array_slice($merged, 0, $limit);
+        return array_slice(self::shuffleCards($merged), 0, $limit);
     }
 
     /**
@@ -172,12 +171,30 @@ final class HomepageCategoryListingCards
      */
     private static function rowsForContext(string $context): array
     {
-        return CategoryHomepageImage::query()
+        $rows = CategoryHomepageImage::query()
             ->where('context', $context)
             ->with(['category:id,name,parent_id', 'category.parent:id,name'])
-            ->orderByDesc('updated_at')
             ->get()
             ->all();
+
+        shuffle($rows);
+
+        return $rows;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $cards
+     * @return list<array<string, mixed>>
+     */
+    private static function shuffleCards(array $cards): array
+    {
+        if ($cards === []) {
+            return [];
+        }
+
+        shuffle($cards);
+
+        return array_values($cards);
     }
 
     /**
