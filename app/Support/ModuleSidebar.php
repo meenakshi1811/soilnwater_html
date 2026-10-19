@@ -125,10 +125,18 @@ final class ModuleSidebar
                     'educators' => [
                         'label' => 'Teachers & Tutors',
                         'icon' => 'fa-solid fa-chalkboard-user',
-                        'active_routes' => ['admin.educators.*', 'admin.study-materials.*'],
+                        'active_routes' => ['admin.educators.*'],
                         'items' => [
                             ['label' => 'All Educators', 'route' => 'admin.educators.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'read', 'active' => 'admin.educators.*'],
-                            ['label' => 'Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-book-open', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
+                        ],
+                    ],
+                    // Everything on /study-materials (notes, papers, worksheets…), from every uploader
+                    'study_materials' => [
+                        'label' => 'Study Materials',
+                        'icon' => 'fa-solid fa-book-open',
+                        'active_routes' => ['admin.study-materials.*'],
+                        'items' => [
+                            ['label' => 'All Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
                         ],
                     ],
                     'schools' => [

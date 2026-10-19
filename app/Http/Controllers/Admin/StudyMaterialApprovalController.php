@@ -9,6 +9,8 @@ use App\Services\EducatorFollowerNotifier;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use App\Support\EducatorFileUploader;
+use App\Support\StudyMaterialUploadConfig;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +24,8 @@ class StudyMaterialApprovalController extends Controller
     public function index(Request $request): View
     {
         return view('backend.study-materials.index', [
-            'statusFilter' => $request->string('status')->toString() ?: 'pending',
+            // All by default (Admin → Education → Study Materials); the Approval Center asks for pending
+            'statusFilter' => $request->string('status')->toString(),
         ]);
     }
 
@@ -31,11 +34,12 @@ class StudyMaterialApprovalController extends Controller
         abort_unless($request->ajax(), 404);
 
         $query = StudyMaterial::query()
-            ->with(['educator:id,display_name,type', 'user:id,name'])
+            ->with(['educator:id,display_name,type', 'user:id,name,role'])
             ->select([
                 'id',
                 'educator_id',
                 'user_id',
+                'meta',
                 'title',
                 'material_type',
                 'subject',
@@ -52,7 +56,19 @@ class StudyMaterialApprovalController extends Controller
         }
 
         return DataTables::of($query)
-            ->addColumn('educator_name', fn (StudyMaterial $material): string => e($material->educator?->display_name ?: $material->user?->name ?: '—'))
+            // Anyone can upload study material: who, and as what
+            ->addColumn('uploaded_by', function (StudyMaterial $material): string {
+                $name = $material->educator?->display_name ?: $material->user?->name ?: '—';
+                $role = self::uploaderRoleLabel($material);
+
+                return e($name).($role !== '' ? '<br><small class="text-muted">'.e($role).'</small>' : '');
+            })
+            ->filterColumn('uploaded_by', function (Builder $query, string $keyword): void {
+                $query->where(function (Builder $uploader) use ($keyword): void {
+                    $uploader->whereHas('educator', fn (Builder $educator) => $educator->where('display_name', 'like', '%'.$keyword.'%'))
+                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', '%'.$keyword.'%'));
+                });
+            })
             ->addColumn('type_label', fn (StudyMaterial $material): string => e($material->materialTypeLabel()))
             ->addColumn('subject_class', function (StudyMaterial $material): string {
                 return e(collect([$material->subject, $material->class_course])->filter()->implode(' · ') ?: '—');
@@ -81,8 +97,34 @@ class StudyMaterialApprovalController extends Controller
                     ? $material->updated_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
                     : '—';
             })
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['uploaded_by', 'status_badge', 'actions'])
             ->make(true);
+    }
+
+    /**
+     * The uploader's account type, else the role picked in the upload form ("I am uploading as").
+     */
+    private static function uploaderRoleLabel(StudyMaterial $material): string
+    {
+        $user = $material->user;
+        $label = match (true) {
+            $user === null => '',
+            $user->isAdmin() => 'Admin',
+            $user->isTeacher() => 'Teacher',
+            $user->isSchool() => 'School',
+            $user->isInstitute() => 'Institute',
+            $user->isStudent() => 'Student',
+            $user->isParent() => 'Parent',
+            default => '',
+        };
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        $role = (string) data_get($material->meta, 'uploader_role');
+
+        return StudyMaterialUploadConfig::UPLOADER_ROLES[$role]['label'] ?? '';
     }
 
     public function show(StudyMaterial $study_material): View

@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Study Material Approvals')
+@section('title','Study Materials')
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -8,7 +8,7 @@
 <div class="admin-panel ems-page">
   <div class="mb-4">
     <p class="ems-kicker mb-1">Admin Portal</p>
-    <h2 class="admin-title mb-0">Study Material Approvals</h2>
+    <h2 class="admin-title mb-0">Study Materials</h2>
   </div>
 
   <div class="chart-card p-3 mb-3">
@@ -16,10 +16,10 @@
       <div class="col-md-3">
         <label for="statusFilter" class="form-label mb-1">Status filter</label>
         <select id="statusFilter" class="form-select">
-          <option value="pending" @selected(($statusFilter ?? 'pending') === 'pending')>Pending</option>
+          <option value="" @selected(! in_array($statusFilter ?? '', ['pending', 'approved', 'rejected'], true))>All</option>
+          <option value="pending" @selected(($statusFilter ?? '') === 'pending')>Pending</option>
           <option value="approved" @selected(($statusFilter ?? '') === 'approved')>Approved</option>
           <option value="rejected" @selected(($statusFilter ?? '') === 'rejected')>Rejected</option>
-          <option value="">All</option>
         </select>
       </div>
     </div>
@@ -31,7 +31,7 @@
         <thead>
           <tr>
             <th>Title</th>
-            <th>Educator</th>
+            <th>Uploaded By</th>
             <th>Type</th>
             <th>Subject / Class</th>
             <th>Status</th>
@@ -65,7 +65,7 @@
     },
     columns: [
       { data: 'title', name: 'title' },
-      { data: 'educator_name', name: 'educator.display_name', orderable: false },
+      { data: 'uploaded_by', name: 'uploaded_by', orderable: false },
       { data: 'type_label', name: 'material_type' },
       { data: 'subject_class', orderable: false, searchable: false },
       { data: 'status_badge', name: 'status', orderable: false },
