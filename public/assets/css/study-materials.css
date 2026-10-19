@@ -941,6 +941,20 @@
 .sm-note-card__file--img { background: #ede9fe; color: #7c3aed; }
 .sm-note-card__file--file { background: #e2e8f0; color: #475569; }
 
+/* Cover image instead of the file-type icon */
+.sm-note-card__file--image {
+  padding: 0;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.sm-note-card__file--image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .sm-note-card__head {
   display: flex;
   justify-content: space-between;
@@ -1226,6 +1240,19 @@
 .sm-grid-card__icon--img { background: #ede9fe; color: #7c3aed; }
 .sm-grid-card__icon--file { background: #e2e8f0; color: #475569; }
 
+/* Cover image instead of the file-type icon */
+.sm-grid-card__icon--image {
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.sm-grid-card__icon--image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .sm-grid-card__body {
   padding: 0.85rem;
 }
@@ -1496,6 +1523,11 @@
     flex-direction: row;
     justify-content: flex-start;
     padding: 0.65rem 0.85rem;
+  }
+
+  .sm-note-card__file--image {
+    height: 160px;
+    padding: 0;
   }
 
   .sm-note-card__actions-col {

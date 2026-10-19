@@ -1,5 +1,6 @@
 @php
     $fileMeta = $item->fileTypeMeta();
+    $imageUrl = $item->cardImageUrl();
     $tags = collect($item->tags ?? [])->filter()->take(4);
     if ($tags->isEmpty()) {
         $tags = collect(array_filter([$item->class_course, $item->board_university, $item->subject]));
@@ -9,9 +10,13 @@
 @endphp
 
 <article class="sm-note-card">
-    <a href="{{ $item->publicUrl() }}" class="sm-note-card__file sm-note-card__file--{{ $fileMeta['tone'] }}" aria-label="{{ $fileMeta['label'] }} file">
-        <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
-        <span>{{ $fileMeta['label'] }}</span>
+    <a href="{{ $item->publicUrl() }}" class="sm-note-card__file sm-note-card__file--{{ $imageUrl ? 'image' : $fileMeta['tone'] }}" aria-label="{{ $fileMeta['label'] }} file">
+        @if($imageUrl)
+            <img src="{{ $imageUrl }}" alt="" loading="lazy" decoding="async">
+        @else
+            <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
+            <span>{{ $fileMeta['label'] }}</span>
+        @endif
     </a>
 
     <div class="sm-note-card__content">

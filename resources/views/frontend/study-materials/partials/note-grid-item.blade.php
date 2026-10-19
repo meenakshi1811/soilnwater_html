@@ -1,11 +1,18 @@
 @php
     $fileMeta = $item->fileTypeMeta();
+    $imageUrl = $item->cardImageUrl();
 @endphp
 
 <a href="{{ $item->publicUrl() }}" class="sm-grid-card">
-    <div class="sm-grid-card__icon sm-grid-card__icon--{{ $fileMeta['tone'] }}">
-        <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
-    </div>
+    @if($imageUrl)
+        <div class="sm-grid-card__icon sm-grid-card__icon--image">
+            <img src="{{ $imageUrl }}" alt="" loading="lazy" decoding="async">
+        </div>
+    @else
+        <div class="sm-grid-card__icon sm-grid-card__icon--{{ $fileMeta['tone'] }}">
+            <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
+        </div>
+    @endif
     <div class="sm-grid-card__body">
         <h4>{{ $item->title }}</h4>
         <p>{{ $item->subject ?: $item->materialTypeLabel() }}</p>

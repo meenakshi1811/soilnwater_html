@@ -133,6 +133,16 @@ class StudyMaterial extends Model
         return filled($coverUrl) ? $coverUrl : null;
     }
 
+    /**
+     * Picture for listing cards: the cover image (Thumbnail), else the file itself when it is an
+     * image. Null shows the file-type icon instead.
+     */
+    public function cardImageUrl(): ?string
+    {
+        return $this->coverImageUrl()
+            ?: ($this->fileTypeMeta()['tone'] === 'img' ? $this->fileUrl() : null);
+    }
+
     public function publicUrl(): string
     {
         return route('study-materials.show', $this->slug);
