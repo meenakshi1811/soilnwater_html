@@ -22,7 +22,7 @@ final class HomepageCommunityHubCards
      *     category_icon: string
      * }>
      */
-    public static function build(Collection $posts, int $limit = 4): array
+    public static function build(Collection $posts, int $limit = 4, ?HomepageImageRegistry $images = null): array
     {
         $cards = [];
 
@@ -32,17 +32,11 @@ final class HomepageCommunityHubCards
             }
 
             $cards[] = self::fromPost($post);
-
-            if (count($cards) >= $limit) {
-                return $cards;
-            }
         }
 
-        if (count($cards) >= $limit) {
-            return array_slice($cards, 0, $limit);
-        }
-
-        return array_slice(array_merge($cards, self::fallbackCards()), 0, $limit);
+        // $posts is a pool: posts whose image is already on the page are skipped, then the
+        // sample cards fill any gap
+        return ($images ?? new HomepageImageRegistry())->pick(array_merge($cards, self::fallbackCards()), $limit);
     }
 
     /**

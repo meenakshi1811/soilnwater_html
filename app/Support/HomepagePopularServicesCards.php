@@ -23,7 +23,7 @@ final class HomepagePopularServicesCards
      *     category_icon: string
      * }>
      */
-    public static function build(Collection $serviceProviders, bool $hasLocation, int $limit = 4): array
+    public static function build(Collection $serviceProviders, bool $hasLocation, int $limit = 4, ?HomepageImageRegistry $images = null): array
     {
         $cards = [];
 
@@ -36,17 +36,14 @@ final class HomepagePopularServicesCards
             if ($mapped !== null) {
                 $cards[] = $mapped;
             }
-
-            if (count($cards) >= $limit) {
-                break;
-            }
         }
 
         return HomepageCategoryListingCards::mergeEntityCards(
             CategoryHomepageImage::CONTEXT_SERVICES,
             $cards,
             $limit,
-            fn (string $name): array => self::categoryMeta($name)
+            fn (string $name): array => self::categoryMeta($name),
+            $images
         );
     }
 

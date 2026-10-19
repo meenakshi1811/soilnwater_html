@@ -9,28 +9,32 @@ use Illuminate\Support\Collection;
 
 final class HomepageMarketplacePromoCards
 {
-    public static function fromOffers(Collection $offers, int $limit = 8): array
+    /**
+     * $offers is a pool: cards whose image is already on the page are skipped.
+     */
+    public static function fromOffers(Collection $offers, int $limit = 8, ?HomepageImageRegistry $images = null): array
     {
         $cards = $offers
-            ->take($limit)
             ->map(fn (Offer $offer) => self::mapOffer($offer))
             ->filter(fn (?array $card) => $card !== null)
             ->values()
             ->all();
 
-        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_OFFERS, $cards, $limit);
+        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_OFFERS, $cards, $limit, $images);
     }
 
-    public static function fromAds(Collection $ads, int $limit = 8): array
+    /**
+     * $ads is a pool: cards whose image is already on the page are skipped.
+     */
+    public static function fromAds(Collection $ads, int $limit = 8, ?HomepageImageRegistry $images = null): array
     {
         $cards = $ads
-            ->take($limit)
             ->map(fn (UserAd $ad) => self::mapAd($ad))
             ->filter(fn (?array $card) => $card !== null)
             ->values()
             ->all();
 
-        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_ADS, $cards, $limit);
+        return HomepageCategoryListingCards::mergePromoCards(CategoryHomepageImage::CONTEXT_ADS, $cards, $limit, $images);
     }
 
     /**

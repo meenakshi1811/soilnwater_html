@@ -22,14 +22,15 @@ final class HomepageConsultantsCards
      *     category_icon: string
      * }>
      */
-    public static function build(Collection $consultants, bool $hasLocation, int $limit = 4): array
+    public static function build(Collection $consultants, bool $hasLocation, int $limit = 4, ?HomepageImageRegistry $images = null): array
     {
         unset($consultants, $hasLocation);
 
         return HomepageCategoryListingCards::adminCategoryEntityCards(
             CategoryHomepageImage::CONTEXT_CONSULTANTS,
             $limit,
-            fn (string $name): array => self::categoryMeta($name)
+            fn (string $name): array => self::categoryMeta($name),
+            $images
         );
     }
 

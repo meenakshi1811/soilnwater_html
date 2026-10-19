@@ -10,11 +10,12 @@ use Illuminate\Support\Str;
 final class HomepagePopularNearYouCards
 {
     /**
-     * Vendors only (services have their own "Popular Services" section).
+     * Vendors only (services have their own "Popular Services" section). $vendors is a pool: cards
+     * whose image is already on the page are skipped.
      *
      * @return list<array{url: string, image: string, title: string, description: string, location: string, rating_score: float, rating_count: int, category_label: string, category_tone: string, category_icon: string, offer_badge: ?string, offer_badge_highlight: ?string}>
      */
-    public static function build(Collection $vendors, bool $hasLocation, int $limit = 8): array
+    public static function build(Collection $vendors, bool $hasLocation, int $limit = 8, ?HomepageImageRegistry $images = null): array
     {
         $cards = [];
 
@@ -27,17 +28,14 @@ final class HomepagePopularNearYouCards
             if ($mapped !== null) {
                 $cards[] = $mapped;
             }
-
-            if (count($cards) >= $limit) {
-                break;
-            }
         }
 
         return HomepageCategoryListingCards::mergeEntityCards(
             CategoryHomepageImage::CONTEXT_VENDORS,
             $cards,
             $limit,
-            fn (string $name): array => self::categoryMeta($name)
+            fn (string $name): array => self::categoryMeta($name),
+            $images
         );
     }
 

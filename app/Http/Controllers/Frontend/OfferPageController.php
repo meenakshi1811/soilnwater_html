@@ -16,6 +16,8 @@ use App\Models\UserAd;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Support\HomepageCategoryListingCards;
+use App\Support\HomepageSectionOrder;
+use App\Support\HomepageImageRegistry;
 use App\Support\HomepageMarketplacePromoCards;
 use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
@@ -81,8 +83,8 @@ class OfferPageController extends Controller
                 ->orderBy('distance_km');
         }
 
-        // The homepage cards sections each get their own random pick (see randomPick)
-        $adCardsPool = $this->randomPick((clone $recentApprovedAdsQuery)->latest('created_at')->latest('id'), $hasLocation, 8);
+        // The homepage cards sections each get their own random pick (see randomPool)
+        $adCardsQuery = (clone $recentApprovedAdsQuery)->latest('created_at')->latest('id');
 
         $recentApprovedAds = $recentApprovedAdsQuery
             ->latest('created_at')
@@ -118,12 +120,69 @@ class OfferPageController extends Controller
             ? HomepageShowcaseItems::toFeaturedBusinessArrays($featuredShowcaseItems)
             : [];
 
-        $homepageOfferPromoCards = $offerShowcaseItems->isNotEmpty()
+        $offerShowcaseCards = $offerShowcaseItems->isNotEmpty()
             ? HomepageShowcaseItems::toOfferPromoArrays($offerShowcaseItems)
-            : HomepageMarketplacePromoCards::fromOffers(
-                $this->randomPick($this->baseOfferQuery(null, $lat, $lng)->with(['category:id,name', 'subcategory:id,name']), $hasLocation, 8),
-                8
-            );
+            : null;
+
+        $sectionToggles = data_get($homepageSetting, 'section_toggles', []);
+        $visibleSections = array_values(array_filter(
+            HomepageSectionOrder::keys(data_get($homepageSetting, 'section_order')),
+            fn (string $key): bool => HomepageSectionOrder::isEnabled($key, $sectionToggles)
+        ));
+
+        // No image twice on the homepage. Admin-curated cards (Featured Businesses, offer showcase,
+        // Study Material) are shown as set, so they claim their images first; then each automatic
+        // section, in page order, picks cards whose image isn't on the page yet.
+        $images = new HomepageImageRegistry();
+        $images->claimCards($homepageFeaturedBusinesses);
+
+        $homepageStudyMaterialLibraryCards = HomepageStudyMaterialLibraryCards::build();
+        if (in_array('study_material', $visibleSections, true)) {
+            $images->claimCards($homepageStudyMaterialLibraryCards);
+        }
+        if ($offerShowcaseCards !== null && in_array('offers', $visibleSections, true)) {
+            $images->claimCards($offerShowcaseCards);
+        }
+
+        $sectionBuilders = [
+            'offers' => fn (): array => $offerShowcaseCards ?? HomepageMarketplacePromoCards::fromOffers(
+                $this->randomPool($this->baseOfferQuery(null, $lat, $lng)->with(['category:id,name', 'subcategory:id,name']), $hasLocation, 8),
+                8,
+                $images
+            ),
+            'ads' => fn (): array => HomepageMarketplacePromoCards::fromAds($this->randomPool($adCardsQuery, $hasLocation, 8), 8, $images),
+            'popular_near_you' => fn (): array => HomepagePopularNearYouCards::build(
+                $this->randomPool($this->topVendorsQuery($lat, $lng), $hasLocation, 8),
+                $hasLocation,
+                8,
+                $images
+            ),
+            'popular_services' => fn (): array => HomepagePopularServicesCards::build(
+                $this->randomPool($this->topServiceProvidersQuery($lat, $lng), $hasLocation, 6),
+                $hasLocation,
+                6,
+                $images
+            ),
+            'education_knowledge' => fn (): array => HomepageEducationKnowledgeCards::build(
+                is_numeric($lat) ? (float) $lat : null,
+                is_numeric($lng) ? (float) $lng : null,
+                $images
+            ),
+            'consultants' => fn (): array => HomepageConsultantsCards::build($topConsultants, $hasLocation, 6, $images),
+            'community_hub' => fn (): array => HomepageCommunityHubCards::build(
+                $this->randomPool($this->homepageCommunityPostsQuery(), false, 6),
+                6,
+                $images
+            ),
+        ];
+
+        // Hidden sections aren't shown, so they aren't built
+        $sectionCards = [];
+        foreach ($visibleSections as $key) {
+            if (isset($sectionBuilders[$key])) {
+                $sectionCards[$key] = $sectionBuilders[$key]();
+            }
+        }
 
         // Popular searches are built from the real top categories (ordered by live
         // listing count) so every tag links to a listing page that actually has results.
@@ -201,34 +260,16 @@ class OfferPageController extends Controller
             'homepageCommunityPosts' => $homepageCommunityPosts,
             'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
             'communityEngagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-            'homepageOfferPromoCards' => $homepageOfferPromoCards,
+            'homepageOfferPromoCards' => $sectionCards['offers'] ?? [],
             'homepageFeaturedBusinesses' => $homepageFeaturedBusinesses,
-            'homepageAdPromoCards' => HomepageMarketplacePromoCards::fromAds($adCardsPool, 8),
-            'homepagePopularNearYouCards' => HomepagePopularNearYouCards::build(
-                $this->randomPick($this->topVendorsQuery($lat, $lng), $hasLocation, 8),
-                $hasLocation,
-                8
-            ),
-            'homepagePopularServicesCards' => HomepagePopularServicesCards::build(
-                $this->randomPick($this->topServiceProvidersQuery($lat, $lng), $hasLocation, 6),
-                $hasLocation,
-                6
-            ),
-            'homepageEducationKnowledgeCards' => HomepageEducationKnowledgeCards::build(
-                is_numeric($lat) ? (float) $lat : null,
-                is_numeric($lng) ? (float) $lng : null,
-            ),
-            'homepageStudyMaterialLibraryCards' => HomepageStudyMaterialLibraryCards::build(),
+            'homepageAdPromoCards' => $sectionCards['ads'] ?? [],
+            'homepagePopularNearYouCards' => $sectionCards['popular_near_you'] ?? [],
+            'homepagePopularServicesCards' => $sectionCards['popular_services'] ?? [],
+            'homepageEducationKnowledgeCards' => $sectionCards['education_knowledge'] ?? [],
+            'homepageStudyMaterialLibraryCards' => $homepageStudyMaterialLibraryCards,
             'homepageStudyMaterialNavLinks' => HomepageStudyMaterialLibraryCards::navLinks(),
-            'homepageConsultantsCards' => HomepageConsultantsCards::build(
-                $this->randomPick($this->topConsultantsQuery($lat, $lng), $hasLocation, 6),
-                $hasLocation,
-                6
-            ),
-            'homepageCommunityHubCards' => HomepageCommunityHubCards::build(
-                $this->randomPick($this->homepageCommunityPostsQuery(), false, 6),
-                6
-            ),
+            'homepageConsultantsCards' => $sectionCards['consultants'] ?? [],
+            'homepageCommunityHubCards' => $sectionCards['community_hub'] ?? [],
             'homepageVendorCategoryListingCards' => HomepageCategoryListingCards::priorityEntityCards(
                 CategoryHomepageImage::CONTEXT_VENDORS,
                 6,
@@ -911,17 +952,20 @@ class OfferPageController extends Controller
     }
 
     /**
-     * Items for a homepage cards section: a fresh random pick on every page load, so every
-     * listing gets a turn. With a location, picked from the nearest ones (the query's own
-     * order) to stay "near you".
+     * Candidates for a homepage cards section of $cards cards, in a fresh random order on every
+     * page load so every listing gets a turn: three per card, as cards whose image is already on
+     * the page are skipped. With a location, the nearest ones (the query's own order) to stay
+     * "near you".
      */
-    private function randomPick(Builder $query, bool $hasLocation, int $limit): Collection
+    private function randomPool(Builder $query, bool $hasLocation, int $cards): Collection
     {
+        $size = $cards * 3;
+
         if ($hasLocation) {
-            return $query->limit($limit * 3)->get()->shuffle()->take($limit)->values();
+            return $query->limit($size)->get()->shuffle()->values();
         }
 
-        return $query->reorder()->inRandomOrder()->limit($limit)->get();
+        return $query->reorder()->inRandomOrder()->limit($size)->get();
     }
 
     private function applyVendorListingOrder(Builder $query, ?Request $request, bool $hasLocation): void

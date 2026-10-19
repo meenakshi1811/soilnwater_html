@@ -25,15 +25,17 @@ final class HomepageEducationKnowledgeCards
      *     category_icon: string
      * }>
      */
-    public static function build(?float $lat, ?float $lng): array
+    public static function build(?float $lat, ?float $lng, ?HomepageImageRegistry $images = null): array
     {
+        $images ??= new HomepageImageRegistry();
+
         $cards = [
-            self::applyHomepageImage(self::hydrateSlot(self::coachingSlot(), self::findCoachingInstitute($lat, $lng))),
-            self::applyHomepageImage(self::hydrateSlot(self::skillsSlot(), self::findSkillsInstitute($lat, $lng))),
-            self::applyHomepageImage(self::hydrateSlot(self::articlesSlot(), self::findFeaturedArticle())),
-            self::applyHomepageImage(self::hydrateSlot(self::careerSlot(), self::findCareerGuide($lat, $lng))),
-            self::applyHomepageImage(self::onlineCoursesSlot()),
-            self::applyHomepageImage(self::studyLibrarySlot()),
+            self::applyHomepageImage(self::hydrateSlot(self::coachingSlot(), self::findCoachingInstitute($lat, $lng)), self::coachingSlot(), $images),
+            self::applyHomepageImage(self::hydrateSlot(self::skillsSlot(), self::findSkillsInstitute($lat, $lng)), self::skillsSlot(), $images),
+            self::applyHomepageImage(self::hydrateSlot(self::articlesSlot(), self::findFeaturedArticle()), self::articlesSlot(), $images),
+            self::applyHomepageImage(self::hydrateSlot(self::careerSlot(), self::findCareerGuide($lat, $lng)), self::careerSlot(), $images),
+            self::applyHomepageImage(self::onlineCoursesSlot(), self::onlineCoursesSlot(), $images),
+            self::applyHomepageImage(self::studyLibrarySlot(), self::studyLibrarySlot(), $images),
         ];
 
         // A new order on every page load, like the other homepage card sections
@@ -320,19 +322,27 @@ final class HomepageEducationKnowledgeCards
      * @param  array<string, mixed>|null  $card
      * @return array<string, mixed>|null
      */
-    private static function applyHomepageImage(?array $card): ?array
+    /**
+     * The card's image: its admin category image, else its listing's photo, else the slot's own
+     * picture, taking the first one not already on the homepage.
+     *
+     * @param  array<string, mixed>|null  $card
+     * @param  array<string, mixed>  $slot
+     * @return array<string, mixed>|null
+     */
+    private static function applyHomepageImage(?array $card, array $slot, HomepageImageRegistry $images): ?array
     {
         if ($card === null) {
             return null;
         }
 
         $keywords = $card['image_keywords'] ?? [];
-        if (! is_array($keywords) || $keywords === []) {
-            return $card;
-        }
-
-        $card['image'] = HomepageCategoryCardImage::forEducation($keywords, (string) $card['image']);
+        $categoryImage = is_array($keywords) && $keywords !== []
+            ? HomepageCategoryCardImage::forEducation($keywords, '')
+            : '';
         unset($card['image_keywords']);
+
+        $card['image'] = $images->firstUnused([$categoryImage, (string) $card['image'], (string) $slot['image']]);
 
         return $card;
     }

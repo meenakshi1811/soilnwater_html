@@ -16,25 +16,28 @@ final class HomepageCategoryListingCards
      *
      * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
      * @param  list<array<string, mixed>>  $entityCards
+     * @param  HomepageImageRegistry|null  $images  images already on the page, not to be shown again
      * @return list<array<string, mixed>>
      */
-    public static function mergeEntityCards(string $context, array $entityCards, int $limit, callable $categoryMeta): array
+    public static function mergeEntityCards(string $context, array $entityCards, int $limit, callable $categoryMeta, ?HomepageImageRegistry $images = null): array
     {
-        return self::mergeInternal([$context], $entityCards, $limit, $categoryMeta, 'entity');
+        return self::mergeInternal([$context], $entityCards, $limit, $categoryMeta, 'entity', $images);
     }
 
     /**
      * @param  list<array<string, mixed>>  $entityCards
+     * @param  HomepageImageRegistry|null  $images  images already on the page, not to be shown again
      * @return list<array<string, mixed>>
      */
-    public static function mergePromoCards(string $context, array $entityCards, int $limit): array
+    public static function mergePromoCards(string $context, array $entityCards, int $limit, ?HomepageImageRegistry $images = null): array
     {
         return self::mergeInternal(
             [$context],
             $entityCards,
             $limit,
             fn (string $name): array => HomepageMarketplacePromoCards::categoryMetaForName($name),
-            'promo'
+            'promo',
+            $images
         );
     }
 
@@ -52,9 +55,10 @@ final class HomepageCategoryListingCards
      * Cards built only from Admin → Category Card Images (no live vendor/consultant photos).
      *
      * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
+     * @param  HomepageImageRegistry|null  $images  images already on the page, not to be shown again
      * @return list<array<string, mixed>>
      */
-    public static function adminCategoryEntityCards(string $context, int $limit, callable $categoryMeta): array
+    public static function adminCategoryEntityCards(string $context, int $limit, callable $categoryMeta, ?HomepageImageRegistry $images = null): array
     {
         if ($limit <= 0) {
             return [];
@@ -70,7 +74,7 @@ final class HomepageCategoryListingCards
             $cards[] = $card;
         }
 
-        return array_slice(self::shuffleCards($cards), 0, $limit);
+        return ($images ?? new HomepageImageRegistry())->pick(self::shuffleCards($cards), $limit);
     }
 
     /**
@@ -109,7 +113,7 @@ final class HomepageCategoryListingCards
      * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
      * @return list<array<string, mixed>>
      */
-    private static function mergeInternal(array $contexts, array $entityCards, int $limit, callable $categoryMeta, string $shape): array
+    private static function mergeInternal(array $contexts, array $entityCards, int $limit, callable $categoryMeta, string $shape, ?HomepageImageRegistry $images): array
     {
         if ($limit <= 0) {
             return [];
@@ -139,7 +143,8 @@ final class HomepageCategoryListingCards
                 }
 
                 if ($vendorNames !== null) {
-                    $card = self::titledWithRandomName($card, $vendorNames[(int) $row->category_id] ?? []);
+                    // Titled once the section's cards are picked (titleWithVendorNames)
+                    $card['vendor_names'] = $vendorNames[(int) $row->category_id] ?? [];
                 }
 
                 $fill[] = $card;
@@ -149,23 +154,17 @@ final class HomepageCategoryListingCards
             }
         }
 
-        $merged = self::uniqueByUrl(array_merge(
+        // Empty categories first, then live listings, then the other category images. One card
+        // per image: listings in the same category share its image.
+        $candidates = self::uniqueByUrl(array_merge(
             self::shuffleCards($priority),
-            self::shuffleCards($entityCards)
+            self::shuffleCards($entityCards),
+            self::shuffleCards($fill)
         ));
 
-        $fill = self::shuffleCards($fill);
+        $cards = ($images ?? new HomepageImageRegistry())->pick($candidates, $limit);
 
-        foreach ($fill as $card) {
-            if (count($merged) >= $limit) {
-                break;
-            }
-            if (! self::containsUrl($merged, (string) $card['url'])) {
-                $merged[] = $card;
-            }
-        }
-
-        return array_slice(self::shuffleCards($merged), 0, $limit);
+        return self::shuffleCards(self::titleWithVendorNames($cards));
     }
 
     /**
@@ -218,18 +217,38 @@ final class HomepageCategoryListingCards
     }
 
     /**
-     * Titles the card with one of the names, a different random one on each page load. No
-     * names leaves the title empty.
+     * Titles vendor category cards with one of the vendors in that category, a random one on each
+     * page load, skipping vendors that already have a card in the section. None left leaves the
+     * title empty.
      *
-     * @param  array<string, mixed>  $card
-     * @param  list<string>  $names
-     * @return array<string, mixed>
+     * @param  list<array<string, mixed>>  $cards
+     * @return list<array<string, mixed>>
      */
-    private static function titledWithRandomName(array $card, array $names): array
+    private static function titleWithVendorNames(array $cards): array
     {
-        $card['title'] = $names === [] ? '' : $names[array_rand($names)];
+        $shown = [];
+        foreach ($cards as $card) {
+            if (! array_key_exists('vendor_names', $card)) {
+                $shown[] = (string) $card['title'];
+            }
+        }
 
-        return $card;
+        foreach ($cards as $index => $card) {
+            if (! array_key_exists('vendor_names', $card)) {
+                continue;
+            }
+
+            $names = array_values(array_diff($card['vendor_names'], $shown));
+            $card['title'] = $names === [] ? '' : $names[array_rand($names)];
+            unset($card['vendor_names']);
+
+            if ($card['title'] !== '') {
+                $shown[] = $card['title'];
+            }
+            $cards[$index] = $card;
+        }
+
+        return $cards;
     }
 
     /**
@@ -355,20 +374,6 @@ final class HomepageCategoryListingCards
             'tone' => 'slate',
             'icon' => 'fa-store',
         ];
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $cards
-     */
-    private static function containsUrl(array $cards, string $url): bool
-    {
-        foreach ($cards as $card) {
-            if (($card['url'] ?? '') === $url) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
