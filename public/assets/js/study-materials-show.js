@@ -254,7 +254,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refreshPdfView() {
-        const next = new URL(fileUrl.split('#')[0] + '#page=' + currentPage + pdfViewParams(), window.location.href).href;
+        // navpanes=0: no thumbnail panel, so the page gets the full width (the viewer's menu still opens it)
+        const next = new URL(fileUrl.split('#')[0] + '#page=' + currentPage + '&navpanes=0' + pdfViewParams(), window.location.href).href;
         // Setting the same address again would reload the PDF
         if (frame.src !== next) {
             frame.src = next;

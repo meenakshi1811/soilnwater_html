@@ -114,257 +114,361 @@
                 @endif
             </aside>
 
-            {{-- Center: description, details, reviews… (the document gets the full width below) --}}
-            <div class="sm-show-tabs-card">
-                <div class="sm-show-tabs" id="materialTabs" role="tablist">
-                    <button type="button" class="sm-show-tab is-active" data-tab="description" role="tab">Description</button>
-                    @if($extraDetails !== [])
-                        <button type="button" class="sm-show-tab" data-tab="details" role="tab">Details</button>
-                    @endif
-                    @if($hasBoardSolution)
-                        <button type="button" class="sm-show-tab" data-tab="solution" role="tab">Board Solution</button>
-                    @endif
-                    @if($hasSolvedWorksheet)
-                        <button type="button" class="sm-show-tab" data-tab="solved-worksheet" role="tab">Solved Worksheet</button>
-                    @endif
-                    <button type="button" class="sm-show-tab" data-tab="related" role="tab">Related Materials</button>
-                    <button type="button" class="sm-show-tab" data-tab="questions" role="tab">Questions</button>
-                    <button type="button" class="sm-show-tab" data-tab="reviews" role="tab">
-                        Reviews ({{ number_format($material->reviews_count) }})
-                    </button>
-                </div>
-
-                <div class="sm-show-tab-panel is-active" data-panel="description" role="tabpanel">
-                    <div class="sm-show-desc-layout">
-                        <div class="sm-show-desc-main">
-                            @if($plainDescription !== '')
-                                <div class="sm-show-desc-text js-sm-desc-text is-collapsed">
-                                    @if(filled($material->description) && strip_tags($material->description) !== $plainDescription)
-                                        <div class="sm-richtext">{!! $material->description !!}</div>
-                                    @else
-                                        <p class="mb-0">{{ $plainDescription }}</p>
-                                    @endif
-                                </div>
-                                @if(strlen($plainDescription) > 280)
-                                    <button type="button" class="sm-show-desc-toggle js-sm-desc-toggle">
-                                        Show More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                                    </button>
-                                @endif
-                            @else
-                                <p class="sm-empty mb-0">No description provided for this material.</p>
+            {{-- Center: a compact description section, then the document --}}
+            <div class="sm-show-main">
+                <div class="sm-show-tabs-card">
+                    <div class="sm-show-tabs-head">
+                        <div class="sm-show-tabs" id="materialTabs" role="tablist">
+                            <button type="button" class="sm-show-tab is-active" data-tab="description" role="tab">Description</button>
+                            @if($extraDetails !== [])
+                                <button type="button" class="sm-show-tab" data-tab="details" role="tab">Details</button>
                             @endif
-
-                            @if($tags->isNotEmpty())
-                                <div class="sm-show-tags">
-                                    <h4>Tags</h4>
-                                    <div class="sm-show-tags__list">
-                                        @foreach($tags as $tag)
-                                            <span class="sm-show-tag">{{ $tag }}</span>
-                                        @endforeach
-                                    </div>
-                                </div>
+                            @if($hasBoardSolution)
+                                <button type="button" class="sm-show-tab" data-tab="solution" role="tab">Board Solution</button>
                             @endif
+                            @if($hasSolvedWorksheet)
+                                <button type="button" class="sm-show-tab" data-tab="solved-worksheet" role="tab">Solved Worksheet</button>
+                            @endif
+                            <button type="button" class="sm-show-tab" data-tab="related" role="tab">Related Materials</button>
+                            <button type="button" class="sm-show-tab" data-tab="questions" role="tab">Questions</button>
+                            <button type="button" class="sm-show-tab" data-tab="reviews" role="tab">
+                                Reviews ({{ number_format($material->reviews_count) }})
+                            </button>
                         </div>
 
-                        <aside class="sm-show-rate-box">
-                            <h4>Rate this material</h4>
-                            <div class="sm-show-rate-box__stars" aria-hidden="true">
+                        {{-- Rate it (the score itself is in the right sidebar) --}}
+                        <div class="sm-show-rate-inline">
+                            <span class="sm-show-rate-inline__stars" aria-hidden="true">
                                 @for($star = 1; $star <= 5; $star++)
                                     <i class="fa-solid fa-star{{ $star <= $filledStars ? '' : ' is-empty' }}"></i>
                                 @endfor
-                            </div>
+                            </span>
                             @auth
-                                <button type="button" class="sm-show-rate-box__btn js-sm-scroll-reviews">Write a Review</button>
+                                <button type="button" class="sm-show-rate-inline__btn js-sm-scroll-reviews">Write a Review</button>
                             @else
-                                <a href="{{ route('login') }}" class="sm-show-rate-box__btn">Write a Review</a>
+                                <a href="{{ route('login') }}" class="sm-show-rate-inline__btn">Write a Review</a>
                             @endauth
-                        </aside>
+                        </div>
                     </div>
-                </div>
 
-                @if($extraDetails !== [])
-                    <div class="sm-show-tab-panel" data-panel="details" role="tabpanel">
-                        <ul class="sm-show-detail-list">
-                            @foreach($extraDetails as $label => $value)
-                                <li><span>{{ $label }}</span><strong>{{ $value }}</strong></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                @if($hasBoardSolution)
-                    <div class="sm-show-tab-panel" data-panel="solution" role="tabpanel">
-                        @if(! $canAccessContent)
-                            <div class="sm-show-paywall">
-                                <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
-                                <h3>Solution locked</h3>
-                                <p>Please log in or purchase access to view the board paper solution.</p>
-                                <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
+                    <div class="sm-show-tab-panel is-active" data-panel="description" role="tabpanel">
+                        @if($plainDescription !== '')
+                            <div class="sm-show-desc-text js-sm-desc-text is-collapsed">
+                                @if(filled($material->description) && strip_tags($material->description) !== $plainDescription)
+                                    <div class="sm-richtext">{!! $material->description !!}</div>
+                                @else
+                                    <p class="mb-0">{{ $plainDescription }}</p>
+                                @endif
                             </div>
-                        @elseif($material->isCustomBoardSolution())
-                            <article class="sm-show-custom-note ck-content">
-                                {!! $material->customSolutionHtml() !!}
-                            </article>
-                        @elseif($material->canPreviewSolutionInline() && $material->solutionFileUrl())
-                            @if(str_contains((string) $material->solutionFileType(), 'pdf'))
-                                <iframe
-                                    src="{{ $material->solutionFileUrl() }}#page=1"
-                                    title="Board paper solution"
-                                    class="sm-show-viewer-frame"
-                                    style="width:100%;min-height:70vh;border:0;border-radius:12px;"
-                                ></iframe>
-                            @else
-                                <img
-                                    src="{{ $material->solutionFileUrl() }}"
-                                    alt="Board paper solution"
-                                    class="sm-show-viewer-image"
-                                    style="max-width:100%;height:auto;border-radius:12px;"
-                                >
+                            @if(strlen($plainDescription) > 160)
+                                <button type="button" class="sm-show-desc-toggle js-sm-desc-toggle">
+                                    Show More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                </button>
                             @endif
-                            <div class="mt-3">
-                                <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-outline">
-                                    <i class="fa-solid fa-download me-1"></i> Download Solution
-                                </a>
-                            </div>
                         @else
-                            <div class="sm-show-solution-file">
-                                <p class="mb-2"><strong>{{ $material->solutionFileName() ?: 'Solution file' }}</strong></p>
-                                <p class="text-muted mb-3">{{ strtoupper((string) $material->solutionFileType()) }} · {{ $material->solutionFileSizeLabel() }}</p>
-                                <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-primary">
-                                    <i class="fa-solid fa-download me-1"></i> Download Solution
-                                </a>
-                            </div>
+                            <p class="sm-empty mb-0">No description provided for this material.</p>
                         @endif
-                    </div>
-                @endif
 
-                @if($hasSolvedWorksheet)
-                    <div class="sm-show-tab-panel" data-panel="solved-worksheet" role="tabpanel">
-                        @if(! $canAccessContent)
-                            <div class="sm-show-paywall">
-                                <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
-                                <h3>Solved worksheet locked</h3>
-                                <p>Please log in to view the solved worksheet.</p>
-                                <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
-                            </div>
-                        @elseif($material->isCustomSolvedWorksheet())
-                            <article class="sm-show-custom-note ck-content">
-                                {!! $material->customSolvedWorksheetHtml() !!}
-                            </article>
-                        @elseif($material->canPreviewSolvedWorksheetInline() && $material->solvedWorksheetFileUrl())
-                            @if(str_contains((string) $material->solvedWorksheetFileType(), 'pdf'))
-                                <iframe
-                                    src="{{ $material->solvedWorksheetFileUrl() }}#page=1"
-                                    title="Solved worksheet"
-                                    class="sm-show-viewer-frame"
-                                    style="width:100%;min-height:70vh;border:0;border-radius:12px;"
-                                ></iframe>
-                            @else
-                                <img
-                                    src="{{ $material->solvedWorksheetFileUrl() }}"
-                                    alt="Solved worksheet"
-                                    class="sm-show-viewer-image"
-                                    style="max-width:100%;height:auto;border-radius:12px;"
-                                >
-                            @endif
-                            <div class="mt-3">
-                                <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-outline">
-                                    <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
-                                </a>
-                            </div>
-                        @else
-                            <div class="sm-show-solution-file">
-                                <p class="mb-2"><strong>{{ $material->solvedWorksheetFileName() ?: 'Solved worksheet file' }}</strong></p>
-                                <p class="text-muted mb-3">{{ strtoupper((string) $material->solvedWorksheetFileType()) }} · {{ $material->solvedWorksheetFileSizeLabel() }}</p>
-                                <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-primary">
-                                    <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                @endif
-
-                <div class="sm-show-tab-panel" data-panel="related" role="tabpanel">
-                    <div class="sm-show-related-list">
-                        @forelse($related as $item)
-                            <a href="{{ $item->publicUrl() }}" class="sm-show-related-item">
-                                <span class="sm-show-related-item__icon sm-show-related-item__icon--{{ $item->fileTypeMeta()['tone'] }}">
-                                    <i class="fa-solid {{ $item->fileTypeMeta()['icon'] }}"></i>
-                                </span>
-                                <span>
-                                    <strong>{{ $item->title }}</strong>
-                                    <small>{{ $item->subject ?: $item->materialTypeLabel() }}</small>
-                                </span>
-                            </a>
-                        @empty
-                            <p class="sm-empty mb-0">No related materials found.</p>
-                        @endforelse
-                    </div>
-                </div>
-
-                <div class="sm-show-tab-panel" data-panel="questions" role="tabpanel">
-                    <div class="sm-show-questions-empty">
-                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
-                        <p>Have a question about this material? Ask in the discussion forum.</p>
-                        <a href="{{ auth()->check() ? route('discussions.index') : route('login') }}" class="sm-btn sm-btn-outline">
-                            Ask a Question
-                        </a>
-                    </div>
-                </div>
-
-                <div class="sm-show-tab-panel" data-panel="reviews" role="tabpanel" id="smReviewsPanel">
-                    @auth
-                        @if($canWriteReview ?? false)
-                        <form id="smReviewForm" class="sm-review-form mb-4" novalidate>
-                            @csrf
-                            <h4 class="sm-review-form__title">{{ $userReview ? 'Update your review' : 'Write a review' }}</h4>
-                            <p class="sm-review-form__hint">Rate this material and share feedback for other learners.</p>
-
-                            <div class="sm-star-picker" role="radiogroup" aria-label="Your rating">
-                                <input type="hidden" name="rating" id="smReviewRating" value="{{ $selectedRating }}">
-                                @foreach (range(1, 5) as $stars)
-                                    <button
-                                        type="button"
-                                        class="sm-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
-                                        data-rating="{{ $stars }}"
-                                        aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
-                                    >
-                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                    </button>
+                        @if($tags->isNotEmpty())
+                            <div class="sm-show-tags" aria-label="Tags">
+                                <i class="fa-solid fa-tags sm-show-tags__icon" aria-hidden="true"></i>
+                                @foreach($tags as $tag)
+                                    <span class="sm-show-tag">{{ $tag }}</span>
                                 @endforeach
                             </div>
-
-                            <label class="form-label mt-3" for="smReviewText">Your feedback</label>
-                            <textarea
-                                id="smReviewText"
-                                name="review"
-                                class="form-control"
-                                rows="3"
-                                maxlength="2000"
-                                placeholder="What did you find useful? Any tips for other students?"
-                            >{{ old('review', $userReview?->review) }}</textarea>
-
-                            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                                <small class="text-muted">Click the stars to set your rating.</small>
-                                <button type="submit" class="sm-btn sm-btn-primary" id="smReviewSubmitBtn">
-                                    <span class="btn-text">{{ $userReview ? 'Update review' : 'Submit review' }}</span>
-                                </button>
-                            </div>
-                        </form>
                         @endif
-                    @else
-                        <div class="sm-review-login mb-4">
-                            <p class="mb-2">Parents and students can sign in to leave a review for this material.</p>
-                            <a href="{{ route('login') }}" class="sm-btn sm-btn-outline">Login to review</a>
-                        </div>
-                    @endauth
+                    </div>
 
-                    <div id="smReviewsList" @auth data-current-user="{{ auth()->id() }}" @endauth>
-                        @forelse($material->reviews as $review)
-                            @include('frontend.study-materials.partials.review-item', ['review' => $review])
-                        @empty
-                            <p class="sm-empty mb-0" id="smReviewsEmpty">No reviews yet. Be the first to share your thoughts.</p>
-                        @endforelse
+                    @if($extraDetails !== [])
+                        <div class="sm-show-tab-panel" data-panel="details" role="tabpanel">
+                            <ul class="sm-show-detail-list">
+                                @foreach($extraDetails as $label => $value)
+                                    <li><span>{{ $label }}</span><strong>{{ $value }}</strong></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if($hasBoardSolution)
+                        <div class="sm-show-tab-panel" data-panel="solution" role="tabpanel">
+                            @if(! $canAccessContent)
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Solution locked</h3>
+                                    <p>Please log in or purchase access to view the board paper solution.</p>
+                                    <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
+                                </div>
+                            @elseif($material->isCustomBoardSolution())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customSolutionHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewSolutionInline() && $material->solutionFileUrl())
+                                @if(str_contains((string) $material->solutionFileType(), 'pdf'))
+                                    <iframe
+                                        src="{{ $material->solutionFileUrl() }}#page=1"
+                                        title="Board paper solution"
+                                        class="sm-show-viewer-frame"
+                                        style="width:100%;min-height:70vh;border:0;border-radius:12px;"
+                                    ></iframe>
+                                @else
+                                    <img
+                                        src="{{ $material->solutionFileUrl() }}"
+                                        alt="Board paper solution"
+                                        class="sm-show-viewer-image"
+                                        style="max-width:100%;height:auto;border-radius:12px;"
+                                    >
+                                @endif
+                                <div class="mt-3">
+                                    <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-outline">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solution
+                                    </a>
+                                </div>
+                            @else
+                                <div class="sm-show-solution-file">
+                                    <p class="mb-2"><strong>{{ $material->solutionFileName() ?: 'Solution file' }}</strong></p>
+                                    <p class="text-muted mb-3">{{ strtoupper((string) $material->solutionFileType()) }} · {{ $material->solutionFileSizeLabel() }}</p>
+                                    <a href="{{ $solutionDownloadUrl }}" class="sm-btn sm-btn-primary">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solution
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($hasSolvedWorksheet)
+                        <div class="sm-show-tab-panel" data-panel="solved-worksheet" role="tabpanel">
+                            @if(! $canAccessContent)
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Solved worksheet locked</h3>
+                                    <p>Please log in to view the solved worksheet.</p>
+                                    <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to view</a>
+                                </div>
+                            @elseif($material->isCustomSolvedWorksheet())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customSolvedWorksheetHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewSolvedWorksheetInline() && $material->solvedWorksheetFileUrl())
+                                @if(str_contains((string) $material->solvedWorksheetFileType(), 'pdf'))
+                                    <iframe
+                                        src="{{ $material->solvedWorksheetFileUrl() }}#page=1"
+                                        title="Solved worksheet"
+                                        class="sm-show-viewer-frame"
+                                        style="width:100%;min-height:70vh;border:0;border-radius:12px;"
+                                    ></iframe>
+                                @else
+                                    <img
+                                        src="{{ $material->solvedWorksheetFileUrl() }}"
+                                        alt="Solved worksheet"
+                                        class="sm-show-viewer-image"
+                                        style="max-width:100%;height:auto;border-radius:12px;"
+                                    >
+                                @endif
+                                <div class="mt-3">
+                                    <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-outline">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
+                                    </a>
+                                </div>
+                            @else
+                                <div class="sm-show-solution-file">
+                                    <p class="mb-2"><strong>{{ $material->solvedWorksheetFileName() ?: 'Solved worksheet file' }}</strong></p>
+                                    <p class="text-muted mb-3">{{ strtoupper((string) $material->solvedWorksheetFileType()) }} · {{ $material->solvedWorksheetFileSizeLabel() }}</p>
+                                    <a href="{{ $solvedWorksheetDownloadUrl }}" class="sm-btn sm-btn-primary">
+                                        <i class="fa-solid fa-download me-1"></i> Download Solved Worksheet
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="sm-show-tab-panel" data-panel="related" role="tabpanel">
+                        <div class="sm-show-related-list">
+                            @forelse($related as $item)
+                                <a href="{{ $item->publicUrl() }}" class="sm-show-related-item">
+                                    <span class="sm-show-related-item__icon sm-show-related-item__icon--{{ $item->fileTypeMeta()['tone'] }}">
+                                        <i class="fa-solid {{ $item->fileTypeMeta()['icon'] }}"></i>
+                                    </span>
+                                    <span>
+                                        <strong>{{ $item->title }}</strong>
+                                        <small>{{ $item->subject ?: $item->materialTypeLabel() }}</small>
+                                    </span>
+                                </a>
+                            @empty
+                                <p class="sm-empty mb-0">No related materials found.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="sm-show-tab-panel" data-panel="questions" role="tabpanel">
+                        <div class="sm-show-questions-empty">
+                            <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                            <p>Have a question about this material? Ask in the discussion forum.</p>
+                            <a href="{{ auth()->check() ? route('discussions.index') : route('login') }}" class="sm-btn sm-btn-outline">
+                                Ask a Question
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="sm-show-tab-panel" data-panel="reviews" role="tabpanel" id="smReviewsPanel">
+                        @auth
+                            @if($canWriteReview ?? false)
+                            <form id="smReviewForm" class="sm-review-form mb-4" novalidate>
+                                @csrf
+                                <h4 class="sm-review-form__title">{{ $userReview ? 'Update your review' : 'Write a review' }}</h4>
+                                <p class="sm-review-form__hint">Rate this material and share feedback for other learners.</p>
+
+                                <div class="sm-star-picker" role="radiogroup" aria-label="Your rating">
+                                    <input type="hidden" name="rating" id="smReviewRating" value="{{ $selectedRating }}">
+                                    @foreach (range(1, 5) as $stars)
+                                        <button
+                                            type="button"
+                                            class="sm-star-picker__btn {{ $stars <= $selectedRating ? 'is-active' : '' }}"
+                                            data-rating="{{ $stars }}"
+                                            aria-label="{{ $stars }} {{ $stars === 1 ? 'star' : 'stars' }}"
+                                        >
+                                            <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                        </button>
+                                    @endforeach
+                                </div>
+
+                                <label class="form-label mt-3" for="smReviewText">Your feedback</label>
+                                <textarea
+                                    id="smReviewText"
+                                    name="review"
+                                    class="form-control"
+                                    rows="3"
+                                    maxlength="2000"
+                                    placeholder="What did you find useful? Any tips for other students?"
+                                >{{ old('review', $userReview?->review) }}</textarea>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <small class="text-muted">Click the stars to set your rating.</small>
+                                    <button type="submit" class="sm-btn sm-btn-primary" id="smReviewSubmitBtn">
+                                        <span class="btn-text">{{ $userReview ? 'Update review' : 'Submit review' }}</span>
+                                    </button>
+                                </div>
+                            </form>
+                            @endif
+                        @else
+                            <div class="sm-review-login mb-4">
+                                <p class="mb-2">Parents and students can sign in to leave a review for this material.</p>
+                                <a href="{{ route('login') }}" class="sm-btn sm-btn-outline">Login to review</a>
+                            </div>
+                        @endauth
+
+                        <div id="smReviewsList" @auth data-current-user="{{ auth()->id() }}" @endauth>
+                            @forelse($material->reviews as $review)
+                                @include('frontend.study-materials.partials.review-item', ['review' => $review])
+                            @empty
+                                <p class="sm-empty mb-0" id="smReviewsEmpty">No reviews yet. Be the first to share your thoughts.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sm-show-viewer-card">
+                    <div class="sm-show-viewer-toolbar">
+                        <a href="{{ route('study-materials.notes') }}" class="sm-show-viewer-back">
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Back to Library
+                        </a>
+
+                        <div class="sm-show-viewer-controls">
+                            <button type="button" class="sm-show-viewer-btn js-sm-viewer-zoom-out" title="Zoom out" aria-label="Zoom out">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span class="sm-show-viewer-page js-sm-viewer-page-label">1 / {{ $totalPages }}</span>
+                            <button type="button" class="sm-show-viewer-btn js-sm-viewer-zoom-in" title="Zoom in" aria-label="Zoom in">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button type="button" class="sm-show-viewer-btn js-sm-viewer-fit" title="Fit width" aria-label="Fit width">
+                                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                            </button>
+                            <select class="sm-show-viewer-fit-select js-sm-viewer-fit-select" aria-label="Fit mode">
+                                <option value="width">Fit Width</option>
+                                <option value="page">Fit Page</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="sm-show-viewer-fullscreen js-sm-viewer-fullscreen">
+                            <i class="fa-solid fa-expand" aria-hidden="true"></i> Full Screen
+                        </button>
+                    </div>
+
+                    <div class="sm-show-viewer-stage" id="smViewerStage">
+                        <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--prev js-sm-viewer-prev" aria-label="Previous page">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+
+                        <div class="sm-show-viewer-canvas js-sm-viewer-canvas">
+                            @if(! $canAccessContent && $material->isPaidMaterial())
+                                <div class="sm-show-paywall">
+                                    <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
+                                    <h3>Paid note — purchase to unlock</h3>
+                                    <p>This note costs <strong>{{ $material->formattedPrice() }}</strong>. Pay via UPI, submit your payment proof, and access the full content after admin approval.</p>
+                                    @if(($paymentState['mode'] ?? '') === 'login_required')
+                                        <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to purchase</a>
+                                    @elseif(($paymentState['mode'] ?? '') === 'pending')
+                                        <div class="alert alert-warning mb-0">
+                                            <i class="fa-solid fa-clock me-1"></i>
+                                            Your payment proof is under review.
+                                            @if(!empty($paymentState['submitted_at']))
+                                                Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
+                                            @endif
+                                        </div>
+                                    @else
+                                        @if(!empty($paymentState['last_rejected_note']))
+                                            <div class="alert alert-danger">{{ $paymentState['last_rejected_note'] }}</div>
+                                        @endif
+                                        <button type="button" class="sm-btn sm-btn-primary" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
+                                            <i class="fa-solid fa-indian-rupee-sign me-1"></i> Buy for {{ $material->formattedPrice() }}
+                                        </button>
+                                    @endif
+                                </div>
+                            @else
+                            <div class="sm-show-viewer-content js-sm-viewer-content">
+                            @if($material->hasCustomWrittenContent())
+                                <article class="sm-show-custom-note ck-content">
+                                    {!! $material->customNoteHtml() !!}
+                                </article>
+                            @elseif($material->canPreviewInline() && $material->fileUrl())
+                                @if(str_contains(strtolower((string) $material->file_type), 'pdf'))
+                                    <iframe
+                                        src="{{ $material->fileUrl() }}#page=1&navpanes=0&view=FitH"
+                                        title="{{ $material->title }}"
+                                        class="sm-show-viewer-frame js-sm-viewer-frame"
+                                    ></iframe>
+                                @else
+                                    <img
+                                        src="{{ $material->fileUrl() }}"
+                                        alt="{{ $material->title }}"
+                                        class="sm-show-viewer-image js-sm-viewer-image"
+                                    >
+                                @endif
+                            @elseif($material->thumbnailUrl())
+                                <img
+                                    src="{{ $material->thumbnailUrl() }}"
+                                    alt="{{ $material->title }}"
+                                    class="sm-show-viewer-image js-sm-viewer-image"
+                                >
+                            @else
+                                <div class="sm-show-viewer-placeholder js-sm-viewer-placeholder">
+                                    <div class="sm-show-viewer-placeholder__icon sm-show-viewer-placeholder__icon--{{ $fileMeta['tone'] }}">
+                                        <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
+                                    </div>
+                                    <h3 class="js-sm-viewer-section-title">{{ $contentPages[0]['title'] ?? $material->title }}</h3>
+                                    <p>{{ $material->topic_chapter ?: $material->subject ?: 'Study material preview' }}</p>
+                                    <p class="sm-show-viewer-placeholder__file js-sm-viewer-page-meta">
+                                        Page 1 of {{ $totalPages }} · {{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}
+                                    </p>
+                                </div>
+                            @endif
+                            </div>
+                            @endif
+                        </div>
+
+                        <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--next js-sm-viewer-next" aria-label="Next page">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -520,113 +624,6 @@
                     </div>
                 </div>
             </aside>
-
-            {{-- Full width below the sidebars: the document --}}
-            <div class="sm-show-viewer-card">
-                <div class="sm-show-viewer-toolbar">
-                    <a href="{{ route('study-materials.notes') }}" class="sm-show-viewer-back">
-                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Back to Library
-                    </a>
-
-                    <div class="sm-show-viewer-controls">
-                        <button type="button" class="sm-show-viewer-btn js-sm-viewer-zoom-out" title="Zoom out" aria-label="Zoom out">
-                            <i class="fa-solid fa-minus"></i>
-                        </button>
-                        <span class="sm-show-viewer-page js-sm-viewer-page-label">1 / {{ $totalPages }}</span>
-                        <button type="button" class="sm-show-viewer-btn js-sm-viewer-zoom-in" title="Zoom in" aria-label="Zoom in">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                        <button type="button" class="sm-show-viewer-btn js-sm-viewer-fit" title="Fit width" aria-label="Fit width">
-                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-                        </button>
-                        <select class="sm-show-viewer-fit-select js-sm-viewer-fit-select" aria-label="Fit mode">
-                            <option value="width">Fit Width</option>
-                            <option value="page">Fit Page</option>
-                        </select>
-                    </div>
-
-                    <button type="button" class="sm-show-viewer-fullscreen js-sm-viewer-fullscreen">
-                        <i class="fa-solid fa-expand" aria-hidden="true"></i> Full Screen
-                    </button>
-                </div>
-
-                <div class="sm-show-viewer-stage" id="smViewerStage">
-                    <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--prev js-sm-viewer-prev" aria-label="Previous page">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-
-                    <div class="sm-show-viewer-canvas js-sm-viewer-canvas">
-                        @if(! $canAccessContent && $material->isPaidMaterial())
-                            <div class="sm-show-paywall">
-                                <div class="sm-show-paywall__icon"><i class="fa-solid fa-lock"></i></div>
-                                <h3>Paid note — purchase to unlock</h3>
-                                <p>This note costs <strong>{{ $material->formattedPrice() }}</strong>. Pay via UPI, submit your payment proof, and access the full content after admin approval.</p>
-                                @if(($paymentState['mode'] ?? '') === 'login_required')
-                                    <a href="{{ route('login') }}" class="sm-btn sm-btn-primary">Login to purchase</a>
-                                @elseif(($paymentState['mode'] ?? '') === 'pending')
-                                    <div class="alert alert-warning mb-0">
-                                        <i class="fa-solid fa-clock me-1"></i>
-                                        Your payment proof is under review.
-                                        @if(!empty($paymentState['submitted_at']))
-                                            Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
-                                        @endif
-                                    </div>
-                                @else
-                                    @if(!empty($paymentState['last_rejected_note']))
-                                        <div class="alert alert-danger">{{ $paymentState['last_rejected_note'] }}</div>
-                                    @endif
-                                    <button type="button" class="sm-btn sm-btn-primary" data-bs-toggle="modal" data-bs-target="#studyMaterialPaymentModal">
-                                        <i class="fa-solid fa-indian-rupee-sign me-1"></i> Buy for {{ $material->formattedPrice() }}
-                                    </button>
-                                @endif
-                            </div>
-                        @else
-                        <div class="sm-show-viewer-content js-sm-viewer-content">
-                        @if($material->hasCustomWrittenContent())
-                            <article class="sm-show-custom-note ck-content">
-                                {!! $material->customNoteHtml() !!}
-                            </article>
-                        @elseif($material->canPreviewInline() && $material->fileUrl())
-                            @if(str_contains(strtolower((string) $material->file_type), 'pdf'))
-                                <iframe
-                                    src="{{ $material->fileUrl() }}#page=1&view=FitH"
-                                    title="{{ $material->title }}"
-                                    class="sm-show-viewer-frame js-sm-viewer-frame"
-                                ></iframe>
-                            @else
-                                <img
-                                    src="{{ $material->fileUrl() }}"
-                                    alt="{{ $material->title }}"
-                                    class="sm-show-viewer-image js-sm-viewer-image"
-                                >
-                            @endif
-                        @elseif($material->thumbnailUrl())
-                            <img
-                                src="{{ $material->thumbnailUrl() }}"
-                                alt="{{ $material->title }}"
-                                class="sm-show-viewer-image js-sm-viewer-image"
-                            >
-                        @else
-                            <div class="sm-show-viewer-placeholder js-sm-viewer-placeholder">
-                                <div class="sm-show-viewer-placeholder__icon sm-show-viewer-placeholder__icon--{{ $fileMeta['tone'] }}">
-                                    <i class="fa-solid {{ $fileMeta['icon'] }}"></i>
-                                </div>
-                                <h3 class="js-sm-viewer-section-title">{{ $contentPages[0]['title'] ?? $material->title }}</h3>
-                                <p>{{ $material->topic_chapter ?: $material->subject ?: 'Study material preview' }}</p>
-                                <p class="sm-show-viewer-placeholder__file js-sm-viewer-page-meta">
-                                    Page 1 of {{ $totalPages }} · {{ strtoupper((string) $material->file_type) }} · {{ $material->fileSizeLabel() }}
-                                </p>
-                            </div>
-                        @endif
-                        </div>
-                        @endif
-                    </div>
-
-                    <button type="button" class="sm-show-viewer-nav sm-show-viewer-nav--next js-sm-viewer-next" aria-label="Next page">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </div>
