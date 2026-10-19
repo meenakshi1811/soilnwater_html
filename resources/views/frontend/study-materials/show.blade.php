@@ -117,66 +117,68 @@
             {{-- Center: a compact description section, then the document --}}
             <div class="sm-show-main">
                 <div class="sm-show-tabs-card">
-                    <div class="sm-show-tabs-head">
-                        <div class="sm-show-tabs" id="materialTabs" role="tablist">
-                            <button type="button" class="sm-show-tab is-active" data-tab="description" role="tab">Description</button>
-                            @if($extraDetails !== [])
-                                <button type="button" class="sm-show-tab" data-tab="details" role="tab">Details</button>
-                            @endif
-                            @if($hasBoardSolution)
-                                <button type="button" class="sm-show-tab" data-tab="solution" role="tab">Board Solution</button>
-                            @endif
-                            @if($hasSolvedWorksheet)
-                                <button type="button" class="sm-show-tab" data-tab="solved-worksheet" role="tab">Solved Worksheet</button>
-                            @endif
-                            <button type="button" class="sm-show-tab" data-tab="related" role="tab">Related Materials</button>
-                            <button type="button" class="sm-show-tab" data-tab="questions" role="tab">Questions</button>
-                            <button type="button" class="sm-show-tab" data-tab="reviews" role="tab">
-                                Reviews ({{ number_format($material->reviews_count) }})
-                            </button>
-                        </div>
-
-                        {{-- Rate it (the score itself is in the right sidebar) --}}
-                        <div class="sm-show-rate-inline">
-                            <span class="sm-show-rate-inline__stars" aria-hidden="true">
-                                @for($star = 1; $star <= 5; $star++)
-                                    <i class="fa-solid fa-star{{ $star <= $filledStars ? '' : ' is-empty' }}"></i>
-                                @endfor
-                            </span>
-                            @auth
-                                <button type="button" class="sm-show-rate-inline__btn js-sm-scroll-reviews">Write a Review</button>
-                            @else
-                                <a href="{{ route('login') }}" class="sm-show-rate-inline__btn">Write a Review</a>
-                            @endauth
-                        </div>
+                    <div class="sm-show-tabs" id="materialTabs" role="tablist">
+                        <button type="button" class="sm-show-tab is-active" data-tab="description" role="tab">Description</button>
+                        @if($extraDetails !== [])
+                            <button type="button" class="sm-show-tab" data-tab="details" role="tab">Details</button>
+                        @endif
+                        @if($hasBoardSolution)
+                            <button type="button" class="sm-show-tab" data-tab="solution" role="tab">Board Solution</button>
+                        @endif
+                        @if($hasSolvedWorksheet)
+                            <button type="button" class="sm-show-tab" data-tab="solved-worksheet" role="tab">Solved Worksheet</button>
+                        @endif
+                        <button type="button" class="sm-show-tab" data-tab="related" role="tab">Related Materials</button>
+                        <button type="button" class="sm-show-tab" data-tab="questions" role="tab">Questions</button>
+                        <button type="button" class="sm-show-tab" data-tab="reviews" role="tab">
+                            Reviews ({{ number_format($material->reviews_count) }})
+                        </button>
                     </div>
 
                     <div class="sm-show-tab-panel is-active" data-panel="description" role="tabpanel">
-                        @if($plainDescription !== '')
-                            <div class="sm-show-desc-text js-sm-desc-text is-collapsed">
-                                @if(filled($material->description) && strip_tags($material->description) !== $plainDescription)
-                                    <div class="sm-richtext">{!! $material->description !!}</div>
+                        <div class="sm-show-desc-row">
+                            <div class="sm-show-desc-main">
+                                @if($plainDescription !== '')
+                                    <div class="sm-show-desc-text js-sm-desc-text is-collapsed">
+                                        @if(filled($material->description) && strip_tags($material->description) !== $plainDescription)
+                                            <div class="sm-richtext">{!! $material->description !!}</div>
+                                        @else
+                                            <p class="mb-0">{{ $plainDescription }}</p>
+                                        @endif
+                                    </div>
+                                    @if(strlen($plainDescription) > 160)
+                                        <button type="button" class="sm-show-desc-toggle js-sm-desc-toggle">
+                                            Show More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                        </button>
+                                    @endif
                                 @else
-                                    <p class="mb-0">{{ $plainDescription }}</p>
+                                    <p class="sm-empty mb-0">No description provided for this material.</p>
+                                @endif
+
+                                @if($tags->isNotEmpty())
+                                    <div class="sm-show-tags" aria-label="Tags">
+                                        <i class="fa-solid fa-tags sm-show-tags__icon" aria-hidden="true"></i>
+                                        @foreach($tags as $tag)
+                                            <span class="sm-show-tag">{{ $tag }}</span>
+                                        @endforeach
+                                    </div>
                                 @endif
                             </div>
-                            @if(strlen($plainDescription) > 160)
-                                <button type="button" class="sm-show-desc-toggle js-sm-desc-toggle">
-                                    Show More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                                </button>
-                            @endif
-                        @else
-                            <p class="sm-empty mb-0">No description provided for this material.</p>
-                        @endif
 
-                        @if($tags->isNotEmpty())
-                            <div class="sm-show-tags" aria-label="Tags">
-                                <i class="fa-solid fa-tags sm-show-tags__icon" aria-hidden="true"></i>
-                                @foreach($tags as $tag)
-                                    <span class="sm-show-tag">{{ $tag }}</span>
-                                @endforeach
+                            {{-- Rate it (the score itself is in the right sidebar) --}}
+                            <div class="sm-show-rate-inline">
+                                <span class="sm-show-rate-inline__stars" aria-hidden="true">
+                                    @for($star = 1; $star <= 5; $star++)
+                                        <i class="fa-solid fa-star{{ $star <= $filledStars ? '' : ' is-empty' }}"></i>
+                                    @endfor
+                                </span>
+                                @auth
+                                    <button type="button" class="sm-show-rate-inline__btn js-sm-scroll-reviews">Write a Review</button>
+                                @else
+                                    <a href="{{ route('login') }}" class="sm-show-rate-inline__btn">Write a Review</a>
+                                @endauth
                             </div>
-                        @endif
+                        </div>
                     </div>
 
                     @if($extraDetails !== [])
