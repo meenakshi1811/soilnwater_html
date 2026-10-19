@@ -13,14 +13,6 @@ use App\Models\VendorProduct;
 
 final class HomepageCardCategory
 {
-    /**
-     * @return array{category_id: ?int, subcategory_id: ?int, child_category_id: ?int}
-     */
-    public static function idsFromKeywords(array $keywords): array
-    {
-        return self::hierarchyIds(self::findCategoryByKeywords($keywords));
-    }
-
     public static function displayNameForServiceProvider(ServiceProvider $serviceProvider): string
     {
         return self::displayNameForService($serviceProvider->services->first());
@@ -151,31 +143,6 @@ final class HomepageCardCategory
             'subcategory_id' => $parent?->id,
             'child_category_id' => $category->id,
         ];
-    }
-
-    /**
-     * @param  list<string>  $keywords
-     */
-    private static function findCategoryByKeywords(array $keywords): ?Category
-    {
-        foreach ($keywords as $keyword) {
-            $keyword = trim($keyword);
-            if ($keyword === '') {
-                continue;
-            }
-
-            $match = Category::query()
-                ->where('name', 'like', '%'.$keyword.'%')
-                ->orderByRaw('CASE WHEN parent_id IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('name')
-                ->first();
-
-            if ($match instanceof Category) {
-                return $match;
-            }
-        }
-
-        return null;
     }
 
     /**

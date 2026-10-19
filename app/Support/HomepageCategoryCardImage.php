@@ -14,8 +14,8 @@ final class HomepageCategoryCardImage
     /** @var array<string, string>|null */
     private static ?array $cache = null;
 
-    /** @var list<array{names: list<string>, parent_names: list<string>, image: string}>|null */
-    private static ?array $educationRows = null;
+    /** @var array<string, list<array{image: string, name: string}>>|null */
+    private static ?array $educationModuleImages = null;
 
     public static function warmCache(): void
     {
@@ -78,25 +78,6 @@ final class HomepageCategoryCardImage
     }
 
     /**
-     * @param  list<string>  $keywords
-     */
-    public static function forEducation(array $keywords, string $entityCover): string
-    {
-        // Education cards have no category of their own: first an Education & knowledge image
-        // whose category is named like the card's keywords
-        $image = self::educationImageByKeywords($keywords);
-        if ($image !== '') {
-            return $image;
-        }
-
-        return self::resolve(
-            CategoryHomepageImage::CONTEXT_EDUCATION,
-            HomepageCardCategory::idsFromKeywords($keywords),
-            $entityCover
-        );
-    }
-
-    /**
      * @param  array{category_id: ?int, subcategory_id: ?int, child_category_id: ?int}  $ids
      */
     public static function resolve(string $context, array $ids, string $entityCover): string
@@ -130,49 +111,34 @@ final class HomepageCategoryCardImage
     }
 
     /**
-     * The Education & knowledge image whose category name contains one of the keywords (tried in
-     * order), else whose parent category's name does.
+     * Education & knowledge images set on the categories of a module (Admin → Categories:
+     * educators, schools or institutes), each with its category's name.
      *
-     * @param  list<string>  $keywords
+     * @return list<array{image: string, name: string}>
      */
-    private static function educationImageByKeywords(array $keywords): string
+    public static function educationImagesForModule(string $module): array
     {
-        if (self::$educationRows === null) {
-            self::$educationRows = CategoryHomepageImage::query()
+        if (self::$educationModuleImages === null) {
+            self::$educationModuleImages = [];
+
+            $rows = CategoryHomepageImage::query()
                 ->where('context', CategoryHomepageImage::CONTEXT_EDUCATION)
-                ->with(['category:id,name,parent_id', 'category.parent:id,name,parent_id', 'category.parent.parent:id,name'])
-                ->get()
-                ->filter(fn (CategoryHomepageImage $row): bool => $row->category !== null && self::formatPath((string) $row->image_path) !== '')
-                ->map(fn (CategoryHomepageImage $row): array => [
-                    'names' => [mb_strtolower($row->category->name)],
-                    'parent_names' => array_values(array_filter([
-                        mb_strtolower((string) $row->category->parent?->name),
-                        mb_strtolower((string) $row->category->parent?->parent?->name),
-                    ])),
-                    'image' => self::formatPath((string) $row->image_path),
-                ])
-                ->values()
-                ->all();
-        }
+                ->with('category:id,name,modules')
+                ->get(['id', 'category_id', 'image_path']);
 
-        foreach ($keywords as $keyword) {
-            $keyword = mb_strtolower(trim($keyword));
-            if ($keyword === '') {
-                continue;
-            }
+            foreach ($rows as $row) {
+                $image = self::formatPath((string) $row->image_path);
+                if ($row->category === null || $image === '') {
+                    continue;
+                }
 
-            foreach (['names', 'parent_names'] as $field) {
-                foreach (self::$educationRows as $row) {
-                    foreach ($row[$field] as $name) {
-                        if (str_contains($name, $keyword)) {
-                            return $row['image'];
-                        }
-                    }
+                foreach ((array) ($row->category->modules ?? []) as $categoryModule) {
+                    self::$educationModuleImages[$categoryModule][] = ['image' => $image, 'name' => (string) $row->category->name];
                 }
             }
         }
 
-        return '';
+        return self::$educationModuleImages[$module] ?? [];
     }
 
     private static function formatPath(string $path): string
