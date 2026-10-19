@@ -22,17 +22,6 @@ final class HomepageCategoryListingCards
     }
 
     /**
-     * @param  list<string>  $contexts
-     * @param  callable(string): array{label: string, tone: string, icon: string}  $categoryMeta
-     * @param  list<array<string, mixed>>  $entityCards
-     * @return list<array<string, mixed>>
-     */
-    public static function mergeEntityCardsMulti(array $contexts, array $entityCards, int $limit, callable $categoryMeta): array
-    {
-        return self::mergeInternal($contexts, $entityCards, $limit, $categoryMeta, 'entity');
-    }
-
-    /**
      * @param  list<array<string, mixed>>  $entityCards
      * @return list<array<string, mixed>>
      */

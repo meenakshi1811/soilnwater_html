@@ -206,7 +206,6 @@ class OfferPageController extends Controller
             'homepageAdPromoCards' => HomepageMarketplacePromoCards::fromAds($adCardsPool, 8),
             'homepagePopularNearYouCards' => HomepagePopularNearYouCards::build(
                 $this->randomPick($this->topVendorsQuery($lat, $lng), $hasLocation, 8),
-                $topServiceProviders->shuffle(),
                 $hasLocation,
                 8
             ),

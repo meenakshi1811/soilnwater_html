@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\CategoryHomepageImage;
-use App\Models\ServiceProvider;
 use App\Models\Vendor;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -11,9 +10,11 @@ use Illuminate\Support\Str;
 final class HomepagePopularNearYouCards
 {
     /**
+     * Vendors only (services have their own "Popular Services" section).
+     *
      * @return list<array{url: string, image: string, title: string, description: string, location: string, rating_score: float, rating_count: int, category_label: string, category_tone: string, category_icon: string, offer_badge: ?string, offer_badge_highlight: ?string}>
      */
-    public static function build(Collection $vendors, Collection $serviceProviders, bool $hasLocation, int $limit = 8): array
+    public static function build(Collection $vendors, bool $hasLocation, int $limit = 8): array
     {
         $cards = [];
 
@@ -32,23 +33,8 @@ final class HomepagePopularNearYouCards
             }
         }
 
-        foreach ($serviceProviders as $serviceProvider) {
-            if (! $serviceProvider instanceof ServiceProvider) {
-                continue;
-            }
-
-            $mapped = self::mapServiceProvider($serviceProvider, $hasLocation);
-            if ($mapped !== null) {
-                $cards[] = $mapped;
-            }
-
-            if (count($cards) >= $limit) {
-                break;
-            }
-        }
-
-        return HomepageCategoryListingCards::mergeEntityCardsMulti(
-            [CategoryHomepageImage::CONTEXT_VENDORS, CategoryHomepageImage::CONTEXT_SERVICES],
+        return HomepageCategoryListingCards::mergeEntityCards(
+            CategoryHomepageImage::CONTEXT_VENDORS,
             $cards,
             $limit,
             fn (string $name): array => self::categoryMeta($name)
@@ -79,40 +65,6 @@ final class HomepagePopularNearYouCards
             'image' => $image,
             'title' => $vendor->publicDisplayName(),
             'description' => $description !== '' ? $description : 'Explore products and services',
-            'location' => self::shortLocation($card['locationLabel']),
-            'rating_score' => $card['ratingScore'],
-            'rating_count' => $card['ratingCount'],
-            'category_label' => $categoryMeta['label'],
-            'category_tone' => $categoryMeta['tone'],
-            'category_icon' => $categoryMeta['icon'],
-            'offer_badge' => null,
-            'offer_badge_highlight' => null,
-        ];
-    }
-
-    /**
-     * @return array{url: string, image: string, title: string, description: string, location: string, rating_score: float, rating_count: int, category_label: string, category_tone: string, category_icon: string, offer_badge: ?string, offer_badge_highlight: ?string}|null
-     */
-    private static function mapServiceProvider(ServiceProvider $serviceProvider, bool $hasLocation): ?array
-    {
-        $card = ServiceProviderListingCard::data($serviceProvider, $hasLocation);
-        $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForServiceProvider($serviceProvider));
-        $description = $card['featuredLabel'] ?? '';
-        if ($description === '' && ! empty($card['serviceTags'])) {
-            $description = implode(', ', array_slice($card['serviceTags'], 0, 3));
-        }
-
-        $categoryIds = HomepageCardCategory::idsForServiceProvider($serviceProvider);
-        $image = HomepageCategoryCardImage::configuredImage(CategoryHomepageImage::CONTEXT_SERVICES, $categoryIds);
-        if ($image === '') {
-            return null;
-        }
-
-        return [
-            'url' => $card['profileUrl'],
-            'image' => $image,
-            'title' => $serviceProvider->publicDisplayName(),
-            'description' => $description !== '' ? $description : 'Professional services near you',
             'location' => self::shortLocation($card['locationLabel']),
             'rating_score' => $card['ratingScore'],
             'rating_count' => $card['ratingCount'],
