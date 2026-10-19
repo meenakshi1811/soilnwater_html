@@ -215,8 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (frame && canPreview && fileUrl) {
-            const base = fileUrl.split('#')[0];
-            frame.src = base + '#page=' + currentPage + '&zoom=' + Math.round(zoomLevel * 100);
+            refreshPdfView();
         }
 
         updatePageMeta();
@@ -237,6 +236,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // The PDF viewer zooms the PDF itself (scaling the iframe would blur it): fitted at the default
+    // level, else a percentage of that fit
+    function pdfViewParams() {
+        if (zoomLevel === 1) {
+            return '&view=' + (fitMode === 'page' ? 'Fit' : 'FitH');
+        }
+
+        const pageWidth = 816; // a page at 100%, in CSS pixels
+        const pageHeight = 1056;
+        let fit = (frame.clientWidth - 40) / pageWidth;
+        if (fitMode === 'page') {
+            fit = Math.min(fit, (frame.clientHeight - 40) / pageHeight);
+        }
+
+        return '&zoom=' + Math.max(25, Math.round(fit * zoomLevel * 100));
+    }
+
+    function refreshPdfView() {
+        const next = new URL(fileUrl.split('#')[0] + '#page=' + currentPage + pdfViewParams(), window.location.href).href;
+        // Setting the same address again would reload the PDF
+        if (frame.src !== next) {
+            frame.src = next;
+        }
+    }
+
     function applyFit() {
         if (!canvas || !content) {
             return;
@@ -244,6 +268,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const preview = getPreviewElement();
         if (!preview) {
+            return;
+        }
+
+        if (preview.tagName === 'IFRAME') {
+            content.style.transform = '';
+            if (canPreview && fileUrl) {
+                refreshPdfView();
+            }
             return;
         }
 
@@ -255,11 +287,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let naturalW = preview.offsetWidth;
         let naturalH = preview.offsetHeight;
-
-        if (preview.tagName === 'IFRAME') {
-            naturalW = Math.min(parseInt(getComputedStyle(preview).maxWidth, 10) || 760, availW);
-            naturalH = Math.max(parseInt(getComputedStyle(preview).minHeight, 10) || 420, 320);
-        }
 
         if (!naturalW || !naturalH) {
             naturalW = 640;
