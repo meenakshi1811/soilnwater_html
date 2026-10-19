@@ -19,6 +19,12 @@ class CategoryHomepageImage extends Model
 
     public const CONTEXT_EDUCATION = 'education';
 
+    /**
+     * Category modules whose categories the Education & knowledge section uses (Teachers & Tutors,
+     * Schools, Institutes).
+     */
+    public const EDUCATION_MODULES = ['educators', 'schools', 'institutes'];
+
     protected $fillable = [
         'category_id',
         'context',

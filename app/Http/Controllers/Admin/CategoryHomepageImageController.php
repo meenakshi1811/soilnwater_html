@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
 use App\Support\CategoryHomepagePostingCounts;
-use App\Support\HomepageCardCategory;
-use App\Support\HomepageEducationKnowledgeCards;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -150,16 +148,14 @@ class CategoryHomepageImageController extends Controller
             return;
         }
 
-        // Education cards look their category up by keywords: offer exactly the categories
-        // (and parent levels) those keywords resolve to
+        // Education & knowledge: the categories and subcategories assigned to the Teachers & Tutors,
+        // Schools and Institutes modules (Admin → Categories)
         if ($context === CategoryHomepageImage::CONTEXT_EDUCATION) {
-            $ids = collect(HomepageEducationKnowledgeCards::imageKeywordSets())
-                ->flatMap(fn (array $keywords): array => array_values(array_filter(HomepageCardCategory::idsFromKeywords($keywords))))
-                ->unique()
-                ->values()
-                ->all();
-
-            $query->whereIn('id', $ids === [] ? [0] : $ids);
+            $query->where(function (Builder $moduleQuery): void {
+                foreach (CategoryHomepageImage::EDUCATION_MODULES as $module) {
+                    $moduleQuery->orWhereJsonContains('modules', $module);
+                }
+            });
 
             return;
         }

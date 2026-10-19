@@ -14,6 +14,9 @@ final class HomepageCategoryCardImage
     /** @var array<string, string>|null */
     private static ?array $cache = null;
 
+    /** @var list<array{names: list<string>, parent_names: list<string>, image: string}>|null */
+    private static ?array $educationRows = null;
+
     public static function warmCache(): void
     {
         if (self::$cache !== null) {
@@ -79,6 +82,13 @@ final class HomepageCategoryCardImage
      */
     public static function forEducation(array $keywords, string $entityCover): string
     {
+        // Education cards have no category of their own: first an Education & knowledge image
+        // whose category is named like the card's keywords
+        $image = self::educationImageByKeywords($keywords);
+        if ($image !== '') {
+            return $image;
+        }
+
         return self::resolve(
             CategoryHomepageImage::CONTEXT_EDUCATION,
             HomepageCardCategory::idsFromKeywords($keywords),
@@ -113,6 +123,52 @@ final class HomepageCategoryCardImage
             $key = $context.':'.$categoryId;
             if (isset(self::$cache[$key])) {
                 return self::$cache[$key];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * The Education & knowledge image whose category name contains one of the keywords (tried in
+     * order), else whose parent category's name does.
+     *
+     * @param  list<string>  $keywords
+     */
+    private static function educationImageByKeywords(array $keywords): string
+    {
+        if (self::$educationRows === null) {
+            self::$educationRows = CategoryHomepageImage::query()
+                ->where('context', CategoryHomepageImage::CONTEXT_EDUCATION)
+                ->with(['category:id,name,parent_id', 'category.parent:id,name,parent_id', 'category.parent.parent:id,name'])
+                ->get()
+                ->filter(fn (CategoryHomepageImage $row): bool => $row->category !== null && self::formatPath((string) $row->image_path) !== '')
+                ->map(fn (CategoryHomepageImage $row): array => [
+                    'names' => [mb_strtolower($row->category->name)],
+                    'parent_names' => array_values(array_filter([
+                        mb_strtolower((string) $row->category->parent?->name),
+                        mb_strtolower((string) $row->category->parent?->parent?->name),
+                    ])),
+                    'image' => self::formatPath((string) $row->image_path),
+                ])
+                ->values()
+                ->all();
+        }
+
+        foreach ($keywords as $keyword) {
+            $keyword = mb_strtolower(trim($keyword));
+            if ($keyword === '') {
+                continue;
+            }
+
+            foreach (['names', 'parent_names'] as $field) {
+                foreach (self::$educationRows as $row) {
+                    foreach ($row[$field] as $name) {
+                        if (str_contains($name, $keyword)) {
+                            return $row['image'];
+                        }
+                    }
+                }
             }
         }
 

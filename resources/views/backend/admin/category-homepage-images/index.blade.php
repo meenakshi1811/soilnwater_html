@@ -131,7 +131,7 @@
                             <select name="category_id" id="categoryImageCategoryId" class="form-select" required>
                                 <option value="">Select category…</option>
                             </select>
-                            <small class="text-secondary">Only categories that have postings in this section are listed.</small>
+                            <small class="text-secondary">Only categories that have postings in this section are listed. Education &amp; knowledge lists the Teachers &amp; Tutors, Schools and Institutes categories.</small>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Card image</label>
