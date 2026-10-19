@@ -243,6 +243,21 @@
   min-width: 0;
 }
 
+/* Category cards cycling through their vendors' names */
+.homepage-popular-near-card__title[data-rotate-names] {
+  transition: opacity 0.25s ease;
+}
+
+.homepage-popular-near-card__title.is-swapping {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-popular-near-card__title[data-rotate-names] {
+    transition: none;
+  }
+}
+
 .homepage-popular-near-card__rating {
   margin: 0;
   flex-shrink: 0;

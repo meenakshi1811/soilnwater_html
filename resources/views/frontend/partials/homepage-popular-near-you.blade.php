@@ -55,7 +55,8 @@
                         </div>
                         <div class="homepage-popular-near-card__body">
                             <div class="homepage-popular-near-card__title-row">
-                                <h3 class="homepage-popular-near-card__title">{{ $card['title'] }}</h3>
+                                {{-- Category cards list their vendors' names, shown one after another --}}
+                                <h3 class="homepage-popular-near-card__title"@if(count($card['title_names'] ?? []) > 1) data-rotate-names="{{ json_encode($card['title_names'], JSON_UNESCAPED_UNICODE) }}"@endif>@if(filled($card['title'])){{ $card['title'] }}@else&nbsp;@endif</h3>
                                 <p class="homepage-popular-near-card__rating">
                                     <i class="fa-solid fa-star" aria-hidden="true"></i>
                                     <span>{{ number_format($card['rating_score'], 1) }}</span>
@@ -78,4 +79,44 @@
             </div>
         </div>
     </section>
+
+    @once
+        @push('scripts')
+            <script>
+                // Category cards with several vendors: show their names one after another
+                (function () {
+                    var titles = document.querySelectorAll('.homepage-popular-near-card__title[data-rotate-names]');
+                    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                    Array.prototype.forEach.call(titles, function (title, index) {
+                        var names;
+                        try {
+                            names = JSON.parse(title.getAttribute('data-rotate-names'));
+                        } catch (error) {
+                            return;
+                        }
+                        if (!Array.isArray(names) || names.length < 2) return;
+
+                        var current = 0;
+                        // Staggered so the cards don't all change at once
+                        setTimeout(function () {
+                            setInterval(function () {
+                                if (document.hidden) return;
+                                current = (current + 1) % names.length;
+                                if (reduceMotion) {
+                                    title.textContent = names[current];
+                                    return;
+                                }
+                                title.classList.add('is-swapping');
+                                setTimeout(function () {
+                                    title.textContent = names[current];
+                                    title.classList.remove('is-swapping');
+                                }, 250);
+                            }, 2800);
+                        }, index * 450);
+                    });
+                })();
+            </script>
+        @endpush
+    @endonce
 @endif

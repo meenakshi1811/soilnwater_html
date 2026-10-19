@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
+use App\Models\Vendor;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 final class HomepageCategoryListingCards
@@ -123,10 +125,21 @@ final class HomepageCategoryListingCards
 
         foreach ($contexts as $context) {
             $counts = $countsByContext[$context];
-            foreach (self::rowsForContext($context) as $row) {
+            $rows = self::rowsForContext($context);
+
+            // Vendor category cards are titled with the vendors in that category, not its name
+            $vendorNames = $shape === 'entity' && $context === CategoryHomepageImage::CONTEXT_VENDORS
+                ? self::vendorNamesByCategory(array_map(fn (CategoryHomepageImage $row): int => (int) $row->category_id, $rows))
+                : null;
+
+            foreach ($rows as $row) {
                 $card = self::toCard($row, $context, $categoryMeta, $shape);
                 if ($card === null) {
                     continue;
+                }
+
+                if ($vendorNames !== null) {
+                    $card = self::titledWithNames($card, $vendorNames[(int) $row->category_id] ?? []);
                 }
 
                 $fill[] = $card;
@@ -153,6 +166,73 @@ final class HomepageCategoryListingCards
         }
 
         return array_slice(self::shuffleCards($merged), 0, $limit);
+    }
+
+    /**
+     * Names of the live vendors in each category: a product in it (at any level) or it set as
+     * their business category/subcategory.
+     *
+     * @param  list<int>  $categoryIds
+     * @return array<int, list<string>> category id => vendor names
+     */
+    private static function vendorNamesByCategory(array $categoryIds): array
+    {
+        $categoryIds = array_values(array_unique($categoryIds));
+        if ($categoryIds === []) {
+            return [];
+        }
+
+        $vendors = Vendor::query()
+            ->where('status', 'approved')
+            ->publiclyVisible()
+            ->where(function (Builder $query) use ($categoryIds): void {
+                $query->whereIn('business_category_id', $categoryIds)
+                    ->orWhereIn('business_subcategory_id', $categoryIds)
+                    ->orWhereHas('products', fn (Builder $products) => $products
+                        ->where('status', 'approved')
+                        ->where(fn (Builder $columns) => $columns
+                            ->whereIn('category_id', $categoryIds)
+                            ->orWhereIn('subcategory_id', $categoryIds)
+                            ->orWhereIn('child_category_id', $categoryIds)));
+            })
+            ->with(['products' => fn ($products) => $products
+                ->where('status', 'approved')
+                ->select(['id', 'vendor_id', 'category_id', 'subcategory_id', 'child_category_id'])])
+            ->get(['id', 'company_name', 'display_name', 'business_category_id', 'business_subcategory_id']);
+
+        $names = [];
+        foreach ($vendors as $vendor) {
+            $vendorCategoryIds = [$vendor->business_category_id, $vendor->business_subcategory_id];
+            foreach ($vendor->products as $product) {
+                array_push($vendorCategoryIds, $product->category_id, $product->subcategory_id, $product->child_category_id);
+            }
+
+            foreach (array_unique(array_filter(array_map('intval', $vendorCategoryIds))) as $categoryId) {
+                if (in_array($categoryId, $categoryIds, true)) {
+                    $names[$categoryId][] = $vendor->publicDisplayName();
+                }
+            }
+        }
+
+        return array_map(fn (array $list): array => array_values(array_unique($list)), $names);
+    }
+
+    /**
+     * Titles the card with the first of the names (shuffled) and, when there are several, lists
+     * them all for the card to show one after another. No names leaves the title empty.
+     *
+     * @param  array<string, mixed>  $card
+     * @param  list<string>  $names
+     * @return array<string, mixed>
+     */
+    private static function titledWithNames(array $card, array $names): array
+    {
+        shuffle($names);
+
+        $card['title'] = $names[0] ?? '';
+        $card['title_names'] = count($names) > 1 ? $names : [];
+
+        return $card;
     }
 
     /**
