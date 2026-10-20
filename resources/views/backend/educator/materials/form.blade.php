@@ -56,7 +56,8 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+{{-- Only for the Hindi editor: loaded without holding up the page --}}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-material-upload.css') }}?v={{ now()->timestamp }}">
 @endpush
 
@@ -77,7 +78,7 @@
             <p class="sm-upload-header__subtitle js-type-subtitle">{{ $typeConfig['subtitle'] }}</p>
           </div>
         </div>
-        <div class="sm-upload-quote js-type-quote">{{ $typeConfig['quote'] }}</div>
+        <div class="sm-upload-quote js-type-quote {{ blank($typeConfig['quote'] ?? '') ? 'd-none' : '' }}">{{ $typeConfig['quote'] ?? '' }}</div>
       </header>
 
       <div id="studyMaterialAlert" class="alert d-none" role="alert"></div>
@@ -826,9 +827,15 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js"></script>
-<script src="{{ asset('assets/js/krutidev-to-unicode.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+  // The rich text editor (~2 MB) is only for "Write Custom Note / Solution": loaded when one is
+  // opened (community-body-editor.js), so the upload form doesn't wait for it
+  window.communityBodyEditorLibraries = [
+    'https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js',
+    'https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js',
+    @json(asset('assets/js/krutidev-to-unicode.js').'?v='.now()->timestamp),
+  ];
+</script>
 <script src="{{ asset('assets/js/community-body-editor.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/educator-material-upload.js') }}?v={{ now()->timestamp }}"></script>

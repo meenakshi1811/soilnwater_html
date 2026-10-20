@@ -182,7 +182,7 @@ class StudyMaterialUploadConfig
             'key' => 'question_papers',
             'title' => 'Upload Question Paper',
             'subtitle' => 'Share previous year papers, sample papers, model papers and more. Help students prepare and succeed!',
-            'quote' => 'Past questions today, brighter tomorrows tomorrow.',
+            'quote' => '',
             'icon' => 'fa-file-circle-question',
             'tips' => self::commonTips(),
             'guidelines' => [

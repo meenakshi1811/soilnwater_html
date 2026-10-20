@@ -652,8 +652,61 @@
         };
     }
 
+    function editorClass() {
+        return (window.CKEDITOR && window.CKEDITOR.ClassicEditor) || window.ClassicEditor || null;
+    }
+
+    let librariesPromise = null;
+
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = function () {
+                script.remove();
+                reject(new Error('Unable to load ' + src));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * A page can list the editor's libraries in window.communityBodyEditorLibraries instead of
+     * loading them up front (CKEditor alone is ~2 MB): they are loaded, in order, the first time
+     * an editor is opened.
+     */
+    function loadEditorLibraries() {
+        if (!librariesPromise) {
+            librariesPromise = (window.communityBodyEditorLibraries || []).reduce(function (chain, src) {
+                return chain.then(function () {
+                    return loadScript(src);
+                });
+            }, Promise.resolve());
+
+            // Try again next time if a download failed
+            librariesPromise.catch(function () {
+                librariesPromise = null;
+            });
+        }
+
+        return librariesPromise;
+    }
+
     function init(config) {
         config = config || {};
+
+        if (!editorClass() && (window.communityBodyEditorLibraries || []).length) {
+            return loadEditorLibraries().then(function () {
+                return editorClass() ? init(config) : null;
+            }, function (error) {
+                console.error('Unable to load rich text editor.', error);
+                notify('Unable to load the rich text editor. Please check your connection and try again.', 'error');
+
+                return null;
+            });
+        }
+
         const instanceKey = config.instanceKey || 'default';
 
         if (instances[instanceKey]) {
@@ -671,7 +724,7 @@
             return Promise.resolve(null);
         }
 
-        const EditorClass = (window.CKEDITOR && window.CKEDITOR.ClassicEditor) || window.ClassicEditor;
+        const EditorClass = editorClass();
 
         if (!EditorClass || typeof EditorClass.create !== 'function') {
             notify('Rich text editor failed to load. Please refresh the page.', 'error');

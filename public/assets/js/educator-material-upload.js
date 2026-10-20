@@ -319,7 +319,7 @@
             $('.js-type-icon').attr('class', 'fa-solid ' + cfg.icon + ' js-type-icon');
             $('.js-type-title').text(isEdit ? ('Edit: ' + cfg.title) : cfg.title);
             $('.js-type-subtitle').text(cfg.subtitle);
-            $('.js-type-quote').text(cfg.quote);
+            $('.js-type-quote').text(cfg.quote || '').toggleClass('d-none', !cfg.quote);
             $('.js-section-details-title').text(cfg.details_title);
             $('.js-upload-section-title').html(
                 escapeHtml(cfg.upload_title) + ' <span class="sm-upload-section__req">*</span>'
