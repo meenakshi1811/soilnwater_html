@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryHomepageImage;
 use App\Support\CategoryHomepagePostingCounts;
+use App\Support\ImageThumbnail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -239,6 +240,9 @@ class CategoryHomepageImageController extends Controller
         $file = $request->file('image');
         $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $file->move($directory, $filename);
+
+        // The homepage shows a small copy: make it now rather than on someone's visit
+        ImageThumbnail::prepare('uploads/homepage/category-cards/'.$filename);
 
         return 'uploads/homepage/category-cards/'.$filename;
     }

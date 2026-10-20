@@ -18,6 +18,7 @@ use App\Models\Vendor;
 use App\Support\HomepageCategoryListingCards;
 use App\Support\HomepageSectionOrder;
 use App\Support\HomepageImageRegistry;
+use App\Support\ImageThumbnail;
 use App\Support\HomepageMarketplacePromoCards;
 use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
@@ -183,6 +184,20 @@ class OfferPageController extends Controller
                 $sectionCards[$key] = $sectionBuilders[$key]();
             }
         }
+
+        // Cards show their images at about 300px: send small copies, not the 1–2 MB originals
+        // (after the no-repeat check above, which compares the originals)
+        $withThumbnails = fn (array $cards): array => array_map(
+            fn (array $card): array => ['image' => ImageThumbnail::url((string) ($card['image'] ?? ''))] + $card,
+            $cards
+        );
+        $sectionCards = array_map($withThumbnails, $sectionCards);
+        $homepageStudyMaterialLibraryCards = $withThumbnails($homepageStudyMaterialLibraryCards);
+        // Featured: the small copy on the card, the full image when it is opened larger
+        $homepageFeaturedBusinesses = array_map(
+            fn (array $business): array => $business + ['thumb' => ImageThumbnail::url((string) ($business['image'] ?? ''))],
+            $homepageFeaturedBusinesses
+        );
 
         // Popular searches are built from the real top categories (ordered by live
         // listing count) so every tag links to a listing page that actually has results.

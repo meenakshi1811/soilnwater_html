@@ -277,7 +277,8 @@
               <a href="{{ $business['url'] }}" class="homepage-featured-promo-card__link">
                 <div class="homepage-featured-promo-card__frame">
                   <div class="homepage-featured-promo-card__hero">
-                    <img src="{{ $business['image'] }}" alt="{{ $business['name'] }}" loading="lazy" decoding="async" width="900" height="560">
+                    {{-- The first cards are on screen straight away: load them now, the rest when scrolled to --}}
+                    <img src="{{ $business['thumb'] ?? $business['image'] }}" alt="{{ $business['name'] }}" @if($loop->index < 5) loading="eager" @if($loop->first) fetchpriority="high" @endif @else loading="lazy" @endif decoding="async" width="900" height="560">
                   </div>
                 </div>
               </a>

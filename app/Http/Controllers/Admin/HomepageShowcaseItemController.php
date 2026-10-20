@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomepageShowcaseItem;
+use App\Support\ImageThumbnail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -160,6 +161,9 @@ class HomepageShowcaseItemController extends Controller
         $file = $request->file('image');
         $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $file->move($directory, $filename);
+
+        // The homepage shows a small copy: make it now rather than on someone's visit
+        ImageThumbnail::prepare('uploads/homepage/showcase/'.$filename);
 
         return 'uploads/homepage/showcase/'.$filename;
     }
