@@ -340,7 +340,7 @@
                 $('.js-dropzone-text').text('Drag & drop your lesson file here or click to browse');
                 $('.js-dropzone-btn-label').text('Choose File');
                 $('input[name="meta[link_type]"]').val('upload');
-                $('.sm-upload-link-tab').removeClass('is-active')
+                $('.sm-upload-link-tab[data-link-tab]').removeClass('is-active')
                     .filter('[data-link-tab="upload"]').addClass('is-active');
                 $('.js-link-panel[data-link-panel="link"]').addClass('d-none');
                 $('.js-link-panel[data-link-panel="upload"]').removeClass('d-none');
@@ -349,7 +349,7 @@
                 $('.js-dropzone-text').text('Drag & drop your file here or click to browse');
                 $('.js-dropzone-btn-label').text('Choose File(s)');
                 $('input[name="meta[link_type]"]').val('upload');
-                $('.sm-upload-link-tab').removeClass('is-active')
+                $('.sm-upload-link-tab[data-link-tab]').removeClass('is-active')
                     .filter('[data-link-tab="upload"]').addClass('is-active');
                 $('.js-link-panel[data-link-panel="link"]').addClass('d-none');
             }
@@ -1018,9 +1018,11 @@
             syncCustomContentPanels();
         });
 
-        $('.sm-upload-link-tab').on('click', function () {
+        // Lesson upload/link tabs (videos) only: the other tab-style buttons (University / College /
+        // School, Upload / Write…) share the class but must not hide the upload dropzone
+        $('.sm-upload-link-tab[data-link-tab]').on('click', function () {
             var tab = $(this).data('link-tab');
-            $('.sm-upload-link-tab').removeClass('is-active');
+            $('.sm-upload-link-tab[data-link-tab]').removeClass('is-active');
             $(this).addClass('is-active');
             $('.js-link-panel').addClass('d-none');
             if (tab === 'upload') {
