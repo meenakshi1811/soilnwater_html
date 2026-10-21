@@ -94,6 +94,7 @@ use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Frontend\EducatorProfileController as FrontendEducatorProfileController;
+use App\Http\Controllers\Frontend\EducationHubController;
 use App\Http\Controllers\Frontend\EducatorListingController;
 use App\Http\Controllers\Frontend\InstituteListingController;
 use App\Http\Controllers\Frontend\InstituteEngagementController;
@@ -244,6 +245,8 @@ Route::post('/institutes/{slug}/brochure', [InstituteEngagementController::class
 Route::post('/institutes/{slug}/helpful', [InstituteEngagementController::class, 'instituteHelpful'])->middleware('auth')->name('institutes.helpful');
 Route::post('/institutes/{slug}/report', [ProfileReportController::class, 'institute'])->middleware(['auth', 'verified'])->name('institutes.report');
 Route::get('/institutes/compare', [InstituteEngagementController::class, 'instituteComparePage'])->middleware('auth')->name('institutes.compare');
+
+Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
