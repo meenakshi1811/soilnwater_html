@@ -761,6 +761,9 @@
         var usesAddressComponents = Boolean(stateInput || cityInput);
 
         bindAutocomplete(input, {
+            // The classic widget works on this field itself, so a name typed without picking a
+            // suggestion (or one Google doesn't list) is still submitted
+            preferLegacy: true,
             types: ['establishment'],
             addressComponents: usesAddressComponents,
             geometry: usesCoordinates || usesAddressComponents,
@@ -870,6 +873,23 @@
         };
 
         widget.addEventListener('gmp-select', selectHandler);
+
+        // Typed text reaches the real (hidden) field as well, not only a picked suggestion: set
+        // quietly, without input events that would clear saved coordinates
+        widget.addEventListener('input', function (event) {
+            var source = event.composedPath ? event.composedPath()[0] : null;
+            var text = null;
+
+            if (source && source !== widget && typeof source.value === 'string') {
+                text = source.value;
+            } else if (typeof widget.value === 'string') {
+                text = widget.value;
+            }
+
+            if (text !== null) {
+                input.value = text;
+            }
+        });
 
         input.dataset.googlePlacesReady = 'true';
         input.dataset.googlePlacesUsesLegacy = 'false';

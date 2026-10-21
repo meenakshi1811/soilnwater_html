@@ -650,7 +650,8 @@
                             markInvalid($boardName, 'Please select board name.');
                         }
                     } else {
-                        var $institutionName = $('.js-qp-institution-name');
+                        // The real field (a Google search box can copy its class): what gets submitted
+                        var $institutionName = $('input.js-qp-institution-name');
                         if ($institutionName.length && !String($institutionName.val() || '').trim()) {
                             valid = false;
                             markInvalid($institutionName, 'Please enter institution name.');
