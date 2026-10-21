@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const bookmarkUrl = page.dataset.bookmarkUrl || '';
     const reviewUrl = page.dataset.reviewUrl || '';
     const shareUrl = page.dataset.shareUrl || window.location.href;
-    const totalPages = parseInt(page.dataset.totalPages || '1', 10);
+    let totalPages = parseInt(page.dataset.totalPages || '1', 10);
     const canPreview = page.dataset.canPreview === '1';
     const fileUrl = page.dataset.fileUrl || '';
 
@@ -156,7 +156,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const pageLabel = document.querySelector('.js-sm-viewer-page-label');
     const canvas = document.querySelector('.js-sm-viewer-canvas');
     const content = document.querySelector('.js-sm-viewer-content');
-    const frame = document.querySelector('.js-sm-viewer-frame');
+    const pdfFrame = document.querySelector('.js-sm-viewer-frame');
+    // Phones, tablets and apps built from the website (Android WebView) don't show a PDF inside a
+    // page (the box stays blank): there its pages are drawn with PDF.js instead (createPdfPages).
+    // Desktop browsers, which say they have a PDF viewer, keep it.
+    const drawsPdfPages = !!pdfFrame && canPreview && !!fileUrl
+        && (navigator.pdfViewerEnabled !== true || window.matchMedia('(pointer: coarse)').matches);
+    const frame = drawsPdfPages ? null : pdfFrame;
     const previewImage = document.querySelector('.js-sm-viewer-image');
     const placeholderTitle = document.querySelector('.js-sm-viewer-section-title');
     const pageMeta = document.querySelector('.js-sm-viewer-page-meta');
@@ -174,6 +180,238 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     let fitMode = fitSelect?.value || 'width';
+    const pdfPages = drawsPdfPages ? createPdfPages(pdfFrame) : null;
+
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = function () {
+                reject(new Error('Unable to load ' + src));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * The PDF's pages drawn into a scrolling box with PDF.js (loaded only here), in place of the
+     * frame: sharp for the screen, only the pages near view kept drawn (phones have little
+     * memory), and the page counter follows the scroll.
+     */
+    function createPdfPages(iframe) {
+        // The legacy build is for older browsers (e.g. an app's WebView) the modern one doesn't run in
+        const PDFJS_BUILDS = [
+            { lib: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', worker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js' },
+            { lib: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js', worker: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js' },
+        ];
+
+        const box = document.createElement('div');
+        // sm-show-viewer-frame: the same size and place as the frame it replaces
+        box.className = 'sm-show-viewer-frame sm-show-pdf-pages';
+        box.setAttribute('role', 'document');
+        box.setAttribute('aria-label', iframe.getAttribute('title') || 'Document');
+        box.innerHTML = '<p class="sm-show-pdf-pages__status">Loading document…</p>';
+        iframe.replaceWith(box);
+
+        const pages = [];
+        let sizedFor = null;
+
+        function setContent(el, node) {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+            if (node) {
+                el.appendChild(node);
+            }
+        }
+
+        function pdfjsLibrary() {
+            return window.pdfjsLib || window['pdfjs-dist/build/pdf'] || null;
+        }
+
+        // The modern build, else the legacy one
+        function loadPdfjs(index) {
+            const build = PDFJS_BUILDS[index || 0];
+            if (!build) {
+                return Promise.reject(new Error('PDF.js did not load.'));
+            }
+
+            return loadScript(build.lib).then(function () {
+                const lib = pdfjsLibrary();
+                if (!lib) {
+                    throw new Error('PDF.js did not run.');
+                }
+                lib.GlobalWorkerOptions.workerSrc = build.worker;
+
+                return lib;
+            }).catch(function () {
+                return loadPdfjs((index || 0) + 1);
+            });
+        }
+
+        function showError() {
+            const message = document.createElement('p');
+            message.className = 'sm-show-pdf-pages__status';
+            message.textContent = 'This document can’t be shown here. ';
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'Open PDF';
+            message.appendChild(link);
+            setContent(box, message);
+        }
+
+        // Fit Width / Fit Page, times the zoom
+        function pageWidth(viewport) {
+            let width = Math.max(box.clientWidth - 16, 120);
+            if (fitMode === 'page') {
+                width = Math.min(width, Math.max(box.clientHeight - 16, 120) * viewport.width / viewport.height);
+            }
+
+            return Math.round(width * zoomLevel);
+        }
+
+        function draw(item) {
+            const width = parseInt(item.el.style.width, 10);
+            if (item.drawnWidth === width) {
+                return;
+            }
+            if (item.renderTask) {
+                item.renderTask.cancel();
+            }
+
+            const outputScale = Math.min(window.devicePixelRatio || 1, 2);
+            const viewport = item.page.getViewport({ scale: (width / item.viewport.width) * outputScale });
+            const canvasEl = document.createElement('canvas');
+            canvasEl.width = Math.floor(viewport.width);
+            canvasEl.height = Math.floor(viewport.height);
+
+            const task = item.page.render({ canvasContext: canvasEl.getContext('2d'), viewport: viewport });
+            item.renderTask = task;
+            item.drawnWidth = width;
+
+            task.promise.then(function () {
+                if (item.renderTask === task) {
+                    item.renderTask = null;
+                    // Swapped in once drawn, so a redraw (zoom) doesn't flash blank
+                    setContent(item.el, canvasEl);
+                }
+            }).catch(function () {
+                if (item.renderTask === task) {
+                    item.renderTask = null;
+                    item.drawnWidth = null;
+                }
+            });
+        }
+
+        function release(item) {
+            if (item.renderTask) {
+                item.renderTask.cancel();
+                item.renderTask = null;
+            }
+            setContent(item.el, null);
+            item.drawnWidth = null;
+        }
+
+        function show(pageNumber) {
+            const item = pages[pageNumber - 1];
+            if (item) {
+                box.scrollTop = item.el.offsetTop - 8;
+            }
+        }
+
+        function refit() {
+            // Phones resize while scrolling (the address bar): only redraw for a real change
+            const key = box.clientWidth + '|' + zoomLevel + '|' + fitMode + (fitMode === 'page' ? '|' + box.clientHeight : '');
+            if (!pages.length || key === sizedFor) {
+                return;
+            }
+            sizedFor = key;
+
+            const keepPage = currentPage;
+            pages.forEach(function (item) {
+                const width = pageWidth(item.viewport);
+                item.el.style.width = width + 'px';
+                item.el.style.height = Math.round(width * item.viewport.height / item.viewport.width) + 'px';
+            });
+            pages.forEach(function (item) {
+                if (item.visible) {
+                    draw(item);
+                }
+            });
+            show(keepPage);
+        }
+
+        let tracking = false;
+        box.addEventListener('scroll', function () {
+            if (tracking) {
+                return;
+            }
+            tracking = true;
+            window.requestAnimationFrame(function () {
+                tracking = false;
+                const probe = box.scrollTop + box.clientHeight / 3;
+                let inView = 1;
+                for (let i = 0; i < pages.length; i++) {
+                    if (pages[i].el.offsetTop > probe) {
+                        break;
+                    }
+                    inView = i + 1;
+                }
+                if (inView !== currentPage) {
+                    currentPage = inView;
+                    updatePageLabel();
+                }
+            });
+        }, { passive: true });
+
+        loadPdfjs(0).then(function (lib) {
+            return lib.getDocument({ url: fileUrl }).promise;
+        }).then(function (doc) {
+            const loading = [];
+            for (let i = 1; i <= doc.numPages; i++) {
+                loading.push(doc.getPage(i));
+            }
+
+            return Promise.all(loading);
+        }).then(function (pdfPageList) {
+            setContent(box, null);
+            pdfPageList.forEach(function (pdfPage, index) {
+                const el = document.createElement('div');
+                el.className = 'sm-show-pdf-page';
+                el.dataset.page = String(index + 1);
+                box.appendChild(el);
+                pages.push({ el: el, page: pdfPage, viewport: pdfPage.getViewport({ scale: 1 }), visible: false });
+            });
+
+            totalPages = pages.length;
+            updatePageLabel();
+            refit();
+
+            // Draw pages as they come near view, free them when far away
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    const item = pages[Number(entry.target.dataset.page) - 1];
+                    item.visible = entry.isIntersecting;
+                    if (item.visible) {
+                        draw(item);
+                    } else {
+                        release(item);
+                    }
+                });
+            }, { root: box, rootMargin: '800px 0px' });
+            pages.forEach(function (item) {
+                observer.observe(item.el);
+            });
+        }).catch(function (error) {
+            console.error('Unable to show the PDF.', error);
+            showError();
+        });
+
+        return { refit: refit, show: show };
+    }
 
     function getPreviewElement() {
         return frame || previewImage || document.querySelector('.js-sm-viewer-placeholder');
@@ -225,6 +463,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function goToPage(pageNumber) {
         currentPage = Math.max(1, Math.min(totalPages, pageNumber));
         updatePageLabel();
+        if (pdfPages) {
+            pdfPages.show(currentPage);
+        }
 
         contentItems.forEach(function (item, index) {
             const start = parseInt(item.dataset.pageStart || '1', 10);
@@ -263,6 +504,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyFit() {
+        if (pdfPages) {
+            pdfPages.refit();
+            return;
+        }
+
         if (!canvas || !content) {
             return;
         }
