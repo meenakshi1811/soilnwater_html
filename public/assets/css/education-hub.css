@@ -13,10 +13,25 @@
   color: var(--eh-text);
 }
 
+/* Full width on every screen, with side padding */
 .eh-container {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+@media (min-width: 1600px) {
+  .eh-container {
+    padding: 0 40px;
+  }
+
+  .eh-hero {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .eh-hero__image {
+    width: 340px;
+  }
 }
 
 /* ---------- Tones (icon chips and counts) ---------- */
@@ -376,8 +391,7 @@
 }
 
 .eh-section__more,
-.eh-panel__more,
-.eh-institutions__more {
+.eh-panel__more {
   flex-shrink: 0;
   font-size: 0.82rem;
   font-weight: 600;
@@ -386,8 +400,7 @@
 }
 
 .eh-section__more:hover,
-.eh-panel__more:hover,
-.eh-institutions__more:hover {
+.eh-panel__more:hover {
   text-decoration: underline;
 }
 
@@ -675,67 +688,162 @@
   color: var(--eh-blue);
 }
 
-/* Institutions on SoilnWater */
-.eh-institutions {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-top: 1.75rem;
-  padding: 0.9rem 1.25rem;
-  background: #f1f6fe;
-  border: 1px solid #dbe8fb;
-  border-radius: var(--eh-radius);
+/* Schools, colleges and institutes */
+.eh-inst-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.1rem;
 }
 
-.eh-institutions__title {
-  flex-shrink: 0;
+.eh-inst-group {
+  padding: 1rem 1.1rem 1.1rem;
+  min-width: 0;
+}
+
+.eh-inst-group__head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+
+.eh-inst-group__heading {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.eh-inst-group__title {
   margin: 0;
-  padding-right: 1.25rem;
-  border-right: 1px solid #cfdcf3;
-  font-size: 0.85rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--eh-navy);
 }
 
-.eh-institutions__list {
+.eh-inst-group__heading small {
+  font-size: 0.75rem;
+  color: var(--eh-muted);
+}
+
+.eh-inst-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.eh-inst {
   display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--eh-line);
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.eh-inst:hover {
+  transform: translateY(-2px);
+  border-color: #bfdbfe;
+  box-shadow: var(--eh-shadow);
+}
+
+.eh-inst__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  font-size: 1.8rem;
+}
+
+.eh-inst__media--blue { background: #eff6ff; color: #2563eb; }
+.eh-inst__media--green { background: #f0fdf4; color: #16a34a; }
+.eh-inst__media--purple { background: #f5f3ff; color: #7c3aed; }
+
+.eh-inst__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eh-inst__logo-only {
+  width: 56%;
+  height: 64%;
+  object-fit: contain;
+}
+
+/* The logo as a badge over the cover photo */
+.eh-inst__logo {
+  position: absolute;
+  left: 10px;
+  bottom: -18px;
+  width: 40px;
+  height: 40px;
+  padding: 3px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
+.eh-inst__verified {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #15803d;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.eh-inst__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.75rem 0.8rem;
   min-width: 0;
 }
 
-.eh-institution {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  max-width: 13rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--eh-text);
-  text-decoration: none;
+.eh-inst--with-logo .eh-inst__body {
+  padding-top: 1.45rem;
 }
 
-.eh-institution img {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  object-fit: contain;
-  background: #fff;
+.eh-inst__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--eh-navy);
 }
 
-.eh-institution span {
+.eh-inst:hover .eh-inst__name {
+  color: var(--eh-blue);
+}
+
+.eh-inst__kind,
+.eh-inst__place {
+  font-size: 0.74rem;
+  color: var(--eh-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.eh-institution:hover {
-  color: var(--eh-blue);
+.eh-inst__place i {
+  margin-right: 2px;
+  color: #94a3b8;
 }
 
 /* ---------- Tablet ---------- */
@@ -765,6 +873,15 @@
 
   .eh-panels > :first-child {
     grid-column: 1 / -1;
+  }
+
+  /* The three groups stacked, 4 cards a row */
+  .eh-inst-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .eh-inst-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -862,24 +979,8 @@
     margin-top: 0;
   }
 
-  .eh-institutions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .eh-institutions__title {
-    padding-right: 0;
-    border-right: 0;
-  }
-
-  .eh-institutions__list {
-    display: grid;
+  .eh-inst-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-    width: 100%;
-  }
-
-  .eh-institution {
-    max-width: none;
+    gap: 0.6rem;
   }
 }

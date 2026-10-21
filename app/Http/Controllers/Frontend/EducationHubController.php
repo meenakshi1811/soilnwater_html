@@ -45,15 +45,54 @@ class EducationHubController extends Controller
                 ->limit(4)
                 ->get(),
             'announcements' => $this->announcements(3),
-            'institutions' => Institute::query()
-                ->approved()
-                ->whereNotNull('logo')
-                ->where('logo', '!=', '')
-                ->with('user:id,role')
-                ->latest('approved_at')
-                ->limit(8)
-                ->get(),
+            'institutionGroups' => $this->institutionGroups(4),
         ]);
+    }
+
+    /**
+     * Schools, colleges (and universities) and other institutes, each with how many are listed
+     * and a few of them (verified first, then the latest).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function institutionGroups(int $limit): array
+    {
+        $collegeTypes = ['college', 'university'];
+
+        $groups = [
+            [
+                'title' => 'Schools', 'hint' => 'Classes 1 – 12', 'noun' => 'school', 'icon' => 'fa-school', 'tone' => 'blue',
+                'url' => route('schools.index'),
+                'query' => fn () => Institute::query()->schools(),
+            ],
+            [
+                'title' => 'Colleges', 'hint' => 'Colleges & universities', 'noun' => 'college', 'icon' => 'fa-building-columns', 'tone' => 'green',
+                'url' => route('institutes.index', ['type' => 'college']),
+                'query' => fn () => Institute::query()->institutes()->whereIn('institution_type', $collegeTypes),
+            ],
+            [
+                'title' => 'Institutes', 'hint' => 'Coaching & training', 'noun' => 'institute', 'icon' => 'fa-chalkboard-user', 'tone' => 'purple',
+                'url' => route('institutes.index'),
+                'query' => fn () => Institute::query()->institutes()->where(fn ($query) => $query
+                    ->whereNull('institution_type')
+                    ->orWhereNotIn('institution_type', $collegeTypes)),
+            ],
+        ];
+
+        return array_map(function (array $group) use ($limit): array {
+            $query = ($group['query'])()->approved();
+            unset($group['query']);
+
+            $group['count'] = (clone $query)->count();
+            $group['items'] = $query
+                ->with('user:id,role')
+                ->orderByDesc('is_verified')
+                ->latest('approved_at')
+                ->limit($limit)
+                ->get();
+
+            return $group;
+        }, $groups);
     }
 
     /**

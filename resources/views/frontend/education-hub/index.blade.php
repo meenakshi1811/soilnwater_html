@@ -260,23 +260,75 @@
             </section>
         </div>
 
-        {{-- Institutions on SoilnWater --}}
-        @if($institutions->isNotEmpty())
-            <section class="eh-institutions" aria-label="Institutions on SoilnWater">
-                <h2 class="eh-institutions__title">Institutions on SoilnWater</h2>
-                <ul class="eh-institutions__list">
-                    @foreach($institutions as $institution)
-                        <li>
-                            <a href="{{ $institution->publicUrl() }}" class="eh-institution">
-                                <img src="{{ $institution->logoUrl() }}" alt="" loading="lazy" width="36" height="36">
-                                <span>{{ $institution->publicDisplayName() }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-                <a href="{{ route('institutes.index') }}" class="eh-institutions__more">View all</a>
-            </section>
-        @endif
+        {{-- Schools, colleges and institutes --}}
+        <section class="eh-section" aria-labelledby="ehInstitutionsTitle">
+            <div class="eh-section__head">
+                <h2 class="eh-section__title" id="ehInstitutionsTitle">Schools, Colleges &amp; Institutes</h2>
+                <a href="{{ route('institutes.index') }}" class="eh-section__more">View all institutions</a>
+            </div>
+
+            <div class="eh-inst-groups">
+                @foreach($institutionGroups as $group)
+                    <div class="eh-card eh-inst-group">
+                        <div class="eh-inst-group__head">
+                            <span class="eh-icon eh-icon--square eh-icon--{{ $group['tone'] }}"><i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i></span>
+                            <div class="eh-inst-group__heading">
+                                <h3 class="eh-inst-group__title">{{ $group['title'] }}</h3>
+                                <small>{{ $group['hint'] }} · {{ number_format($group['count']) }} listed</small>
+                            </div>
+                            <a href="{{ $group['url'] }}" class="eh-panel__more">View all</a>
+                        </div>
+
+                        @if($group['items']->isNotEmpty())
+                            <div class="eh-inst-grid">
+                                @foreach($group['items'] as $institution)
+                                    @php
+                                        $gallery = is_array($institution->gallery) ? array_values(array_filter($institution->gallery)) : [];
+                                        $logo = $institution->logoUrl();
+                                        // A JPEG "logo" is nearly always a photo (e.g. of the building): use it as the cover
+                                        $logoIsPhoto = $logo && preg_match('/\.jpe?g$/i', (string) $institution->logo);
+                                        $cover = $gallery !== [] ? \App\Support\ImageThumbnail::url(asset($gallery[0])) : ($logoIsPhoto ? \App\Support\ImageThumbnail::url($logo) : null);
+                                        if ($logoIsPhoto) {
+                                            $logo = null;
+                                        }
+                                        $kind = collect([$group['noun'] === 'school' ? 'School' : $institution->institutionTypeLabel(), $institution->board_affiliation])->filter()->implode(' · ');
+                                        $place = $institution->locationLabel();
+                                    @endphp
+                                    <a href="{{ $institution->publicUrl() }}" class="eh-inst {{ $cover && $logo ? 'eh-inst--with-logo' : '' }}">
+                                        <span class="eh-inst__media eh-inst__media--{{ $group['tone'] }}">
+                                            @if($cover)
+                                                <img src="{{ $cover }}" alt="" class="eh-inst__cover" loading="lazy">
+                                            @elseif($logo)
+                                                <img src="{{ $logo }}" alt="" class="eh-inst__logo-only" loading="lazy">
+                                            @else
+                                                <i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i>
+                                            @endif
+                                            @if($cover && $logo)
+                                                <img src="{{ $logo }}" alt="" class="eh-inst__logo" loading="lazy" width="40" height="40">
+                                            @endif
+                                            @if($institution->is_verified)
+                                                <span class="eh-inst__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
+                                            @endif
+                                        </span>
+                                        <span class="eh-inst__body">
+                                            <strong class="eh-inst__name">{{ $institution->publicDisplayName() }}</strong>
+                                            @if($kind !== '')
+                                                <span class="eh-inst__kind">{{ $kind }}</span>
+                                            @endif
+                                            @if($place !== '')
+                                                <span class="eh-inst__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $place }}</span>
+                                            @endif
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="eh-empty">No {{ $group['noun'] }}s listed yet.</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </section>
     </div>
 </div>
 @endsection
