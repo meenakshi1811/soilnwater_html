@@ -47,6 +47,7 @@
     gtag('config', 'G-CJ8QTYE9ED');
   </script>
   @stack('styles')
+  <link rel="stylesheet" href="{{ asset('assets/css/listing-filters.css') }}?v={{ now()->timestamp }}">
 </head>
 <body>
   <div class="header-sticky-shell" id="headerStickyShell">
@@ -81,5 +82,6 @@
   <script src="{{ asset('assets/js/main.js') }}?v={{ now()->timestamp }}" defer></script>
   <script src="{{ asset('assets/js/password-toggle.js') }}?v={{ now()->timestamp }}" defer></script>
   @stack('scripts')
+  <script src="{{ asset('assets/js/listing-filters.js') }}?v={{ now()->timestamp }}"></script>
 </body>
 </html>

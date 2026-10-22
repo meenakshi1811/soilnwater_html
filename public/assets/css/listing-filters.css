@@ -1,0 +1,265 @@
+/* Listing filter drawer for phones and tablets (see assets/js/listing-filters.js).
+   On desktop the filter sidebar stays where it is and none of this shows. */
+
+.listing-filter-bar,
+.listing-filter-drawer {
+  --lf-accent: var(--vendors-green, var(--sm-primary, #2e7d32));
+  --lf-ink: var(--vendors-navy, var(--sm-navy, #16324f));
+  --lf-muted: #66788f;
+  --lf-line: #e6ecf2;
+}
+
+.listing-filter-bar,
+.listing-filter-drawer__close,
+.listing-filter-drawer__foot,
+.listing-filter-backdrop {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  /* Bar above the results */
+  .listing-filter-bar {
+    position: sticky;
+    top: var(--listing-filter-top, 0px);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .45rem .55rem .45rem .45rem;
+    background: rgba(255, 255, 255, .97);
+    border: 1px solid var(--lf-line);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(15, 35, 60, .08);
+  }
+
+  /* Docked under the header: edge to edge, content lined up with the page gutter */
+  .listing-filter-bar.is-stuck {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding-left: max(12px, calc(50vw - 50%));
+    padding-right: max(12px, calc(50vw - 50%));
+    border-width: 0 0 1px;
+    border-radius: 0;
+    box-shadow: 0 8px 16px rgba(15, 35, 60, .08);
+  }
+
+  /* The notes column is a plain block, so it needs its own spacing */
+  .sm-notes-main > .listing-filter-bar {
+    margin-bottom: .85rem;
+  }
+
+  .listing-filter-bar__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 .95rem;
+    border: 0;
+    border-radius: 9px;
+    background: var(--lf-ink);
+    color: #fff;
+    font-family: inherit;
+    font-size: .84rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .listing-filter-bar__toggle i {
+    font-size: .82rem;
+  }
+
+  .listing-filter-bar__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--lf-accent);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 800;
+  }
+
+  .listing-filter-bar__count[hidden],
+  .listing-filter-bar__clear[hidden] {
+    display: none;
+  }
+
+  .listing-filter-bar__summary {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    color: var(--lf-muted);
+    font-size: .78rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .listing-filter-bar__summary.is-active {
+    color: var(--lf-ink);
+    font-weight: 600;
+  }
+
+  .listing-filter-bar__clear {
+    flex: 0 0 auto;
+    padding: .4rem .35rem;
+    border: 0;
+    background: transparent;
+    color: var(--lf-accent);
+    font-family: inherit;
+    font-size: .78rem;
+    font-weight: 700;
+  }
+
+  /* The sidebar becomes a drawer from the left */
+  aside.listing-filter-drawer[data-filter-drawer] {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1070;
+    display: flex;
+    flex-direction: column;
+    width: min(380px, 88vw);
+    height: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0 18px 18px 0;
+    background: #fff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, .25);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .28s;
+  }
+
+  aside.listing-filter-drawer[data-filter-drawer].is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+  }
+
+  aside.listing-filter-drawer[data-filter-drawer] > * {
+    flex-shrink: 0;
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+
+  aside.listing-filter-drawer[data-filter-drawer] > .vendors-sidebar__head,
+  aside.listing-filter-drawer[data-filter-drawer] > .sm-filter-sidebar__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 0 0 .9rem;
+    padding-top: 1rem;
+    padding-bottom: .9rem;
+    background: #fff;
+    border-bottom: 1px solid var(--lf-line);
+  }
+
+  aside.listing-filter-drawer[data-filter-drawer] > .vendors-sidebar__head h2,
+  aside.listing-filter-drawer[data-filter-drawer] > .sm-filter-sidebar__head h2 {
+    font-size: 1.05rem;
+  }
+
+  /* Clear / Apply live in the drawer footer instead */
+  aside.listing-filter-drawer[data-filter-drawer] [data-filter-drawer-original] {
+    display: none;
+  }
+
+  .listing-filter-drawer__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    margin-left: auto;
+    border: 1px solid var(--lf-line);
+    border-radius: 10px;
+    background: #f6f8fb;
+    color: var(--lf-ink);
+    font-size: 1rem;
+  }
+
+  .listing-filter-drawer__foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    gap: .6rem;
+    margin-top: auto;
+    padding-top: .85rem;
+    padding-bottom: calc(.85rem + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 1px solid var(--lf-line);
+    box-shadow: 0 -8px 18px rgba(15, 23, 42, .05);
+  }
+
+  .listing-filter-drawer__clear,
+  .listing-filter-drawer__apply {
+    min-height: 46px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: .88rem;
+    font-weight: 700;
+  }
+
+  .listing-filter-drawer__clear {
+    flex: 0 0 auto;
+    padding: 0 1.1rem;
+    border: 1px solid #d5dee8;
+    background: #fff;
+    color: var(--lf-ink);
+  }
+
+  .listing-filter-drawer__apply {
+    flex: 1 1 auto;
+    border: 0;
+    background: var(--lf-accent);
+    color: #fff;
+  }
+
+  .listing-filter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1065;
+    display: block;
+    background: rgba(15, 23, 42, .45);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility 0s linear .25s;
+  }
+
+  .listing-filter-backdrop.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .25s ease, visibility 0s;
+  }
+
+  html.listing-filters-open,
+  html.listing-filters-open body {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 991.98px) and (prefers-reduced-motion: reduce) {
+  aside.listing-filter-drawer[data-filter-drawer],
+  aside.listing-filter-drawer[data-filter-drawer].is-open,
+  .listing-filter-backdrop,
+  .listing-filter-backdrop.is-visible {
+    transition: none;
+  }
+}
