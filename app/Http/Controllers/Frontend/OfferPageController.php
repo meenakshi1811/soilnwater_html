@@ -371,6 +371,79 @@ class OfferPageController extends Controller
             ->latest('published_at');
     }
 
+    /**
+     * The /businesses hub: vendors, consultants and service providers, each with its counts and
+     * the categories that have the most listings.
+     */
+    public function businessesHub(): View
+    {
+        $categoryLinks = fn (Collection $categories, string $countField, string $listingRoute): Collection => $categories
+            ->filter(fn ($category) => (int) $category->{$countField} > 0)
+            ->map(fn ($category) => [
+                'name' => $category->name,
+                'count' => (int) $category->{$countField},
+                'url' => route($listingRoute, ['category_id' => $category->id]),
+            ])
+            ->values();
+
+        $modules = [
+            [
+                'title' => 'Vendors',
+                'noun' => 'vendors',
+                'tagline' => 'Shops, stores & suppliers',
+                'description' => 'Browse local shops, stores and suppliers, see what they sell and contact them directly.',
+                'icon' => 'fa-store',
+                'tone' => 'orange',
+                'stats' => $this->vendorListingStats(),
+                'categories' => $categoryLinks($this->topVendorCategories(6), 'vendor_count', 'frontend.vendors.listings'),
+                'url' => route('frontend.vendors.index'),
+                'listings_url' => route('frontend.vendors.listings'),
+                'premium_url' => route('frontend.vendors.premium'),
+                'categories_url' => route('frontend.vendors.categories'),
+            ],
+            [
+                'title' => 'Consultants',
+                'noun' => 'consultants',
+                'tagline' => 'Experts & professional advice',
+                'description' => 'Talk to experienced consultants for legal, financial, construction and other professional advice.',
+                'icon' => 'fa-user-tie',
+                'tone' => 'purple',
+                'stats' => $this->consultantListingStats(),
+                'categories' => $categoryLinks($this->topConsultantCategories(6), 'consultant_count', 'frontend.consultants.listings'),
+                'url' => route('frontend.consultants.index'),
+                'listings_url' => route('frontend.consultants.listings'),
+                'premium_url' => route('frontend.consultants.premium'),
+                'categories_url' => route('frontend.consultants.categories'),
+            ],
+            [
+                'title' => 'Services',
+                'noun' => 'service providers',
+                'tagline' => 'Skilled help near you',
+                'description' => 'Find reliable service providers for repairs, installation, maintenance and everyday jobs.',
+                'icon' => 'fa-screwdriver-wrench',
+                'tone' => 'green',
+                'stats' => $this->serviceProviderListingStats(),
+                'categories' => $categoryLinks($this->topServiceProviderCategories(6), 'service_provider_count', 'frontend.service_providers.listings'),
+                'url' => route('frontend.service_providers.index'),
+                'listings_url' => route('frontend.service_providers.listings'),
+                'premium_url' => route('frontend.service_providers.premium'),
+                'categories_url' => route('frontend.service_providers.categories'),
+            ],
+        ];
+
+        $modules = collect($modules);
+
+        return view('frontend.businesses-hub', [
+            'modules' => $modules,
+            'totals' => [
+                'businesses' => $modules->sum(fn (array $module) => $module['stats']['trusted']),
+                'premium' => $modules->sum(fn (array $module) => $module['stats']['premium']),
+                'categories' => $modules->sum(fn (array $module) => $module['stats']['categories']),
+                'members' => $modules->first()['stats']['happy_customers'],
+            ],
+        ]);
+    }
+
     public function vendors(Request $request): View|JsonResponse
     {
         if (! $request->ajax() && ! $request->wantsJson() && $request->boolean('premium')) {
