@@ -1589,7 +1589,29 @@
   }
 
   .sm-notes-page .sm-stats-row {
-    grid-template-columns: 1fr;
+    gap: .65rem;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card {
+    gap: .6rem;
+    min-height: 0;
+    padding: .7rem .75rem;
+    border-radius: 14px;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: .9rem;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card strong {
+    font-size: 1.15rem;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card span {
+    font-size: .72rem;
   }
 }
 

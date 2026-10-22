@@ -1324,12 +1324,16 @@
     justify-content: space-between;
   }
 
+  /* Icon beside the heading, buttons across the full width below */
   .vendors-cta {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: .8rem .85rem;
   }
 
   .vendors-cta__actions {
+    grid-column: 1 / -1;
     width: 100%;
     margin-left: 0;
   }
@@ -1341,21 +1345,52 @@
 }
 
 @media (max-width: 575.98px) {
-  .vendors-hero__stats {
-    grid-template-columns: 1fr;
-  }
-
+  /* Stats stay 2 x 2, just tighter */
   .vendors-stat {
-    border-right: 0;
-    border-bottom: 1px solid #eef2f7;
+    gap: .5rem;
+    padding: .6rem .65rem;
   }
 
-  .vendors-stat:last-child {
-    border-bottom: 0;
+  .vendors-stat__icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 8px;
+  }
+
+  .vendors-stat__icon i {
+    font-size: .78rem;
+  }
+
+  .vendors-stat strong {
+    font-size: .9rem;
   }
 
   .vendors-categories-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .65rem;
+  }
+
+  /* Icon above the name, so names get the full tile width instead of breaking mid-word */
+  .vendors-category-chip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .5rem;
+    padding: .7rem;
+  }
+
+  .vendors-category-chip__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .vendors-category-chip__text {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .vendors-category-chip__text strong {
+    word-break: normal;
+    overflow-wrap: anywhere;
   }
 }

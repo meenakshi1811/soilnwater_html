@@ -163,7 +163,7 @@
 
         <div class="vendors-all__toolbar institutes-toolbar">
           <p class="institutes-toolbar__summary mb-0">
-            Browse approved {{ strtolower($pageTitle) }} and use filters on the left to narrow results.
+            Browse approved {{ strtolower($pageTitle) }} and use the filters to narrow the results.
           </p>
           <div class="vendors-all__controls">
             <select id="institutesMarketSort" class="form-select" aria-label="Sort listings">
