@@ -1,4 +1,5 @@
-/* Businesses hub (/businesses). Text in the site's Inter, big headings in Manrope. */
+/* Hub pages (/businesses, /offers-and-ads), see partials/directory-hub.blade.php.
+   Text in the site's Inter, big headings in Manrope. --bh-cols is the number of modules. */
 .bh-page {
   --bh-green: #2e7d32;
   --bh-green-dark: #1b5e20;
@@ -62,6 +63,8 @@
 .bh-icon--orange { background: #ffedd5; color: #ea580c; }
 .bh-icon--purple { background: #ede9fe; color: #7c3aed; }
 .bh-icon--blue { background: #dbeafe; color: #2563eb; }
+.bh-icon--red { background: #ffe4e6; color: #e11d48; }
+.bh-icon--amber { background: #fef3c7; color: #d97706; }
 
 .bh-btn {
   display: inline-flex;
@@ -176,6 +179,8 @@
 .bh-jump--orange i { color: #ea580c; }
 .bh-jump--purple i { color: #7c3aed; }
 .bh-jump--green i { color: #16a34a; }
+.bh-jump--red i { color: #e11d48; }
+.bh-jump--amber i { color: #d97706; }
 
 .bh-jump:hover {
   border-color: var(--bh-green);
@@ -255,7 +260,7 @@
 /* ---------- Module cards ---------- */
 .bh-modules {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--bh-cols, 3), minmax(0, 1fr));
   gap: 1.25rem;
 }
 
@@ -294,6 +299,20 @@
   --tone-dark: #6d28d9;
   --tone-soft: #ede9fe;
   --tone-wash: #f5f3ff;
+}
+
+.bh-module--red {
+  --tone: #e11d48;
+  --tone-dark: #be123c;
+  --tone-soft: #ffe4e6;
+  --tone-wash: #fff1f2;
+}
+
+.bh-module--amber {
+  --tone: #d97706;
+  --tone-dark: #b45309;
+  --tone-soft: #fef3c7;
+  --tone-wash: #fffbeb;
 }
 
 .bh-module__main {
@@ -707,7 +726,7 @@
 
   .bh-hero__jump {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--bh-cols, 3), minmax(0, 1fr));
     gap: .5rem;
   }
 

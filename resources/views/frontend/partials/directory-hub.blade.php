@@ -1,0 +1,148 @@
+{{--
+  Hub page shared by /businesses and /offers-and-ads: hero with counts, a card per module
+  (counts, popular categories, links), how it works, and a call to action.
+  $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta
+  $modules: title, tagline, description, icon, tone, stats, categories, categories_url, empty,
+            url, primary, secondary
+--}}
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/directory-hub.css') }}?v={{ now()->timestamp }}">
+@endpush
+
+@php
+    $formatCount = fn (int $count): string => $count >= 1000
+        ? number_format($count / 1000, $count >= 10000 ? 0 : 1).'K+'
+        : number_format($count);
+@endphp
+
+<div class="bh-page" style="--bh-cols: {{ $modules->count() }}">
+  <div class="bh-container">
+    <nav class="bh-breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ route('frontend.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      <span aria-current="page">{{ $hub['crumb'] }}</span>
+    </nav>
+
+    <section class="bh-hero">
+      <div class="bh-hero__copy">
+        <span class="bh-eyebrow"><i class="fa-solid {{ $hub['eyebrow_icon'] }}" aria-hidden="true"></i> {{ $hub['eyebrow'] }}</span>
+        <h1 class="bh-hero__title">{{ $hub['title'] }} <span>{{ $hub['highlight'] }}</span></h1>
+        <p class="bh-hero__text">{{ $hub['text'] }}</p>
+        <div class="bh-hero__jump">
+          @foreach ($modules as $module)
+            <a href="{{ $module['url'] }}" class="bh-jump bh-jump--{{ $module['tone'] }}">
+              <i class="fa-solid {{ $module['icon'] }}" aria-hidden="true"></i> {{ $module['title'] }}
+            </a>
+          @endforeach
+        </div>
+      </div>
+
+      <ul class="bh-hero__stats">
+        @foreach ($hub['stats'] as $stat)
+          <li class="bh-stat">
+            <span class="bh-icon bh-icon--{{ $stat['tone'] }}" aria-hidden="true"><i class="fa-solid {{ $stat['icon'] }}"></i></span>
+            <span class="bh-stat__text">
+              <strong>{{ $formatCount((int) $stat['count']) }}</strong>
+              <span>{{ $stat['label'] }}</span>
+            </span>
+          </li>
+        @endforeach
+      </ul>
+    </section>
+
+    <section class="bh-section" aria-labelledby="bhModulesTitle">
+      <div class="bh-section__head">
+        <h2 class="bh-section__title" id="bhModulesTitle">Explore by type</h2>
+        <p class="bh-section__lead">{{ $hub['modules_lead'] }}</p>
+      </div>
+
+      <div class="bh-modules">
+        @foreach ($modules as $module)
+          <article class="bh-module bh-module--{{ $module['tone'] }}">
+            <div class="bh-module__main">
+              <div class="bh-module__head">
+                <span class="bh-module__icon" aria-hidden="true"><i class="fa-solid {{ $module['icon'] }}"></i></span>
+                <div class="bh-module__heading">
+                  <h3 class="bh-module__title"><a href="{{ $module['url'] }}">{{ $module['title'] }}</a></h3>
+                  <p class="bh-module__tagline">{{ $module['tagline'] }}</p>
+                </div>
+              </div>
+
+              <p class="bh-module__desc">{{ $module['description'] }}</p>
+
+              <dl class="bh-module__stats">
+                @foreach ($module['stats'] as $stat)
+                  <div>
+                    <dt>{{ $stat['label'] }}</dt>
+                    <dd>{{ $formatCount((int) $stat['value']) }}</dd>
+                  </div>
+                @endforeach
+              </dl>
+            </div>
+
+            <div class="bh-module__cats">
+              <div class="bh-module__cats-head">
+                <p class="bh-module__label">Popular categories</p>
+                <a href="{{ $module['categories_url'] }}" class="bh-module__all">View all</a>
+              </div>
+              @if ($module['categories']->isNotEmpty())
+                <ul class="bh-chips">
+                  @foreach ($module['categories'] as $category)
+                    <li>
+                      <a href="{{ $category['url'] }}" class="bh-chip">
+                        {{ $category['name'] }} <span class="bh-chip__count">{{ number_format($category['count']) }}</span>
+                      </a>
+                    </li>
+                  @endforeach
+                </ul>
+              @else
+                <p class="bh-module__empty">{{ $module['empty'] }}</p>
+              @endif
+            </div>
+
+            <div class="bh-module__actions">
+              <a href="{{ $module['url'] }}" class="bh-btn bh-btn--tone">
+                {{ $module['primary'] }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+              <a href="{{ $module['secondary']['url'] }}" class="bh-btn bh-btn--soft">
+                <i class="fa-solid {{ $module['secondary']['icon'] }}" aria-hidden="true"></i> {{ $module['secondary']['label'] }}
+              </a>
+            </div>
+          </article>
+        @endforeach
+      </div>
+    </section>
+
+    <section class="bh-section" aria-labelledby="bhStepsTitle">
+      <div class="bh-section__head">
+        <h2 class="bh-section__title" id="bhStepsTitle">How it works</h2>
+      </div>
+
+      <ol class="bh-steps">
+        @foreach ($hub['steps'] as $step)
+          <li class="bh-step">
+            <span class="bh-step__icon" aria-hidden="true"><i class="fa-solid {{ $step['icon'] }}"></i></span>
+            <span class="bh-step__number">Step {{ $loop->iteration }}</span>
+            <h3 class="bh-step__title">{{ $step['title'] }}</h3>
+            <p class="bh-step__text">{{ $step['text'] }}</p>
+          </li>
+        @endforeach
+      </ol>
+    </section>
+
+    <section class="bh-cta">
+      <div class="bh-cta__copy">
+        <span class="bh-cta__icon" aria-hidden="true"><i class="fa-solid {{ $hub['cta']['icon'] }}"></i></span>
+        <div>
+          <h2>{{ $hub['cta']['title'] }}</h2>
+          <p>{{ $hub['cta']['text'] }}</p>
+        </div>
+      </div>
+      <div class="bh-cta__actions">
+        @foreach ($hub['cta']['actions'] as $action)
+          <a href="{{ $action['url'] }}" class="bh-btn {{ $loop->first ? 'bh-btn--light' : 'bh-btn--outline-light' }}">{{ $action['label'] }}</a>
+        @endforeach
+      </div>
+    </section>
+  </div>
+</div>

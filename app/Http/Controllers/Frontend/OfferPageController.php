@@ -377,7 +377,169 @@ class OfferPageController extends Controller
      */
     public function businessesHub(): View
     {
-        $categoryLinks = fn (Collection $categories, string $countField, string $listingRoute): Collection => $categories
+        $vendorStats = $this->vendorListingStats();
+        $consultantStats = $this->consultantListingStats();
+        $serviceStats = $this->serviceProviderListingStats();
+        $moduleStats = fn (array $stats): array => [
+            ['label' => 'Listed', 'value' => $stats['trusted']],
+            ['label' => 'Premium', 'value' => $stats['premium']],
+            ['label' => 'Categories', 'value' => $stats['categories']],
+        ];
+
+        $modules = collect([
+            [
+                'title' => 'Vendors',
+                'tagline' => 'Shops, stores & suppliers',
+                'description' => 'Browse local shops, stores and suppliers, see what they sell and contact them directly.',
+                'icon' => 'fa-store',
+                'tone' => 'orange',
+                'stats' => $moduleStats($vendorStats),
+                'categories' => $this->hubCategoryLinks($this->topVendorCategories(6), 'vendor_count', 'frontend.vendors.listings'),
+                'categories_url' => route('frontend.vendors.categories'),
+                'empty' => 'Categories show up here as vendors join.',
+                'url' => route('frontend.vendors.index'),
+                'primary' => 'Explore vendors',
+                'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.vendors.premium')],
+            ],
+            [
+                'title' => 'Consultants',
+                'tagline' => 'Experts & professional advice',
+                'description' => 'Talk to experienced consultants for legal, financial, construction and other professional advice.',
+                'icon' => 'fa-user-tie',
+                'tone' => 'purple',
+                'stats' => $moduleStats($consultantStats),
+                'categories' => $this->hubCategoryLinks($this->topConsultantCategories(6), 'consultant_count', 'frontend.consultants.listings'),
+                'categories_url' => route('frontend.consultants.categories'),
+                'empty' => 'Categories show up here as consultants join.',
+                'url' => route('frontend.consultants.index'),
+                'primary' => 'Explore consultants',
+                'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.consultants.premium')],
+            ],
+            [
+                'title' => 'Services',
+                'tagline' => 'Skilled help near you',
+                'description' => 'Find reliable service providers for repairs, installation, maintenance and everyday jobs.',
+                'icon' => 'fa-screwdriver-wrench',
+                'tone' => 'green',
+                'stats' => $moduleStats($serviceStats),
+                'categories' => $this->hubCategoryLinks($this->topServiceProviderCategories(6), 'service_provider_count', 'frontend.service_providers.listings'),
+                'categories_url' => route('frontend.service_providers.categories'),
+                'empty' => 'Categories show up here as service providers join.',
+                'url' => route('frontend.service_providers.index'),
+                'primary' => 'Explore services',
+                'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.service_providers.premium')],
+            ],
+        ]);
+        $allStats = [$vendorStats, $consultantStats, $serviceStats];
+
+        return view('frontend.businesses-hub', [
+            'modules' => $modules,
+            'totals' => [
+                'businesses' => array_sum(array_column($allStats, 'trusted')),
+                'premium' => array_sum(array_column($allStats, 'premium')),
+                'categories' => array_sum(array_column($allStats, 'categories')),
+                'members' => $vendorStats['happy_customers'],
+            ],
+        ]);
+    }
+
+    /**
+     * The /offers-and-ads hub: live offers and approved ads, with their counts and busiest categories.
+     */
+    public function offersAdsHub(): View
+    {
+        $today = Carbon::today();
+
+        // The same listings the offers and ads markets show
+        $liveOffers = function () use ($today): Builder {
+            $query = Offer::query()->where('status', 'active');
+            $this->applyValidityFilter($query, 'valid', $today);
+
+            return $query;
+        };
+        $liveAds = fn (): Builder => UserAd::query()
+            ->where('status', 'approved')
+            ->whereNotNull('final_image')
+            ->whereDoesntHave('adSize', fn (Builder $query) => $query->where('admin_only', true))
+            ->where(fn (Builder $query) => $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today->toDateString()));
+
+        $topCategories = fn (string $module, Builder $listings, string $table): Collection => Category::query()
+            ->whereNull('parent_id')
+            ->forModule($module)
+            ->select(['categories.id', 'categories.name'])
+            ->selectSub($listings->selectRaw('COUNT(*)')->whereColumn($table.'.category_id', 'categories.id'), 'listing_count')
+            ->orderByDesc('listing_count')
+            ->orderBy('name')
+            ->limit(6)
+            ->get();
+
+        $offerCount = $liveOffers()->count();
+        $adCount = $liveAds()->count();
+        $offerCategoryCount = Category::query()->whereNull('parent_id')->forModule('offers')->count();
+        $adCategoryCount = Category::query()->whereNull('parent_id')->forModule('ads')->count();
+        $endingThisWeek = $liveOffers()
+            ->whereNotNull('valid_until')
+            ->whereDate('valid_until', '<=', $today->copy()->addDays(6)->toDateString())
+            ->count();
+
+        $modules = collect([
+            [
+                'title' => 'Offers',
+                'tagline' => 'Deals, discounts & coupons',
+                'description' => 'Save with discounts, coupon codes and promotions from local businesses near you.',
+                'icon' => 'fa-gift',
+                'tone' => 'red',
+                'stats' => [
+                    ['label' => 'Live offers', 'value' => $offerCount],
+                    ['label' => 'Businesses', 'value' => $liveOffers()->distinct()->count('user_id')],
+                    ['label' => 'Ending in 7 days', 'value' => $endingThisWeek],
+                ],
+                'categories' => $this->hubCategoryLinks($topCategories('offers', $liveOffers(), 'offers'), 'listing_count', 'frontend.offers.index'),
+                'categories_url' => route('frontend.offers.index'),
+                'empty' => 'Categories show up here as offers are posted.',
+                'url' => route('frontend.offers.index'),
+                'primary' => 'Explore offers',
+                'secondary' => ['label' => 'Post an offer', 'icon' => 'fa-plus', 'url' => route('post-offer')],
+            ],
+            [
+                'title' => 'Ads',
+                'tagline' => 'Classifieds & promotions',
+                'description' => 'Browse classified ads, property listings and promotions from people and businesses near you.',
+                'icon' => 'fa-rectangle-ad',
+                'tone' => 'amber',
+                'stats' => [
+                    ['label' => 'Live ads', 'value' => $adCount],
+                    ['label' => 'Advertisers', 'value' => $liveAds()->distinct()->count('user_id')],
+                    ['label' => 'Categories', 'value' => $adCategoryCount],
+                ],
+                'categories' => $this->hubCategoryLinks($topCategories('ads', $liveAds(), 'user_ads'), 'listing_count', 'frontend.ads.index'),
+                'categories_url' => route('frontend.ads.index'),
+                'empty' => 'Categories show up here as ads are posted.',
+                'url' => route('frontend.ads.index'),
+                'primary' => 'Explore ads',
+                'secondary' => ['label' => 'Post an ad', 'icon' => 'fa-plus', 'url' => route('ads.create.size')],
+            ],
+        ]);
+
+        return view('frontend.offers-ads-hub', [
+            'modules' => $modules,
+            'totals' => [
+                'offers' => $offerCount,
+                'ads' => $adCount,
+                'ending' => $endingThisWeek,
+                'categories' => $offerCategoryCount + $adCategoryCount,
+            ],
+        ]);
+    }
+
+    /**
+     * Hub page category chips: only categories that have listings, each linking to its filtered list.
+     *
+     * @return Collection<int, array{name:string,count:int,url:string}>
+     */
+    private function hubCategoryLinks(Collection $categories, string $countField, string $listingRoute): Collection
+    {
+        return $categories
             ->filter(fn ($category) => (int) $category->{$countField} > 0)
             ->map(fn ($category) => [
                 'name' => $category->name,
@@ -385,63 +547,6 @@ class OfferPageController extends Controller
                 'url' => route($listingRoute, ['category_id' => $category->id]),
             ])
             ->values();
-
-        $modules = [
-            [
-                'title' => 'Vendors',
-                'noun' => 'vendors',
-                'tagline' => 'Shops, stores & suppliers',
-                'description' => 'Browse local shops, stores and suppliers, see what they sell and contact them directly.',
-                'icon' => 'fa-store',
-                'tone' => 'orange',
-                'stats' => $this->vendorListingStats(),
-                'categories' => $categoryLinks($this->topVendorCategories(6), 'vendor_count', 'frontend.vendors.listings'),
-                'url' => route('frontend.vendors.index'),
-                'listings_url' => route('frontend.vendors.listings'),
-                'premium_url' => route('frontend.vendors.premium'),
-                'categories_url' => route('frontend.vendors.categories'),
-            ],
-            [
-                'title' => 'Consultants',
-                'noun' => 'consultants',
-                'tagline' => 'Experts & professional advice',
-                'description' => 'Talk to experienced consultants for legal, financial, construction and other professional advice.',
-                'icon' => 'fa-user-tie',
-                'tone' => 'purple',
-                'stats' => $this->consultantListingStats(),
-                'categories' => $categoryLinks($this->topConsultantCategories(6), 'consultant_count', 'frontend.consultants.listings'),
-                'url' => route('frontend.consultants.index'),
-                'listings_url' => route('frontend.consultants.listings'),
-                'premium_url' => route('frontend.consultants.premium'),
-                'categories_url' => route('frontend.consultants.categories'),
-            ],
-            [
-                'title' => 'Services',
-                'noun' => 'service providers',
-                'tagline' => 'Skilled help near you',
-                'description' => 'Find reliable service providers for repairs, installation, maintenance and everyday jobs.',
-                'icon' => 'fa-screwdriver-wrench',
-                'tone' => 'green',
-                'stats' => $this->serviceProviderListingStats(),
-                'categories' => $categoryLinks($this->topServiceProviderCategories(6), 'service_provider_count', 'frontend.service_providers.listings'),
-                'url' => route('frontend.service_providers.index'),
-                'listings_url' => route('frontend.service_providers.listings'),
-                'premium_url' => route('frontend.service_providers.premium'),
-                'categories_url' => route('frontend.service_providers.categories'),
-            ],
-        ];
-
-        $modules = collect($modules);
-
-        return view('frontend.businesses-hub', [
-            'modules' => $modules,
-            'totals' => [
-                'businesses' => $modules->sum(fn (array $module) => $module['stats']['trusted']),
-                'premium' => $modules->sum(fn (array $module) => $module['stats']['premium']),
-                'categories' => $modules->sum(fn (array $module) => $module['stats']['categories']),
-                'members' => $modules->first()['stats']['happy_customers'],
-            ],
-        ]);
     }
 
     public function vendors(Request $request): View|JsonResponse

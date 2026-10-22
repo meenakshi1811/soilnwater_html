@@ -1,63 +1,39 @@
 @extends('frontend.layouts.app')
+@section('meta_title', 'Offers & Ads near you | SoilnWater')
+@section('meta_description', 'Deals, discounts and coupons from local businesses, plus classified ads and promotions near you on SoilnWater.')
 
 @section('content')
-<div class="businesses-hub-page offers-ads-hub-page">
-  <header class="businesses-hub-page__head">
-    <a class="businesses-hub-page__back" href="{{ route('frontend.index') }}" aria-label="Back to home">
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-    </a>
-    <div>
-      <h1 class="businesses-hub-page__title">Offers &amp; Ads</h1>
-      <p class="businesses-hub-page__lead">Pick a module to browse discounts or classified listings.</p>
-    </div>
-  </header>
-
-  <div class="businesses-hub-page__grid offers-ads-hub-page__grid">
-    <a href="{{ route('frontend.offers.index') }}" class="businesses-hub-card businesses-hub-card--offers">
-      <span class="businesses-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
-      <h2 class="businesses-hub-card__title">Offers</h2>
-      <p class="businesses-hub-card__desc">Explore deals, discounts, and promotions from local businesses.</p>
-      <span class="businesses-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a href="{{ route('frontend.ads.index') }}" class="businesses-hub-card businesses-hub-card--ads">
-      <span class="businesses-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-rectangle-ad"></i></span>
-      <h2 class="businesses-hub-card__title">Ads</h2>
-      <p class="businesses-hub-card__desc">Browse classified ads, property listings, and marketplace posts.</p>
-      <span class="businesses-hub-card__go" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-  </div>
-</div>
+@include('frontend.partials.directory-hub', [
+    'modules' => $modules,
+    'hub' => [
+        'crumb' => 'Offers & Ads',
+        'eyebrow' => 'Deals & Classifieds',
+        'eyebrow_icon' => 'fa-tags',
+        'title' => 'Grab the best deals',
+        'highlight' => 'and local ads near you',
+        'text' => 'Discounts and coupons from local businesses, plus classified ads and promotions, all in one place.',
+        'stats' => [
+            ['label' => 'Live offers', 'count' => $totals['offers'], 'icon' => 'fa-gift', 'tone' => 'red'],
+            ['label' => 'Live ads', 'count' => $totals['ads'], 'icon' => 'fa-rectangle-ad', 'tone' => 'amber'],
+            ['label' => 'Ending this week', 'count' => $totals['ending'], 'icon' => 'fa-hourglass-half', 'tone' => 'purple'],
+            ['label' => 'Categories', 'count' => $totals['categories'], 'icon' => 'fa-layer-group', 'tone' => 'green'],
+        ],
+        'modules_lead' => 'Only live offers and approved ads are shown.',
+        'steps' => [
+            ['title' => 'Browse & filter', 'text' => 'Narrow down by category, location and more.', 'icon' => 'fa-magnifying-glass'],
+            ['title' => 'Check the details', 'text' => 'See the discount, coupon code, validity and location.', 'icon' => 'fa-ticket'],
+            ['title' => 'Visit or get in touch', 'text' => 'Go to the business or contact the advertiser directly.', 'icon' => 'fa-store'],
+            ['title' => 'Report problems', 'text' => 'Flag a misleading offer or ad and our team will review it.', 'icon' => 'fa-flag'],
+        ],
+        'cta' => [
+            'icon' => 'fa-bullhorn',
+            'title' => 'Running a promotion? Post it on SoilnWater',
+            'text' => 'Share an offer or put up an ad and reach customers near you.',
+            'actions' => [
+                ['label' => 'Post an offer', 'url' => route('post-offer')],
+                ['label' => 'Post an ad', 'url' => route('ads.create.size')],
+            ],
+        ],
+    ],
+])
 @endsection
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/businesses-hub.css') }}?v={{ now()->timestamp }}">
-<style>
-  .offers-ads-hub-page__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .businesses-hub-card--offers {
-    background: #fff1f2;
-  }
-
-  .businesses-hub-card--offers .businesses-hub-card__icon {
-    color: #ef4444;
-  }
-
-  .businesses-hub-card--ads {
-    background: #fefce8;
-  }
-
-  .businesses-hub-card--ads .businesses-hub-card__icon {
-    color: #ca8a04;
-  }
-
-  @media (max-width: 575.98px) {
-    .offers-ads-hub-page__grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-@endpush

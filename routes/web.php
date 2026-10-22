@@ -141,7 +141,7 @@ Route::get('/vendors/categories', [OfferPageController::class, 'vendorCategories
 Route::get('/vendors/premium', [OfferPageController::class, 'premiumVendors'])->name('frontend.vendors.premium');
 Route::get('/vendors/listings', [OfferPageController::class, 'vendorListings'])->name('frontend.vendors.listings');
 Route::get('/businesses', [OfferPageController::class, 'businessesHub'])->name('frontend.businesses.hub');
-Route::view('/offers-and-ads', 'frontend.offers-ads-hub')->name('frontend.offers_ads.hub');
+Route::get('/offers-and-ads', [OfferPageController::class, 'offersAdsHub'])->name('frontend.offers_ads.hub');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
 Route::get('/consultants/categories', [OfferPageController::class, 'consultantCategories'])->name('frontend.consultants.categories');
 Route::get('/consultants/premium', [OfferPageController::class, 'premiumConsultants'])->name('frontend.consultants.premium');
