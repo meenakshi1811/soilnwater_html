@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const topicSelect = document.getElementById('sm-topic');
 
     let activeRequest = null;
+    let moreRequest = null;
+    let moreObserver = null;
 
     function notify(type, message) {
         if (!message) {
@@ -148,6 +150,11 @@ document.addEventListener('DOMContentLoaded', function () {
             activeRequest.abort();
         }
 
+        if (moreRequest) {
+            moreRequest.abort();
+            moreRequest = null;
+        }
+
         const controller = new AbortController();
         activeRequest = controller;
 
@@ -192,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             bindDynamicHandlers();
+            observeMore();
 
             if (opts.scroll !== false && resultsEl) {
                 resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -207,6 +215,103 @@ document.addEventListener('DOMContentLoaded', function () {
                 activeRequest = null;
             }
             setLoading(false);
+        }
+    }
+
+    // Infinite scroll: the next page of notes is fetched as the visitor nears the end of the list
+    // and added below the current cards. The address bar keeps the filters, not the page.
+    function observeMore() {
+        if (moreObserver) {
+            moreObserver.disconnect();
+            moreObserver = null;
+        }
+
+        const more = resultsEl?.querySelector('.js-sm-notes-more');
+        if (!more || !('IntersectionObserver' in window)) {
+            return;
+        }
+
+        more.classList.add('is-auto');
+        moreObserver = new IntersectionObserver(function (entries) {
+            if (entries.some(function (entry) { return entry.isIntersecting; })) {
+                loadMore();
+            }
+        }, { rootMargin: '600px 0px' });
+        moreObserver.observe(more);
+    }
+
+    async function loadMore() {
+        const more = resultsEl?.querySelector('.js-sm-notes-more');
+        const link = more?.querySelector('.js-sm-notes-more-link');
+        if (!more || !link || moreRequest || activeRequest) {
+            return;
+        }
+
+        const controller = new AbortController();
+        moreRequest = controller;
+        more.classList.remove('is-error');
+        more.classList.add('is-loading');
+
+        try {
+            const params = new URL(link.href, window.location.origin).searchParams;
+            const response = await fetch(notesUrl + '?' + params.toString(), {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                signal: controller.signal,
+            });
+
+            const data = await response.json().catch(function () {
+                return {};
+            });
+
+            if (!response.ok || !data.ok || !data.results_html) {
+                throw new Error(data.message || 'Unable to load more notes.');
+            }
+
+            const incoming = document.createElement('template');
+            incoming.innerHTML = data.results_html;
+
+            const list = resultsEl.querySelector('.sm-grid-cards, .sm-note-list');
+            const newCards = incoming.content.querySelector('.sm-grid-cards, .sm-note-list');
+            if (list && newCards) {
+                list.append(...Array.from(newCards.children).filter(function (card) {
+                    return !card.classList.contains('sm-empty');
+                }));
+            }
+
+            ['.js-sm-results-last', '.js-sm-results-total'].forEach(function (selector) {
+                const shown = resultsEl.querySelector(selector);
+                const latest = incoming.content.querySelector(selector);
+                if (shown && latest) {
+                    shown.textContent = latest.textContent;
+                }
+            });
+
+            const nextMore = incoming.content.querySelector('.sm-infinite');
+            if (nextMore) {
+                more.replaceWith(nextMore);
+            } else {
+                more.remove();
+            }
+
+            bindDynamicHandlers();
+            observeMore();
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return;
+            }
+
+            // Show the Load more button so the visitor can try again
+            more.classList.remove('is-auto');
+            more.classList.add('is-error');
+        } finally {
+            if (moreRequest === controller) {
+                moreRequest = null;
+            }
+            more.classList.remove('is-loading');
         }
     }
 
@@ -451,18 +556,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const pageLink = event.target.closest('#smNotesResults .pagination a.page-link');
-        if (!pageLink) {
-            return;
+        const moreLink = event.target.closest('#smNotesResults .js-sm-notes-more-link');
+        if (moreLink) {
+            event.preventDefault();
+            loadMore();
         }
-
-        event.preventDefault();
-
-        const url = new URL(pageLink.href, window.location.origin);
-        const pageNumber = parseInt(url.searchParams.get('page') || '1', 10);
-        const params = new URLSearchParams(url.search);
-
-        loadNotes({ page: pageNumber, params: params });
     });
 
     window.addEventListener('popstate', function (event) {
@@ -481,4 +579,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     bindDynamicHandlers();
+    observeMore();
 });
