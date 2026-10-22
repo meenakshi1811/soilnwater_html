@@ -305,6 +305,22 @@
         pac.style.pointerEvents = 'none';
     }
 
+    // Undoes hidePacContainer when a field is used again. Google only switches the box's display
+    // back on, so the hidden visibility/opacity left here kept new suggestions invisible (e.g.
+    // after leaving the field for another one, then typing in it again).
+    function restorePacContainers() {
+        document.querySelectorAll('.pac-container').forEach(function (pac) {
+            if (pac.dataset.soilnwaterPacDismissed !== 'true') {
+                return;
+            }
+
+            delete pac.dataset.soilnwaterPacDismissed;
+            pac.style.visibility = '';
+            pac.style.opacity = '';
+            pac.style.pointerEvents = '';
+        });
+    }
+
     // Google adds its suggestion box hidden and empty, then fills and shows it as results arrive.
     // Removing it while it is still empty leaves Google filling a detached box, so suggestions
     // never appear: only clean up boxes that are actually on screen.
@@ -613,10 +629,7 @@
             }
 
             activePacInput = input;
-
-            document.querySelectorAll('.pac-container').forEach(function (pac) {
-                delete pac.dataset.soilnwaterPacDismissed;
-            });
+            restorePacContainers();
 
             schedulePacReposition(input);
             bindPacViewportReposition(input);
@@ -625,10 +638,7 @@
 
         input.addEventListener('input', function () {
             activePacInput = input;
-
-            document.querySelectorAll('.pac-container').forEach(function (pac) {
-                delete pac.dataset.soilnwaterPacDismissed;
-            });
+            restorePacContainers();
 
             schedulePacReposition(input);
         });
