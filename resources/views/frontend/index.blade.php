@@ -230,7 +230,7 @@
 <section class="hero-hub-cards hero-hub-cards--mobile-rail hero-hub-cards--mobile-chips" aria-label="Explore SoilnWater">
   <p class="hero-hub-cards__mobile-kicker d-lg-none">Explore SoilnWater</p>
   <div class="hero-hub-cards__inner">
-    <a href="{{ route('frontend.businesses.hub') }}" class="hero-hub-card hero-hub-card--businesses">
+    <a href="{{ route('frontend.businesses.hub') }}" class="hero-hub-card hero-hub-card--businesses" data-bs-toggle="modal" data-bs-target="#businessesPopup" aria-haspopup="dialog" aria-controls="businessesPopup">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-store"></i></span>
       <h2 class="hero-hub-card__title">Businesses</h2>
       <p class="hero-hub-card__desc">Vendors, consultants &amp; services</p>
@@ -1586,6 +1586,8 @@
 </div><!-- /main-wrap -->
 
 </div><!-- /.homepage-root -->
+
+@include('frontend.partials.businesses-popup', ['modules' => $businessesPopup ?? []])
 
 <!-- <div class="trusted-wrap">
   <div class="trusted-bar">

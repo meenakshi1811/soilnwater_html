@@ -1,0 +1,382 @@
+/* Homepage "Businesses" popup (partials/businesses-popup.blade.php). Text in the site's Inter,
+   headings in Manrope; each card in its module's colour. */
+.businesses-popup {
+  --bp-ink: #15213a;
+  --bp-text: #3f4b5f;
+}
+
+.businesses-popup__dialog {
+  max-width: min(1240px, calc(100vw - 32px));
+}
+
+.businesses-popup__content {
+  border: 0;
+  border-radius: 22px;
+  background: #f6f8fb;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, .28);
+  overflow: hidden;
+}
+
+.businesses-popup__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 18px 22px 4px;
+}
+
+.businesses-popup__title {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--bp-ink);
+}
+
+.businesses-popup__lead {
+  margin: .2rem 0 0;
+  font-size: .86rem;
+  color: #64748b;
+}
+
+.businesses-popup__close {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.businesses-popup__body {
+  padding: 14px 22px 22px;
+}
+
+/* The chat button stays behind the popup */
+body.modal-open .discussion-fab,
+body.modal-open .discussion-banner-chat {
+  visibility: hidden;
+}
+
+/* ---------- Cards ---------- */
+.bp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.bp-card {
+  --tone: #f97316;
+  --tone-dark: #c2410c;
+  --tone-bg: linear-gradient(160deg, #fff6ee 0%, #ffe8d5 100%);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid rgba(15, 23, 42, .06);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+  overflow: hidden;
+}
+
+.bp-card--consultants {
+  --tone: #7c3aed;
+  --tone-dark: #6d28d9;
+  --tone-bg: linear-gradient(160deg, #f7f2ff 0%, #ece3ff 100%);
+}
+
+.bp-card--services {
+  --tone: #16a34a;
+  --tone-dark: #15803d;
+  --tone-bg: linear-gradient(160deg, #f0fcf4 0%, #dcf4e4 100%);
+}
+
+.bp-card__top {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px 18px 0;
+  background: var(--tone-bg);
+}
+
+.bp-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.bp-card__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--tone);
+  color: #fff;
+  font-size: 1.25rem;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--tone) 35%, transparent);
+}
+
+.bp-card__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.bp-card__title {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--bp-ink);
+}
+
+.bp-card__tagline {
+  margin: .2rem 0 0;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--tone-dark);
+}
+
+.bp-card__view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  flex-shrink: 0;
+  margin-top: 4px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--tone-dark);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bp-card__view-all i {
+  font-size: .7rem;
+}
+
+.bp-card__view-all:hover {
+  color: var(--tone-dark);
+  text-decoration: underline;
+}
+
+.bp-card__desc {
+  margin: 12px 0 14px;
+  font-size: .84rem;
+  line-height: 1.5;
+  color: var(--bp-text);
+}
+
+/* Photo on the left standing on the card's bottom edge, categories beside it */
+.bp-card__body {
+  display: grid;
+  grid-template-columns: 27% minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.bp-card__photo {
+  display: block;
+  align-self: end;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, .08);
+}
+
+.bp-card__chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0 0 16px;
+  list-style: none;
+}
+
+.bp-card__chips li {
+  min-width: 0;
+}
+
+.bp-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  min-height: 44px;
+  padding: 6px 7px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
+  color: var(--bp-ink);
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  transition: box-shadow .15s ease, color .15s ease, transform .15s ease;
+}
+
+.bp-chip i {
+  flex: 0 0 16px;
+  text-align: center;
+  font-size: .88rem;
+  color: var(--tone);
+}
+
+/* A word too long for the chip wraps with a hyphen instead of being cut off */
+.bp-chip span {
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.bp-chip:hover {
+  color: var(--tone-dark);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--tone) 22%, transparent);
+  transform: translateY(-1px);
+}
+
+.bp-card__foot {
+  padding: 14px 18px 18px;
+  background: #fff;
+}
+
+.bp-card__explore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 11px;
+  background: var(--tone);
+  color: #fff;
+  font-size: .92rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--tone) 28%, transparent);
+  transition: background .15s ease, transform .15s ease;
+}
+
+.bp-card__explore i {
+  font-size: .8rem;
+}
+
+.bp-card__explore:hover {
+  background: var(--tone-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ---------- Responsive ---------- */
+/* Below 1280px three cards leave the categories too little room: one card per row, with the
+   photo beside three columns of categories */
+@media (max-width: 1279.98px) {
+  .bp-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Categories centred beside the photo, which still stands on the card's bottom edge */
+  .bp-card__body {
+    grid-template-columns: 128px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+
+  .bp-card__chips {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 8px 0 14px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .bp-card__body {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .bp-card__chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Phones: full-screen popup, categories across the card */
+@media (max-width: 575.98px) {
+  .businesses-popup__dialog {
+    max-width: none;
+  }
+
+  .businesses-popup__content {
+    border-radius: 0;
+  }
+
+  .businesses-popup__head {
+    padding: 14px 16px 6px;
+    border-bottom: 1px solid #e8edf3;
+    background: #fff;
+  }
+
+  .businesses-popup__title {
+    font-size: 1.15rem;
+  }
+
+  .businesses-popup__lead {
+    font-size: .8rem;
+  }
+
+  .businesses-popup__body {
+    padding: 12px 12px 18px;
+  }
+
+  .bp-grid {
+    gap: 12px;
+  }
+
+  .bp-card__top {
+    padding: 14px 14px 0;
+  }
+
+  .bp-card__icon {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+
+  .bp-card__title {
+    font-size: 1.15rem;
+  }
+
+  .bp-card__tagline {
+    font-size: .78rem;
+  }
+
+  .bp-card__desc {
+    margin: 10px 0 12px;
+    font-size: .8rem;
+  }
+
+  .bp-card__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bp-card__photo {
+    display: none;
+  }
+
+  .bp-card__chips {
+    padding-bottom: 14px;
+  }
+
+  .bp-chip {
+    min-height: 42px;
+    font-size: .74rem;
+  }
+
+  .bp-card__foot {
+    padding: 12px 14px 14px;
+  }
+}

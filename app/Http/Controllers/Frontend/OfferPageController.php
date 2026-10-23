@@ -22,6 +22,7 @@ use App\Support\ImageThumbnail;
 use App\Support\ConsultantListingCard;
 use App\Support\ServiceProviderListingCard;
 use App\Support\VendorListingCard;
+use App\Support\VendorCategoryIcon;
 use App\Support\HomepageMarketplacePromoCards;
 use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
@@ -37,6 +38,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OfferPageController extends Controller
 {
@@ -274,6 +276,7 @@ class OfferPageController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name']),
             'hasLocation' => $hasLocation,
+            'businessesPopup' => $this->businessesPopupModules(),
             'homepageSetting' => $homepageSetting,
             'homepageCommunityPosts' => $homepageCommunityPosts,
             'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
@@ -372,6 +375,83 @@ class OfferPageController extends Controller
             ->orderByDesc('is_highlighted')
             ->orderByDesc('is_sponsored')
             ->latest('published_at');
+    }
+
+    /**
+     * The homepage "Businesses" popup: vendors, consultants and services, each with its six busiest
+     * categories (most listings first) linking to the filtered listing.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function businessesPopupModules(): array
+    {
+        $chips = fn (Collection $categories, string $listingRoute, ?string $suffix = null): array => $categories
+            ->map(fn ($category) => [
+                'name' => self::popupCategoryLabel($category->name, $suffix),
+                'icon' => VendorCategoryIcon::iconClass($category->name),
+                'url' => route($listingRoute, ['category_id' => $category->id]),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            [
+                'key' => 'vendors',
+                'title' => 'Vendors',
+                'tagline' => 'Shops, stores & suppliers',
+                'description' => 'Browse local shops, stores and suppliers, see what they sell and contact them directly.',
+                'icon' => 'fa-store',
+                'image' => 'assets/images/businesses-popup/vendors.webp',
+                'categories' => $chips($this->topVendorCategories(6), 'frontend.vendors.listings'),
+                'url' => route('frontend.vendors.index'),
+                'view_all_url' => route('frontend.vendors.categories'),
+            ],
+            [
+                'key' => 'consultants',
+                'title' => 'Consultants',
+                'tagline' => 'Experts & professional advice',
+                'description' => 'Talk to experienced consultants for legal, financial, construction and other professional advice.',
+                'icon' => 'fa-users',
+                'image' => 'assets/images/businesses-popup/consultants.webp',
+                'categories' => $chips($this->topConsultantCategories(6), 'frontend.consultants.listings', 'Consultants'),
+                'url' => route('frontend.consultants.index'),
+                'view_all_url' => route('frontend.consultants.categories'),
+            ],
+            [
+                'key' => 'services',
+                'title' => 'Services',
+                'tagline' => 'Skilled help near you',
+                'description' => 'Find reliable service providers for repairs, installation, maintenance and everyday jobs.',
+                'icon' => 'fa-screwdriver-wrench',
+                'image' => 'assets/images/businesses-popup/services.webp',
+                'categories' => $chips($this->topServiceProviderCategories(6), 'frontend.service_providers.listings', 'Services'),
+                'url' => route('frontend.service_providers.index'),
+                'view_all_url' => route('frontend.service_providers.categories'),
+            ],
+        ];
+    }
+
+    /**
+     * A category name as a short chip label. Names stored in capitals get title case ("HOME &
+     * KITCHEN" → "Home & Kitchen"), and a trailing "Services"/"Consultants" is dropped when a
+     * longer name remains ("Repair & Maintenance Services" → "Repair & Maintenance", but
+     * "Plumbing Services" stays).
+     */
+    private static function popupCategoryLabel(string $name, ?string $suffix = null): string
+    {
+        $label = trim($name);
+        if ($label === mb_strtoupper($label)) {
+            $label = Str::title(mb_strtolower($label));
+            $label = preg_replace_callback('/\b(Hr|It|Ac|Tv|Ca|Gst|Ngo|Ev|Diy)\b/', fn (array $match) => strtoupper($match[1]), $label);
+        }
+
+        if ($suffix === null) {
+            return $label;
+        }
+
+        $short = trim((string) preg_replace('/\s+'.preg_quote($suffix, '/').'$/i', '', $label));
+
+        return str_word_count(str_replace('&', ' ', $short)) > 1 ? $short : $label;
     }
 
     /**
