@@ -3,7 +3,8 @@
   (counts, popular categories, links), how it works, and a call to action.
   $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta
   $modules: title, tagline, description, icon, tone, stats, categories, categories_url, empty,
-            url, primary, secondary, and optionally listings_title, listings_url, listings
+            url, primary, secondary, and optionally key, listings_title, listings_url, listings
+            (shown as a "Featured …" panel in the homepage colours of bh-featured--{key})
 --}}
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/directory-hub.css') }}?v={{ now()->timestamp }}">
@@ -53,13 +54,13 @@
     {{-- A few listings from each module to start exploring (modules that pass 'listings') --}}
     @foreach ($modules as $module)
       @if (! empty($module['listings']))
-        <section class="bh-section bh-featured bh-module--{{ $module['tone'] }}" aria-labelledby="bhFeatured{{ $loop->index }}">
-          <div class="bh-section__head">
-            <h2 class="bh-section__title bh-featured__title" id="bhFeatured{{ $loop->index }}">
-              <span class="bh-featured__icon" aria-hidden="true"><i class="fa-solid {{ $module['icon'] }}"></i></span>
-              {{ $module['listings_title'] }}
+        <section class="bh-section bh-featured bh-featured--{{ $module['key'] }}" aria-labelledby="bhFeatured{{ $loop->index }}">
+          <div class="bh-featured__head">
+            <h2 class="bh-featured__title" id="bhFeatured{{ $loop->index }}">
+              <i class="fa-solid {{ $module['icon'] }} bh-featured__icon" aria-hidden="true"></i>
+              <span>Featured <span class="bh-featured__accent">{{ $module['listings_title'] }}</span></span>
             </h2>
-            <a href="{{ $module['listings_url'] }}" class="bh-section__more">View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a href="{{ $module['listings_url'] }}" class="bh-featured__more">Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
           </div>
 
           <ul class="bh-rail">
