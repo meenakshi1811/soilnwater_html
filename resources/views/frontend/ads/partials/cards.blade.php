@@ -29,16 +29,6 @@
 
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
-
-            // Lay the ad out at the size its image was made at when that is smaller: a size's
-            // settings can change after ads are posted (ads made at 526×526 and 512×640 were
-            // showing as 900×900, each one filling the page)
-            $finalImageFile = $ad->final_image ? public_path($ad->final_image) : null;
-            $imageSize = $finalImageFile && is_file($finalImageFile) ? @getimagesize($finalImageFile) : false;
-            if ($imageSize && $imageSize[0] > 0 && $imageSize[1] > 0 && $imageSize[0] <= $adWidth && $imageSize[1] <= $adHeight) {
-                $adWidth = (int) $imageSize[0];
-                $adHeight = (int) $imageSize[1];
-            }
             $adImageHeight = $adHeight;
             $adMaxDim = max($adWidth, $adHeight);
             $adArea = $adWidth * $adHeight;
