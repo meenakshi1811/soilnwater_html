@@ -38,14 +38,35 @@ final class HomepageMarketplacePromoCards
     }
 
     /**
+     * The same card for one offer, with the offer's own banner rather than its category's
+     * homepage image (so a row of offers from one category doesn't repeat one picture).
+     *
+     * @return array{url: string, image: string, discount_badge: string, category_label: string, category_tone: string, category_icon: string, title: string, description: string, location: string, valid_till: string}
+     */
+    public static function offerCard(Offer $offer): array
+    {
+        return self::mapOffer($offer, categoryImage: false);
+    }
+
+    /**
+     * The same card for one ad, with the ad's own image; null when it has none.
+     *
      * @return array{url: string, image: string, discount_badge: string, category_label: string, category_tone: string, category_icon: string, title: string, description: string, location: string, valid_till: string}|null
      */
-    private static function mapOffer(Offer $offer): ?array
+    public static function adCard(UserAd $ad): ?array
+    {
+        return self::mapAd($ad, categoryImage: false);
+    }
+
+    /**
+     * @return array{url: string, image: string, discount_badge: string, category_label: string, category_tone: string, category_icon: string, title: string, description: string, location: string, valid_till: string}|null
+     */
+    private static function mapOffer(Offer $offer, bool $categoryImage = true): ?array
     {
         $entityCover = filled($offer->banner_image)
             ? asset($offer->banner_image)
             : asset('assets/images/vendor-card-placeholder.svg');
-        $image = HomepageCategoryCardImage::forOffer($offer, $entityCover);
+        $image = $categoryImage ? HomepageCategoryCardImage::forOffer($offer, $entityCover) : $entityCover;
 
         $categoryMeta = self::categoryMeta(HomepageCardCategory::displayNameForOffer($offer));
 
@@ -68,10 +89,10 @@ final class HomepageMarketplacePromoCards
     /**
      * @return array{url: string, image: string, discount_badge: string, category_label: string, category_tone: string, category_icon: string, title: string, description: string, location: string, valid_till: string}|null
      */
-    private static function mapAd(UserAd $ad): ?array
+    private static function mapAd(UserAd $ad, bool $categoryImage = true): ?array
     {
         $entityCover = filled($ad->final_image) ? asset($ad->final_image) : '';
-        $image = HomepageCategoryCardImage::forUserAd($ad, $entityCover);
+        $image = $categoryImage ? HomepageCategoryCardImage::forUserAd($ad, $entityCover) : $entityCover;
         if ($image === '') {
             return null;
         }

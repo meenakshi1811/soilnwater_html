@@ -13,8 +13,8 @@
         'highlight' => 'and local ads near you',
         'text' => 'Discounts and coupons from local businesses, plus classified ads and promotions, all in one place.',
         'stats' => [
-            ['label' => 'Live offers', 'count' => $totals['offers'], 'icon' => 'fa-gift', 'tone' => 'red'],
-            ['label' => 'Live ads', 'count' => $totals['ads'], 'icon' => 'fa-rectangle-ad', 'tone' => 'amber'],
+            ['label' => 'Live offers', 'count' => $totals['offers'], 'icon' => 'fa-gift', 'tone' => 'orange'],
+            ['label' => 'Live ads', 'count' => $totals['ads'], 'icon' => 'fa-rectangle-ad', 'tone' => 'cyan'],
             ['label' => 'Ending this week', 'count' => $totals['ending'], 'icon' => 'fa-hourglass-half', 'tone' => 'purple'],
             ['label' => 'Categories', 'count' => $totals['categories'], 'icon' => 'fa-layer-group', 'tone' => 'green'],
         ],

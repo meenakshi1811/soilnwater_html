@@ -4,7 +4,9 @@
   $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta
   $modules: title, tagline, description, icon, tone, stats, categories, categories_url, empty,
             url, primary, secondary, and optionally key, listings_title, listings_url, listings
-            (shown as a "Featured …" panel in the homepage colours of bh-featured--{key})
+            (shown as a "Featured …" panel in the homepage colours of bh-featured--{key});
+            listings_kind 'deal' shows offer/ad cards instead of business cards, listings_lead
+            replaces "Featured"
 --}}
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/directory-hub.css') }}?v={{ now()->timestamp }}">
@@ -58,7 +60,7 @@
           <div class="bh-featured__head">
             <h2 class="bh-featured__title" id="bhFeatured{{ $loop->index }}">
               <i class="fa-solid {{ $module['icon'] }} bh-featured__icon" aria-hidden="true"></i>
-              <span>Featured <span class="bh-featured__accent">{{ $module['listings_title'] }}</span></span>
+              <span>{{ $module['listings_lead'] ?? 'Featured' }} <span class="bh-featured__accent">{{ $module['listings_title'] }}</span></span>
             </h2>
             <a href="{{ $module['listings_url'] }}" class="bh-featured__more">Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
           </div>
@@ -66,6 +68,30 @@
           <ul class="bh-rail">
             @foreach ($module['listings'] as $listing)
               <li class="bh-rail__item">
+                @if (($module['listings_kind'] ?? 'business') === 'deal')
+                  <article class="bh-biz bh-deal">
+                    <a href="{{ $listing['url'] }}" class="bh-biz__media" tabindex="-1" aria-hidden="true">
+                      <img
+                        src="{{ $listing['image'] }}"
+                        alt=""
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='{{ asset('assets/images/vendor-card-placeholder.svg') }}';"
+                      >
+                      <span class="bh-deal__tag bh-deal__tag--{{ $listing['category_tone'] }}">
+                        <i class="fa-solid {{ $listing['category_icon'] }}" aria-hidden="true"></i> {{ $listing['category_label'] }}
+                      </span>
+                    </a>
+                    <div class="bh-deal__body">
+                      <h3 class="bh-biz__name"><a href="{{ $listing['url'] }}">{{ $listing['title'] }}</a></h3>
+                      <span class="bh-deal__badge">{{ $listing['discount_badge'] }}</span>
+                      <p class="bh-deal__desc">{{ $listing['description'] }}</p>
+                      <div class="bh-biz__foot">
+                        <span class="bh-biz__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span class="bh-biz__location-text">{{ $listing['location'] }}</span></span>
+                        <span class="bh-deal__valid">{{ $listing['valid_till'] === 'No expiry' || $listing['valid_till'] === 'Limited time' ? $listing['valid_till'] : 'Valid till '.$listing['valid_till'] }}</span>
+                      </div>
+                    </div>
+                  </article>
+                @else
                 <article class="bh-biz">
                   <a href="{{ $listing['url'] }}" class="bh-biz__media" tabindex="-1" aria-hidden="true">
                     <img
@@ -88,7 +114,7 @@
                     >
                     <h3 class="bh-biz__name"><a href="{{ $listing['url'] }}">{{ $listing['name'] }}</a></h3>
                     <p class="bh-biz__category">{{ $listing['category'] }}</p>
-                    <p class="bh-biz__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $listing['location'] }}</p>
+                    <p class="bh-biz__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span class="bh-biz__location-text">{{ $listing['location'] }}</span></p>
                     <div class="bh-biz__foot">
                       <span class="bh-biz__rating">
                         <i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format($listing['rating'], 1) }}
@@ -98,6 +124,7 @@
                     </div>
                   </div>
                 </article>
+                @endif
               </li>
             @endforeach
           </ul>

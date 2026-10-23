@@ -67,6 +67,7 @@
 .bh-icon--amber { background: #fef3c7; color: #d97706; }
 .bh-icon--indigo { background: #e0e7ff; color: #4f46e5; }
 .bh-icon--lime { background: #ecfccb; color: #65a30d; }
+.bh-icon--cyan { background: #cffafe; color: #0891b2; }
 
 .bh-btn {
   display: inline-flex;
@@ -185,6 +186,7 @@
 .bh-jump--amber i { color: #d97706; }
 .bh-jump--indigo i { color: #4f46e5; }
 .bh-jump--lime i { color: #65a30d; }
+.bh-jump--cyan i { color: #0891b2; }
 
 .bh-jump:hover {
   border-color: var(--bh-green);
@@ -344,6 +346,14 @@
   --tone-dark: #4d7c0f;
   --tone-soft: #ecfccb;
   --tone-wash: #f7fee7;
+}
+
+/* The homepage's colour for ads */
+.bh-module--cyan {
+  --tone: #0891b2;
+  --tone-dark: #0e7490;
+  --tone-soft: #cffafe;
+  --tone-wash: #ecfeff;
 }
 
 .bh-module__main {
@@ -572,6 +582,16 @@
   --panel-accent: #365314;
 }
 
+.bh-featured--offers {
+  --panel-bg: linear-gradient(115deg, #ffd0a8 0%, #ff9a62 45%, #ff5a36 100%);
+  --panel-accent: #b42318;
+}
+
+.bh-featured--ads {
+  --panel-bg: linear-gradient(115deg, #cffafe 0%, #67e8f9 45%, #06b6d4 100%);
+  --panel-accent: #155e75;
+}
+
 .bh-featured {
   padding: 22px 20px 20px;
   border-radius: 24px;
@@ -772,7 +792,15 @@
 }
 
 .bh-biz__location i {
+  flex-shrink: 0;
   color: #94a3b8;
+}
+
+/* Its own box, so a long place name ends in "…" */
+.bh-biz__location-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bh-biz__foot {
@@ -809,6 +837,89 @@
   gap: .25rem;
   font-weight: 700;
   color: #15803d;
+  white-space: nowrap;
+}
+
+/* Offer and ad cards, like the homepage's: category tag on the image, deal badge, short text */
+.bh-deal__tag {
+  position: absolute;
+  top: .55rem;
+  left: .55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  max-width: calc(100% - 1.1rem);
+  padding: .3rem .6rem;
+  border-radius: 999px;
+  background: rgba(51, 65, 85, .88);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .16);
+}
+
+.bh-deal__tag--brown { background: rgba(120, 53, 15, .88); }
+.bh-deal__tag--purple { background: rgba(109, 40, 217, .88); }
+.bh-deal__tag--green { background: rgba(21, 128, 61, .9); }
+.bh-deal__tag--blue { background: rgba(29, 78, 216, .9); }
+.bh-deal__tag--teal { background: rgba(15, 118, 110, .9); }
+
+.bh-deal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+  padding: .75rem .9rem .9rem;
+}
+
+.bh-deal__body > * {
+  max-width: 100%;
+}
+
+.bh-deal__badge {
+  margin: .2rem 0 .45rem;
+  padding: .25rem .55rem;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ff1744, #e11d48);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bh-deal__desc {
+  margin: 0 0 .7rem;
+  font-size: .8rem;
+  line-height: 1.45;
+  color: var(--bh-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bh-deal .bh-biz__foot {
+  width: 100%;
+}
+
+.bh-deal .bh-biz__location {
+  margin: 0;
+  min-width: 0;
+}
+
+.bh-deal__valid {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--panel-accent);
   white-space: nowrap;
 }
 

@@ -476,11 +476,14 @@ class OfferPageController extends Controller
     }
 
     /**
-     * The /offers-and-ads hub: live offers and approved ads, with their counts and busiest categories.
+     * The /offers-and-ads hub: live offers and approved ads, with their counts, busiest categories
+     * and the latest few of each (the nearest first when the visitor's location is known).
      */
     public function offersAdsHub(): View
     {
         $today = Carbon::today();
+        $lat = is_numeric(session('frontend_lat')) ? (float) session('frontend_lat') : null;
+        $lng = is_numeric(session('frontend_lng')) ? (float) session('frontend_lng') : null;
 
         // The same listings the offers and ads markets show
         $liveOffers = function () use ($today): Builder {
@@ -514,13 +517,29 @@ class OfferPageController extends Controller
             ->whereDate('valid_until', '<=', $today->copy()->addDays(6)->toDateString())
             ->count();
 
+        // Latest few of each, in the order the offers and ads markets list them
+        $latestOffers = $this->baseOfferQuery(request(), $lat, $lng)
+            ->with(['category:id,name', 'subcategory:id,name'])
+            ->limit(6)
+            ->get();
+        $latestAds = $liveAds()->with(['category:id,name', 'subcategory:id,name']);
+        if ($lat !== null && $lng !== null) {
+            $latestAds
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+        $latestAds = $latestAds->orderByDesc('updated_at')->limit(6)->get();
+
         $modules = collect([
             [
                 'title' => 'Offers',
                 'tagline' => 'Deals, discounts & coupons',
                 'description' => 'Save with discounts, coupon codes and promotions from local businesses near you.',
+                'key' => 'offers',
                 'icon' => 'fa-gift',
-                'tone' => 'red',
+                'tone' => 'orange',
                 'stats' => [
                     ['label' => 'Live offers', 'value' => $offerCount],
                     ['label' => 'Businesses', 'value' => $liveOffers()->distinct()->count('user_id')],
@@ -532,13 +551,19 @@ class OfferPageController extends Controller
                 'url' => route('frontend.offers.index'),
                 'primary' => 'Explore offers',
                 'secondary' => ['label' => 'Post an offer', 'icon' => 'fa-plus', 'url' => route('post-offer')],
+                'listings_kind' => 'deal',
+                'listings_lead' => 'Latest',
+                'listings_title' => 'Offers',
+                'listings_url' => route('frontend.offers.index'),
+                'listings' => $this->hubDealCards($latestOffers, fn (Offer $offer) => HomepageMarketplacePromoCards::offerCard($offer)),
             ],
             [
                 'title' => 'Ads',
                 'tagline' => 'Classifieds & promotions',
                 'description' => 'Browse classified ads, property listings and promotions from people and businesses near you.',
+                'key' => 'ads',
                 'icon' => 'fa-rectangle-ad',
-                'tone' => 'amber',
+                'tone' => 'cyan',
                 'stats' => [
                     ['label' => 'Live ads', 'value' => $adCount],
                     ['label' => 'Advertisers', 'value' => $liveAds()->distinct()->count('user_id')],
@@ -550,6 +575,11 @@ class OfferPageController extends Controller
                 'url' => route('frontend.ads.index'),
                 'primary' => 'Explore ads',
                 'secondary' => ['label' => 'Post an ad', 'icon' => 'fa-plus', 'url' => route('ads.create.size')],
+                'listings_kind' => 'deal',
+                'listings_lead' => 'Latest',
+                'listings_title' => 'Ads',
+                'listings_url' => route('frontend.ads.index'),
+                'listings' => $this->hubDealCards($latestAds, fn (UserAd $ad) => HomepageMarketplacePromoCards::adCard($ad)),
             ],
         ]);
 
@@ -587,6 +617,21 @@ class OfferPageController extends Controller
                 'premium' => (bool) $listing->is_premium,
             ];
         })->values()->all();
+    }
+
+    /**
+     * Hub page offer and ad cards, from the homepage card data, with small images.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function hubDealCards(Collection $listings, callable $cardData): array
+    {
+        return $listings
+            ->map($cardData)
+            ->filter()
+            ->map(fn (array $card) => ['image' => ImageThumbnail::url($card['image'])] + $card)
+            ->values()
+            ->all();
     }
 
     /**
