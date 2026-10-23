@@ -34,8 +34,11 @@
             $adArea = $adWidth * $adHeight;
             $adIsPaid = (bool) ($sizeConfig['is_paid'] ?? ($ad->adSize?->is_paid ?? false));
             $mobileSizeTier = 'sm';
+            // Only banners (at least twice as wide as tall) are wide ads; a 900×900 square is not
+            $adIsWide = $adWidth >= 900 && $adWidth >= $adHeight * 2;
+            $adIsSquare = abs($adWidth - $adHeight) <= 40;
 
-            if ($adWidth >= 900) {
+            if ($adWidth >= 900 && ! $adIsSquare) {
                 $mobileSizeTier = 'full';
             } elseif ($adMaxDim <= 320 || $adArea <= 70000) {
                 $mobileSizeTier = 'xs';
@@ -53,9 +56,9 @@
             $shapeClass = 'ad-landscape';
 
             // Wide marketplace sizes must break out of masonry or they cover the next row.
-            if ($adWidth >= 900 && $adHeight >= 400) {
+            if ($adIsWide && $adHeight >= 400) {
                 $shapeClass = 'ad-hero';
-            } elseif ($adWidth >= 900) {
+            } elseif ($adIsWide) {
                 $shapeClass = 'ad-banner';
             } elseif ($adWidth <= 280 && $adHeight >= 400) {
                 $shapeClass = 'ad-portrait';
@@ -173,7 +176,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const maxDim = Math.max(adW, adH);
         const area = adW * adH;
 
-        if (adW >= 900 || card.classList.contains('ad-banner') || card.classList.contains('ad-hero')) {
+        if ((adW >= 900 && Math.abs(adW - adH) > 40) || card.classList.contains('ad-banner') || card.classList.contains('ad-hero')) {
             return 'full';
         }
         if (maxDim <= 320 || area <= 70000) {
@@ -207,7 +210,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         const isSquare = card.classList.contains('ad-square');
-        if (isSquare && adW >= 380 && adW <= 520 && Math.abs(adW - adH) <= 40) {
+        if (isSquare && adW >= 380 && Math.abs(adW - adH) <= 40) {
             const gap = 10;
             const twoColWidth = Math.max(140, Math.floor((gridWidth - gap) / 2));
             card.style.setProperty('--ad-mobile-w', twoColWidth + 'px');
@@ -260,7 +263,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return;
         }
 
-        grid.querySelectorAll('[data-filler]').forEach(function (el) {
+        grid.querySelectorAll('[data-filler], .ads-mobile-row-break').forEach(function (el) {
             el.remove();
         });
 
@@ -288,7 +291,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 return;
             }
 
-            mainCard.insertAdjacentElement('afterend', createMobileSponsoredCard(item, packWidth, grid));
+            const sponsored = createMobileSponsoredCard(item, packWidth, grid);
+            mainCard.insertAdjacentElement('afterend', sponsored);
+            // The next ads start a new row, so pairs of square ads stay together
+            sponsored.insertAdjacentElement('afterend', createMobileRowBreak());
             sponsorIndex++;
         });
 
@@ -306,6 +312,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         grid.style.minHeight = '';
     }
 
+    function createMobileRowBreak() {
+        const rowBreak = document.createElement('div');
+        rowBreak.className = 'ads-mobile-row-break';
+        rowBreak.setAttribute('aria-hidden', 'true');
+        // A full-width line with no height; the negative margin cancels the grid's 10px row gap
+        rowBreak.style.cssText = 'flex: 0 0 100%; height: 0; margin-top: -10px;';
+        return rowBreak;
+    }
+
     function applyFlexMobileLayout(grid) {
         const gridWidth = grid.clientWidth || (grid.parentElement ? grid.parentElement.clientWidth : 0) || window.innerWidth;
 
@@ -313,7 +328,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         grid.style.height = 'auto';
         grid.style.minHeight = '';
 
-        grid.querySelectorAll('[data-filler]').forEach(function (el) {
+        grid.querySelectorAll('[data-filler], .ads-mobile-row-break').forEach(function (el) {
             el.remove();
         });
         resetUsedFillers();
@@ -408,6 +423,16 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const dims = getDims(card);
         let cardW = dims.w;
         let cardH = dims.h;
+
+        // Desktop: scale every ad by the same factor so the largest sizes (900px wide) take half
+        // a row (a third on wide screens); drawn at their own pixel size they filled the screen
+        // one ad at a time
+        if (!isStackedLayout()) {
+            const largestPerRow = packWidth >= 1500 ? 3 : 2;
+            const fit = Math.min(1, ((packWidth - GAP * (largestPerRow - 1)) / largestPerRow) / 900);
+            cardW = Math.max(1, Math.round(cardW * fit));
+            cardH = Math.max(1, Math.round(cardH * fit));
+        }
 
         if (cardW > packWidth) {
             const scale = packWidth / cardW;
@@ -542,8 +567,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const adW = parseInt(card.dataset.adW || '0', 10);
         const adH = parseInt(card.dataset.adH || '0', 10);
 
+        // Squares are never a row of their own (a 900×900 ad was drawn as tall as the page is wide)
+        if (adW > 0 && Math.abs(adW - adH) <= 40) {
+            return false;
+        }
+
         if (!isStackedLayout()) {
             if (card.classList.contains('ad-portrait') || (adW > 0 && adH > adW * 1.15)) {
+                return false;
+            }
+
+            // Desktop: only banners, at least twice as wide as tall
+            if (adW >= 900 && adH > 0 && adW < adH * 2 && !card.classList.contains('banner') && !card.classList.contains('hero')) {
                 return false;
             }
         }
@@ -1494,11 +1529,22 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const host = grid.closest('.ads-market-grid');
         const page = grid.closest('.ads-market-page');
 
+        // The width inside an element's side padding (clientWidth includes it: .ads-layout has
+        // 36px each side, so cards packed to clientWidth ran past the right edge)
+        function innerWidth(el) {
+            if (!el) {
+                return 0;
+            }
+
+            const style = window.getComputedStyle(el);
+            return el.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+        }
+
         if (!isStackedLayout()) {
             const desktopCandidates = [
-                layout ? layout.clientWidth : 0,
-                host ? host.clientWidth : 0,
-                grid.parentElement ? grid.parentElement.clientWidth : 0,
+                innerWidth(layout),
+                innerWidth(host),
+                innerWidth(grid.parentElement),
                 grid.clientWidth,
             ];
 
@@ -1585,6 +1631,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         grid.classList.remove('is-mobile-layout');
+        grid.querySelectorAll('.ads-mobile-row-break').forEach(function (el) { el.remove(); });
         const state = getGridState(grid);
 
         if (keepPinnedFillers) {
