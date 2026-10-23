@@ -19,6 +19,9 @@ use App\Support\HomepageCategoryListingCards;
 use App\Support\HomepageSectionOrder;
 use App\Support\HomepageImageRegistry;
 use App\Support\ImageThumbnail;
+use App\Support\ConsultantListingCard;
+use App\Support\ServiceProviderListingCard;
+use App\Support\VendorListingCard;
 use App\Support\HomepageMarketplacePromoCards;
 use App\Support\HomepageShowcaseItems;
 use App\Support\HomepagePopularNearYouCards;
@@ -372,11 +375,16 @@ class OfferPageController extends Controller
     }
 
     /**
-     * The /businesses hub: vendors, consultants and service providers, each with its counts and
-     * the categories that have the most listings.
+     * The /businesses hub: vendors, consultants and service providers, each with its counts, the
+     * categories that have the most listings, and a few listings to start exploring (premium
+     * first, then the newest; the nearest first when the visitor's location is known).
      */
     public function businessesHub(): View
     {
+        $lat = is_numeric(session('frontend_lat')) ? (float) session('frontend_lat') : null;
+        $lng = is_numeric(session('frontend_lng')) ? (float) session('frontend_lng') : null;
+        $hasLocation = $lat !== null && $lng !== null;
+
         $vendorStats = $this->vendorListingStats();
         $consultantStats = $this->consultantListingStats();
         $serviceStats = $this->serviceProviderListingStats();
@@ -400,6 +408,13 @@ class OfferPageController extends Controller
                 'url' => route('frontend.vendors.index'),
                 'primary' => 'Explore vendors',
                 'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.vendors.premium')],
+                'listings_title' => 'Featured vendors',
+                'listings_url' => route('frontend.vendors.listings'),
+                'listings' => $this->hubListingCards(
+                    $this->topVendorsQuery($lat, $lng)->limit(6)->get(),
+                    fn (Vendor $vendor) => VendorListingCard::data($vendor, $hasLocation),
+                    'storeUrl'
+                ),
             ],
             [
                 'title' => 'Consultants',
@@ -414,6 +429,13 @@ class OfferPageController extends Controller
                 'url' => route('frontend.consultants.index'),
                 'primary' => 'Explore consultants',
                 'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.consultants.premium')],
+                'listings_title' => 'Featured consultants',
+                'listings_url' => route('frontend.consultants.listings'),
+                'listings' => $this->hubListingCards(
+                    $this->topConsultantsQuery($lat, $lng)->limit(6)->get(),
+                    fn (Consultant $consultant) => ConsultantListingCard::data($consultant, $hasLocation),
+                    'profileUrl'
+                ),
             ],
             [
                 'title' => 'Services',
@@ -428,6 +450,13 @@ class OfferPageController extends Controller
                 'url' => route('frontend.service_providers.index'),
                 'primary' => 'Explore services',
                 'secondary' => ['label' => 'Premium', 'icon' => 'fa-crown', 'url' => route('frontend.service_providers.premium')],
+                'listings_title' => 'Featured services',
+                'listings_url' => route('frontend.service_providers.listings'),
+                'listings' => $this->hubListingCards(
+                    $this->topServiceProvidersQuery($lat, $lng)->limit(6)->get(),
+                    fn (ServiceProvider $serviceProvider) => ServiceProviderListingCard::data($serviceProvider, $hasLocation),
+                    'profileUrl'
+                ),
             ],
         ]);
         $allStats = [$vendorStats, $consultantStats, $serviceStats];
@@ -530,6 +559,31 @@ class OfferPageController extends Controller
                 'categories' => $offerCategoryCount + $adCategoryCount,
             ],
         ]);
+    }
+
+    /**
+     * Hub page listing cards, from the same card data the listing pages use, with small cover images.
+     *
+     * @return array<int, array{name:string,url:string,cover:string,avatar:string,category:string,location:string,rating:float,reviews:int,premium:bool}>
+     */
+    private function hubListingCards(Collection $listings, callable $cardData, string $urlKey): array
+    {
+        return $listings->map(function ($listing) use ($cardData, $urlKey): array {
+            $listing->usePublishedPage();
+            $card = $cardData($listing);
+
+            return [
+                'name' => $listing->publicDisplayName(),
+                'url' => $card[$urlKey],
+                'cover' => ImageThumbnail::url($card['coverImage']),
+                'avatar' => $card['avatarImage'],
+                'category' => $card['categoryName'],
+                'location' => $card['locationLabel'],
+                'rating' => (float) $card['ratingScore'],
+                'reviews' => (int) $card['ratingCount'],
+                'premium' => (bool) $listing->is_premium,
+            ];
+        })->values()->all();
     }
 
     /**

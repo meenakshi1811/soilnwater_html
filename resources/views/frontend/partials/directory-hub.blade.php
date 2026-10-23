@@ -3,7 +3,7 @@
   (counts, popular categories, links), how it works, and a call to action.
   $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta
   $modules: title, tagline, description, icon, tone, stats, categories, categories_url, empty,
-            url, primary, secondary
+            url, primary, secondary, and optionally listings_title, listings_url, listings
 --}}
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/directory-hub.css') }}?v={{ now()->timestamp }}">
@@ -49,6 +49,60 @@
         @endforeach
       </ul>
     </section>
+
+    {{-- A few listings from each module to start exploring (modules that pass 'listings') --}}
+    @foreach ($modules as $module)
+      @if (! empty($module['listings']))
+        <section class="bh-section bh-featured bh-module--{{ $module['tone'] }}" aria-labelledby="bhFeatured{{ $loop->index }}">
+          <div class="bh-section__head">
+            <h2 class="bh-section__title bh-featured__title" id="bhFeatured{{ $loop->index }}">
+              <span class="bh-featured__icon" aria-hidden="true"><i class="fa-solid {{ $module['icon'] }}"></i></span>
+              {{ $module['listings_title'] }}
+            </h2>
+            <a href="{{ $module['listings_url'] }}" class="bh-section__more">View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+
+          <ul class="bh-rail">
+            @foreach ($module['listings'] as $listing)
+              <li class="bh-rail__item">
+                <article class="bh-biz">
+                  <a href="{{ $listing['url'] }}" class="bh-biz__media" tabindex="-1" aria-hidden="true">
+                    <img
+                      src="{{ $listing['cover'] }}"
+                      alt=""
+                      loading="lazy"
+                      onerror="this.onerror=null;this.src='{{ asset('assets/images/vendor-card-placeholder.svg') }}';"
+                    >
+                    @if ($listing['premium'])
+                      <span class="bh-biz__badge"><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium</span>
+                    @endif
+                  </a>
+                  <div class="bh-biz__body">
+                    <img
+                      class="bh-biz__avatar"
+                      src="{{ $listing['avatar'] }}"
+                      alt=""
+                      loading="lazy"
+                      onerror="this.onerror=null;this.src='{{ asset('assets/images/profile-placeholder.svg') }}';"
+                    >
+                    <h3 class="bh-biz__name"><a href="{{ $listing['url'] }}">{{ $listing['name'] }}</a></h3>
+                    <p class="bh-biz__category">{{ $listing['category'] }}</p>
+                    <p class="bh-biz__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $listing['location'] }}</p>
+                    <div class="bh-biz__foot">
+                      <span class="bh-biz__rating">
+                        <i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format($listing['rating'], 1) }}
+                        <span>({{ number_format($listing['reviews']) }})</span>
+                      </span>
+                      <span class="bh-biz__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
+                    </div>
+                  </div>
+                </article>
+              </li>
+            @endforeach
+          </ul>
+        </section>
+      @endif
+    @endforeach
 
     <section class="bh-section" aria-labelledby="bhModulesTitle">
       <div class="bh-section__head">
