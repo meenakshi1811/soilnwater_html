@@ -29,6 +29,16 @@
 
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
+
+            // Lay the ad out at the size its image was made at when that is smaller: a size's
+            // settings can change after ads are posted (ads made at 526×526 and 512×640 were
+            // showing as 900×900, each one filling the page)
+            $finalImageFile = $ad->final_image ? public_path($ad->final_image) : null;
+            $imageSize = $finalImageFile && is_file($finalImageFile) ? @getimagesize($finalImageFile) : false;
+            if ($imageSize && $imageSize[0] > 0 && $imageSize[1] > 0 && $imageSize[0] <= $adWidth && $imageSize[1] <= $adHeight) {
+                $adWidth = (int) $imageSize[0];
+                $adHeight = (int) $imageSize[1];
+            }
             $adImageHeight = $adHeight;
             $adMaxDim = max($adWidth, $adHeight);
             $adArea = $adWidth * $adHeight;
@@ -210,7 +220,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         const isSquare = card.classList.contains('ad-square');
-        if (isSquare && adW >= 380 && Math.abs(adW - adH) <= 40) {
+        if (isSquare && adW >= 380 && adW <= 520 && Math.abs(adW - adH) <= 40) {
             const gap = 10;
             const twoColWidth = Math.max(140, Math.floor((gridWidth - gap) / 2));
             card.style.setProperty('--ad-mobile-w', twoColWidth + 'px');
@@ -263,7 +273,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return;
         }
 
-        grid.querySelectorAll('[data-filler], .ads-mobile-row-break').forEach(function (el) {
+        grid.querySelectorAll('[data-filler]').forEach(function (el) {
             el.remove();
         });
 
@@ -291,10 +301,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 return;
             }
 
-            const sponsored = createMobileSponsoredCard(item, packWidth, grid);
-            mainCard.insertAdjacentElement('afterend', sponsored);
-            // The next ads start a new row, so pairs of square ads stay together
-            sponsored.insertAdjacentElement('afterend', createMobileRowBreak());
+            mainCard.insertAdjacentElement('afterend', createMobileSponsoredCard(item, packWidth, grid));
             sponsorIndex++;
         });
 
@@ -312,15 +319,6 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         grid.style.minHeight = '';
     }
 
-    function createMobileRowBreak() {
-        const rowBreak = document.createElement('div');
-        rowBreak.className = 'ads-mobile-row-break';
-        rowBreak.setAttribute('aria-hidden', 'true');
-        // A full-width line with no height; the negative margin cancels the grid's 10px row gap
-        rowBreak.style.cssText = 'flex: 0 0 100%; height: 0; margin-top: -10px;';
-        return rowBreak;
-    }
-
     function applyFlexMobileLayout(grid) {
         const gridWidth = grid.clientWidth || (grid.parentElement ? grid.parentElement.clientWidth : 0) || window.innerWidth;
 
@@ -328,7 +326,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         grid.style.height = 'auto';
         grid.style.minHeight = '';
 
-        grid.querySelectorAll('[data-filler], .ads-mobile-row-break').forEach(function (el) {
+        grid.querySelectorAll('[data-filler]').forEach(function (el) {
             el.remove();
         });
         resetUsedFillers();
@@ -424,15 +422,6 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         let cardW = dims.w;
         let cardH = dims.h;
 
-        // Desktop: scale every ad by the same factor so the largest sizes (900px wide) take half
-        // a row (a third on wide screens); drawn at their own pixel size they filled the screen
-        // one ad at a time
-        if (!isStackedLayout()) {
-            const largestPerRow = packWidth >= 1500 ? 3 : 2;
-            const fit = Math.min(1, ((packWidth - GAP * (largestPerRow - 1)) / largestPerRow) / 900);
-            cardW = Math.max(1, Math.round(cardW * fit));
-            cardH = Math.max(1, Math.round(cardH * fit));
-        }
 
         if (cardW > packWidth) {
             const scale = packWidth / cardW;
@@ -1529,22 +1518,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const host = grid.closest('.ads-market-grid');
         const page = grid.closest('.ads-market-page');
 
-        // The width inside an element's side padding (clientWidth includes it: .ads-layout has
-        // 36px each side, so cards packed to clientWidth ran past the right edge)
-        function innerWidth(el) {
-            if (!el) {
-                return 0;
-            }
-
-            const style = window.getComputedStyle(el);
-            return el.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
-        }
-
         if (!isStackedLayout()) {
             const desktopCandidates = [
-                innerWidth(layout),
-                innerWidth(host),
-                innerWidth(grid.parentElement),
+                layout ? layout.clientWidth : 0,
+                host ? host.clientWidth : 0,
+                grid.parentElement ? grid.parentElement.clientWidth : 0,
                 grid.clientWidth,
             ];
 
@@ -1631,7 +1609,6 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         grid.classList.remove('is-mobile-layout');
-        grid.querySelectorAll('.ads-mobile-row-break').forEach(function (el) { el.remove(); });
         const state = getGridState(grid);
 
         if (keepPinnedFillers) {
