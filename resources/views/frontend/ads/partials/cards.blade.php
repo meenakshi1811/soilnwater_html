@@ -1119,6 +1119,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             }
         }
 
+        // A column a little narrower than the smallest tile gets that tile scaled down to fit,
+        // rather than staying empty
+        if (!picked && sideSizes.length && sideWidth >= 180) {
+            const smallest = sideSizes[0];
+            const scaledW = Math.floor(sideWidth);
+            const scaledH = Math.round(Number(smallest.h) * (scaledW / Number(smallest.w)));
+
+            if (scaledW < Number(smallest.w) && scaledH <= remainingH) {
+                picked = Object.assign({}, smallest, { w: scaledW, h: scaledH });
+            }
+        }
+
         return picked;
     }
 
@@ -1526,9 +1538,13 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 grid.clientWidth,
             ];
 
+            // Cards never go past the right edge of the screen (12px margin): the layout's width
+            // includes its side padding, so the last column of sponsored tiles ran off the page
+            const roomToScreenEdge = Math.floor(document.documentElement.clientWidth - grid.getBoundingClientRect().left - 12);
+
             for (let i = 0; i < desktopCandidates.length; i++) {
                 if (desktopCandidates[i] > 0) {
-                    return desktopCandidates[i];
+                    return roomToScreenEdge > 0 ? Math.min(desktopCandidates[i], roomToScreenEdge) : desktopCandidates[i];
                 }
             }
 
@@ -1566,6 +1582,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 : Array.from(layout.querySelectorAll('.masonry-grid'));
 
             if (!grids.length) {
+                layout.style.minHeight = '';
                 return;
             }
 
@@ -1590,7 +1607,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             if (needsRetry && !isStackedLayout() && !usedDesktopFallback) {
                 usedDesktopFallback = true;
                 setTimeout(run, 80);
+                return;
             }
+
+            // Packed: the height held during a rebuild (see buildLayout) can go
+            layout.style.minHeight = '';
         }
 
         requestAnimationFrame(function () {
@@ -1745,6 +1766,12 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         // Full rebuild (first load / filters / resize)
         if (!appendMode || !layout.querySelector('.masonry-grid, .ads-full-width')) {
+            // Hold the current height until the cards are packed again (a few frames later): the
+            // empty layout in between made the page jump up and the infinite scroll fetch pages
+            // nobody had scrolled to
+            if (layout.offsetHeight > 0) {
+                layout.style.minHeight = layout.offsetHeight + 'px';
+            }
             layout.innerHTML = '';
             instance.gridState = new WeakMap();
             instance.usedFillerKeys = new Set();
@@ -1813,7 +1840,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
 if (!window.__adsMasonryResizeBound) {
     window.__adsMasonryResizeBound = true;
+    window.__adsMasonryLastWidth = window.innerWidth;
     window.addEventListener('resize', function () {
+        // Phones fire resize when the address bar slides in or out while scrolling; only a new
+        // width needs the ads laid out again (a rebuild redraws every card)
+        if (window.innerWidth === window.__adsMasonryLastWidth) {
+            return;
+        }
+        window.__adsMasonryLastWidth = window.innerWidth;
+
         clearTimeout(window.__adsMasonryResizeTimer);
         window.__adsMasonryResizeTimer = setTimeout(function () {
             (window.__adsMasonryInstances || []).forEach(function (entry) {

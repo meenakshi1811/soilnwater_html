@@ -55,15 +55,17 @@ class AdsMarketController extends Controller
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
             ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'));
 
+        // id breaks ties in the order, so every page splits the same way (no ad repeated or skipped)
         if ($lat !== null && $lng !== null) {
             $adsQuery
                 ->select('user_ads.*')
                 ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
                 ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('distance_km')
-                ->orderByDesc('updated_at');
+                ->orderByDesc('updated_at')
+                ->orderByDesc('user_ads.id');
         } else {
-            $adsQuery->orderByDesc('updated_at');
+            $adsQuery->orderByDesc('updated_at')->orderByDesc('user_ads.id');
         }
 
         $ads = $adsQuery

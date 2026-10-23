@@ -99,9 +99,137 @@ function parseCardsHtml(html){
         layout: temp.querySelector('#adsLayout')
     };
 }
-async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();if(!payload.total){adsGrid.innerHTML='<div class="text-center py-4"><h4>No result found</h4></div>';nextPageUrl='';adsGrid.dataset.nextPageUrl='';summaryText.textContent='';loadingText.classList.add('d-none');isLoading=false;return;}adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=`Showing 1 to ${payload.loaded_to} of ${payload.total} results`;if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { resetFillers: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}loadingText.classList.add('d-none');isLoading=false;}
-async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();const parsed=parseCardsHtml(p.html||'');const existingSource=adsGrid.querySelector('#adsSource');if(existingSource&&parsed.source){existingSource.insertAdjacentHTML('beforeend',parsed.source.innerHTML);}else if(parsed.source){adsGrid.insertAdjacentHTML('beforeend',p.html||'');}nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { append: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}loadingText.classList.add('d-none');isLoading=false;}
-if(scrollSentinel && 'IntersectionObserver' in window){new IntersectionObserver(e=>{if(e[0].isIntersecting) loadMore();},{rootMargin:'250px'}).observe(scrollSentinel);}
+// A page that was loading when the filters changed is dropped instead of being added
+let requestGeneration = 0;
+let refreshController = null;
+let retryDelay = 3000;
+let sentinelTimer;
+
+function renderCards(options) {
+    if (typeof window.renderAdsMarketCards === 'function') {
+        window.renderAdsMarketCards('ads', adsMarketFillers, Object.assign({ blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages }, options));
+    }
+}
+
+async function fetchAds(url, signal) {
+    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: signal });
+    if (!res.ok) {
+        throw new Error('Ads request failed: ' + res.status);
+    }
+
+    return res.json();
+}
+
+// The ads are laid out a few frames after they arrive (and again when the page finishes loading),
+// so the sentinel can look visible before the grid has its height: check once it has settled,
+// and again after each page so a screen that is still not full keeps loading
+function checkSentinel(delay) {
+    clearTimeout(sentinelTimer);
+    sentinelTimer = setTimeout(function () {
+        requestAnimationFrame(function () {
+            if (nextPageUrl && !isLoading && scrollSentinel && scrollSentinel.getBoundingClientRect().top <= window.innerHeight + 250) {
+                loadMore();
+            }
+        });
+    }, delay === undefined ? 300 : delay);
+}
+
+async function refreshAds() {
+    const generation = ++requestGeneration;
+    if (refreshController) {
+        refreshController.abort();
+    }
+    const controller = new AbortController();
+    refreshController = controller;
+
+    isLoading = true;
+    loadingText.classList.remove('d-none');
+
+    try {
+        const payload = await fetchAds(buildUrl('{{ route('frontend.ads.index') }}'), controller.signal);
+        if (generation !== requestGeneration) {
+            return;
+        }
+
+        if (!payload.total) {
+            adsGrid.innerHTML = '<div class="text-center py-4"><h4>No result found</h4></div>';
+            nextPageUrl = '';
+            adsGrid.dataset.nextPageUrl = '';
+            summaryText.textContent = '';
+            return;
+        }
+
+        adsGrid.innerHTML = payload.html || '';
+        nextPageUrl = payload.next_page_url || '';
+        adsGrid.dataset.nextPageUrl = nextPageUrl;
+        summaryText.textContent = `Showing 1 to ${payload.loaded_to} of ${payload.total} results`;
+        renderCards({ resetFillers: true });
+    } catch (error) {
+        // Aborted by a newer filter change, or the request failed: the current ads stay
+    } finally {
+        if (generation === requestGeneration) {
+            refreshController = null;
+            isLoading = false;
+            loadingText.classList.add('d-none');
+            checkSentinel();
+        }
+    }
+}
+
+async function loadMore() {
+    if (!nextPageUrl || isLoading) {
+        return;
+    }
+
+    const generation = requestGeneration;
+    isLoading = true;
+    loadingText.classList.remove('d-none');
+
+    let loaded = false;
+    try {
+        const p = await fetchAds(nextPageUrl);
+        if (generation !== requestGeneration) {
+            return;
+        }
+
+        const parsed = parseCardsHtml(p.html || '');
+        const existingSource = adsGrid.querySelector('#adsSource');
+        if (existingSource && parsed.source) {
+            existingSource.insertAdjacentHTML('beforeend', parsed.source.innerHTML);
+        } else if (parsed.source) {
+            adsGrid.insertAdjacentHTML('beforeend', p.html || '');
+        }
+
+        nextPageUrl = p.next_page_url || '';
+        adsGrid.dataset.nextPageUrl = nextPageUrl;
+        summaryText.textContent = p.total ? `Showing 1 to ${p.loaded_to} of ${p.total} results` : '';
+        renderCards({ append: true });
+        loaded = true;
+        retryDelay = 3000;
+    } catch (error) {
+        // A failed page (e.g. a dropped connection) is tried again shortly; nextPageUrl is kept
+    } finally {
+        if (generation === requestGeneration) {
+            isLoading = false;
+            loadingText.classList.add('d-none');
+
+            if (loaded) {
+                checkSentinel();
+            } else {
+                checkSentinel(retryDelay);
+                retryDelay = Math.min(retryDelay * 2, 30000);
+            }
+        }
+    }
+}
+
+if (scrollSentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+            checkSentinel();
+        }
+    }, { rootMargin: '250px' }).observe(scrollSentinel);
+}
 });
 </script>
 @endpush
