@@ -313,6 +313,7 @@
         }
     }
 </style>
+<link rel="stylesheet" href="{{ asset('assets/css/community-hub-mobile.css') }}?v={{ file_exists(public_path('assets/css/community-hub-mobile.css')) ? filemtime(public_path('assets/css/community-hub-mobile.css')) : time() }}">
 @endpush
 
 @section('content')
