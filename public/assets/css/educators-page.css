@@ -199,3 +199,39 @@
     gap: 1rem;
   }
 }
+
+/* Phones: two teachers per row; the verified rail shows two cards at a time */
+@media (max-width: 575.98px) {
+  .educators-page .vendors-results-grid:not(.is-list-view) {
+    gap: .6rem;
+  }
+
+  .educators-page .vendors-premium-track {
+    grid-template-columns: none;
+    grid-auto-columns: calc(50% - .3rem);
+    gap: .6rem;
+  }
+
+  .educators-page .educators-card__media {
+    min-height: 104px;
+  }
+
+  .educators-page .educators-card__photo {
+    width: 68px !important;
+    height: 68px !important;
+  }
+
+  .educators-page .educators-card__headline {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: .68rem;
+  }
+
+  .educators-page .educators-card__stats {
+    flex-wrap: wrap;
+    gap: .2rem .5rem;
+    font-size: .64rem;
+  }
+}

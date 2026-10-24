@@ -171,3 +171,19 @@
     width: 100%;
   }
 }
+
+/* Phones: two schools per row (the shared listing rules can't beat the grid above) */
+@media (max-width: 575.98px) {
+  .institutes-page .institutes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+
+  .institutes-card__tagline {
+    display: none;
+  }
+
+  .institutes-card__board {
+    font-size: .64rem;
+  }
+}

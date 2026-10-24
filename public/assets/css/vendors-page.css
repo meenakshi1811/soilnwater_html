@@ -1394,3 +1394,184 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* ---------- Listing pages on phones (vendors, services, consultants, teachers, schools,
+   institutes): a compact hero, the counts as one strip, two cards per row ---------- */
+@media (max-width: 575.98px) {
+  .vendors-hero {
+    gap: .65rem;
+    padding: .85rem .85rem .8rem;
+  }
+
+  .vendors-hero__eyebrow {
+    margin-bottom: .35rem;
+    font-size: .62rem;
+  }
+
+  .vendors-hero__eyebrow-icon {
+    width: 20px;
+    height: 20px;
+    font-size: .6rem;
+  }
+
+  .vendors-hero__intro h1 {
+    margin-bottom: .25rem;
+    font-size: 1.22rem;
+  }
+
+  .vendors-hero__intro p {
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  /* The counts in one row (as many columns as counts): number over label, no icons */
+  .vendors-hero__stats {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .vendors-stat,
+  .vendors-stat:nth-child(odd),
+  .vendors-stat:nth-child(-n+2) {
+    flex-direction: column;
+    justify-content: center;
+    gap: .1rem;
+    padding: .5rem .2rem;
+    border-right: 1px solid #eef2f7;
+    border-bottom: 0;
+    text-align: center;
+  }
+
+  .vendors-stat:last-child {
+    border-right: 0;
+  }
+
+  /* (.vendors-stat span would otherwise show the icon span again) */
+  .vendors-stat .vendors-stat__icon {
+    display: none;
+  }
+
+  .vendors-stat__text {
+    align-items: center;
+  }
+
+  .vendors-stat strong {
+    font-size: .92rem;
+  }
+
+  .vendors-stat span {
+    font-size: .58rem;
+  }
+
+  /* Top categories: the first seven and the "All Listing" tile (the categories page has them all) */
+  .vendors-categories-strip:not(.vendors-categories-strip--all) > .vendors-category-chip:not(.vendors-category-chip--all):nth-child(n + 8) {
+    display: none;
+  }
+
+  /* Category tiles a little tighter */
+  .vendors-category-chip {
+    gap: .35rem;
+    padding: .55rem .6rem;
+  }
+
+  .vendors-category-chip__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: .72rem;
+  }
+
+  .vendors-category-chip__text strong {
+    font-size: .72rem;
+  }
+
+  /* Two cards per row */
+  .vendors-premium-track,
+  .vendors-results-grid:not(.is-list-view),
+  .vendors-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+
+  .vendors-section {
+    padding: .85rem .75rem;
+  }
+
+  .vendors-compact-card__body {
+    gap: .18rem;
+    padding: .5rem .55rem .6rem;
+  }
+
+  .vendors-compact-card__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: .76rem;
+  }
+
+  .vendors-compact-card__badge {
+    top: .35rem;
+    left: .35rem;
+    font-size: .52rem;
+  }
+
+  /* Premium cards: shorter picture, smaller logo, the essentials */
+  .vendors-premium-card__media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .vendors-premium-card__badge {
+    top: .35rem;
+    left: .35rem;
+    padding: .15rem .4rem;
+    font-size: .54rem;
+  }
+
+  .vendors-premium-card__avatar {
+    left: .55rem;
+    bottom: -.8rem;
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+
+  .vendors-premium-card__body {
+    gap: .3rem;
+    padding: 1.05rem .55rem .6rem;
+  }
+
+  .vendors-premium-card__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: .78rem;
+  }
+
+  .vendors-premium-card__category {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: .58rem;
+  }
+
+  .vendors-premium-card__meta {
+    font-size: .66rem;
+  }
+
+  .vendors-premium-card__product-heading {
+    font-size: .66rem;
+  }
+
+  .vendors-premium-card__rating-row .vendors-verified-badge {
+    display: none;
+  }
+
+  .vendors-premium-card__cta {
+    min-height: 32px;
+    padding: .35rem .5rem;
+    font-size: .72rem;
+  }
+}
