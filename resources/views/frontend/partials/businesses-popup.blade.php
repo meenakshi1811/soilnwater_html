@@ -23,6 +23,8 @@
           @foreach ($modules as $module)
             <article class="bp-card bp-card--{{ $module['key'] }}">
               <div class="bp-card__top">
+                <img class="bp-card__art" src="{{ asset($module['image']) }}" alt="" loading="lazy">
+
                 <div class="bp-card__head">
                   <span class="bp-card__icon" aria-hidden="true"><i class="fa-solid {{ $module['icon'] }}"></i></span>
                   <div class="bp-card__heading">
@@ -37,8 +39,6 @@
                 <p class="bp-card__desc">{{ $module['description'] }}</p>
 
                 <div class="bp-card__body">
-                  <img class="bp-card__photo" src="{{ asset($module['image']) }}" alt="" width="320" height="400" loading="lazy">
-
                   @if ($module['categories'] !== [])
                     <ul class="bp-card__chips">
                       @foreach ($module['categories'] as $category)
