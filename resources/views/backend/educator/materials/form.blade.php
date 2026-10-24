@@ -253,7 +253,12 @@
               </div>
               <div class="mb-3">
                 <label class="form-label js-qp-institution-name-label">University Name <span class="text-danger">*</span></label>
-                <input type="text" name="board_university" class="form-control js-qp-institution-name js-school-institute-search" autocomplete="off" value="{{ old('board_university', $material->board_university) }}" placeholder="Search university, college, or school" @disabled($qpIsBoard)>
+                <input type="text" name="board_university" class="form-control js-qp-institution-name js-school-institute-search" autocomplete="off" value="{{ old('board_university', $material->board_university) }}" placeholder="Search university, college, or school" data-latitude-target="qpSchoolLat" data-longitude-target="qpSchoolLng" data-educator-city-target="qpSchoolCity" data-educator-state-target="qpSchoolState" @disabled($qpIsBoard)>
+                {{-- Filled from the Google place picked above: where the school is --}}
+                <input type="hidden" name="meta[school_city]" id="qpSchoolCity" value="{{ old('meta.school_city', data_get($meta, 'school_city')) }}">
+                <input type="hidden" name="meta[school_state]" id="qpSchoolState" value="{{ old('meta.school_state', data_get($meta, 'school_state')) }}">
+                <input type="hidden" name="meta[school_lat]" id="qpSchoolLat" value="{{ old('meta.school_lat', data_get($meta, 'school_lat')) }}">
+                <input type="hidden" name="meta[school_lng]" id="qpSchoolLng" value="{{ old('meta.school_lng', data_get($meta, 'school_lng')) }}">
                 <small class="text-muted js-qp-institution-search-hint {{ $qpIsBoard ? 'd-none' : '' }}">Start typing to search schools and institutes via Google.</small>
               </div>
             </div>

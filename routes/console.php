@@ -11,6 +11,21 @@ Artisan::command('inspire', function () {
 
 // Run after deploying: makes the small homepage copies of the images up front, so the first
 // visitors don't wait for them to be made (see App\Support\ImageThumbnail)
+Artisan::command('study-materials:locate', function () {
+    \App\Support\StudyMaterialLocation::flush();
+    $count = 0;
+    \App\Models\StudyMaterial::query()->with(['educator', 'user'])->orderBy('id')->chunkById(200, function ($materials) use (&$count) {
+        foreach ($materials as $material) {
+            \App\Support\StudyMaterialLocation::fill($material);
+            if ($material->isDirty()) {
+                $material->saveQuietly();
+                $count++;
+            }
+        }
+    });
+    $this->info("Updated the school and city of {$count} study materials.");
+})->purpose('Work out the school and city of every study material again');
+
 Artisan::command('images:thumbnails {dirs?* : Folders under public/ (default: the homepage images)}', function () {
     $dirs = $this->argument('dirs') ?: ['uploads/homepage', 'assets/images/homepage-seed'];
     $ready = 0;

@@ -694,7 +694,7 @@
 
 .sm-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1rem;
   width: 100%;
   margin-bottom: 1.25rem;
@@ -749,6 +749,34 @@
 .sm-notes-page .sm-stats-row .sm-stat-card--green .sm-stat-card__icon { background: #e7f6ed; color: #22c55e; }
 .sm-notes-page .sm-stats-row .sm-stat-card--purple .sm-stat-card__icon { background: #f0ebff; color: #8b5cf6; }
 .sm-notes-page .sm-stats-row .sm-stat-card--orange .sm-stat-card__icon { background: #fff1e6; color: #f97316; }
+.sm-notes-page .sm-stats-row .sm-stat-card--teal .sm-stat-card__icon { background: #e0f7f4; color: #0d9488; }
+.sm-notes-page .sm-stats-row .sm-stat-card--pink .sm-stat-card__icon { background: #fde8f1; color: #db2777; }
+
+/* Six boxes: tighter on laptops, three per row on mid-size screens */
+@media (max-width: 1399.98px) {
+  .sm-notes-page .sm-stats-row {
+    gap: .75rem;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card {
+    gap: .7rem;
+    padding: .9rem 1rem;
+    min-height: 80px;
+  }
+
+  .sm-notes-page .sm-stats-row .sm-stat-card__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .sm-notes-page .sm-stats-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
 .sm-category-tabs {
   display: flex;
@@ -2809,3 +2837,4 @@
     min-height: 280px;
   }
 }
+

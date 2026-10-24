@@ -63,6 +63,8 @@ class StudyMaterialLibraryController extends Controller
             'subjects' => (int) StudyMaterial::query()->approved()->publiclyListed()->whereNotNull('subject')->where('subject', '!=', '')->distinct()->count('subject'),
             'downloads' => (int) (clone $base)->sum('downloads_count'),
             'contributors' => (int) StudyMaterial::query()->approved()->publiclyListed()->distinct()->count('educator_id'),
+            'schools' => (int) StudyMaterial::query()->approved()->publiclyListed()->whereNotNull('school_name')->distinct()->count('school_name'),
+            'cities' => (int) StudyMaterial::query()->approved()->publiclyListed()->whereNotNull('city')->distinct()->count('city'),
         ];
 
         $categories = StudyMaterial::query()
@@ -164,6 +166,8 @@ class StudyMaterialLibraryController extends Controller
             'boardOptions' => $this->distinctFilterOptions('board_university'),
             'subjectOptions' => $this->distinctFilterOptions('subject'),
             'topicOptions' => $this->distinctFilterOptions('topic_chapter'),
+            'schoolOptions' => $this->countedFilterOptions('school_name'),
+            'cityOptions' => $this->countedFilterOptions('city'),
             'queryWithoutPage' => $request->except('page'),
         ]);
     }
@@ -394,6 +398,8 @@ class StudyMaterialLibraryController extends Controller
             'class_course' => $request->string('class_course')->toString() ?: null,
             'board_university' => $request->string('board_university')->toString() ?: null,
             'topic_chapter' => $request->string('topic_chapter')->toString() ?: null,
+            'school' => $request->string('school')->toString() ?: null,
+            'city' => $request->string('city')->toString() ?: null,
             'language' => $request->string('language')->toString() ?: null,
             'difficulty' => $request->string('difficulty')->toString() ?: null,
         ];
@@ -418,6 +424,14 @@ class StudyMaterialLibraryController extends Controller
             if (! empty($filters[$field])) {
                 $query->where($field, $filters[$field]);
             }
+        }
+
+        if (! empty($filters['school'])) {
+            $query->where('school_name', $filters['school']);
+        }
+
+        if (! empty($filters['city'])) {
+            $query->where('city', $filters['city']);
         }
 
         if (! empty($filters['material_types'])) {
@@ -456,6 +470,23 @@ class StudyMaterialLibraryController extends Controller
             'title' => $query->orderBy('title')->orderByDesc('id'),
             default => $query->latest()->orderByDesc('id'),
         };
+    }
+
+    /**
+     * Values of a column with how many materials have each, most first: [value => count].
+     */
+    private function countedFilterOptions(string $column): \Illuminate\Support\Collection
+    {
+        return StudyMaterial::query()
+            ->approved()
+            ->publiclyListed()
+            ->whereNotNull($column)
+            ->where($column, '!=', '')
+            ->select($column, DB::raw('COUNT(*) as total'))
+            ->groupBy($column)
+            ->orderByDesc('total')
+            ->orderBy($column)
+            ->pluck('total', $column);
     }
 
     private function distinctFilterOptions(string $column): \Illuminate\Support\Collection

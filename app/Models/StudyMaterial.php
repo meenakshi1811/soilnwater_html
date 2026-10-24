@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StudyMaterialLocation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,11 @@ class StudyMaterial extends Model
         'difficulty',
         'academic_year',
         'medium',
+        'school_name',
+        'city',
+        'state',
+        'latitude',
+        'longitude',
         'is_free',
         'price',
         'is_trending',
@@ -74,7 +80,15 @@ class StudyMaterial extends Model
             'is_verified' => 'boolean',
             'average_rating' => 'decimal:2',
             'approved_at' => 'datetime',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // School and city for the notes page counts and filters (see StudyMaterialLocation)
+        static::saving(fn (StudyMaterial $material) => StudyMaterialLocation::fill($material));
     }
 
     public function educator(): BelongsTo

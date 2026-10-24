@@ -109,6 +109,20 @@
                     <span>Total Downloads</span>
                 </div>
             </div>
+            <div class="sm-stat-card sm-stat-card--teal">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-school"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['schools']) }}</strong>
+                    <span>{{ \Illuminate\Support\Str::plural('School', $stats['schools']) }}</span>
+                </div>
+            </div>
+            <div class="sm-stat-card sm-stat-card--pink">
+                <span class="sm-stat-card__icon"><i class="fa-solid fa-location-dot"></i></span>
+                <div class="sm-stat-card__body">
+                    <strong>{{ number_format($stats['cities']) }}</strong>
+                    <span>{{ \Illuminate\Support\Str::plural('City', $stats['cities']) }}</span>
+                </div>
+            </div>
         </div>
 
         <div class="sm-layout-3col">
@@ -139,6 +153,26 @@
                             <option value="">All Boards</option>
                             @foreach($boardOptions as $option)
                                 <option value="{{ $option }}" @selected($filters['board_university'] === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-group">
+                        <label for="sm-city">City</label>
+                        <select id="sm-city" name="city" class="form-select">
+                            <option value="">All Cities</option>
+                            @foreach($cityOptions as $option => $total)
+                                <option value="{{ $option }}" @selected($filters['city'] === (string) $option)>{{ $option }} ({{ number_format($total) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="sm-filter-group">
+                        <label for="sm-school">School / Institute</label>
+                        <select id="sm-school" name="school" class="form-select">
+                            <option value="">All Schools</option>
+                            @foreach($schoolOptions as $option => $total)
+                                <option value="{{ $option }}" @selected($filters['school'] === (string) $option)>{{ $option }} ({{ number_format($total) }})</option>
                             @endforeach
                         </select>
                     </div>
