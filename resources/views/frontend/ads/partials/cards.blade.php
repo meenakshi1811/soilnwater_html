@@ -132,6 +132,9 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
+    // Desktop: every ad is drawn at its ad size (Square Large 900×900, Square 640×640, …) times
+    // this one factor, so sizes keep their proportions but a 900px ad no longer fills the screen
+    const DESKTOP_AD_SCALE = 0.5;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
@@ -412,6 +415,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         let cardW = dims.w;
         let cardH = dims.h;
 
+        if (!isStackedLayout()) {
+            cardW = Math.max(1, Math.round(cardW * DESKTOP_AD_SCALE));
+            cardH = Math.max(1, Math.round(cardH * DESKTOP_AD_SCALE));
+        }
+
 
         if (cardW > packWidth) {
             const scale = packWidth / cardW;
@@ -551,15 +559,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return false;
         }
 
+        // Desktop: ads are scaled (DESKTOP_AD_SCALE) and packed with the others; only one still
+        // about as wide as the grid gets a row of its own
         if (!isStackedLayout()) {
-            if (card.classList.contains('ad-portrait') || (adW > 0 && adH > adW * 1.15)) {
-                return false;
-            }
-
-            // Desktop: only banners, at least twice as wide as tall
-            if (adW >= 900 && adH > 0 && adW < adH * 2 && !card.classList.contains('banner') && !card.classList.contains('hero')) {
-                return false;
-            }
+            return adW * DESKTOP_AD_SCALE >= 1100;
         }
 
         if (
