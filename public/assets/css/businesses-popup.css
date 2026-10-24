@@ -3,13 +3,28 @@
 .businesses-popup {
   --bp-ink: #15213a;
   --bp-text: #3f4b5f;
+  /* Bootstrap locks body scroll while a modal is open; this overlay must scroll instead. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.businesses-popup__dialog {
-  max-width: min(1240px, calc(100vw - 32px));
+.businesses-popup .businesses-popup__dialog,
+.businesses-popup .modal-dialog-centered.modal-dialog-scrollable {
+  max-width: min(1180px, calc(100vw - 24px));
+  width: min(1180px, calc(100vw - 24px));
+  margin: .75rem auto;
+  height: auto;
+  max-height: calc(100dvh - 1.5rem);
 }
 
-.businesses-popup__content {
+/* Beat Bootstrap 5: .modal-dialog-centered.modal-dialog-scrollable .modal-content { max-height: none }
+   which lets the cards grow past the viewport and then clips them with overflow:hidden. */
+.businesses-popup .modal-dialog-scrollable .businesses-popup__content,
+.businesses-popup.modal .businesses-popup__content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 1.5rem);
   border: 0;
   border-radius: 22px;
   background: #f6f8fb;
@@ -22,7 +37,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 18px 22px 4px;
+  flex: 0 0 auto;
+  padding: 16px 22px 8px;
 }
 
 .businesses-popup__title {
@@ -45,7 +61,13 @@
 }
 
 .businesses-popup__body {
-  padding: 14px 22px 22px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 8px 18px 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* The chat button stays behind the popup */
@@ -177,9 +199,11 @@ body.modal-open .discussion-banner-chat {
   display: block;
   align-self: end;
   width: 100%;
+  max-height: 210px;
   height: auto;
   aspect-ratio: 4 / 5;
   object-fit: cover;
+  object-position: center top;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -6px 20px rgba(15, 23, 42, .08);
 }
@@ -229,7 +253,7 @@ body.modal-open .discussion-banner-chat {
   hyphens: auto;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -272,18 +296,39 @@ body.modal-open .discussion-banner-chat {
 }
 
 /* ---------- Responsive ---------- */
-/* Below 1280px three cards leave the categories too little room: one card per row, with the
-   photo beside three columns of categories */
-@media (max-width: 1279.98px) {
+@media (max-width: 1199.98px) {
+  .bp-card__title {
+    font-size: 1.18rem;
+  }
+
+  .bp-card__body {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .bp-card__photo {
+    max-height: 160px;
+  }
+
+  .bp-chip {
+    min-height: 40px;
+    font-size: .68rem;
+  }
+}
+
+/* Stack to one card per row once three columns would crush the chips */
+@media (max-width: 991.98px) {
   .bp-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Categories centred beside the photo, which still stands on the card's bottom edge */
   .bp-card__body {
     grid-template-columns: 128px minmax(0, 1fr);
     align-items: center;
     gap: 16px;
+  }
+
+  .bp-card__photo {
+    max-height: 180px;
   }
 
   .bp-card__chips {
@@ -302,13 +347,49 @@ body.modal-open .discussion-banner-chat {
   }
 }
 
-/* Phones: full-screen popup, categories across the card */
-@media (max-width: 575.98px) {
-  .businesses-popup__dialog {
-    max-width: none;
+/* Short laptop screens: keep the three cards in view without clipping the buttons */
+@media (max-height: 760px) {
+  .bp-card__top {
+    padding: 14px 14px 0;
   }
 
-  .businesses-popup__content {
+  .bp-card__desc {
+    margin: 8px 0 10px;
+    font-size: .78rem;
+  }
+
+  .bp-card__photo {
+    max-height: 150px;
+  }
+
+  .bp-chip {
+    min-height: 38px;
+    padding: 5px 6px;
+  }
+
+  .bp-card__foot {
+    padding: 12px 14px 14px;
+  }
+
+  .bp-card__explore {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .businesses-popup .businesses-popup__dialog,
+  .businesses-popup .modal-dialog-centered.modal-dialog-scrollable {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    max-height: 100dvh;
+    height: 100%;
+  }
+
+  .businesses-popup .modal-dialog-scrollable .businesses-popup__content,
+  .businesses-popup.modal .businesses-popup__content {
+    max-height: 100dvh;
+    height: 100%;
     border-radius: 0;
   }
 
