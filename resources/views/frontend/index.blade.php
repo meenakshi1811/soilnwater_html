@@ -243,7 +243,7 @@
       </h2>
       <p class="hero-hub-card__desc">Find schools, courses, tutors and useful knowledge</p>
     </a>
-    <a href="{{ route('frontend.offers_ads.hub') }}" class="hero-hub-card hero-hub-card--offers-ads">
+    <a href="{{ route('frontend.offers_ads.hub') }}" class="hero-hub-card hero-hub-card--offers-ads" data-bs-toggle="modal" data-bs-target="#offersAdsPopup" aria-haspopup="dialog" aria-controls="offersAdsPopup">
       <span class="hero-hub-card__icon" aria-hidden="true">
         <i class="fa-solid fa-gift"></i>
         <span class="hero-hub-card__ad-badge">Ad</span>
@@ -1588,6 +1588,12 @@
 </div><!-- /.homepage-root -->
 
 @include('frontend.partials.businesses-popup', ['modules' => $businessesPopup ?? []])
+@include('frontend.partials.businesses-popup', [
+    'popupId' => 'offersAdsPopup',
+    'popupTitle' => 'Explore Offers & Ads',
+    'popupLead' => 'Deals, discounts and classified ads near you',
+    'modules' => $offersAdsPopup ?? [],
+])
 
 <!-- <div class="trusted-wrap">
   <div class="trusted-bar">

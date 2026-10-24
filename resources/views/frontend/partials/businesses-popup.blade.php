@@ -1,19 +1,26 @@
 {{--
-  Homepage "Businesses" popup, opened from the Businesses card under the banner: a card each for
-  vendors, consultants and services with their busiest categories.
+  Homepage hub popup, opened from a card under the banner (Businesses, Offers & Ads): a card per
+  module with its busiest categories.
+  $popupId, $popupTitle, $popupLead
   $modules: key, title, tagline, description, icon, image, categories (name, icon, url), url, view_all_url
 --}}
+@once
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/businesses-popup.css') }}?v={{ now()->timestamp }}">
 @endpush
+@endonce
 
-<div class="modal fade businesses-popup" id="businessesPopup" tabindex="-1" aria-labelledby="businessesPopupTitle" aria-hidden="true">
+@php
+    $popupId = $popupId ?? 'businessesPopup';
+@endphp
+
+<div class="modal fade businesses-popup" id="{{ $popupId }}" tabindex="-1" aria-labelledby="{{ $popupId }}Title" aria-hidden="true" style="--bp-cols: {{ count($modules) }}">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down businesses-popup__dialog">
     <div class="modal-content businesses-popup__content">
       <div class="businesses-popup__head">
         <div>
-          <h2 class="businesses-popup__title" id="businessesPopupTitle">Explore Businesses</h2>
-          <p class="businesses-popup__lead">Vendors, consultants and service providers near you</p>
+          <h2 class="businesses-popup__title" id="{{ $popupId }}Title">{{ $popupTitle ?? 'Explore Businesses' }}</h2>
+          <p class="businesses-popup__lead">{{ $popupLead ?? 'Vendors, consultants and service providers near you' }}</p>
         </div>
         <button type="button" class="btn-close businesses-popup__close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>

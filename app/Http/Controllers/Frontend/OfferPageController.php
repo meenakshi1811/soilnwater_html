@@ -277,6 +277,7 @@ class OfferPageController extends Controller
                 ->get(['id', 'name']),
             'hasLocation' => $hasLocation,
             'businessesPopup' => $this->businessesPopupModules(),
+            'offersAdsPopup' => $this->offersAdsPopupModules(),
             'homepageSetting' => $homepageSetting,
             'homepageCommunityPosts' => $homepageCommunityPosts,
             'communityHubSections' => \App\Support\CommunityContentTaxonomy::hubSections(),
@@ -432,8 +433,53 @@ class OfferPageController extends Controller
     }
 
     /**
+     * The homepage "Offers & Ads" popup: offers and ads, each with its six busiest categories
+     * linking to the filtered market.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function offersAdsPopupModules(): array
+    {
+        $today = Carbon::today();
+        // Their categories are named "… Ads" (Home & Lifestyle Ads): the chips leave that off
+        $chips = fn (Collection $categories, string $listingRoute): array => $categories
+            ->map(fn ($category) => [
+                'name' => self::popupCategoryLabel($category->name, 'Ads'),
+                'icon' => VendorCategoryIcon::iconClass($category->name),
+                'url' => route($listingRoute, ['category_id' => $category->id]),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            [
+                'key' => 'offers',
+                'title' => 'Offers',
+                'tagline' => 'Deals, discounts & coupons',
+                'description' => 'Save with discounts, coupon codes and promotions from local businesses near you.',
+                'icon' => 'fa-gift',
+                'image' => 'assets/images/businesses-popup/offers.webp',
+                'categories' => $chips($this->topCategoriesByListings('offers', $this->liveOffersQuery($today), 'offers'), 'frontend.offers.index'),
+                'url' => route('frontend.offers.index'),
+                'view_all_url' => route('frontend.offers.index'),
+            ],
+            [
+                'key' => 'ads',
+                'title' => 'Ads',
+                'tagline' => 'Classifieds & promotions',
+                'description' => 'Browse classified ads, property listings and promotions from people and businesses near you.',
+                'icon' => 'fa-rectangle-ad',
+                'image' => 'assets/images/businesses-popup/ads.webp',
+                'categories' => $chips($this->topCategoriesByListings('ads', $this->liveAdsQuery($today), 'user_ads'), 'frontend.ads.index'),
+                'url' => route('frontend.ads.index'),
+                'view_all_url' => route('frontend.ads.index'),
+            ],
+        ];
+    }
+
+    /**
      * A category name as a short chip label. Names stored in capitals get title case ("HOME &
-     * KITCHEN" → "Home & Kitchen"), and a trailing "Services"/"Consultants" is dropped when a
+     * KITCHEN" → "Home & Kitchen"), and a trailing "Services"/"Consultants"/"Ads" is dropped when a
      * longer name remains ("Repair & Maintenance Services" → "Repair & Maintenance", but
      * "Plumbing Services" stays).
      */
@@ -565,28 +611,9 @@ class OfferPageController extends Controller
         $lat = is_numeric(session('frontend_lat')) ? (float) session('frontend_lat') : null;
         $lng = is_numeric(session('frontend_lng')) ? (float) session('frontend_lng') : null;
 
-        // The same listings the offers and ads markets show
-        $liveOffers = function () use ($today): Builder {
-            $query = Offer::query()->where('status', 'active');
-            $this->applyValidityFilter($query, 'valid', $today);
-
-            return $query;
-        };
-        $liveAds = fn (): Builder => UserAd::query()
-            ->where('status', 'approved')
-            ->whereNotNull('final_image')
-            ->whereDoesntHave('adSize', fn (Builder $query) => $query->where('admin_only', true))
-            ->where(fn (Builder $query) => $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today->toDateString()));
-
-        $topCategories = fn (string $module, Builder $listings, string $table): Collection => Category::query()
-            ->whereNull('parent_id')
-            ->forModule($module)
-            ->select(['categories.id', 'categories.name'])
-            ->selectSub($listings->selectRaw('COUNT(*)')->whereColumn($table.'.category_id', 'categories.id'), 'listing_count')
-            ->orderByDesc('listing_count')
-            ->orderBy('name')
-            ->limit(6)
-            ->get();
+        $liveOffers = fn (): Builder => $this->liveOffersQuery($today);
+        $liveAds = fn (): Builder => $this->liveAdsQuery($today);
+        $topCategories = fn (string $module, Builder $listings, string $table): Collection => $this->topCategoriesByListings($module, $listings, $table);
 
         $offerCount = $liveOffers()->count();
         $adCount = $liveAds()->count();
@@ -697,6 +724,45 @@ class OfferPageController extends Controller
                 'premium' => (bool) $listing->is_premium,
             ];
         })->values()->all();
+    }
+
+    /**
+     * Offers the offers market shows: active and not expired.
+     */
+    private function liveOffersQuery(Carbon $today): Builder
+    {
+        $query = Offer::query()->where('status', 'active');
+        $this->applyValidityFilter($query, 'valid', $today);
+
+        return $query;
+    }
+
+    /**
+     * Ads the ads market shows: approved, with an image, not admin-only sizes, not expired.
+     */
+    private function liveAdsQuery(Carbon $today): Builder
+    {
+        return UserAd::query()
+            ->where('status', 'approved')
+            ->whereNotNull('final_image')
+            ->whereDoesntHave('adSize', fn (Builder $query) => $query->where('admin_only', true))
+            ->where(fn (Builder $query) => $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today->toDateString()));
+    }
+
+    /**
+     * A module's top-level categories with the most of $listings (a live offers/ads query on $table).
+     */
+    private function topCategoriesByListings(string $module, Builder $listings, string $table, int $limit = 6): Collection
+    {
+        return Category::query()
+            ->whereNull('parent_id')
+            ->forModule($module)
+            ->select(['categories.id', 'categories.name'])
+            ->selectSub($listings->selectRaw('COUNT(*)')->whereColumn($table.'.category_id', 'categories.id'), 'listing_count')
+            ->orderByDesc('listing_count')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
     }
 
     /**

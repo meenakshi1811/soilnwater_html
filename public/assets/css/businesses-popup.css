@@ -9,10 +9,11 @@
   overscroll-behavior: contain;
 }
 
+/* About 393px per card (1180px for three, 790px for two) */
 .businesses-popup .businesses-popup__dialog,
 .businesses-popup .modal-dialog-centered.modal-dialog-scrollable {
-  max-width: min(1180px, calc(100vw - 24px));
-  width: min(1180px, calc(100vw - 24px));
+  max-width: min(calc(var(--bp-cols, 3) * 393px), calc(100vw - 24px));
+  width: min(calc(var(--bp-cols, 3) * 393px), calc(100vw - 24px));
   margin: .75rem auto;
   height: auto;
   max-height: calc(100dvh - 1.5rem);
@@ -79,7 +80,7 @@ body.modal-open .discussion-banner-chat {
 /* ---------- Cards ---------- */
 .bp-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--bp-cols, 3), minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -109,6 +110,19 @@ body.modal-open .discussion-banner-chat {
   --tone-bg: linear-gradient(160deg, #f0fcf4 0%, #dcf4e4 100%);
 }
 
+/* Offers & Ads popup: the homepage Offers card's rose, and amber for ads */
+.bp-card--offers {
+  --tone: #e11d48;
+  --tone-dark: #be123c;
+  --tone-bg: linear-gradient(160deg, #fff4f6 0%, #ffe3e8 100%);
+}
+
+.bp-card--ads {
+  --tone: #d97706;
+  --tone-dark: #b45309;
+  --tone-bg: linear-gradient(160deg, #fffaeb 0%, #fdefc4 100%);
+}
+
 .bp-card__top {
   --bp-art-h: 150px;
   position: relative;
@@ -125,6 +139,8 @@ body.modal-open .discussion-banner-chat {
 .bp-card--vendors { --bp-art-ratio: .748; }
 .bp-card--consultants { --bp-art-ratio: .83; }
 .bp-card--services { --bp-art-ratio: .803; }
+.bp-card--offers { --bp-art-ratio: 0.816; }
+.bp-card--ads { --bp-art-ratio: .744; }
 
 /* Quarter circle with the illustration, standing on the bottom-left corner of the card's top */
 .bp-card__art {
