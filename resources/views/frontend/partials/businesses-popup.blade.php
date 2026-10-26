@@ -39,7 +39,7 @@
                     <p class="bp-card__tagline">{{ $module['tagline'] }}</p>
                   </div>
                   <a href="{{ $module['view_all_url'] }}" class="bp-card__view-all">
-                    View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Explore more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                   </a>
                 </div>
 

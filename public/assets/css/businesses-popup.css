@@ -205,7 +205,19 @@ body.modal-open .discussion-banner-chat {
   color: var(--tone-dark);
 }
 
+/* "Explore more" sits on the title's line, top right; the tagline below has the full width */
+.bp-card__head {
+  position: relative;
+}
+
+.bp-card__title {
+  padding-right: 6.9rem;
+}
+
 .bp-card__view-all {
+  position: absolute;
+  top: 2px;
+  right: 0;
   display: inline-flex;
   align-items: center;
   gap: .3rem;
@@ -420,83 +432,164 @@ body.modal-open .discussion-banner-chat {
     border-radius: 0;
   }
 
+  /* Phones: tight spacing so all the cards fit on one screen */
   .businesses-popup__head {
-    padding: 14px 16px 6px;
+    align-items: center;
+    padding: 10px 14px 8px;
     border-bottom: 1px solid #e8edf3;
     background: #fff;
   }
 
   .businesses-popup__title {
-    font-size: 1.15rem;
-  }
-
-  .businesses-popup__lead {
-    font-size: .8rem;
-  }
-
-  .businesses-popup__body {
-    padding: 12px 12px 18px;
-  }
-
-  .bp-grid {
-    gap: 12px;
-  }
-
-  .bp-card__top {
-    --bp-art-h: 140px;
-    padding: 14px 14px 0;
-  }
-
-  .bp-card__icon {
-    flex-basis: 42px;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
     font-size: 1.05rem;
   }
 
+  .businesses-popup__lead {
+    margin-top: .1rem;
+    font-size: .74rem;
+  }
+
+  .businesses-popup__close {
+    margin-top: 0;
+  }
+
+  .businesses-popup__body {
+    padding: 10px 10px 12px;
+  }
+
+  .bp-grid {
+    gap: 10px;
+  }
+
+  .bp-card {
+    border-radius: 16px;
+  }
+
+  .bp-card__top {
+    --bp-art-h: 118px;
+    min-height: 0;
+    padding: 10px 12px 0;
+  }
+
+  .bp-card__head {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bp-card__icon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: .95rem;
+  }
+
   .bp-card__title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
   }
 
   .bp-card__tagline {
-    font-size: .78rem;
+    margin-top: .05rem;
+    font-size: .72rem;
   }
 
+  .bp-card__view-all {
+    top: 1px;
+    margin-top: 0;
+    font-size: .74rem;
+  }
+
+  .bp-card__title {
+    padding-right: 6.2rem;
+  }
+
+  /* One line under the title */
   .bp-card__desc {
-    margin: 8px 0 12px 54px;
-    font-size: .78rem;
+    margin: 5px 0 7px 46px;
+    font-size: .72rem;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .bp-card__body {
-    padding-left: calc(var(--bp-art-h) * var(--bp-art-ratio) - 14px + 6px);
+    padding-left: calc(var(--bp-art-h) * var(--bp-art-ratio) - 12px + 4px);
   }
 
   .bp-card__chips {
-    gap: 6px;
-    padding-bottom: 14px;
+    gap: 5px;
+    padding-bottom: 9px;
   }
 
   .bp-chip {
-    min-height: 40px;
-    padding: 5px 6px;
+    min-height: 32px;
+    padding: 4px 6px;
     gap: 5px;
-    font-size: .68rem;
+    border-radius: 9px;
+    font-size: .64rem;
+    line-height: 1.2;
   }
 
   .bp-chip i {
-    flex-basis: 14px;
-    font-size: .8rem;
+    flex-basis: 13px;
+    font-size: .74rem;
   }
 
   .bp-card__foot {
-    padding: 12px 14px 14px;
+    padding: 7px 12px 9px;
+  }
+
+  .bp-card__explore {
+    min-height: 36px;
+    border-radius: 10px;
+    font-size: .84rem;
   }
 }
 
 /* Small phones: a smaller illustration leaves the categories room */
 @media (max-width: 374.98px) {
   .bp-card__top {
-    --bp-art-h: 116px;
+    --bp-art-h: 104px;
+  }
+}
+
+/* Phone screens under 860px tall (most, once the browser bars take their share): no description
+   line, slimmer chips and button */
+@media (max-width: 575.98px) and (max-height: 859.98px) {
+  .bp-card__desc {
+    display: none;
+  }
+
+  .bp-card__head {
+    margin-bottom: 8px;
+  }
+
+  .bp-chip {
+    min-height: 30px;
+  }
+
+  .bp-card__chips {
+    padding-bottom: 7px;
+  }
+
+  .bp-card__foot {
+    padding: 5px 12px 7px;
+  }
+
+  .bp-card__explore {
+    min-height: 32px;
+    font-size: .8rem;
+  }
+}
+
+/* Short phone screens: the "Explore more" link in each card head replaces the big button */
+@media (max-width: 575.98px) and (max-height: 750px) {
+  .bp-card__foot {
+    display: none;
+  }
+
+  .bp-card__chips {
+    padding-bottom: 10px;
   }
 }
