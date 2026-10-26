@@ -14,7 +14,7 @@
     $popupId = $popupId ?? 'businessesPopup';
 @endphp
 
-<div class="modal fade businesses-popup" id="{{ $popupId }}" tabindex="-1" aria-labelledby="{{ $popupId }}Title" aria-hidden="true" style="--bp-cols: {{ count($modules) }}">
+<div class="modal fade businesses-popup businesses-popup--cards-{{ count($modules) }}" id="{{ $popupId }}" tabindex="-1" aria-labelledby="{{ $popupId }}Title" aria-hidden="true" style="--bp-cols: {{ count($modules) }}">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down businesses-popup__dialog">
     <div class="modal-content businesses-popup__content">
       <div class="businesses-popup__head">
