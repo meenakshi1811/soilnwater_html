@@ -526,6 +526,44 @@
   color: #1e4f9b;
 }
 
+/* Top categories on the listing pages: smaller tiles than on the categories page */
+.vendors-categories-strip:not(.vendors-categories-strip--all) {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .55rem;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
+  gap: .4rem;
+  padding: .42rem .45rem;
+  border-radius: 9px;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: .72rem;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text {
+  gap: .08rem;
+  padding-right: 0;
+}
+
+/* Whole words; one too long for the tile is hyphenated rather than cut anywhere */
+.vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
+  font-size: .7rem;
+  line-height: 1.22;
+  word-break: normal;
+  overflow-wrap: break-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text small {
+  font-size: .62rem;
+}
+
 .vendors-page__layout--single {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1395,6 +1433,42 @@
   }
 }
 
+/* Top categories on tablets and phones: two rows that slide sideways instead of a tall grid,
+   the next column peeking out at the edge (a thin bar to drag with a mouse) */
+@media (max-width: 1199.98px) {
+  .vendors-categories-strip:not(.vendors-categories-strip--all) {
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: 190px;
+    gap: .5rem;
+    margin: 0 -1.35rem;
+    padding: 0 1.35rem 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 1.35rem;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  /* Only a few tiles (the teachers page's subjects): one row is enough */
+  .vendors-categories-strip:not(.vendors-categories-strip--all):not(:has(> :nth-child(7))) {
+    grid-template-rows: auto;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
+    scroll-snap-align: start;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
 /* ---------- Listing pages on phones (vendors, services, consultants, teachers, schools,
    institutes): a compact hero, the counts as one strip, two cards per row ---------- */
 @media (max-width: 575.98px) {
@@ -1464,9 +1538,35 @@
     font-size: .58rem;
   }
 
-  /* Top categories: the first seven and the "All Listing" tile (the categories page has them all) */
-  .vendors-categories-strip:not(.vendors-categories-strip--all) > .vendors-category-chip:not(.vendors-category-chip--all):nth-child(n + 8) {
-    display: none;
+  /* Top categories: narrower columns (two and a bit in view), icon beside the name */
+  .vendors-categories-strip:not(.vendors-categories-strip--all) {
+    grid-auto-columns: min(40vw, 170px);
+    gap: .45rem;
+    margin: 0 -.75rem;
+    padding: 0 .75rem 6px;
+    scroll-padding-inline: .75rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
+    flex-direction: row;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem .5rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: .68rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
+    font-size: .68rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text small {
+    font-size: .58rem;
   }
 
   /* Category tiles a little tighter */
