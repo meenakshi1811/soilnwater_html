@@ -44,7 +44,6 @@
         <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> {{ number_format((int) $educator->materials_count) }} materials</span>
         <span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> {{ number_format((int) $educator->students_taught) }} students</span>
       </div>
-      <a href="{{ $educator->publicUrl() }}" class="vendors-compact-card__link">View profile</a>
     </div>
   </article>
 @empty

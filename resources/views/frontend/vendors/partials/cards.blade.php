@@ -28,7 +28,6 @@
                 <span class="vendors-verified-badge vendors-verified-badge--sm"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
             </div>
             <p class="vendors-compact-card__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $locationLabel }}</p>
-            <a href="{{ $storeUrl }}" class="vendors-compact-card__link">View store</a>
         </div>
     </article>
 @empty
