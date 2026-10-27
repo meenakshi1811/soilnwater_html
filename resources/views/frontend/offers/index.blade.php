@@ -48,7 +48,7 @@
 
         <div
             id="offersGrid"
-            class="om-grid"
+            class="row row-cols-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3"
             data-next-page-url="{{ $offers->nextPageUrl() }}"
         >
             @include('frontend.offers.partials.cards', ['offers' => $offers])
@@ -193,7 +193,7 @@
         let isLoading = false;
 
         document.addEventListener('keydown', function (event) {
-            const trigger = event.target.closest('.om-card.js-offer-modal-trigger');
+            const trigger = event.target.closest('.offer-coupon-card.js-offer-modal-trigger');
             if (!trigger) return;
 
             if (event.key === 'Enter' || event.key === ' ') {
