@@ -405,7 +405,7 @@ class OfferPageController extends Controller
                 'image' => 'assets/images/businesses-popup/vendors.webp',
                 'categories' => $chips($this->topVendorCategories(6), 'frontend.vendors.listings'),
                 'url' => route('frontend.vendors.index'),
-                'view_all_url' => route('frontend.vendors.categories'),
+                'view_all_url' => route('frontend.vendors.listings'),
             ],
             [
                 'key' => 'consultants',
@@ -416,7 +416,7 @@ class OfferPageController extends Controller
                 'image' => 'assets/images/businesses-popup/consultants.webp',
                 'categories' => $chips($this->topConsultantCategories(6), 'frontend.consultants.listings', 'Consultants'),
                 'url' => route('frontend.consultants.index'),
-                'view_all_url' => route('frontend.consultants.categories'),
+                'view_all_url' => route('frontend.consultants.listings'),
             ],
             [
                 'key' => 'services',
@@ -427,7 +427,7 @@ class OfferPageController extends Controller
                 'image' => 'assets/images/businesses-popup/services.webp',
                 'categories' => $chips($this->topServiceProviderCategories(6), 'frontend.service_providers.listings', 'Services'),
                 'url' => route('frontend.service_providers.index'),
-                'view_all_url' => route('frontend.service_providers.categories'),
+                'view_all_url' => route('frontend.service_providers.listings'),
             ],
         ];
     }
