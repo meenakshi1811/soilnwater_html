@@ -215,6 +215,26 @@
             @endif
         </section>
 
+        {{-- The homepage's colourful education sections --}}
+        @if(count($educationCards) > 0 || count($studyMaterialCards) > 0)
+            <div class="eh-cpanels eh-cpanels--two">
+                @if(count($educationCards) > 0)
+                    @include('frontend.education-hub.partials.colour-panel', [
+                        'id' => 'ehEducationTitle', 'theme' => 'education', 'icon' => 'fa-graduation-cap',
+                        'lead' => 'Education &', 'accent' => 'Knowledge', 'subtitle' => 'Learn, build skills and stay informed',
+                        'url' => route('schools.index'), 'cards' => $educationCards,
+                    ])
+                @endif
+                @if(count($studyMaterialCards) > 0)
+                    @include('frontend.education-hub.partials.colour-panel', [
+                        'id' => 'ehLibraryTitle', 'theme' => 'study', 'icon' => 'fa-book',
+                        'lead' => 'Study Material', 'accent' => 'Library', 'nav' => $studyMaterialNavLinks,
+                        'url' => route('study-materials.library'), 'cards' => $studyMaterialCards,
+                    ])
+                @endif
+            </div>
+        @endif
+
         {{-- Top teachers, announcements --}}
         <div class="eh-panels">
             <section class="eh-card eh-panel" aria-labelledby="ehTeachersTitle">
@@ -279,75 +299,18 @@
             </section>
         </div>
 
-        {{-- Schools, colleges and institutes --}}
-        <section class="eh-section" aria-labelledby="ehInstitutionsTitle">
-            <div class="eh-section__head">
-                <h2 class="eh-section__title" id="ehInstitutionsTitle">Schools, Colleges &amp; Institutes</h2>
-                <a href="{{ route('institutes.index') }}" class="eh-section__more">View all institutions</a>
-            </div>
-
-            <div class="eh-inst-groups">
-                @foreach($institutionGroups as $group)
-                    <div class="eh-card eh-inst-group">
-                        <div class="eh-inst-group__head">
-                            <span class="eh-icon eh-icon--square eh-icon--{{ $group['tone'] }}"><i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i></span>
-                            <div class="eh-inst-group__heading">
-                                <h3 class="eh-inst-group__title">{{ $group['title'] }}</h3>
-                                <small>{{ $group['hint'] }} · {{ number_format($group['count']) }} listed</small>
-                            </div>
-                            <a href="{{ $group['url'] }}" class="eh-panel__more">View all</a>
-                        </div>
-
-                        @if($group['items']->isNotEmpty())
-                            <div class="eh-inst-grid">
-                                @foreach($group['items'] as $institution)
-                                    @php
-                                        $gallery = is_array($institution->gallery) ? array_values(array_filter($institution->gallery)) : [];
-                                        $logo = $institution->logoUrl();
-                                        // A JPEG "logo" is nearly always a photo (e.g. of the building): use it as the cover
-                                        $logoIsPhoto = $logo && preg_match('/\.jpe?g$/i', (string) $institution->logo);
-                                        $cover = $gallery !== [] ? \App\Support\ImageThumbnail::url(asset($gallery[0])) : ($logoIsPhoto ? \App\Support\ImageThumbnail::url($logo) : null);
-                                        if ($logoIsPhoto) {
-                                            $logo = null;
-                                        }
-                                        $kind = collect([$group['noun'] === 'school' ? 'School' : $institution->institutionTypeLabel(), $institution->board_affiliation])->filter()->implode(' · ');
-                                        $place = $institution->locationLabel();
-                                    @endphp
-                                    <a href="{{ $institution->publicUrl() }}" class="eh-inst {{ $cover && $logo ? 'eh-inst--with-logo' : '' }}">
-                                        <span class="eh-inst__media eh-inst__media--{{ $group['tone'] }}">
-                                            @if($cover)
-                                                <img src="{{ $cover }}" alt="" class="eh-inst__cover" loading="lazy">
-                                            @elseif($logo)
-                                                <img src="{{ $logo }}" alt="" class="eh-inst__logo-only" loading="lazy">
-                                            @else
-                                                <i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i>
-                                            @endif
-                                            @if($cover && $logo)
-                                                <img src="{{ $logo }}" alt="" class="eh-inst__logo" loading="lazy" width="40" height="40">
-                                            @endif
-                                            @if($institution->is_verified)
-                                                <span class="eh-inst__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
-                                            @endif
-                                        </span>
-                                        <span class="eh-inst__body">
-                                            <strong class="eh-inst__name">{{ $institution->publicDisplayName() }}</strong>
-                                            @if($kind !== '')
-                                                <span class="eh-inst__kind">{{ $kind }}</span>
-                                            @endif
-                                            @if($place !== '')
-                                                <span class="eh-inst__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $place }}</span>
-                                            @endif
-                                        </span>
-                                    </a>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="eh-empty">No {{ $group['noun'] }}s listed yet.</p>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        </section>
+        {{-- Schools, colleges and institutes: a colourful panel each, three cards --}}
+        <div class="eh-cpanels eh-cpanels--three">
+            @foreach($institutionGroups as $group)
+                @include('frontend.education-hub.partials.colour-panel', [
+                    'id' => 'ehInstitutions'.$group['title'], 'theme' => $group['theme'], 'icon' => $group['icon'],
+                    'lead' => 'Top', 'accent' => $group['title'],
+                    'subtitle' => $group['hint'].' · '.number_format($group['count']).' listed',
+                    'url' => $group['url'], 'cards' => $group['cards'],
+                    'join' => ['title' => 'List your '.$group['noun'], 'hint' => 'Free listing on SoilnWater', 'url' => route('register')],
+                ])
+            @endforeach
+        </div>
     </div>
 </div>
 @endsection

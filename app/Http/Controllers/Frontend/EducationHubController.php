@@ -9,6 +9,10 @@ use App\Models\Institute;
 use App\Models\InstituteNotice;
 use App\Models\StudyMaterial;
 use App\Models\User;
+use App\Support\HomepageEducationKnowledgeCards;
+use App\Support\HomepageImageRegistry;
+use App\Support\HomepageStudyMaterialLibraryCards;
+use App\Support\ImageThumbnail;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -21,6 +25,28 @@ class EducationHubController extends Controller
     public function index(): View
     {
         $publicMaterials = StudyMaterial::query()->approved()->publiclyListed();
+        $institutionGroups = $this->institutionGroups(3);
+
+        // The homepage's colourful Education & Knowledge and Study Material Library sections. No
+        // image twice on the page: the study material cards (set in admin) and the institutions'
+        // photos are claimed first, so the education cards pick other ones.
+        $images = new HomepageImageRegistry();
+        $studyMaterialCards = HomepageStudyMaterialLibraryCards::build();
+        $images->claimCards($studyMaterialCards);
+        foreach ($institutionGroups as $group) {
+            $images->claimCards($group['cards']);
+        }
+        $educationCards = HomepageEducationKnowledgeCards::build(
+            is_numeric(session('frontend_lat')) ? (float) session('frontend_lat') : null,
+            is_numeric(session('frontend_lng')) ? (float) session('frontend_lng') : null,
+            $images
+        );
+
+        // Cards show their images at about 300px: small copies, not the originals
+        $withThumbnails = fn (array $cards): array => array_map(
+            fn (array $card): array => ['image' => ImageThumbnail::url((string) $card['image'])] + $card,
+            $cards
+        );
 
         return view('frontend.education-hub.index', [
             'stats' => [
@@ -45,13 +71,30 @@ class EducationHubController extends Controller
                 ->limit(4)
                 ->get(),
             'announcements' => $this->announcements(3),
-            'institutionGroups' => $this->institutionGroups(4),
+            'educationCards' => $withThumbnails(array_map(fn (array $card): array => [
+                'url' => $card['url'],
+                'image' => $card['image'],
+                'title' => $card['title'],
+                'pill' => $card['category_label'],
+                'place' => $card['location'],
+            ], $educationCards)),
+            'studyMaterialCards' => $withThumbnails(array_map(fn (array $card): array => [
+                'url' => $card['url'],
+                'image' => $card['image'],
+                'title' => $card['title'],
+                'line' => $card['subtitle'],
+            ], $studyMaterialCards)),
+            'studyMaterialNavLinks' => HomepageStudyMaterialLibraryCards::navLinks(),
+            'institutionGroups' => array_map(
+                fn (array $group): array => ['cards' => $withThumbnails($group['cards'])] + $group,
+                $institutionGroups
+            ),
         ]);
     }
 
     /**
      * Schools, colleges (and universities) and other institutes, each with how many are listed
-     * and a few of them (verified first, then the latest).
+     * and a few of them as cards (verified first, then the latest).
      *
      * @return list<array<string, mixed>>
      */
@@ -61,17 +104,17 @@ class EducationHubController extends Controller
 
         $groups = [
             [
-                'title' => 'Schools', 'hint' => 'Classes 1 – 12', 'noun' => 'school', 'icon' => 'fa-school', 'tone' => 'blue',
+                'title' => 'Schools', 'hint' => 'Classes 1 – 12', 'noun' => 'school', 'icon' => 'fa-school', 'theme' => 'schools',
                 'url' => route('schools.index'),
                 'query' => fn () => Institute::query()->schools(),
             ],
             [
-                'title' => 'Colleges', 'hint' => 'Colleges & universities', 'noun' => 'college', 'icon' => 'fa-building-columns', 'tone' => 'green',
+                'title' => 'Colleges', 'hint' => 'Colleges & universities', 'noun' => 'college', 'icon' => 'fa-building-columns', 'theme' => 'colleges',
                 'url' => route('institutes.index', ['type' => 'college']),
                 'query' => fn () => Institute::query()->institutes()->whereIn('institution_type', $collegeTypes),
             ],
             [
-                'title' => 'Institutes', 'hint' => 'Coaching & training', 'noun' => 'institute', 'icon' => 'fa-chalkboard-user', 'tone' => 'purple',
+                'title' => 'Institutes', 'hint' => 'Coaching & training', 'noun' => 'institute', 'icon' => 'fa-chalkboard-user', 'theme' => 'institutes',
                 'url' => route('institutes.index'),
                 'query' => fn () => Institute::query()->institutes()->where(fn ($query) => $query
                     ->whereNull('institution_type')
@@ -84,15 +127,42 @@ class EducationHubController extends Controller
             unset($group['query']);
 
             $group['count'] = (clone $query)->count();
-            $group['items'] = $query
+            $group['cards'] = $query
                 ->with('user:id,role')
                 ->orderByDesc('is_verified')
                 ->latest('approved_at')
                 ->limit($limit)
-                ->get();
+                ->get()
+                ->map(fn (Institute $institution): array => $this->institutionCard($institution, $group['noun'] === 'school'))
+                ->all();
 
             return $group;
         }, $groups);
+    }
+
+    /**
+     * A school, college or institute as a card: its first gallery photo as the picture (a JPEG
+     * "logo" is nearly always a photo, e.g. of the building, so it is used as one), else its logo.
+     *
+     * @return array{url: string, image: string, logo: ?string, title: string, pill: string, place: string, verified: bool}
+     */
+    private function institutionCard(Institute $institution, bool $isSchool): array
+    {
+        $gallery = is_array($institution->gallery) ? array_values(array_filter($institution->gallery)) : [];
+        $logo = $institution->logoUrl();
+        $logoIsPhoto = $logo !== null && preg_match('/\.jpe?g$/i', (string) $institution->logo) === 1;
+
+        return [
+            'url' => $institution->publicUrl(),
+            'image' => $gallery !== [] ? asset($gallery[0]) : ($logoIsPhoto ? $logo : ''),
+            'logo' => $logoIsPhoto ? null : $logo,
+            'title' => $institution->publicDisplayName(),
+            'pill' => $isSchool
+                ? ($institution->board_affiliation ?: 'School')
+                : ($institution->institutionTypeLabel() ?: 'Institute'),
+            'place' => $institution->locationLabel(),
+            'verified' => (bool) $institution->is_verified,
+        ];
     }
 
     /**
