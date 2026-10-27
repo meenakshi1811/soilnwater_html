@@ -33,6 +33,7 @@
         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $location }}{{ $distance ? ' · '.$distance : '' }}
       </p>
       <p class="institutes-card__tagline">{{ \Illuminate\Support\Str::limit($institute->tagline ?: $institute->about, 70) }}</p>
+      <a href="{{ $institute->publicUrl() }}" class="vendors-compact-card__link">View profile</a>
     </div>
   </article>
 @empty
