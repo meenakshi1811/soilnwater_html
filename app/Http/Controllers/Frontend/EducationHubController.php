@@ -34,7 +34,7 @@ class EducationHubController extends Controller
                 ->orderByDesc('views_count')
                 ->orderByDesc('downloads_count')
                 ->latest('id')
-                ->limit(3)
+                ->limit(6)
                 ->get(),
             'topTeachers' => Educator::query()
                 ->approved()

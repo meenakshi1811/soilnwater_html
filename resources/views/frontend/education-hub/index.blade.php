@@ -168,36 +168,55 @@
             </div>
         </section>
 
-        {{-- Trending materials, top teachers, announcements --}}
-        <div class="eh-panels">
-            <section class="eh-card eh-panel" aria-labelledby="ehTrendingTitle">
-                <div class="eh-panel__head">
-                    <h2 class="eh-panel__title" id="ehTrendingTitle"><i class="fa-solid fa-fire eh-tone--orange" aria-hidden="true"></i> Trending Study Materials</h2>
-                    <a href="{{ route('study-materials.notes', ['sort' => 'downloads']) }}" class="eh-panel__more">View all</a>
+        {{-- Trending study materials: six cards with their cover image (or the file-type icon) --}}
+        <section class="eh-section" aria-labelledby="ehTrendingTitle">
+            <div class="eh-section__head">
+                <h2 class="eh-section__title eh-section__title--icon" id="ehTrendingTitle"><i class="fa-solid fa-fire eh-tone--orange" aria-hidden="true"></i> Trending Study Materials</h2>
+                <a href="{{ route('study-materials.notes', ['sort' => 'downloads']) }}" class="eh-section__more">View all</a>
+            </div>
+            @if($trendingMaterials->isNotEmpty())
+                <div class="eh-trending">
+                    @foreach($trendingMaterials as $material)
+                        @php
+                            $fileMeta = $material->fileTypeMeta();
+                            $imageUrl = $material->cardImageUrl();
+                            $classYear = collect([$material->class_course, $material->academic_year])->filter()->implode(' · ');
+                            $rating = (float) $material->average_rating;
+                        @endphp
+                        <a href="{{ $material->publicUrl() }}" class="eh-tm">
+                            <span class="eh-tm__media{{ $imageUrl ? '' : ' eh-tm__media--'.$fileMeta['tone'] }}">
+                                @if($imageUrl)
+                                    <img src="{{ \App\Support\ImageThumbnail::url($imageUrl) }}" alt="" loading="lazy" decoding="async">
+                                @else
+                                    <i class="fa-solid {{ $fileMeta['icon'] }}" aria-hidden="true"></i>
+                                @endif
+                                <span class="eh-tm__type">{{ $material->materialTypeLabel() }}</span>
+                            </span>
+                            <span class="eh-tm__body">
+                                <strong class="eh-tm__title">{{ $material->title }}</strong>
+                                <span class="eh-tm__line"><i class="fa-solid fa-book" aria-hidden="true"></i><span>{{ $material->subject ?: $material->materialTypeLabel() }}</span></span>
+                                @if($classYear !== '')
+                                    <span class="eh-tm__line"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>{{ $classYear }}</span></span>
+                                @endif
+                                <span class="eh-tm__line"><i class="fa-solid fa-user" aria-hidden="true"></i><span>{{ $material->educator?->display_name ?: $material->user?->name ?: 'SoilnWater' }}</span></span>
+                                <span class="eh-tm__meta">
+                                    <span title="Views"><i class="fa-regular fa-eye" aria-hidden="true"></i>{{ \App\Models\StudyMaterial::formatCompactCount($material->views_count) }}</span>
+                                    <span title="Downloads"><i class="fa-solid fa-download" aria-hidden="true"></i>{{ \App\Models\StudyMaterial::formatCompactCount($material->downloads_count) }}</span>
+                                    @if($rating > 0)
+                                        <span title="Rating"><i class="fa-solid fa-star eh-tm__star" aria-hidden="true"></i>{{ number_format($rating, 1) }}</span>
+                                    @endif
+                                </span>
+                            </span>
+                        </a>
+                    @endforeach
                 </div>
-                @if($trendingMaterials->isNotEmpty())
-                    <div class="eh-materials">
-                        @foreach($trendingMaterials as $material)
-                            @php $fileMeta = $material->fileTypeMeta(); @endphp
-                            <a href="{{ $material->publicUrl() }}" class="eh-material">
-                                <span class="eh-material__file eh-material__file--{{ $fileMeta['tone'] }}"><i class="fa-solid {{ $fileMeta['icon'] }}" aria-hidden="true"></i></span>
-                                <span class="eh-material__body">
-                                    <strong class="eh-material__title">{{ $material->title }}</strong>
-                                    <span class="eh-material__type">{{ $material->subject ?: $material->materialTypeLabel() }}</span>
-                                    <span class="eh-material__by">By: {{ $material->educator?->display_name ?: $material->user?->name ?: 'SoilnWater' }}</span>
-                                </span>
-                                <span class="eh-material__meta">
-                                    <span title="Views"><i class="fa-regular fa-eye" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($material->views_count) }}</span>
-                                    <i class="fa-solid fa-download" aria-hidden="true" title="Download"></i>
-                                </span>
-                            </a>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="eh-empty">Study materials will appear here soon.</p>
-                @endif
-            </section>
+            @else
+                <p class="eh-empty">Study materials will appear here soon.</p>
+            @endif
+        </section>
 
+        {{-- Top teachers, announcements --}}
+        <div class="eh-panels">
             <section class="eh-card eh-panel" aria-labelledby="ehTeachersTitle">
                 <div class="eh-panel__head">
                     <h2 class="eh-panel__title" id="ehTeachersTitle"><i class="fa-solid fa-medal eh-tone--orange" aria-hidden="true"></i> Top Rated Teachers</h2>

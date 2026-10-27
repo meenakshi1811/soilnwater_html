@@ -459,9 +459,10 @@
 }
 
 /* Panels */
+/* Top teachers and announcements side by side */
 .eh-panels {
   display: grid;
-  grid-template-columns: 1.15fr 1fr 1.1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.1rem;
   margin-top: 1.75rem;
 }
@@ -488,86 +489,154 @@
   text-align: center;
 }
 
-/* Trending materials */
-.eh-materials {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+/* Trending study materials: cards with the cover image (or the file-type icon) */
+.eh-section__title--icon {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
-.eh-material {
+.eh-trending {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.eh-tm {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.25rem 0.75rem;
   min-width: 0;
-  border-left: 1px solid var(--eh-line);
+  overflow: hidden;
+  border: 1px solid var(--eh-line);
+  border-radius: var(--eh-radius);
+  background: #fff;
+  box-shadow: var(--eh-shadow);
   color: inherit;
   text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.eh-material:first-child {
-  padding-left: 0;
-  border-left: 0;
+.eh-tm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+  color: inherit;
 }
 
-.eh-material:last-child {
-  padding-right: 0;
-}
-
-.eh-material__file {
-  display: inline-grid;
+.eh-tm__media {
+  position: relative;
+  display: grid;
   place-items: center;
-  width: 30px;
-  height: 36px;
-  border-radius: 6px;
-  font-size: 1.05rem;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #f1f5f9;
+  font-size: 2.3rem;
 }
 
-.eh-material__file--pdf { background: #fee2e2; color: #dc2626; }
-.eh-material__file--doc { background: #dbeafe; color: #2563eb; }
-.eh-material__file--ppt { background: #ffedd5; color: #ea580c; }
-.eh-material__file--xls { background: #dcfce7; color: #16a34a; }
-.eh-material__file--img { background: #ede9fe; color: #7c3aed; }
-.eh-material__file--file { background: #e2e8f0; color: #475569; }
+.eh-tm__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
 
-.eh-material__body {
+.eh-tm:hover .eh-tm__media img {
+  transform: scale(1.04);
+}
+
+.eh-tm__media--pdf { background: #fee2e2; color: #dc2626; }
+.eh-tm__media--doc { background: #dbeafe; color: #2563eb; }
+.eh-tm__media--ppt { background: #ffedd5; color: #ea580c; }
+.eh-tm__media--xls { background: #dcfce7; color: #16a34a; }
+.eh-tm__media--img { background: #ede9fe; color: #7c3aed; }
+.eh-tm__media--file { background: #e2e8f0; color: #475569; }
+
+.eh-tm__type {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  z-index: 1;
+  max-width: calc(100% - 1.1rem);
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(4px);
+}
+
+.eh-tm__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.3rem;
   min-width: 0;
+  padding: 0.75rem 0.8rem 0.8rem;
 }
 
-.eh-material__title {
+.eh-tm__title {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 0.8rem;
+  min-height: 2.6em;
+  margin-bottom: 0.1rem;
+  font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--eh-navy);
 }
 
-.eh-material__type,
-.eh-material__by {
-  font-size: 0.75rem;
-  color: var(--eh-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.eh-tm:hover .eh-tm__title {
+  color: var(--eh-blue);
 }
 
-.eh-material__meta {
+.eh-tm__line {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
+  gap: 0.45rem;
+  min-width: 0;
   font-size: 0.75rem;
   color: var(--eh-muted);
 }
 
-.eh-material:hover .eh-material__title {
-  color: var(--eh-blue);
+.eh-tm__line i {
+  flex: 0 0 0.9rem;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.eh-tm__line span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eh-tm__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.85rem;
+  margin-top: auto;
+  padding-top: 0.55rem;
+  border-top: 1px solid #eef2f7;
+  font-size: 0.72rem;
+  color: var(--eh-muted);
+}
+
+.eh-tm__meta i {
+  margin-right: 0.25rem;
+}
+
+.eh-tm__star {
+  color: #f59e0b;
 }
 
 /* Teachers */
@@ -877,12 +946,8 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .eh-panels {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .eh-panels > :first-child {
-    grid-column: 1 / -1;
+  .eh-trending {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   /* The three groups stacked, 4 cards a row */
@@ -966,27 +1031,40 @@
     grid-template-columns: 1fr;
   }
 
-  .eh-materials {
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
+  /* Two trending cards per row */
+  .eh-trending {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
   }
 
-  .eh-material {
-    flex-direction: row;
-    align-items: center;
-    padding: 0;
-    border-left: 0;
+  .eh-tm__media {
+    font-size: 1.8rem;
   }
 
-  .eh-material__body {
-    flex: 1;
+  .eh-tm__type {
+    top: 0.4rem;
+    left: 0.4rem;
+    font-size: 0.58rem;
   }
 
-  .eh-material__meta {
-    flex-direction: column;
-    align-items: flex-end;
+  .eh-tm__body {
+    gap: 0.2rem;
+    padding: 0.55rem 0.6rem 0.65rem;
+  }
+
+  .eh-tm__title {
+    font-size: 0.78rem;
+  }
+
+  .eh-tm__line {
     gap: 0.35rem;
-    margin-top: 0;
+    font-size: 0.68rem;
+  }
+
+  .eh-tm__meta {
+    gap: 0.2rem 0.6rem;
+    padding-top: 0.4rem;
+    font-size: 0.66rem;
   }
 
   .eh-inst-grid {
