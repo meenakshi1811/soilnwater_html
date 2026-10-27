@@ -12,6 +12,10 @@
             'label' => 'Teachers & Tutors',
             'route' => 'educator.index',
         ],
+        'offers' => [
+            'label' => 'Offers Market',
+            'route' => 'frontend.offers.index',
+        ],
         default => [
             'label' => 'Vendors',
             'route' => 'frontend.vendors.index',

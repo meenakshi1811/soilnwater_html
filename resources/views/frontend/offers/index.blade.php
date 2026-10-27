@@ -5,58 +5,66 @@
   $marketBannerImage = data_get($homepageSetting ?? null, 'offers_market_banner_image');
 @endphp
 
-<section class="mb-4">
-  <img src="{{ $marketBannerImage ? asset($marketBannerImage) : "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80" }}" alt="Offers market banner" class="w-100" style="display:block;max-height:220px;object-fit:cover;">
-</section>
+<div class="vendors-page offers-market-page">
+    @include('frontend.marketplace.partials.breadcrumb', ['module' => 'offers'])
 
-<div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 offers-market-page">
+    @if ($marketBannerImage)
+        <img src="{{ asset($marketBannerImage) }}" alt="Offers market" class="om-banner">
+    @endif
 
-    <div class="row g-2 mb-3" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
-        <div class="col-12 col-md-4">
-            <label for="offersMarketFilterCategory" class="form-label mb-1">Category</label>
-            <select id="offersMarketFilterCategory" class="form-select">
-                <option value="">All categories</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
-                @endforeach
-            </select>
+    <section class="om-panel">
+        <header class="om-head">
+            <h1 class="om-head__title">Offers &amp; Discounts</h1>
+            <p class="om-head__lead">Coupons and deals from businesses on SoilnWater</p>
+        </header>
+
+        <div class="om-filters" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
+            <div class="om-filter">
+                <label for="offersMarketFilterCategory" class="om-filter__label">Category</label>
+                <select id="offersMarketFilterCategory" class="form-select om-filter__select">
+                    <option value="">All categories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="om-filter">
+                <label for="offersMarketFilterSubcategory" class="om-filter__label">Subcategory</label>
+                <select id="offersMarketFilterSubcategory" class="form-select om-filter__select" disabled>
+                    <option value="">All subcategories</option>
+                </select>
+            </div>
+            <div class="om-filter">
+                <label for="offersMarketFilterValidity" class="om-filter__label">Validity</label>
+                <select id="offersMarketFilterValidity" class="form-select om-filter__select">
+                    <option value="valid" @selected(request('validity', 'valid') === 'valid')>Valid (Not expired)</option>
+                    <option value="" @selected(request('validity') === '')>All</option>
+                    <option value="expired" @selected(request('validity') === 'expired')>Expired</option>
+                    <option value="expires_today" @selected(request('validity') === 'expires_today')>Expires today</option>
+                    <option value="no_expiry" @selected(request('validity') === 'no_expiry')>No expiry</option>
+                </select>
+            </div>
         </div>
-        <div class="col-12 col-md-4">
-            <label for="offersMarketFilterSubcategory" class="form-label mb-1">Subcategory</label>
-            <select id="offersMarketFilterSubcategory" class="form-select" disabled>
-                <option value="">All subcategories</option>
-            </select>
+
+        <div
+            id="offersGrid"
+            class="om-grid"
+            data-next-page-url="{{ $offers->nextPageUrl() }}"
+        >
+            @include('frontend.offers.partials.cards', ['offers' => $offers])
         </div>
-        <div class="col-12 col-md-4">
-            <label for="offersMarketFilterValidity" class="form-label mb-1">Validity</label>
-            <select id="offersMarketFilterValidity" class="form-select">
-                <option value="valid" @selected(request('validity', 'valid') === 'valid')>Valid (Not expired)</option>
-                <option value="" @selected(request('validity') === '')>All</option>
-                <option value="expired" @selected(request('validity') === 'expired')>Expired</option>
-                <option value="expires_today" @selected(request('validity') === 'expires_today')>Expires today</option>
-                <option value="no_expiry" @selected(request('validity') === 'no_expiry')>No expiry</option>
-            </select>
+
+        <div class="om-pagination offer-pagination-wrap" id="offersPaginationState">
+            @if ($offers->total() > 0)
+                <p class="offer-pagination-summary mb-0" id="offersSummaryText">
+                    Showing {{ $offers->firstItem() }} to {{ $offers->lastItem() }} of {{ $offers->total() }} results
+                </p>
+            @endif
+            <p class="offer-pagination-loading mb-0 d-none" id="offersLoadingText">Loading more offers…</p>
         </div>
-    </div>
 
-    <div
-        id="offersGrid"
-        class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3"
-        data-next-page-url="{{ $offers->nextPageUrl() }}"
-    >
-        @include('frontend.offers.partials.cards', ['offers' => $offers])
-    </div>
-
-    <div class="mt-4 offer-pagination-wrap" id="offersPaginationState">
-        @if ($offers->total() > 0)
-            <p class="offer-pagination-summary mb-0" id="offersSummaryText">
-                Showing {{ $offers->firstItem() }} to {{ $offers->lastItem() }} of {{ $offers->total() }} results
-            </p>
-        @endif
-        <p class="offer-pagination-loading mb-0 d-none" id="offersLoadingText">Loading more offers…</p>
-    </div>
-
-    <div id="offersScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
+        <div id="offersScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
+    </section>
 </div>
 
 <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
@@ -141,40 +149,8 @@
 
 
 @push('styles')
-<style>
-    .offer-login-message{display:flex;gap:.8rem;align-items:flex-start;background:#f8faff;border:1px solid #d6e4ff;border-radius:12px;padding:.85rem .9rem;margin-top:.75rem}
-    .offer-login-message-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f0ff;color:#2457c5;flex:0 0 34px}
-    .offer-login-message-title{font-size:1rem;font-weight:700;color:#1d3557}
-    .offer-login-message-text{font-size:.9rem;color:#5d6b82}
-    .offers-market-page #offersGrid .offer-coupon-card {
-        max-width: none;
-        margin-inline: 0;
-        padding: 0;
-        overflow: hidden;
-    }
-
-    .offers-market-page #offersGrid .offer-coupon-image-wrap {
-        background: transparent;
-        border: 0;
-        border-radius: 0;
-        margin: 0;
-    }
-
-    .offers-market-page #offersGrid .offer-coupon-image {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .offers-market-page #offersGrid .offer-coupon-card .card-body {
-        padding: .75rem .9rem .85rem;
-    }
-
-    #offerDetailsModalDescription {
-        white-space: pre-line;
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/css/vendors-page.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="{{ asset('assets/css/offers-market.css') }}?v={{ now()->timestamp }}">
 @endpush
 
 @push('scripts')
@@ -217,7 +193,7 @@
         let isLoading = false;
 
         document.addEventListener('keydown', function (event) {
-            const trigger = event.target.closest('.offer-coupon-card.js-offer-modal-trigger');
+            const trigger = event.target.closest('.om-card.js-offer-modal-trigger');
             if (!trigger) return;
 
             if (event.key === 'Enter' || event.key === ' ') {
