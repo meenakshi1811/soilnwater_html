@@ -235,7 +235,7 @@
       <h2 class="hero-hub-card__title">Businesses</h2>
       <p class="hero-hub-card__desc">Vendors, consultants &amp; services</p>
     </a>
-    <a href="{{ route('schools.index') }}" class="hero-hub-card hero-hub-card--education">
+    <a href="{{ route('education.hub') }}" class="hero-hub-card hero-hub-card--education">
       <span class="hero-hub-card__icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
       <h2 class="hero-hub-card__title">
         <span class="hero-hub-card__title-full">Education &amp; Knowledge</span>
