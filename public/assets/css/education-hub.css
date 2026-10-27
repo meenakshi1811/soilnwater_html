@@ -29,8 +29,8 @@
     grid-template-columns: minmax(0, 1fr) 340px;
   }
 
-  .eh-hero__image {
-    width: 340px;
+  .eh-hero__main {
+    --eh-hero-img-w: 340px;
   }
 }
 
@@ -135,6 +135,12 @@
   transform: rotate(180deg);
 }
 
+/* The last menu opens to the left so it stays on screen */
+.eh-nav__item:last-child .eh-nav__menu {
+  left: auto;
+  right: 0;
+}
+
 .eh-nav__menu {
   position: absolute;
   top: calc(100% - 4px);
@@ -167,6 +173,7 @@
 }
 
 /* ---------- Hero ---------- */
+/* The picture's doodle background across the whole banner (the student is cut out and stands on it) */
 .eh-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
@@ -175,10 +182,16 @@
   margin-top: 1rem;
   padding: 1.25rem 1.25rem 1.25rem 2.5rem;
   border-radius: 18px;
-  background: linear-gradient(135deg, #e7f0fd 0%, #eef5fe 55%, #f3f8fe 100%);
+  background:
+    /* a little calmer behind the heading and text */
+    linear-gradient(90deg, rgba(232, 241, 253, .6) 0, rgba(232, 241, 253, .45) 38%, rgba(232, 241, 253, 0) 58%),
+    url('../images/education-hub/doodles.svg') 0 0 / 840px 400px repeat,
+    linear-gradient(180deg, #e5f0fd 0%, #edf4fe 60%, #f4f8fe 100%);
 }
 
+/* A soft light behind the student, as in the original picture */
 .eh-hero__main {
+  background: radial-gradient(circle at calc(100% - var(--eh-hero-img-w, 300px) / 2) 58%, rgba(255, 255, 255, .8) 0, rgba(255, 255, 255, .45) 90px, rgba(255, 255, 255, 0) 170px);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -305,12 +318,9 @@
 .eh-hero__image {
   flex-shrink: 0;
   align-self: flex-end;
-  width: 300px;
+  width: var(--eh-hero-img-w, 300px);
   height: auto;
   margin-bottom: -1.25rem;
-  /* Blends the picture's edges into the hero background */
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%);
 }
 
 /* "I want to…" */
@@ -853,8 +863,8 @@
     padding-left: 1.5rem;
   }
 
-  .eh-hero__image {
-    width: 230px;
+  .eh-hero__main {
+    --eh-hero-img-w: 230px;
   }
 
   .eh-stats {
@@ -982,5 +992,18 @@
   .eh-inst-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.6rem;
+  }
+}
+
+/* Small laptops: the eight menu items fit on one line */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .eh-nav__list {
+    gap: 0.15rem 0.2rem;
+  }
+
+  .eh-nav__link {
+    gap: 0.35rem;
+    padding: 0.8rem 0.55rem;
+    font-size: 0.82rem;
   }
 }

@@ -129,7 +129,7 @@
                     </div>
                 </div>
 
-                <img class="eh-hero__image" src="{{ asset('assets/images/education-hub/hero-student.webp') }}" alt="" width="328" height="348" fetchpriority="high">
+                <img class="eh-hero__image" src="{{ asset('assets/images/education-hub/hero-student-cutout.webp') }}" alt="" width="328" height="348" fetchpriority="high">
             </div>
 
             <aside class="eh-card eh-quick" aria-labelledby="ehQuickTitle">
