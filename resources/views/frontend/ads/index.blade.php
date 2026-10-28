@@ -12,11 +12,11 @@
 <div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 ads-market-page">
 
     <div class="row g-2 mb-3 align-items-end ads-market-filter-wrap" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
-        <div class="col-12 col-md-4">
+        <div class="col-10 col-md-4 order-1">
             <label for="adsMarketFilterSearch" class="form-label mb-1">Search</label>
             <input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}">
         </div>
-        <div class="col-12 col-md-3">
+        <div class="col-6 col-md-3 order-3 order-md-2">
             <label for="adsMarketFilterCategory" class="form-label mb-1">Category</label>
             <select id="adsMarketFilterCategory" class="form-select">
                 <option value="">All categories</option>
@@ -27,15 +27,16 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-12 col-md-3">
+        <div class="col-6 col-md-3 order-4 order-md-3">
             <label for="adsMarketFilterSubcategory" class="form-label mb-1">Subcategory</label>
             <select id="adsMarketFilterSubcategory" class="form-select" disabled>
                 <option value="">All subcategories</option>
             </select>
         </div>
-        <div class="col-12 col-md-2 d-grid d-md-flex gap-2">
-            <button type="button" id="adsMarketClearFilters" class="btn btn-outline-secondary w-100">
-                <i class="fa-solid fa-filter-circle-xmark me-1"></i> Clear
+        {{-- (on phones beside the search box, its icon only) --}}
+        <div class="col-2 col-md-2 order-2 order-md-4 d-grid d-md-flex gap-2">
+            <button type="button" id="adsMarketClearFilters" class="btn btn-outline-secondary w-100 ads-market-filter-clear" aria-label="Clear filters">
+                <i class="fa-solid fa-filter-circle-xmark"></i><span class="d-none d-md-inline ms-1">Clear</span>
             </button>
         </div>
     </div>

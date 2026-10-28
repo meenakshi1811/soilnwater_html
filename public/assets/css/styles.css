@@ -3657,6 +3657,43 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
 .ads-market-page{max-width:none;width:100%}
 .ads-market-filter-wrap{background:#fff;border:1px solid #e4ebf5;border-radius:14px;padding:.7rem;box-shadow:0 8px 20px rgba(16,51,102,.06)}
 .ads-market-filter-wrap .form-label{font-size:.8rem;font-weight:700;color:#4e637d}
+/* Phones: a compact card (search and a clear button, then category and subcategory side by side);
+   the fields' own text says what each is, so their names are for screen readers only */
+@media (max-width: 767.98px) {
+    .ads-market-filter-wrap {
+        --bs-gutter-x: .5rem;
+        --bs-gutter-y: .5rem;
+        padding: .6rem .35rem;
+    }
+
+    .ads-market-filter-wrap .form-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .ads-market-filter-wrap .form-control,
+    .ads-market-filter-wrap .form-select,
+    .ads-market-filter-wrap .ads-market-filter-clear {
+        min-height: 40px;
+        border-radius: 10px;
+        font-size: .86rem;
+    }
+
+    .ads-market-filter-wrap .form-select {
+        text-overflow: ellipsis;
+    }
+
+    .ads-market-filter-wrap .ads-market-filter-clear {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+}
 
 .ad-report-popup{background:#f8fafc!important;border-color:#dbe5f1!important}
 .ad-report-popup .ad-report-textarea{resize:vertical;min-height:92px;border-radius:.5rem;overflow:auto}
