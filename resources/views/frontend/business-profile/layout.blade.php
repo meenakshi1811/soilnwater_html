@@ -92,7 +92,7 @@
         </nav>
 
         {{-- Header: cover, logo, name, details and actions --}}
-        <section class="biz-hero" id="biz-overview">
+        <section class="biz-hero {{ $biz['logo'] ? 'biz-hero--has-logo' : '' }}" id="biz-overview">
             <div class="biz-hero__cover {{ $biz['banners']->isEmpty() ? 'biz-hero__cover--plain' : '' }}">
                 @if($biz['banners']->isNotEmpty())
                     <div id="bizCoverCarousel" class="carousel slide carousel-fade h-100" @if($biz['banners']->count() > 1) data-bs-ride="carousel" data-bs-interval="5000" @endif>
@@ -114,6 +114,13 @@
                     </div>
                 @else
                     <span class="biz-hero__watermark" aria-hidden="true"><i class="fa-solid {{ $biz['typeIcon'] }}"></i></span>
+                @endif
+                @if($biz['logo'])
+                    {{-- Phones: the logo in place of the banner --}}
+                    <div class="biz-hero__cover-logo">
+                        <span class="biz-hero__backdrop" style="background-image: url('{{ $biz['logo'] }}')" aria-hidden="true"></span>
+                        <img src="{{ $biz['logo'] }}" alt="{{ $biz['name'] }} logo">
+                    </div>
                 @endif
             </div>
 
