@@ -292,3 +292,95 @@
     font-size: .66rem;
   }
 }
+
+/* ---------- The offer's popup on phones: details folded to 4 lines with "Read more", and the share
+   options in a bar at the bottom (as on the vendor pages); wider screens keep the share panel ---------- */
+@media (max-width: 767.98px) {
+  .offer-details-description.is-clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .offer-readmore {
+    display: inline-flex;
+    margin: -.5rem 0 .85rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--vendors-green, #2e7d32);
+    font-size: .88rem;
+    font-weight: 700;
+  }
+
+  #offerSharePanel {
+    display: none !important;
+  }
+
+  .offer-share-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: .45rem;
+    padding: .6rem .75rem calc(.6rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e1e7ef;
+    background: #fff;
+  }
+
+  .offer-share-bar.d-none {
+    display: none !important;
+  }
+
+  .offer-share-bar > * {
+    margin: 0;
+  }
+
+  .offer-share-bar__btn {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .2rem;
+    min-width: 0;
+    min-height: 52px;
+    padding: .35rem .2rem;
+    border: 1px solid #e1e7ef;
+    border-radius: 10px;
+    background: #fff;
+    color: #111827;
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+
+  .offer-share-bar__btn i {
+    font-size: 1.05rem;
+  }
+
+  .offer-share-bar__btn--whatsapp {
+    border-color: #25d366;
+    background: #25d366;
+    color: #fff;
+  }
+
+  .offer-share-bar__btn--facebook i {
+    color: #1877f2;
+  }
+
+  .offer-share-bar__btn--instagram i {
+    color: #d6249f;
+  }
+
+  .offer-share-bar__btn:active {
+    filter: brightness(.95);
+  }
+}
+
+@media (min-width: 768px) {
+  .offer-share-bar,
+  .offer-readmore {
+    display: none !important;
+  }
+}

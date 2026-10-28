@@ -84,7 +84,9 @@
                         <span class="coupon-code mb-0 d-none" id="offerDetailsModalCoupon"></span>
                     </div>
                     <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
-                    <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
+                    <p class="text-muted mb-3 offer-details-description" id="offerDetailsModalDescription"></p>
+                    {{-- Phones: long details fold to 4 lines --}}
+                    <button type="button" class="offer-readmore d-none" id="offerDetailsReadMore" aria-controls="offerDetailsModalDescription" aria-expanded="false">Read more</button>
                     <p class="mb-0" id="offerDetailsModalValidityRow"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
                     <div class="offer-login-message d-none" id="offerLoginMessageBox" role="status" aria-live="polite">
                         <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
@@ -141,6 +143,13 @@
                     </div>
                 </div>
             </div>
+            {{-- Phones: the share options in a bar at the bottom of the popup (the panel above is for wider screens) --}}
+            <div class="modal-footer offer-share-bar d-none" id="offerShareBar">
+                <a id="offerBarWhatsapp" href="#" target="_blank" rel="noopener" class="offer-share-bar__btn offer-share-bar__btn--whatsapp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span>WhatsApp</span></a>
+                <a id="offerBarFacebook" href="#" target="_blank" rel="noopener noreferrer" class="offer-share-bar__btn offer-share-bar__btn--facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i><span>Facebook</span></a>
+                <button type="button" id="offerBarInstagram" class="offer-share-bar__btn offer-share-bar__btn--instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i><span>Instagram</span></button>
+                <button type="button" id="offerBarCopy" class="offer-share-bar__btn"><i class="fa-solid fa-link" aria-hidden="true"></i><span>Copy link</span></button>
+            </div>
         </div>
     </div>
 </div>
@@ -169,6 +178,8 @@
         const imageEl = document.getElementById('offerDetailsModalImage');
         const loginMessageBox = document.getElementById('offerLoginMessageBox');
         const sharePanelEl = document.getElementById('offerSharePanel');
+        const shareBarEl = document.getElementById('offerShareBar');
+        const readMoreBtn = document.getElementById('offerDetailsReadMore');
         const shareLinkEl = document.getElementById('offerShareLink');
         const shareQrEl = document.getElementById('offerShareQr');
         const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
@@ -409,6 +420,8 @@
                 imageEl.src = '';
                 imageEl.classList.add('d-none');
                 if (sharePanelEl) sharePanelEl.classList.add('d-none');
+                if (shareBarEl) shareBarEl.classList.add('d-none');
+                if (readMoreBtn) readMoreBtn.classList.add('d-none');
                 if (shareLinkEl) shareLinkEl.value = '';
                 if (shareQrEl) shareQrEl.src = '';
                 if (shareWhatsappEl) shareWhatsappEl.href = '#';
@@ -420,6 +433,7 @@
             if (loginMessageBox) loginMessageBox.classList.add('d-none');
             if (validityRowEl) validityRowEl.classList.remove('d-none');
             if (sharePanelEl) sharePanelEl.classList.remove('d-none');
+            if (shareBarEl) shareBarEl.classList.remove('d-none');
             const offerId = trigger.getAttribute('data-offer-id') || '';
             if (offerReportActions) offerReportActions.classList.toggle('d-none', !offerId);
             if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
@@ -449,6 +463,12 @@
                 discountEl.classList.add('d-none');
             }
             descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
+            descriptionEl.classList.add('is-clamped');
+            if (readMoreBtn) {
+                readMoreBtn.classList.add('d-none');
+                readMoreBtn.textContent = 'Read more';
+                readMoreBtn.setAttribute('aria-expanded', 'false');
+            }
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
             const bannerImage = trigger.getAttribute('data-offer-image');
@@ -469,10 +489,37 @@
                 whatsappSuffix: 'Check this offer on SoilnWater',
                 qrSize: 224,
             });
+            window.soilnwaterPopulateShareLinks({
+                url: trigger.getAttribute('data-offer-url') || window.location.href,
+                whatsappLink: 'offerBarWhatsapp',
+                facebookLink: 'offerBarFacebook',
+                whatsappSuffix: 'Check this offer on SoilnWater',
+            });
 
         });
 
+        // "Read more" only when the folded details (phones) hide some of the text; the popup has
+        // to be on screen to measure it
+        offerModal.addEventListener('shown.bs.modal', function () {
+            if (!readMoreBtn || !isLoggedIn) return;
+            const hidesText = descriptionEl.scrollHeight > descriptionEl.clientHeight + 1;
+            readMoreBtn.classList.toggle('d-none', !hidesText);
+        });
+
+        if (readMoreBtn) {
+            readMoreBtn.addEventListener('click', function () {
+                const folded = descriptionEl.classList.toggle('is-clamped');
+                readMoreBtn.textContent = folded ? 'Read more' : 'Show less';
+                readMoreBtn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+            });
+        }
+
         window.soilnwaterBindShareCopyButton('offerShareCopyBtn', 'offerShareLink');
+        window.soilnwaterBindShareCopyButton('offerBarCopy', 'offerShareLink');
+        window.soilnwaterBindInstagramShareButton('offerBarInstagram', 'offerShareLink', {
+            title: 'SoilnWater Offer',
+            text: 'Check this offer on SoilnWater',
+        });
         window.soilnwaterBindInstagramShareButton('offerShareInstagram', 'offerShareLink', {
             title: 'SoilnWater Offer',
             text: 'Check this offer on SoilnWater',
