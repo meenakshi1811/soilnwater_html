@@ -33,9 +33,6 @@
                 @endif
             </div>
         </div>
-        <a href="{{ $profileUrl }}" class="vendors-list-card__action" aria-label="View {{ $service_provider->publicDisplayName() }} profile">
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
     </article>
 @empty
     <div class="vendors-empty-state">

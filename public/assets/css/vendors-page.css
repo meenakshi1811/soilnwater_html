@@ -734,6 +734,7 @@
 }
 
 .vendors-premium-card {
+  position: relative;
   border: 1px solid #e6eef8;
   border-radius: 12px;
   overflow: hidden;
@@ -959,25 +960,24 @@
   font-weight: 600;
 }
 
-.vendors-premium-card__cta {
-  margin-top: .15rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid var(--vendors-green);
-  border-radius: 9px;
-  color: var(--vendors-green);
-  font-size: .78rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background .15s ease, color .15s ease;
+/* The card's "View Store" / "View Profile" link covers the whole card instead of showing a button */
+.vendors-premium-card__cta,
+.vendors-premium-card__cta:hover {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: transparent;
+  font-size: 0;
 }
 
-.vendors-premium-card__cta:hover {
-  background: var(--vendors-green);
-  color: #fff;
+.vendors-premium-card__cta:focus-visible {
+  outline: 2px solid var(--vendors-green);
+  outline-offset: 2px;
 }
 
 .vendors-all__toolbar {
@@ -1209,7 +1209,7 @@
 
 .vendors-list-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: .75rem;
   align-items: center;
   padding: .75rem .85rem;
@@ -1867,20 +1867,4 @@
     font-weight: 600;
   }
 
-  /* The premium card's "View Store" link covers the whole card instead of showing a button */
-  .vendors-premium-card__cta,
-  .vendors-premium-card__cta:hover {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    width: auto;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 10px;
-    background: none;
-    color: transparent;
-    font-size: 0;
-  }
 }

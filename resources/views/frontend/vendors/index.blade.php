@@ -245,19 +245,6 @@
         </section>
       @endif
 
-      <section class="vendors-section @if($premiumVendors->isEmpty()) d-none @endif" id="vendorsPremiumSection">
-          <div class="vendors-section__head">
-            <h2><i class="fa-solid fa-crown" aria-hidden="true"></i> Premium Vendors</h2>
-            <a
-              href="{{ route('frontend.vendors.premium') }}"
-              class="vendors-section__link"
-            >View All Premium Vendors <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></a>
-          </div>
-          <div class="vendors-premium-track" id="vendorsPremiumTrack">
-            @include('frontend.vendors.partials.premium-cards', ['premiumVendors' => $premiumVendors, 'hasLocation' => $hasLocation])
-          </div>
-        </section>
-
       <section class="vendors-section" id="vendorsAllSection">
         <div class="vendors-section__head">
           <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> All Vendors</h2>
