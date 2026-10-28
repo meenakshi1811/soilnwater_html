@@ -250,7 +250,7 @@ class VendorPublicPageController extends Controller
             'vendor' => $vendor,
             'preview' => true,
             'activeNav' => 'home',
-            'featuredProducts' => $products->take(4),
+            'products' => $products,
             'vendorCategories' => $vendorCategories,
             'vendorRecentAds' => collect(),
             'selectedCategoryNamesByVendorAdId' => [],

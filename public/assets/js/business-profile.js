@@ -1,0 +1,239 @@
+// Single-page profiles of vendors, consultants and service providers.
+(function () {
+    'use strict';
+
+    var page = document.getElementById('bizProfilePage');
+    if (!page) return;
+
+    function notify(type, message) {
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+            window.toastr[type](message);
+            return;
+        }
+        window.alert(message);
+    }
+
+    // The tabs and the menu stay under the site's sticky header
+    function syncStickyTop() {
+        var header = document.querySelector('.header-sticky-shell');
+        var height = header ? Math.round(header.getBoundingClientRect().height) : 0;
+        page.style.setProperty('--biz-sticky-top', height + 'px');
+    }
+
+    syncStickyTop();
+    window.addEventListener('resize', syncStickyTop);
+
+    // The section in view is marked in the menu and the tabs
+    var navLinks = Array.prototype.slice.call(page.querySelectorAll('[data-biz-nav]'));
+    var sections = [];
+    navLinks.forEach(function (link) {
+        var section = document.getElementById(link.getAttribute('href').slice(1));
+        if (section && sections.indexOf(section) === -1) sections.push(section);
+    });
+
+    function setActive(id) {
+        navLinks.forEach(function (link) {
+            var isActive = link.getAttribute('href') === '#' + id;
+            link.classList.toggle('is-active', isActive);
+            if (isActive && link.classList.contains('biz-tabs__link')) {
+                var track = link.parentElement;
+                track.scrollTo({ left: link.offsetLeft - (track.clientWidth - link.offsetWidth) / 2, behavior: 'smooth' });
+            }
+        });
+    }
+
+    function sectionInView() {
+        var line = (parseInt(getComputedStyle(page).getPropertyValue('--biz-sticky-top'), 10) || 0) + 120;
+        var current = sections[0];
+        sections.forEach(function (section) {
+            if (section.getBoundingClientRect().top <= line) current = section;
+        });
+        // At the end of the page the last section counts as in view
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+            current = sections[sections.length - 1];
+        }
+        return current;
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+        if (ticking || !sections.length) return;
+        ticking = true;
+        window.requestAnimationFrame(function () {
+            var current = sectionInView();
+            if (current) setActive(current.id);
+            ticking = false;
+        });
+    }, { passive: true });
+
+    navLinks.forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            var target = document.getElementById(link.getAttribute('href').slice(1));
+            if (!target) return;
+            event.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', '#' + target.id);
+            setActive(target.id);
+        });
+    });
+
+    // Services and products: category filters and "show all"
+    page.querySelectorAll('[data-biz-filter-scope]').forEach(function (scope) {
+        var list = scope.querySelector('[data-biz-items]');
+        if (!list) return;
+
+        var items = Array.prototype.slice.call(list.querySelectorAll('[data-biz-item]'));
+        var chips = Array.prototype.slice.call(scope.querySelectorAll('[data-biz-filter]'));
+        var more = scope.querySelector('[data-biz-more]');
+        var baseLimit = parseInt(list.getAttribute('data-biz-limit'), 10) || 9;
+        var expanded = false;
+        var category = '';
+
+        // Whole rows only (9 on three columns, 8 on two)
+        function limit() {
+            var columns = getComputedStyle(list).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+            return Math.max(columns, Math.floor(baseLimit / columns) * columns);
+        }
+
+        function render() {
+            var matching = items.filter(function (item) {
+                return category === '' || item.getAttribute('data-biz-category') === category;
+            });
+            // A chosen category shows all its items
+            var shown = expanded || category !== '' ? matching.length : limit();
+            items.forEach(function (item) {
+                var index = matching.indexOf(item);
+                item.hidden = index === -1 || index >= shown;
+            });
+            if (more) more.hidden = matching.length <= shown;
+        }
+
+        chips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                category = chip.getAttribute('data-biz-filter');
+                chips.forEach(function (other) { other.classList.toggle('is-active', other === chip); });
+                render();
+            });
+        });
+
+        if (more) {
+            more.addEventListener('click', function () {
+                expanded = true;
+                render();
+            });
+        }
+
+        window.addEventListener('resize', render);
+
+        // A link to a category (the old category pages) opens with it chosen
+        var requested = new URLSearchParams(window.location.search).get('category');
+        var requestedChip = requested ? chips.filter(function (chip) { return chip.getAttribute('data-biz-filter') === requested; })[0] : null;
+        if (requestedChip) {
+            requestedChip.click();
+        } else {
+            render();
+        }
+    });
+
+    // Long "about" text folds, with "Read more"
+    page.querySelectorAll('[data-biz-collapsible]').forEach(function (box) {
+        var button = box.parentElement.querySelector('[data-biz-readmore]');
+        if (!button || box.scrollHeight <= 340) return;
+        box.classList.add('is-collapsed');
+        button.hidden = false;
+        button.addEventListener('click', function () {
+            var collapsed = box.classList.toggle('is-collapsed');
+            button.firstChild.textContent = collapsed ? 'Read more ' : 'Show less ';
+            button.querySelector('i').className = collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+        });
+    });
+
+    // Copy the profile link
+    document.querySelectorAll('[data-biz-copy]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var url = button.getAttribute('data-biz-copy');
+            var done = function () {
+                var label = button.textContent;
+                button.textContent = 'Copied';
+                window.setTimeout(function () { button.textContent = label; }, 1800);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(done).catch(function () { notify('error', 'Could not copy the link.'); });
+                return;
+            }
+            var input = document.getElementById('bizShareUrl');
+            if (input) {
+                input.select();
+                document.execCommand('copy');
+                done();
+            }
+        });
+    });
+
+    // Enquiries and reports are sent without leaving the page
+    function closeModals() {
+        if (!window.bootstrap || !window.bootstrap.Modal) return;
+        document.querySelectorAll('.modal.show').forEach(function (modal) {
+            window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+        });
+    }
+
+    document.querySelectorAll('form[data-biz-ajax], .profile-report-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var submit = form.querySelector('button[type="submit"]');
+            var label = submit ? submit.textContent : '';
+            if (submit) {
+                submit.disabled = true;
+                submit.textContent = 'Sending...';
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': (form.querySelector('input[name="_token"]') || {}).value || (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
+                },
+                body: new FormData(form),
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (payload) {
+                        if (!response.ok) {
+                            var errors = payload.errors ? Object.values(payload.errors).flat().join(' ') : '';
+                            throw new Error(errors || payload.message || 'Something went wrong. Please try again.');
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    form.reset();
+                    closeModals();
+                    notify('success', payload.message || 'Sent successfully.');
+                })
+                .catch(function (error) {
+                    notify('error', error.message);
+                })
+                .finally(function () {
+                    if (submit) {
+                        submit.disabled = false;
+                        submit.textContent = label;
+                    }
+                });
+        });
+    });
+
+    // Pictures in the owner's sections open larger
+    var imageModal = document.getElementById('bizImageModal');
+    var imageModalImg = document.getElementById('bizImageModalImg');
+    if (imageModal && imageModalImg) {
+        page.querySelectorAll('.content-body [data-brochure-image-slot], .content-body [data-brochure-image-list] img').forEach(function (img) {
+            img.addEventListener('click', function () {
+                if (!img.src || !window.bootstrap) return;
+                imageModalImg.src = img.src;
+                imageModalImg.alt = img.alt || '';
+                window.bootstrap.Modal.getOrCreateInstance(imageModal).show();
+            });
+        });
+    }
+})();

@@ -1,159 +1,41 @@
-@extends('frontend.store.layout')
+@extends('frontend.business-profile.layout')
 
-@section('title', $vendor->publicDisplayName().' – Supplier Store')
-
-@section('store_content')
 @php
-    $featuredProducts = $featuredProducts ?? collect();
-    $vendorRecentAds = $vendorRecentAds ?? collect();
-    $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
-    $fullPageAds = $fullPageAds ?? collect();
-    $supportingAds = collect($supportingAds ?? [])->values();
-    $distributedAds = $supportingAds;
-    $adsPerContentSection = 6;
-    $recentAdsShown = false;
+    use App\Models\Category;
+    use App\Support\BusinessProfilePage;
+
+    // (Older callers pass only a few featured products)
+    $products = collect($products ?? $featuredProducts ?? []);
+    $categoryNames = Category::query()
+        ->whereIn('id', $products->pluck('category_id')->filter()->unique())
+        ->pluck('name', 'id')
+        ->all();
+
+    $biz = BusinessProfilePage::for('vendor', $vendor);
+    $bizPremiumType = 'vendor';
+    $bizSections = $vendor->pageSections;
+    $bizOffer = [
+        'id' => 'biz-products',
+        'navLabel' => 'Products',
+        'title' => 'Products',
+        'icon' => 'fa-box-open',
+        'lead' => 'Products available from '.$biz['name'],
+        'count' => $products->count(),
+        'chips' => BusinessProfilePage::categoryChips($products, fn ($product) => [$product->category_id, $categoryNames[$product->category_id] ?? null]),
+        'partial' => 'frontend.business-profile.partials.product-cards',
+        'data' => ['products' => $products, 'slug' => $vendor->slug, 'categoryNames' => $categoryNames],
+        'empty' => 'No products listed yet.',
+        'limit' => 12,
+    ];
+    $bizEnquiry = [
+        'action' => route('store.enquiry', $vendor->slug),
+    ];
+    $bizAds = [
+        'fullPage' => $fullPageAds ?? collect(),
+        'supporting' => $supportingAds ?? collect(),
+        'compactCard' => 'frontend.store.partials.compact-ad-card',
+        'recent' => $vendorRecentAds ?? collect(),
+        'recentCategoryNames' => $selectedCategoryNamesByVendorAdId ?? [],
+        'recentLabel' => 'Vendors',
+    ];
 @endphp
-
-<section class="vendor-store-hero">
-    @if($vendor->bannerSlides->count())
-        <div id="storeHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
-            <div class="carousel-inner h-100">
-                @foreach($vendor->bannerSlides as $i => $slide)
-                    <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
-                        <img src="{{ asset($slide->image_path) }}" alt="{{ $vendor->publicDisplayName() }} banner {{ $i + 1 }}" class="vendor-store-hero__image">
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
-</section>
-
-<section class="vendor-hero-text-section">
-    <div class="container">
-        <h1 style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">
-            {{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}
-        </h1>
-        @if($vendor->hero_sub_heading)
-            @php
-                $heroSubStyleCss = collect($vendor->hero_sub_style ?? [])
-                    ->except('fontFamily')
-                    ->filter(fn ($v) => filled($v))
-                    ->map(fn ($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)
-                    ->implode(';');
-                $heroSubHtml = \App\Support\StoreRichText::normalizeTypography($vendor->hero_sub_heading);
-            @endphp
-            <div class="lead mb-0 opacity-90 vendor-hero-subheading" style="white-space: pre-line;{{ $heroSubStyleCss }}">{!! $heroSubHtml !!}</div>
-        @endif
-    </div>
-</section>
-
-@include('frontend.store.partials.ads-zone', ['ads' => $fullPageAds])
-
-@if($featuredProducts->isNotEmpty())
-    <section class="vendor-store-section vendor-store-featured">
-        <div class="container">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-                <div>
-                    <p class="vendor-store-eyebrow mb-1">Featured</p>
-                    <h2 class="vendor-store-section-title mb-0">Popular products</h2>
-                </div>
-                <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-store-primary">View all products</a>
-            </div>
-            <div class="row g-3 g-md-4">
-                @include('frontend.store.partials.product-cards', [
-                    'products' => $featuredProducts,
-                    'storeSlug' => $vendor->slug,
-                    'cardStyle' => 'featured',
-                ])
-            </div>
-        </div>
-    </section>
-@endif
-
-@foreach($vendor->pageSections as $section)
-    @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
-    <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
-        <div class="container">
-            <div class="vendor-section-title-display">{!! \App\Support\StoreRichText::normalizeTypography($section->title) !!}</div>
-            <div class="row g-4 align-items-center">
-                @if($section->image_path)
-                    <div class="col-md-6">
-                        <img src="{{ asset($section->image_path) }}" alt="{{ strip_tags($section->title) }}" class="section-img">
-                    </div>
-                @endif
-                <div class="{{ $section->image_path ? 'col-md-6' : 'col-12' }}">
-                    <div class="content-body">{!! \App\Support\StoreRichText::normalizeTypography($section->content) !!}</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    @include('frontend.store.partials.supporting-ads', [
-        'ads' => $distributedAds->slice($loop->index * $adsPerContentSection, $adsPerContentSection),
-        'placementId' => 'vendorContentAds'.$loop->index,
-    ])
-
-    @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
-        @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-        @php($recentAdsShown = true)
-    @endif
-@endforeach
-
-@if(! $recentAdsShown)
-    @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-@endif
-
-@include('frontend.store.partials.similar-vendors', ['similarVendors' => $similarVendors ?? collect()])
-
-<div class="modal fade" id="storeSectionImageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content bg-dark">
-            <div class="modal-header border-0">
-                <h5 class="modal-title text-white">Image preview</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-0 text-center">
-                <img id="storeSectionImageModalImg" src="" alt="Store section image" class="img-fluid rounded" style="max-height:80vh;object-fit:contain;">
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('store_scripts')
-<style>
-    .content-body .js-remove-brochure-image,
-    .content-body .js-remove-brochure-pdf {
-        display: none !important;
-    }
-    .content-body [data-brochure-image-slot] {
-        cursor: zoom-in;
-    }
-</style>
-
-@if($vendor->bannerSlides->count() > 1)
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const el = document.getElementById('storeHeroCarousel');
-    if (el) new bootstrap.Carousel(el, { interval: 5000 });
-});
-</script>
-@endif
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modalEl = document.getElementById('storeSectionImageModal');
-    const modalImg = document.getElementById('storeSectionImageModalImg');
-    if (!modalEl || !modalImg || typeof bootstrap === 'undefined') return;
-    const previewModal = new bootstrap.Modal(modalEl);
-
-    document.querySelectorAll('.content-body [data-brochure-image-slot], .content-body [data-brochure-image-list] img').forEach(function (img) {
-        img.addEventListener('click', function () {
-            if (!img.src) return;
-            modalImg.src = img.src;
-            modalImg.alt = img.alt || 'Store section image';
-            previewModal.show();
-        });
-    });
-});
-</script>
-@endpush

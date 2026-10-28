@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\UserAd;
 use App\Services\MarketplaceAdsService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -47,25 +48,21 @@ class ServiceProviderStoreController extends Controller
 
 
 
-    public function services(string $slug): View
+    // The profile is one page now: its old services, about and contact pages lead to its sections
+
+    public function services(string $slug): RedirectResponse
     {
-        return $this->renderServiceCatalog($slug);
+        return $this->redirectToSection($slug, 'biz-services');
     }
 
-    public function categoryServices(string $slug, Category $category): View
+    public function categoryServices(string $slug, Category $category): RedirectResponse
     {
-        $this->assertServiceProviderCategory($category);
-
-        return $this->renderServiceCatalog($slug, $category);
+        return $this->redirectToSection($slug, 'biz-services', $category->id);
     }
 
-    public function subcategoryServices(string $slug, Category $category, Category $subcategory): View
+    public function subcategoryServices(string $slug, Category $category, Category $subcategory): RedirectResponse
     {
-        $this->assertServiceProviderCategory($category);
-        abort_unless((int) $subcategory->parent_id === (int) $category->id, 404);
-        $this->assertServiceProviderCategory($subcategory, isSubcategory: true);
-
-        return $this->renderServiceCatalog($slug, $category, $subcategory);
+        return $this->redirectToSection($slug, 'biz-services', $category->id);
     }
 
     public function sendServiceInquiry(Request $request, string $slug, ServiceProviderService $service): JsonResponse
@@ -164,117 +161,24 @@ class ServiceProviderStoreController extends Controller
         return response()->json(['message' => 'Enquiry submitted successfully.']);
     }
 
-    public function about(string $slug): View
+    public function about(string $slug): RedirectResponse
     {
-        return view('frontend.service_provider.about', [
-            'service_provider' => $this->resolveServiceProvider($slug),
-            'activeNav' => 'about',
-        ]);
+        return $this->redirectToSection($slug, 'biz-about');
     }
 
-    public function contact(string $slug): View
+    public function contact(string $slug): RedirectResponse
+    {
+        return $this->redirectToSection($slug, 'biz-contact');
+    }
+
+    private function redirectToSection(string $slug, string $section, ?int $categoryId = null): RedirectResponse
     {
         $service_provider = $this->resolveServiceProvider($slug);
-        $approvedServices = ServiceProviderService::query()
-            ->where('service_provider_id', $service_provider->id)
-            ->where('status', 'approved')
-            ->latest('updated_at')
-            ->get(['id', 'name']);
 
-        return view('frontend.service_provider.contact', [
-            'service_provider' => $service_provider,
-            'activeNav' => 'contact',
-            'approvedServices' => $approvedServices,
-        ]);
-    }
-
-    private function renderServiceCatalog(string $slug, ?Category $category = null, ?Category $subcategory = null): View
-    {
-        $service_provider = $this->resolveServiceProvider($slug);
-        $service_providerCategories = $this->service_providerCategories($service_provider);
-
-        $servicesQuery = ServiceProviderService::query()
-            ->with(['categoryModel:id,name', 'subcategoryModel:id,name'])
-            ->where('service_provider_id', $service_provider->id)
-            ->where('status', 'approved');
-
-        if ($subcategory) {
-            $servicesQuery->where('subcategory_id', $subcategory->id);
-        } elseif ($category) {
-            $servicesQuery->where('category_id', $category->id);
-        }
-
-        $approvedServices = $servicesQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $service_providerRecentAds = $service_provider->is_premium ? collect() : $this->nearestServiceProviderModuleAds();
-
-        if ($subcategory) {
-            $pageTitle = $subcategory->name;
-            $pageSubtitle = 'Consultation services in '.$subcategory->name.' · '.$category->name;
-            $activeNav = 'subcategory';
-        } elseif ($category) {
-            $pageTitle = $category->name;
-            $pageSubtitle = 'All consultation services listed under '.$category->name;
-            $activeNav = 'category';
-        } else {
-            $pageTitle = 'All consultation services';
-            $pageSubtitle = 'Browse the complete service catalog from '.$service_provider->publicDisplayName();
-            $activeNav = 'services';
-        }
-
-        return view('frontend.service_provider.services', [
-            'service_provider' => $service_provider,
-            'preview' => false,
-            'activeNav' => $activeNav,
-            'pageTitle' => $pageTitle,
-            'pageSubtitle' => $pageSubtitle,
-            'approvedServices' => $approvedServices,
-            'service_providerCategories' => $service_providerCategories,
-            'activeCategory' => $category,
-            'activeSubcategory' => $subcategory,
-            'service_providerRecentAds' => $service_providerRecentAds,
-            'selectedCategoryNamesByServiceProviderAdId' => $this->resolveSelectedCategoryNamesByAdId($service_providerRecentAds),
-        ]);
-    }
-
-    private function service_providerCategories(ServiceProvider $service_provider): Collection
-    {
-        $categoryIds = ServiceProviderService::query()
-            ->where('service_provider_id', $service_provider->id)
-            ->where('status', 'approved')
-            ->whereNotNull('category_id')
-            ->pluck('category_id')
-            ->unique()
-            ->filter();
-
-        if ($categoryIds->isEmpty()) {
-            return Category::query()
-                ->whereNull('parent_id')
-                ->forModule('service_providers')
-                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        }
-
-        return Category::query()
-            ->whereIn('id', $categoryIds)
-            ->whereNull('parent_id')
-            ->forModule('service_providers')
-            ->with(['children' => function ($query) use ($service_provider) {
-                $subcategoryIds = ServiceProviderService::query()
-                    ->where('service_provider_id', $service_provider->id)
-                    ->where('status', 'approved')
-                    ->whereNotNull('subcategory_id')
-                    ->pluck('subcategory_id')
-                    ->unique()
-                    ->filter();
-
-                $query
-                    ->when($subcategoryIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $subcategoryIds))
-                    ->orderBy('name')
-                    ->select(['id', 'name', 'parent_id']);
-            }])
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        return redirect()->to(route('service_provider.show', array_filter([
+            'slug' => $service_provider->slug,
+            'category' => $categoryId,
+        ])).'#'.$section);
     }
 
     private function nearestServiceProviderModuleAds(int $limit = 20): Collection
@@ -399,15 +303,6 @@ class ServiceProviderStoreController extends Controller
             is_numeric($lat) ? (float) $lat : null,
             is_numeric($lng) ? (float) $lng : null,
         ];
-    }
-
-    private function assertServiceProviderCategory(Category $category, bool $isSubcategory = false): void
-    {
-        abort_unless($category->hasModule('service_providers'), 404);
-
-        if (! $isSubcategory) {
-            abort_unless($category->parent_id === null, 404);
-        }
     }
 
     private function sendServiceProviderInquirySms(ServiceProvider $service_provider, ServiceProviderService $service): void

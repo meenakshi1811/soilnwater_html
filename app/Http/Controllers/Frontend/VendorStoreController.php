@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\MarketplaceAdsService;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -39,23 +40,19 @@ class VendorStoreController extends Controller
 
     public function buildStoreHomeView(Vendor $vendor, bool $preview = false): View
     {
-        $featuredProducts = VendorProduct::query()
+        $products = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
             ->latest('updated_at')
-            ->limit(4)
             ->get();
 
-        $vendorCategories = $this->vendorCategories($vendor);
         $adsContext = $this->loadStoreAds($vendor);
         $vendorRecentAds = $vendor->is_premium ? collect() : $this->nearestVendorModuleAds();
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => $preview,
-            'activeNav' => 'home',
-            'featuredProducts' => $featuredProducts,
-            'vendorCategories' => $vendorCategories,
+            'products' => $products,
             'fullPageAds' => $adsContext['fullPageAds'],
             'supportingAds' => $adsContext['supportingAds'],
             'vendorRecentAds' => $vendorRecentAds,
@@ -64,25 +61,21 @@ class VendorStoreController extends Controller
         ]);
     }
 
-    public function products(string $slug): View
+    // The store is one page now: its old products, about and contact pages lead to its sections
+
+    public function products(string $slug): RedirectResponse
     {
-        return $this->renderProductCatalog($slug);
+        return $this->redirectToSection($slug, 'biz-products');
     }
 
-    public function categoryProducts(string $slug, Category $category): View
+    public function categoryProducts(string $slug, Category $category): RedirectResponse
     {
-        $this->assertVendorCategory($category);
-
-        return $this->renderProductCatalog($slug, $category);
+        return $this->redirectToSection($slug, 'biz-products', $category->id);
     }
 
-    public function subcategoryProducts(string $slug, Category $category, Category $subcategory): View
+    public function subcategoryProducts(string $slug, Category $category, Category $subcategory): RedirectResponse
     {
-        $this->assertVendorCategory($category);
-        abort_unless((int) $subcategory->parent_id === (int) $category->id, 404);
-        $this->assertVendorCategory($subcategory, isSubcategory: true);
-
-        return $this->renderProductCatalog($slug, $category, $subcategory);
+        return $this->redirectToSection($slug, 'biz-products', $category->id);
     }
 
     public function productShow(string $slug, VendorProduct $product): View
@@ -257,28 +250,24 @@ class VendorStoreController extends Controller
     }
 
 
-    public function contact(string $slug): View
+    public function contact(string $slug): RedirectResponse
     {
-        $vendor = $this->resolveVendor($slug);
-
-        return view('frontend.store.contact', [
-            'vendor' => $vendor,
-            'preview' => $this->staffPreviewMode($vendor),
-            'activeNav' => 'contact',
-            'vendorCategories' => $this->vendorCategories($vendor),
-        ]);
+        return $this->redirectToSection($slug, 'biz-contact');
     }
 
-    public function about(string $slug): View
+    public function about(string $slug): RedirectResponse
+    {
+        return $this->redirectToSection($slug, 'biz-about');
+    }
+
+    private function redirectToSection(string $slug, string $section, ?int $categoryId = null): RedirectResponse
     {
         $vendor = $this->resolveVendor($slug);
 
-        return view('frontend.store.about', [
-            'vendor' => $vendor,
-            'preview' => $this->staffPreviewMode($vendor),
-            'activeNav' => 'about',
-            'vendorCategories' => $this->vendorCategories($vendor),
-        ]);
+        return redirect()->to(route('store.show', array_filter([
+            'slug' => $vendor->slug,
+            'category' => $categoryId,
+        ])).'#'.$section);
     }
 
 
@@ -406,53 +395,6 @@ class VendorStoreController extends Controller
                 'file' => $exception->getFile(),
             ]);
         }
-    }
-
-    private function renderProductCatalog(string $slug, ?Category $category = null, ?Category $subcategory = null): View
-    {
-        $vendor = $this->resolveVendor($slug);
-        $vendorCategories = $this->vendorCategories($vendor);
-
-        $productsQuery = VendorProduct::query()
-            ->where('vendor_id', $vendor->id)
-            ->where('status', 'approved');
-
-        if ($subcategory) {
-            $productsQuery->where('subcategory_id', $subcategory->id);
-        } elseif ($category) {
-            $productsQuery->where('category_id', $category->id);
-        }
-
-        $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $vendorRecentAds = $vendor->is_premium ? collect() : $this->nearestVendorModuleAds();
-
-        if ($subcategory) {
-            $pageTitle = $subcategory->name;
-            $pageSubtitle = 'Products in '.$subcategory->name.' · '.$category->name;
-            $activeNav = 'subcategory';
-        } elseif ($category) {
-            $pageTitle = $category->name;
-            $pageSubtitle = 'All products listed under '.$category->name;
-            $activeNav = 'category';
-        } else {
-            $pageTitle = 'All products';
-            $pageSubtitle = 'Browse the complete catalog from '.$vendor->publicDisplayName();
-            $activeNav = 'products';
-        }
-
-        return view('frontend.store.products', [
-            'vendor' => $vendor,
-            'preview' => $this->staffPreviewMode($vendor),
-            'activeNav' => $activeNav,
-            'pageTitle' => $pageTitle,
-            'pageSubtitle' => $pageSubtitle,
-            'products' => $products,
-            'vendorCategories' => $vendorCategories,
-            'activeCategory' => $category,
-            'activeSubcategory' => $subcategory,
-            'vendorRecentAds' => $vendorRecentAds,
-            'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
-        ]);
     }
 
 
@@ -725,12 +667,4 @@ class VendorStoreController extends Controller
         ];
     }
 
-    private function assertVendorCategory(Category $category, bool $isSubcategory = false): void
-    {
-        abort_unless(in_array('vendors', $category->modules ?? [], true), 404);
-
-        if (! $isSubcategory) {
-            abort_unless($category->parent_id === null, 404);
-        }
-    }
 }
