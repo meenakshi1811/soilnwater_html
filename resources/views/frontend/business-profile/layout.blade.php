@@ -118,8 +118,8 @@
                 @if($biz['logo'])
                     {{-- Phones: the logo in place of the banner --}}
                     <div class="biz-hero__cover-logo">
-                        <span class="biz-hero__backdrop" style="background-image: url('{{ $biz['logo'] }}')" aria-hidden="true"></span>
-                        <img src="{{ $biz['logo'] }}" alt="{{ $biz['name'] }} logo">
+                        {{-- (a wide logo is shown whole; a photo or square one fills the tile) --}}
+                        <img src="{{ $biz['logo'] }}" alt="{{ $biz['name'] }} logo" onload="this.classList.toggle('is-wide', this.naturalWidth > this.naturalHeight * 1.4)">
                     </div>
                 @endif
             </div>

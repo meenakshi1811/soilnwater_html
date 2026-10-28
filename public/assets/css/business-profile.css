@@ -2236,15 +2236,27 @@ a.biz-contact__value:hover,
     padding-top: .6rem;
   }
 
-  /* With a logo: it fills the header instead of the banner (and is not shown again below it) */
+  /* With a logo: the header is the business's colour with the logo as a square tile in the middle,
+     instead of the banner (and the logo is not shown again below it) */
   .biz-hero--has-logo .biz-hero__cover {
-    height: 200px;
+    height: 172px;
+    background:
+      radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.22), transparent 60%),
+      linear-gradient(135deg, var(--biz-cover-from), var(--biz-cover-to));
   }
 
   .biz-hero--has-logo .biz-hero__cover > :not(.biz-hero__cover-logo),
-  .biz-hero--has-logo .biz-hero__cover::before,
   .biz-hero--has-logo .biz-hero__logo {
     display: none;
+  }
+
+  .biz-hero--has-logo .biz-hero__cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    display: block;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+    background-size: 16px 16px;
   }
 
   .biz-hero__cover-logo {
@@ -2253,17 +2265,21 @@ a.biz-contact__value:hover,
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
   }
 
   .biz-hero__cover-logo img {
     position: relative;
-    max-width: 78%;
-    max-height: 168px;
-    padding: 8px;
-    border-radius: 18px;
+    width: 128px;
+    height: 128px;
+    border: 4px solid #fff;
+    border-radius: 26px;
     background: #fff;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.28);
+    object-fit: cover;
+  }
+
+  .biz-hero__cover-logo img.is-wide {
+    padding: 10px;
     object-fit: contain;
   }
 
