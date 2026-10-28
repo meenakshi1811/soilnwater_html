@@ -632,6 +632,7 @@
 }
 
 .biz-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -780,30 +781,24 @@
   font-weight: 500;
 }
 
-/* (the line before the button gets a little more room) */
-.biz-item__body > :nth-last-child(2) {
-  margin-bottom: .45rem;
-}
-
-.biz-item__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: auto;
-  padding: .5rem .75rem;
-  border: 1px solid var(--biz-accent);
-  border-radius: 9px;
-  background: #fff;
-  color: var(--biz-accent);
-  font-size: .82rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background .15s ease, color .15s ease;
-}
-
+/* The card's "View details" link or button covers the whole card instead of showing a button */
+.biz-item__btn,
 .biz-item__btn:hover {
-  background: var(--biz-accent);
-  color: #fff;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: transparent;
+  font-size: 0;
+}
+
+.biz-item__btn:focus-visible {
+  outline: 2px solid var(--biz-accent);
+  outline-offset: 2px;
 }
 
 .biz-more {
@@ -2334,10 +2329,6 @@ a.biz-contact__value:hover,
     font-size: .9rem;
   }
 
-  .biz-item__btn {
-    padding: .42rem .5rem;
-    font-size: .76rem;
-  }
 
   .biz-sponsored__grid,
   .biz-expertise--two,
