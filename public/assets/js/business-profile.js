@@ -223,6 +223,50 @@
         });
     });
 
+    // Product pictures: thumbnails, arrows and swipes; the large view opens on the picture shown
+    function initGallery(gallery) {
+        var main = gallery.querySelector('[data-biz-gallery-main]');
+        var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-biz-gallery-thumb]'));
+        if (!main || thumbs.length < 2) return null;
+
+        function current() {
+            var index = thumbs.findIndex(function (thumb) { return thumb.classList.contains('is-active'); });
+            return index < 0 ? 0 : index;
+        }
+
+        function show(index) {
+            index = (index + thumbs.length) % thumbs.length;
+            main.src = thumbs[index].getAttribute('data-biz-gallery-thumb');
+            thumbs.forEach(function (thumb, i) { thumb.classList.toggle('is-active', i === index); });
+            var strip = thumbs[index].parentElement;
+            strip.scrollTo({ left: thumbs[index].offsetLeft - (strip.clientWidth - thumbs[index].offsetWidth) / 2, behavior: 'smooth' });
+        }
+
+        thumbs.forEach(function (thumb, index) {
+            thumb.addEventListener('click', function () { show(index); });
+        });
+        gallery.querySelectorAll('[data-biz-gallery-step]').forEach(function (button) {
+            button.addEventListener('click', function () { show(current() + parseInt(button.getAttribute('data-biz-gallery-step'), 10)); });
+        });
+
+        var startX = null;
+        main.addEventListener('touchstart', function (event) { startX = event.touches[0].clientX; }, { passive: true });
+        main.addEventListener('touchend', function (event) {
+            if (startX === null) return;
+            var distance = event.changedTouches[0].clientX - startX;
+            startX = null;
+            if (Math.abs(distance) > 40) show(current() + (distance < 0 ? 1 : -1));
+        });
+
+        return { show: show, current: current };
+    }
+
+    var galleries = Array.prototype.map.call(document.querySelectorAll('[data-biz-gallery]'), initGallery);
+    var galleryModal = document.getElementById('bizGalleryModal');
+    if (galleryModal && galleries[0] && galleries[1]) {
+        galleryModal.addEventListener('show.bs.modal', function () { galleries[1].show(galleries[0].current()); });
+    }
+
     // Pictures in the owner's sections open larger
     var imageModal = document.getElementById('bizImageModal');
     var imageModalImg = document.getElementById('bizImageModalImg');

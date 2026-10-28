@@ -507,55 +507,12 @@
 </div>
 
 {{-- Popups --}}
-<div class="modal fade" id="bizShareModal" tabindex="-1" aria-labelledby="bizShareModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content vendor-share-modal">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title" id="bizShareModalLabel">Scan &amp; share this profile</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-3">
-                <div class="vendor-share-qr-wrap mb-3 text-center">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data={{ urlencode($biz['url']) }}" class="vendor-share-qr" alt="QR code for {{ $biz['name'] }}" loading="lazy">
-                </div>
-                <label for="bizShareUrl" class="form-label small text-muted mb-1">Profile link</label>
-                <div class="input-group mb-3">
-                    <input id="bizShareUrl" type="text" class="form-control" readonly value="{{ $biz['url'] }}">
-                    <button class="btn btn-outline-secondary" type="button" data-biz-copy="{{ $biz['url'] }}">Copy</button>
-                </div>
-                <div class="vendor-share-actions">
-                    <a href="https://wa.me/?text={{ urlencode('Check out '.$biz['name'].' on SoilnWater: '.$biz['url']) }}" target="_blank" rel="noopener" class="vendor-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($biz['url']) }}" target="_blank" rel="noopener" class="vendor-share-btn share-facebook"><i class="fa-brands fa-facebook-f"></i><span>Facebook</span></a>
-                    <a href="https://www.instagram.com/?url={{ urlencode($biz['url']) }}" target="_blank" rel="noopener" class="vendor-share-btn share-instagram"><i class="fa-brands fa-instagram"></i><span>Instagram</span></a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@include('frontend.business-profile.partials.share-modal', ['shareUrl' => $biz['url'], 'shareName' => $biz['name']])
 
 @auth
     @include('frontend.business-profile.partials.enquiry-modal', ['biz' => $biz, 'enquiry' => $bizEnquiry])
 @else
-    <div class="modal fade consultant-login-required-modal" id="bizLoginRequiredModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h3 class="modal-title">Log in to continue</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="consultant-login-required-card">
-                        <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
-                        <div>
-                            <h4>You are not logged in</h4>
-                            <p>Please log in to see the details and send an enquiry to {{ $biz['name'] }}.</p>
-                            <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('frontend.business-profile.partials.login-modal', ['loginName' => $biz['name']])
 @endauth
 
 @if($biz['reportRoute'])

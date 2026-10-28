@@ -1,7 +1,7 @@
 {{--
   The profile's "Send enquiry" popup (for logged-in visitors). A consultant or service provider is
   asked about one of its services; a vendor gets the visitor's contact details and requirement.
-  $biz, $enquiry: ['action' => url, 'serviceField' => ?string, 'services' => ?Collection]
+  $biz, $enquiry: ['action' => url, 'serviceField' => ?string, 'services' => ?Collection, 'title' => ?string]
 --}}
 @php
     $services = collect($enquiry['services'] ?? []);
@@ -14,7 +14,7 @@
             <div class="modal-header">
                 <div>
                     <p class="consultant-service-detail-modal__eyebrow mb-1">Send an enquiry</p>
-                    <h3 class="modal-title" id="bizEnquiryModalLabel">{{ $biz['name'] }}</h3>
+                    <h3 class="modal-title" id="bizEnquiryModalLabel">{{ $enquiry['title'] ?? $biz['name'] }}</h3>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

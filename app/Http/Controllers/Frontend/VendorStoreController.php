@@ -10,7 +10,6 @@ use App\Models\VendorProductInquiry;
 use App\Models\UserAd;
 use App\Models\User;
 use App\Services\MarketplaceAdsService;
-use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,38 +80,51 @@ class VendorStoreController extends Controller
     public function productShow(string $slug, VendorProduct $product): View
     {
         $vendor = $this->resolveVendor($slug);
-        if ($product !== null) {
-            abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
-        }
+        abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
-        $similarProducts = VendorProduct::query()
+        $otherProducts = fn () => VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
-            ->where('id', '!=', $product->id)
+            ->where('id', '!=', $product->id);
+
+        $similarProducts = $otherProducts()
             ->when($product->subcategory_id, fn ($query) => $query->where('subcategory_id', $product->subcategory_id), function ($query) use ($product) {
                 if ($product->category_id) {
                     $query->where('category_id', $product->category_id);
                 }
             })
             ->latest('updated_at')
-            ->limit(4)
+            ->limit(8)
             ->get();
 
-        if ($vendor->is_premium) {
-            return view('frontend.store.product-show', [
-                'vendor' => $vendor,
-                'product' => $product,
-                'similarProducts' => $similarProducts,
-                'vendorCategories' => $this->vendorCategories($vendor),
-                'activeNav' => 'products',
-                'preview' => $this->staffPreviewMode($vendor),
-                'topGroups' => collect(),
-                'sideGroups' => collect(),
-                'bottomGroups' => collect(),
-                'ads' => collect(),
-            ]);
+        // Too few alike: the store's other products fill in
+        if ($similarProducts->count() < 4) {
+            $similarProducts = $similarProducts->merge(
+                $otherProducts()
+                    ->whereNotIn('id', $similarProducts->pluck('id'))
+                    ->latest('updated_at')
+                    ->limit(8 - $similarProducts->count())
+                    ->get()
+            );
         }
 
+        return view('frontend.store.product-show', [
+            'vendor' => $vendor,
+            'product' => $product,
+            'productCategory' => Category::query()->whereKey($product->subcategory_id ?: $product->category_id)->value('name')
+                ?: $product->getAttribute('category'),
+            'similarProducts' => $similarProducts,
+            'preview' => $this->staffPreviewMode($vendor),
+            'railAds' => $vendor->is_premium ? collect() : $this->productPageAds($product),
+        ]);
+    }
+
+    /**
+     * Ads for the product page's side column: those chosen for the product's category if any,
+     * else the vendors module's, the nearest first; full-page sizes last (they are the tallest).
+     */
+    private function productPageAds(VendorProduct $product): Collection
+    {
         [$lat, $lng] = $this->frontendCoordinates();
 
         $adsQuery = UserAd::query()
@@ -181,26 +193,6 @@ class VendorStoreController extends Controller
 
         $ads = $ads->take(18)->values();
 
-        $sizeMap = collect(AdSizes::all())->mapWithKeys(function (array $size, string $sizeKey) {
-            return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
-        });
-
-        $adsByDimension = $ads
-            ->filter(function ($ad) use ($sizeMap) {
-                $key = strtolower((string) $ad->size_type);
-
-                return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
-            })
-            ->groupBy(function ($ad) use ($sizeMap) {
-                $key = strtolower((string) $ad->size_type);
-
-                return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
-            });
-
-        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
-            $adsByDimension = $ads->chunk(3)->values();
-        }
-
         $isFullPageSize = function ($ad): bool {
             $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
             $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
@@ -212,41 +204,7 @@ class VendorStoreController extends Controller
             return $sizeType === 'full_page';
         };
 
-        $fullPageGroups = $adsByDimension->filter(function ($group) use ($isFullPageSize) {
-            $firstAd = $group->first();
-
-            return $firstAd && $isFullPageSize($firstAd);
-        })->values();
-
-        $sideGroups = $adsByDimension->reject(function ($group) use ($isFullPageSize) {
-            $firstAd = $group->first();
-
-            return $firstAd && $isFullPageSize($firstAd);
-        })->values();
-
-        if ($fullPageGroups->isEmpty()) {
-            $fullPageGroups = $ads->filter(fn ($ad) => $isFullPageSize($ad))->chunk(1)->values();
-        }
-
-        if ($sideGroups->isEmpty()) {
-            $sideGroups = $ads->filter(fn ($ad) => ! $isFullPageSize($ad))->chunk(2)->values();
-        }
-
-        $topGroups = $fullPageGroups->take(1)->values();
-        $bottomGroups = collect();
-
-        return view('frontend.store.product-show', [
-            'vendor' => $vendor,
-            'product' => $product,
-            'similarProducts' => $similarProducts,
-            'vendorCategories' => $this->vendorCategories($vendor),
-            'activeNav' => 'products',
-            'preview' => $this->staffPreviewMode($vendor),
-            'topGroups' => $topGroups,
-            'sideGroups' => $sideGroups,
-            'bottomGroups' => $bottomGroups,
-            'ads' => $ads,
-        ]);
+        return $ads->sortBy(fn ($ad) => $isFullPageSize($ad) ? 1 : 0)->values()->take(6);
     }
 
 
@@ -497,47 +455,6 @@ class VendorStoreController extends Controller
         }
 
         return ! $vendor->isPublicProfileLive();
-    }
-
-    private function vendorCategories(Vendor $vendor): Collection
-    {
-        $categoryIds = VendorProduct::query()
-            ->where('vendor_id', $vendor->id)
-            ->where('status', 'approved')
-            ->whereNotNull('category_id')
-            ->pluck('category_id')
-            ->unique()
-            ->filter();
-
-        if ($categoryIds->isEmpty()) {
-            return Category::query()
-                ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'vendors')
-                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        }
-
-        return Category::query()
-            ->whereIn('id', $categoryIds)
-            ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'vendors')
-            ->with(['children' => function ($query) use ($vendor) {
-                $subcategoryIds = VendorProduct::query()
-                    ->where('vendor_id', $vendor->id)
-                    ->where('status', 'approved')
-                    ->whereNotNull('subcategory_id')
-                    ->pluck('subcategory_id')
-                    ->unique()
-                    ->filter();
-
-                $query
-                    ->when($subcategoryIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $subcategoryIds))
-                    ->orderBy('name')
-                    ->select(['id', 'name', 'parent_id']);
-            }])
-            ->orderBy('name')
-            ->get(['id', 'name']);
     }
 
     private function nearestVendorModuleAds(int $limit = 20): Collection
