@@ -1,13 +1,6 @@
 @extends('frontend.layouts.app')
 
 @php
-  $formatStat = function (int $count): string {
-      if ($count >= 1000) {
-          return number_format($count / 1000, $count >= 10000 ? 0 : 1).'K+';
-      }
-
-      return number_format($count).'+';
-  };
   $listBusinessUrl = auth()->check() ? route('user.profile.edit') : route('login');
   $learnMoreUrl = route('frontend.premium.show', 'consultant');
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
@@ -164,26 +157,6 @@
           </span>
           <h1>All Consultant Listings</h1>
           <p>Browse every verified consultant on SoilnWater. Premium members appear first with highlighted profiles.</p>
-        </div>
-        <div class="vendors-hero__stats">
-          <div class="vendors-stat">
-            <span class="vendors-stat__icon" aria-hidden="true">
-              <i class="fa-solid fa-user-tie"></i>
-            </span>
-            <div class="vendors-stat__text">
-              <strong>{{ $formatStat($consultantStats['trusted']) }}</strong>
-              <span>Trusted Consultants</span>
-            </div>
-          </div>
-          <div class="vendors-stat">
-            <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true">
-              <i class="fa-solid fa-gem"></i>
-            </span>
-            <div class="vendors-stat__text">
-              <strong>{{ $formatStat($consultantStats['premium']) }}</strong>
-              <span>Premium Consultants</span>
-            </div>
-          </div>
         </div>
       </section>
 
