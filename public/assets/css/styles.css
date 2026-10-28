@@ -3820,6 +3820,11 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
     border-radius: 0;
 }
 
+/* (the whole sponsored ad, not cropped to the gap's shape) */
+.masonry-grid .ad-card.ad-card--gap-fill .ad-image img {
+    object-fit: contain;
+}
+
 /* Sponsored/static ads */
 .ad-card.filler {
     padding: 14px;

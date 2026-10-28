@@ -33,6 +33,8 @@
             $adMaxDim = max($adWidth, $adHeight);
             $adArea = $adWidth * $adHeight;
             $adIsPaid = (bool) ($sizeConfig['is_paid'] ?? ($ad->adSize?->is_paid ?? false));
+            $adIsFullPage = str_contains($normalizedSizeType, 'full_page')
+                || str_contains(\Illuminate\Support\Str::lower((string) ($sizeConfig['name'] ?? $ad->adSize?->name ?? '')), 'full page');
             $mobileSizeTier = 'sm';
             // Only banners (at least twice as wide as tall) are wide ads; a 900×900 square is not
             $adIsWide = $adWidth >= 900 && $adWidth >= $adHeight * 2;
@@ -78,6 +80,7 @@
             data-ad-h="{{ $adHeight }}"
             data-ad-mobile-tier="{{ $mobileSizeTier }}"
             data-ad-is-paid="{{ $adIsPaid ? '1' : '0' }}"
+            data-ad-full-page="{{ $adIsFullPage ? '1' : '0' }}"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $adMeta }}"
             data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
@@ -132,9 +135,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
-    // Desktop: every ad is drawn at its ad size (Square Large 900×900, Square 640×640, …) times
-    // this one factor, so sizes keep their proportions but a 900px ad no longer fills the screen
-    const DESKTOP_AD_SCALE = 0.5;
+    // Desktop: a Square Large (900×900) ad is drawn this wide (two to a row on laptops, three on
+    // big screens) and the other sizes in proportion to it; Full page ads at their own size
+    const DESKTOP_SQUARE_LARGE_W = 640;
+    const SQUARE_LARGE_SIZE = 900;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
@@ -410,14 +414,36 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         });
     }
 
-    function getPackedCardDims(card, packWidth) {
+    // The factor ads are drawn at on desktop: a Square Large ad as wide as a column of the grid
+    // (at most DESKTOP_SQUARE_LARGE_W)
+    function getDesktopScale(packWidth) {
+        const cols = Math.max(2, Math.round((packWidth + GAP) / (DESKTOP_SQUARE_LARGE_W + GAP)));
+        const column = Math.min(DESKTOP_SQUARE_LARGE_W, Math.floor((packWidth - GAP * (cols - 1)) / cols));
+
+        return Math.min(1, Math.max(1, column) / SQUARE_LARGE_SIZE);
+    }
+
+    function getDesktopCardDims(card, packWidth) {
+        const dims = getDims(card);
+        const scale = card.dataset.adFullPage === '1' ? 1 : getDesktopScale(packWidth);
+
+        return {
+            w: Math.max(1, Math.round(dims.w * scale)),
+            h: Math.max(1, Math.round(dims.h * scale)),
+        };
+    }
+
+    // scaleWidth: the grid's own width (the columns line up with its edges; packWidth also
+    // reaches into the right padding for sponsored tiles)
+    function getPackedCardDims(card, packWidth, scaleWidth) {
         const dims = getDims(card);
         let cardW = dims.w;
         let cardH = dims.h;
 
         if (!isStackedLayout()) {
-            cardW = Math.max(1, Math.round(cardW * DESKTOP_AD_SCALE));
-            cardH = Math.max(1, Math.round(cardH * DESKTOP_AD_SCALE));
+            const desktop = getDesktopCardDims(card, scaleWidth || packWidth);
+            cardW = desktop.w;
+            cardH = desktop.h;
         }
 
 
@@ -550,7 +576,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         };
     }
 
-    function isFullWidthCard(card) {
+    function isFullWidthCard(card, layoutWidth) {
         const adW = parseInt(card.dataset.adW || '0', 10);
         const adH = parseInt(card.dataset.adH || '0', 10);
 
@@ -559,10 +585,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return false;
         }
 
-        // Desktop: ads are scaled (DESKTOP_AD_SCALE) and packed with the others; only one still
-        // about as wide as the grid gets a row of its own
+        // Desktop: ads are packed with the others; only one drawn about as wide as the grid gets
+        // a row of its own
         if (!isStackedLayout()) {
-            return adW * DESKTOP_AD_SCALE >= 1100;
+            return layoutWidth > 0 && getDesktopCardDims(card, layoutWidth).w >= layoutWidth * 0.85;
         }
 
         if (
@@ -1624,6 +1650,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         grid.classList.remove('is-mobile-layout');
         const state = getGridState(grid);
+        const scaleWidth = Math.min(packWidth, grid.clientWidth || packWidth);
 
         if (keepPinnedFillers) {
             preserveUsedFillerKeysFromGrid(grid);
@@ -1658,7 +1685,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 .filter(function (card) { return card.dataset.adsPacked !== '1'; });
 
             newCards.forEach(function (card) {
-                const sized = getPackedCardDims(card, packWidth);
+                const sized = getPackedCardDims(card, packWidth, scaleWidth);
                 const pos = findPlace(obstacles, sized.w, sized.h, packWidth);
                 placeCard(card, pos, sized.w, sized.h, placed);
                 obstacles.push({
@@ -1705,7 +1732,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             const obstacles = reservedFillers.map(toRect);
 
             cards.forEach(function (card) {
-                const sized = getPackedCardDims(card, packWidth);
+                const sized = getPackedCardDims(card, packWidth, scaleWidth);
                 const pos = findPlace(obstacles, sized.w, sized.h, packWidth);
                 placeCard(card, pos, sized.w, sized.h, placed);
                 obstacles.push({
@@ -1756,6 +1783,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (!source || !layout) return;
 
         const sourceCards = Array.from(source.querySelectorAll('.ad-card'));
+        const layoutWidth = layout.clientWidth;
 
         // Full rebuild (first load / filters / resize)
         if (!appendMode || !layout.querySelector('.masonry-grid, .ads-full-width')) {
@@ -1772,7 +1800,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             let currentGrid = null;
             sourceCards.forEach(function (original) {
                 const card = original.cloneNode(true);
-                if (isFullWidthCard(card)) {
+                if (isFullWidthCard(card, layoutWidth)) {
                     currentGrid = null;
                     const section = document.createElement('div');
                     section.className = 'ads-section ads-full-width';
@@ -1810,7 +1838,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
             const card = original.cloneNode(true);
 
-            if (isFullWidthCard(card)) {
+            if (isFullWidthCard(card, layoutWidth)) {
                 currentGrid = null;
                 const section = document.createElement('div');
                 section.className = 'ads-section ads-full-width';
