@@ -526,42 +526,192 @@
   color: #1e4f9b;
 }
 
-/* Top categories on the listing pages: smaller tiles than on the categories page */
+/* Top categories on the listing pages: one row of compact chips that scrolls sideways (arrow
+   buttons at its ends on wider screens, see category-strip.js; swipe on phones) */
+.vendors-section--categories {
+  padding: .95rem 1.1rem 1rem;
+}
+
+.vendors-section--categories .vendors-section__head {
+  margin-bottom: .65rem;
+}
+
+.vendors-categories-scroller {
+  position: relative;
+}
+
 .vendors-categories-strip:not(.vendors-categories-strip--all) {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: .55rem;
+  display: flex;
+  gap: .5rem;
+  margin: 0;
+  padding: .1rem 0 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all)::-webkit-scrollbar {
+  height: 6px;
+}
+
+.vendors-categories-strip:not(.vendors-categories-strip--all)::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
 }
 
 .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
-  gap: .4rem;
-  padding: .42rem .45rem;
-  border-radius: 9px;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: .5rem;
+  width: auto;
+  max-width: 340px;
+  padding: .4rem .8rem .4rem .4rem;
+  border-radius: 12px;
+  scroll-snap-align: start;
 }
 
 .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  font-size: .72rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: .74rem;
 }
 
 .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text {
-  gap: .08rem;
+  gap: .05rem;
+  width: auto;
+  min-width: 0;
   padding-right: 0;
 }
 
-/* Whole words; one too long for the tile is hyphenated rather than cut anywhere */
+/* The name on one line (cut with "…" only past the chip's maximum width; the full name is its title) */
 .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
-  font-size: .7rem;
-  line-height: 1.22;
-  word-break: normal;
-  overflow-wrap: break-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  display: block;
+  overflow: hidden;
+  font-size: .74rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text small {
-  font-size: .62rem;
+  font-size: .64rem;
+  white-space: nowrap;
+}
+
+/* Arrows and faded edges where there is more to scroll to */
+.vendors-categories-scroller::before,
+.vendors-categories-scroller::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 8px;
+  z-index: 1;
+  width: 48px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+
+.vendors-categories-scroller::before {
+  left: 0;
+  background: linear-gradient(90deg, #fff 20%, rgba(255, 255, 255, 0));
+}
+
+.vendors-categories-scroller::after {
+  right: 0;
+  background: linear-gradient(270deg, #fff 20%, rgba(255, 255, 255, 0));
+}
+
+.vendors-categories-scroller.can-prev::before,
+.vendors-categories-scroller.can-next::after {
+  opacity: 1;
+}
+
+.vendors-categories-scroller__arrow {
+  position: absolute;
+  top: calc(50% - 4px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e1e7ef;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  color: #1f2937;
+  font-size: .75rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.vendors-categories-scroller__arrow--prev {
+  left: 2px;
+}
+
+.vendors-categories-scroller__arrow--next {
+  right: 2px;
+}
+
+.vendors-categories-scroller.can-prev .vendors-categories-scroller__arrow--prev,
+.vendors-categories-scroller.can-next .vendors-categories-scroller__arrow--next {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.vendors-categories-scroller__arrow:hover {
+  border-color: var(--vendors-green);
+  color: var(--vendors-green);
+}
+
+/* Phones: swiped, so no arrows; the row runs to the card's edges */
+@media (max-width: 767.98px) {
+  .vendors-section--categories {
+    padding: .8rem .75rem .85rem;
+  }
+
+  .vendors-categories-scroller {
+    margin: 0 -.75rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) {
+    gap: .4rem;
+    padding: .1rem .75rem 6px;
+    scroll-padding-inline: .75rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
+    max-width: 220px;
+    padding: .35rem .65rem .35rem .35rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: .68rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
+    font-size: .7rem;
+  }
+
+  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text small {
+    font-size: .6rem;
+  }
+
+  .vendors-categories-scroller__arrow {
+    display: none;
+  }
 }
 
 .vendors-page__layout--single {
@@ -1438,42 +1588,6 @@
   }
 }
 
-/* Top categories on tablets and phones: two rows that slide sideways instead of a tall grid,
-   the next column peeking out at the edge (a thin bar to drag with a mouse) */
-@media (max-width: 1199.98px) {
-  .vendors-categories-strip:not(.vendors-categories-strip--all) {
-    grid-template-columns: none;
-    grid-template-rows: repeat(2, auto);
-    grid-auto-flow: column;
-    grid-auto-columns: 190px;
-    gap: .5rem;
-    margin: 0 -1.35rem;
-    padding: 0 1.35rem 6px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: 1.35rem;
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-  }
-
-  /* Only a few tiles (the teachers page's subjects): one row is enough */
-  .vendors-categories-strip:not(.vendors-categories-strip--all):not(:has(> :nth-child(7))) {
-    grid-template-rows: auto;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
-    scroll-snap-align: start;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
-
 /* ---------- Listing pages on phones (vendors, services, consultants, teachers, schools,
    institutes): a compact hero, the counts as one strip, two cards per row ---------- */
 @media (max-width: 575.98px) {
@@ -1540,37 +1654,6 @@
   }
 
   .vendors-stat span {
-    font-size: .58rem;
-  }
-
-  /* Top categories: narrower columns (two and a bit in view), icon beside the name */
-  .vendors-categories-strip:not(.vendors-categories-strip--all) {
-    grid-auto-columns: min(40vw, 170px);
-    gap: .45rem;
-    margin: 0 -.75rem;
-    padding: 0 .75rem 6px;
-    scroll-padding-inline: .75rem;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip {
-    flex-direction: row;
-    align-items: center;
-    gap: .4rem;
-    padding: .45rem .5rem;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__icon {
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
-    font-size: .68rem;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text strong {
-    font-size: .68rem;
-  }
-
-  .vendors-categories-strip:not(.vendors-categories-strip--all) .vendors-category-chip__text small {
     font-size: .58rem;
   }
 

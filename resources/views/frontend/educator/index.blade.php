@@ -299,4 +299,5 @@
 
 @push('scripts')
   <script src="{{ asset('assets/js/educators-page.js') }}?v={{ now()->timestamp }}"></script>
+  <script src="{{ asset('assets/js/category-strip.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
