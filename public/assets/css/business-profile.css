@@ -934,8 +934,8 @@
   position: relative;
 }
 
+/* (folded to four lines by business-profile.js, which sets the height) */
 .biz-collapsible.is-collapsed {
-  max-height: 280px;
   overflow: hidden;
 }
 
@@ -945,8 +945,97 @@
   right: 0;
   bottom: 0;
   left: 0;
-  height: 90px;
+  height: 1.6em;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff);
+}
+
+.biz-collapsible > :first-child,
+.biz-collapsible .content-body > :first-child {
+  margin-top: 0;
+}
+
+/* The owner's picture sections (image grid, image cards, brochure): one sliding row */
+.biz-carousel {
+  position: relative;
+}
+
+.biz-builder .content-body .biz-carousel__track {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: .75rem !important;
+  margin: 0 !important;
+  padding: 2px 0 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.biz-builder .content-body .biz-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+.biz-builder .content-body .biz-carousel__track > * {
+  flex: 0 0 auto !important;
+  width: 230px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  scroll-snap-align: start;
+}
+
+.biz-builder .content-body .biz-carousel__track img[data-grid-image-slot],
+.biz-builder .content-body .biz-carousel__track img[data-brochure-image-slot] {
+  width: 100% !important;
+  height: 280px !important;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.biz-builder .content-body .biz-carousel__track .card {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.biz-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--biz-border);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18);
+  color: var(--biz-ink);
+  font-size: .8rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity .15s ease, color .15s ease;
+}
+
+.biz-carousel__arrow--prev {
+  left: 6px;
+}
+
+.biz-carousel__arrow--next {
+  right: 6px;
+}
+
+.biz-carousel.can-prev .biz-carousel__arrow--prev,
+.biz-carousel.can-next .biz-carousel__arrow--next {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.biz-carousel__arrow:hover {
+  color: var(--biz-accent);
 }
 
 .biz-readmore {
@@ -2340,6 +2429,20 @@ a.biz-contact__value:hover,
 
   .biz-map iframe {
     height: 220px;
+  }
+
+  .biz-builder .content-body .biz-carousel__track > * {
+    width: min(62vw, 220px) !important;
+  }
+
+  .biz-builder .content-body .biz-carousel__track img[data-grid-image-slot],
+  .biz-builder .content-body .biz-carousel__track img[data-brochure-image-slot] {
+    height: 240px !important;
+  }
+
+  .biz-carousel__arrow {
+    width: 32px;
+    height: 32px;
   }
 
   .biz-actionbar {

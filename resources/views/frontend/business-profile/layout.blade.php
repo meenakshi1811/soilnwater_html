@@ -36,11 +36,22 @@
         $hasBody = filled($section->image_path)
             || trim(strip_tags((string) $section->content, '<img><video><iframe><embed><object>')) !== '';
 
+        // What the section holds: pictures (image grid, image cards, brochure), a video, a picture
+        // beside text, or text only
+        $content = (string) $section->content;
+        $kind = match (true) {
+            str_contains($content, 'data-grid-image-slot') || str_contains($content, 'data-card-image-slot') || str_contains($content, 'data-brochure-wrap') => 'gallery',
+            str_contains($content, 'vendor-section-video') => 'video',
+            filled($section->image_path) => 'split',
+            default => 'text',
+        };
+
         return $hasBody ? [
             'model' => $section,
             'id' => 'biz-section-'.$section->id,
             'title' => $title !== '' ? $title : 'More',
-            'hasVideo' => str_contains((string) $section->content, 'vendor-section-video'),
+            'hasVideo' => $kind === 'video',
+            'kind' => $kind,
         ] : null;
     })->filter()->values();
 
@@ -269,15 +280,16 @@
                 @if($showAbout)
                     <section class="biz-section biz-builder vendor-store-page" id="biz-about">
                         <h2 class="biz-section__title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About {{ $biz['name'] }}</h2>
-                        @if($biz['taglineHtml'] !== '')
-                            <div class="biz-about__lead">{!! $biz['taglineHtml'] !!}</div>
-                        @endif
-                        @if($biz['aboutHtml'] !== '')
-                            <div class="biz-collapsible" data-biz-collapsible>
+                        {{-- Four lines, then "Read more" --}}
+                        <div class="biz-collapsible" data-biz-collapsible>
+                            @if($biz['taglineHtml'] !== '')
+                                <div class="biz-about__lead">{!! $biz['taglineHtml'] !!}</div>
+                            @endif
+                            @if($biz['aboutHtml'] !== '')
                                 <div class="content-body">{!! $biz['aboutHtml'] !!}</div>
-                            </div>
-                            <button type="button" class="biz-readmore" data-biz-readmore hidden>Read more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-                        @endif
+                            @endif
+                        </div>
+                        <button type="button" class="biz-readmore" data-biz-readmore hidden>Read more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
                     </section>
                 @endif
 
@@ -311,14 +323,22 @@
                     @php
                         $model = $section['model'];
                     @endphp
-                    <section class="biz-section biz-builder vendor-store-page vendor-store-section vendor-custom-section {{ $section['hasVideo'] ? 'has-video-section' : '' }}" id="{{ $section['id'] }}">
+                    <section class="biz-section biz-builder vendor-store-page vendor-store-section vendor-custom-section biz-builder--{{ $section['kind'] }} {{ $section['hasVideo'] ? 'has-video-section' : '' }}" id="{{ $section['id'] }}" @if($section['kind'] === 'gallery') data-biz-gallery-section @endif>
                         <h2 class="biz-section__title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> {{ $section['title'] }}</h2>
-                        <div class="biz-builder__body {{ $model->image_path ? 'biz-builder__body--split' : '' }}">
-                            @if($model->image_path)
-                                <img src="{{ asset($model->image_path) }}" alt="{{ $section['title'] }}" class="biz-builder__image" loading="lazy">
-                            @endif
-                            <div class="content-body">{!! BusinessProfilePage::richHtml($model->content) !!}</div>
-                        </div>
+                        @if($section['kind'] === 'text')
+                            {{-- Four lines, then "Read more" --}}
+                            <div class="biz-collapsible" data-biz-collapsible>
+                                <div class="content-body">{!! BusinessProfilePage::richHtml($model->content) !!}</div>
+                            </div>
+                            <button type="button" class="biz-readmore" data-biz-readmore hidden>Read more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                        @else
+                            <div class="biz-builder__body {{ $model->image_path ? 'biz-builder__body--split' : '' }}">
+                                @if($model->image_path)
+                                    <img src="{{ asset($model->image_path) }}" alt="{{ $section['title'] }}" class="biz-builder__image" loading="lazy">
+                                @endif
+                                <div class="content-body">{!! BusinessProfilePage::richHtml($model->content) !!}</div>
+                            </div>
+                        @endif
                     </section>
                 @endforeach
 

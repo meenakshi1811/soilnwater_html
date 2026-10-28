@@ -135,17 +135,124 @@
         }
     });
 
-    // Long "about" text folds, with "Read more"
+    // Long text (about, text sections, a product's description) shows four lines, then "Read more"
+    function lineHeightOf(box) {
+        var text = box.querySelector('p, li, div:not([class]), span') || box;
+        var style = getComputedStyle(text);
+        var height = parseFloat(style.lineHeight);
+        return isNaN(height) ? parseFloat(style.fontSize) * 1.6 : height;
+    }
+
     page.querySelectorAll('[data-biz-collapsible]').forEach(function (box) {
         var button = box.parentElement.querySelector('[data-biz-readmore]');
-        if (!button || box.scrollHeight <= 340) return;
-        box.classList.add('is-collapsed');
+        if (!button) return;
+        var foldedHeight = Math.round(lineHeightOf(box) * 4);
+        if (box.scrollHeight <= foldedHeight + 8) return;
+
+        function fold(folded) {
+            box.classList.toggle('is-collapsed', folded);
+            box.style.maxHeight = folded ? foldedHeight + 'px' : '';
+            button.firstChild.textContent = folded ? 'Read more ' : 'Show less ';
+            button.querySelector('i').className = folded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+            button.setAttribute('aria-expanded', folded ? 'false' : 'true');
+        }
+
+        fold(true);
         button.hidden = false;
         button.addEventListener('click', function () {
-            var collapsed = box.classList.toggle('is-collapsed');
-            button.firstChild.textContent = collapsed ? 'Read more ' : 'Show less ';
-            button.querySelector('i').className = collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+            fold(!box.classList.contains('is-collapsed'));
         });
+    });
+
+    // The owner's picture sections (image grid, image cards, brochure): one row that slides on by
+    // itself every few seconds and by hand (arrows, swipe); it pauses while the visitor is on it
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function initPictureRow(track) {
+        if (track.children.length < 2) return;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'biz-carousel';
+        track.parentNode.insertBefore(wrap, track);
+        wrap.appendChild(track);
+        track.classList.add('biz-carousel__track');
+
+        function step() {
+            var first = track.children[0];
+            var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+            return first ? first.getBoundingClientRect().width + gap : track.clientWidth;
+        }
+
+        function atEnd() {
+            return track.scrollLeft >= track.scrollWidth - track.clientWidth - 4;
+        }
+
+        function sync() {
+            wrap.classList.toggle('can-prev', track.scrollLeft > 4);
+            wrap.classList.toggle('can-next', !atEnd());
+        }
+
+        var pausedUntil = 0;
+        var hovered = false;
+        var visible = false;
+
+        function pause(ms) {
+            pausedUntil = Date.now() + (ms || 6000);
+        }
+
+        [['prev', -1, 'fa-chevron-left', 'Previous pictures'], ['next', 1, 'fa-chevron-right', 'Next pictures']].forEach(function (arrow) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'biz-carousel__arrow biz-carousel__arrow--' + arrow[0];
+            button.setAttribute('aria-label', arrow[3]);
+            button.innerHTML = '<i class="fa-solid ' + arrow[2] + '" aria-hidden="true"></i>';
+            button.addEventListener('click', function () {
+                pause();
+                track.scrollBy({ left: arrow[1] * step(), behavior: 'smooth' });
+            });
+            wrap.appendChild(button);
+        });
+
+        track.addEventListener('scroll', sync, { passive: true });
+        window.addEventListener('resize', sync);
+        window.addEventListener('load', sync);
+        sync();
+
+        wrap.addEventListener('mouseenter', function () { hovered = true; });
+        wrap.addEventListener('mouseleave', function () { hovered = false; });
+        ['touchstart', 'pointerdown', 'wheel', 'focusin'].forEach(function (type) {
+            track.addEventListener(type, function () { pause(); }, { passive: true });
+        });
+
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(function (entries) {
+                visible = entries[0].isIntersecting;
+            }, { threshold: 0.4 }).observe(wrap);
+        } else {
+            visible = true;
+        }
+
+        if (reduceMotion) return;
+
+        // On by itself; back to the first picture after the last
+        window.setInterval(function () {
+            if (!visible || hovered || Date.now() < pausedUntil || track.scrollWidth <= track.clientWidth + 4) return;
+            if (atEnd()) {
+                track.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                track.scrollBy({ left: step(), behavior: 'smooth' });
+            }
+        }, 3200);
+    }
+
+    page.querySelectorAll('[data-biz-gallery-section] .content-body').forEach(function (body) {
+        var rows = [];
+        body.querySelectorAll('[data-brochure-image-list]').forEach(function (list) { rows.push(list); });
+        body.querySelectorAll('[data-grid-image-slot], [data-card-image-slot]').forEach(function (img) {
+            var row = img.closest('.row');
+            if (row && rows.indexOf(row) === -1) rows.push(row);
+        });
+        rows.forEach(initPictureRow);
     });
 
     // Copy the profile link
