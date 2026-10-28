@@ -132,6 +132,9 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
+    // Desktop: ads are drawn at this share of their ad size, as on staging (a Square Large
+    // 900×900 ad at 526×526, the size staging's ads were made at; the others in proportion)
+    const DESKTOP_AD_SCALE = 526 / 900;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
@@ -407,12 +410,17 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         });
     }
 
-    // Desktop: every ad is drawn at its ad size from the database (Square Large 900×900, Full
-    // page 900×1200, …), only scaled down, keeping its shape, when wider than the grid
+    // Desktop: every ad is drawn at DESKTOP_AD_SCALE of its ad size from the database, and
+    // scaled down further, keeping its shape, only when wider than the grid
     function getPackedCardDims(card, packWidth) {
         const dims = getDims(card);
         let cardW = dims.w;
         let cardH = dims.h;
+
+        if (!isStackedLayout()) {
+            cardW = Math.max(1, Math.round(cardW * DESKTOP_AD_SCALE));
+            cardH = Math.max(1, Math.round(cardH * DESKTOP_AD_SCALE));
+        }
 
         if (cardW > packWidth) {
             const scale = packWidth / cardW;
@@ -676,7 +684,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return null;
         }
 
-        return images[Math.floor(Math.random() * images.length)];
+        // (never the same one twice in a row)
+        let image = images[Math.floor(Math.random() * images.length)];
+        if (images.length > 1 && image === instance.lastStaticImage) {
+            image = images[(images.indexOf(image) + 1) % images.length];
+        }
+        instance.lastStaticImage = image;
+
+        return image;
     }
 
     function mountFillerWithItem(grid, left, top, width, height, item, options) {
@@ -990,15 +1005,20 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return candidates;
     }
 
+    // Each sponsored ad once, then SoilnWater's own promo images (one sponsored ad was repeated
+    // all the way down a column); only without those do the sponsored ads come round again
     function pickFlexSponsoredItem(grid, index) {
         const available = getFlexSponsoredItems(grid);
-        if (available.length) {
-            return available[index % available.length];
+        const unused = available.filter(function (item) {
+            return !instance.usedFillerKeys.has(fillerItemKey(item));
+        });
+        if (unused.length) {
+            return unused[0];
         }
 
         const staticImg = pickRandomStaticImage();
         if (!staticImg) {
-            return null;
+            return available.length ? available[index % available.length] : null;
         }
 
         return {
