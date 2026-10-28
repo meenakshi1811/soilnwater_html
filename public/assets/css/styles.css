@@ -3657,13 +3657,35 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
 .ads-market-page{max-width:none;width:100%}
 .ads-market-filter-wrap{background:#fff;border:1px solid #e4ebf5;border-radius:14px;padding:.7rem;box-shadow:0 8px 20px rgba(16,51,102,.06)}
 .ads-market-filter-wrap .form-label{font-size:.8rem;font-weight:700;color:#4e637d}
+/* The search box's magnifying glass */
+.ads-market-search {
+    position: relative;
+}
+
+.ads-market-search > i {
+    position: absolute;
+    top: 50%;
+    left: .8rem;
+    color: #94a3b8;
+    font-size: .82rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.ads-market-search > .form-control {
+    padding-left: 2.2rem;
+}
+
 /* Phones: a compact card (search and a clear button, then category and subcategory side by side);
    the fields' own text says what each is, so their names are for screen readers only */
 @media (max-width: 767.98px) {
     .ads-market-filter-wrap {
         --bs-gutter-x: .5rem;
         --bs-gutter-y: .5rem;
-        padding: .6rem .35rem;
+        margin-bottom: .75rem !important;
+        padding: .55rem .3rem;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(16, 51, 102, .05);
     }
 
     .ads-market-filter-wrap .form-label {
@@ -3678,20 +3700,53 @@ nav[aria-label="Pagination Navigation"] svg{width:1rem;height:1rem;max-width:1re
     .ads-market-filter-wrap .form-control,
     .ads-market-filter-wrap .form-select,
     .ads-market-filter-wrap .ads-market-filter-clear {
+        height: 40px;
         min-height: 40px;
+        border: 1px solid #d5dbe3;
         border-radius: 10px;
-        font-size: .86rem;
+        background-color: #fff;
+        color: #0f172a;
+        font-size: .84rem;
+        box-shadow: none;
+    }
+
+    .ads-market-filter-wrap .form-control::placeholder {
+        color: #94a3b8;
     }
 
     .ads-market-filter-wrap .form-select {
+        padding: 0 1.8rem 0 .7rem;
+        background-position: right .55rem center;
+        background-size: 12px 10px;
         text-overflow: ellipsis;
     }
 
+    .ads-market-filter-wrap .form-select:disabled {
+        background-color: #f6f7f9;
+        color: #94a3b8;
+    }
+
+    .ads-market-filter-wrap .form-control:focus,
+    .ads-market-filter-wrap .form-select:focus {
+        border-color: #2e7d32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, .12);
+    }
+
+    /* A light square button the height of the fields (w-100 is for wider screens) */
     .ads-market-filter-wrap .ads-market-filter-clear {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 40px !important;
         padding: 0;
+        color: #64748b;
+    }
+
+    .ads-market-filter-wrap .ads-market-filter-clear:hover,
+    .ads-market-filter-wrap .ads-market-filter-clear:active {
+        border-color: #2e7d32;
+        background-color: #f1f8f2;
+        color: #2e7d32;
     }
 }
 

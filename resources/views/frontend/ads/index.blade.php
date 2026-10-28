@@ -5,17 +5,22 @@
   $marketBannerImage = data_get($homepageSetting ?? null, 'ads_market_banner_image');
 @endphp
 
-<section class="mb-4">
+<section class="mb-2 mb-md-4">
   <img src="{{ $marketBannerImage ? asset($marketBannerImage) : "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80" }}" alt="Ads market banner" class="w-100" style="display:block;max-height:220px;object-fit:cover;">
 </section>
 
-<div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 ads-market-page">
+<div class="container-fluid pt-2 pb-4 pt-md-4 py-lg-5 px-3 px-lg-4 ads-market-page">
 
     <div class="row g-2 mb-3 align-items-end ads-market-filter-wrap" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
-        <div class="col-10 col-md-4 order-1">
+        <div class="col col-md-4 order-1">
             <label for="adsMarketFilterSearch" class="form-label mb-1">Search</label>
-            <input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}">
+            <div class="ads-market-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}">
+            </div>
         </div>
+        {{-- Phones: the dropdowns on a line of their own, under the search box and its clear button --}}
+        <div class="w-100 d-md-none order-2"></div>
         <div class="col-6 col-md-3 order-3 order-md-2">
             <label for="adsMarketFilterCategory" class="form-label mb-1">Category</label>
             <select id="adsMarketFilterCategory" class="form-select">
@@ -34,7 +39,7 @@
             </select>
         </div>
         {{-- (on phones beside the search box, its icon only) --}}
-        <div class="col-2 col-md-2 order-2 order-md-4 d-grid d-md-flex gap-2">
+        <div class="col-auto col-md-2 order-1 order-md-4 d-grid d-md-flex gap-2">
             <button type="button" id="adsMarketClearFilters" class="btn btn-outline-secondary w-100 ads-market-filter-clear" aria-label="Clear filters">
                 <i class="fa-solid fa-filter-circle-xmark"></i><span class="d-none d-md-inline ms-1">Clear</span>
             </button>

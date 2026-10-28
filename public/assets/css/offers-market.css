@@ -47,12 +47,12 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .5rem;
-    margin-bottom: 1rem;
-    padding: .6rem;
+    margin-bottom: .75rem;
+    padding: .55rem;
     border: 1px solid #e4ebf5;
     border-radius: 14px;
     background: #fff;
-    box-shadow: 0 8px 20px rgba(16, 51, 102, 0.06);
+    box-shadow: 0 4px 14px rgba(16, 51, 102, 0.05);
   }
 
   .om-filter {
@@ -73,12 +73,30 @@
     white-space: nowrap;
   }
 
+  /* (the same fields as the ads market's filter) */
   .om-filter__select.form-select {
+    height: 40px;
     min-height: 40px;
-    border-color: #d5dbe3;
+    padding: 0 1.8rem 0 .7rem;
+    border: 1px solid #d5dbe3;
     border-radius: 10px;
-    font-size: .86rem;
+    background-color: #fff;
+    background-position: right .55rem center;
+    background-size: 12px 10px;
+    box-shadow: none;
+    color: #0f172a;
+    font-size: .84rem;
     text-overflow: ellipsis;
+  }
+
+  .om-filter__select.form-select:disabled {
+    background-color: #f6f7f9;
+    color: #94a3b8;
+  }
+
+  .om-filter__select.form-select:focus {
+    border-color: var(--vendors-green);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, .12);
   }
 }
 
