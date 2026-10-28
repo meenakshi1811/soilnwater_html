@@ -33,6 +33,8 @@
             $adMaxDim = max($adWidth, $adHeight);
             $adArea = $adWidth * $adHeight;
             $adIsPaid = (bool) ($sizeConfig['is_paid'] ?? ($ad->adSize?->is_paid ?? false));
+            $adIsFullPage = str_contains($normalizedSizeType, 'full_page')
+                || str_contains(\Illuminate\Support\Str::lower((string) ($sizeConfig['name'] ?? $ad->adSize?->name ?? '')), 'full page');
             $mobileSizeTier = 'sm';
             // Only banners (at least twice as wide as tall) are wide ads; a 900×900 square is not
             $adIsWide = $adWidth >= 900 && $adWidth >= $adHeight * 2;
@@ -78,6 +80,7 @@
             data-ad-h="{{ $adHeight }}"
             data-ad-mobile-tier="{{ $mobileSizeTier }}"
             data-ad-is-paid="{{ $adIsPaid ? '1' : '0' }}"
+            data-ad-full-page="{{ $adIsFullPage ? '1' : '0' }}"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $adMeta }}"
             data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
@@ -133,7 +136,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     const GAP = 8;
     // Desktop: ads are drawn at this share of their ad size, as on staging (a Square Large
-    // 900×900 ad at 526×526, the size staging's ads were made at; the others in proportion)
+    // 900×900 ad at 526×526, the size staging's ads were made at; the others in proportion).
+    // Full page ads are drawn at their own size, the biggest on the page.
     const DESKTOP_AD_SCALE = 526 / 900;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
@@ -417,7 +421,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         let cardW = dims.w;
         let cardH = dims.h;
 
-        if (!isStackedLayout()) {
+        if (!isStackedLayout() && card.dataset.adFullPage !== '1') {
             cardW = Math.max(1, Math.round(cardW * DESKTOP_AD_SCALE));
             cardH = Math.max(1, Math.round(cardH * DESKTOP_AD_SCALE));
         }
