@@ -501,11 +501,12 @@
         @endif
     </div>
 
-    {{-- Phones: call, WhatsApp and enquiry always at hand --}}
+    {{-- Phones: call, share, WhatsApp and enquiry always at hand (instead of the header's buttons) --}}
     <div class="biz-actionbar">
         @if($primaryPhone)
             <a href="tel:{{ $primaryPhone }}" class="biz-actionbar__btn"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call</a>
         @endif
+        <button type="button" class="biz-actionbar__btn" data-bs-toggle="modal" data-bs-target="#bizShareModal"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share</button>
         @if($biz['whatsappUrl'])
             <a href="{{ $biz['whatsappUrl'] }}" target="_blank" rel="noopener" class="biz-actionbar__btn biz-actionbar__btn--whatsapp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
         @endif
