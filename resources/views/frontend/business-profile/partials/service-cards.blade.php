@@ -1,7 +1,7 @@
 {{--
   A consultant's or service provider's services on its profile page: a card each (its details and
   an enquiry in popups; guests are asked to log in).
-  $services, $kind ('consultant' | 'service'), $slug
+  $services, $kind ('consultant' | 'service'), $slug; the page's $biz (for the provider's phone)
 --}}
 @php
     $isConsultant = $kind === 'consultant';
@@ -9,6 +9,9 @@
     $serviceField = $isConsultant ? 'consultant_service_id' : 'service_provider_service_id';
     $fallbackCategory = $isConsultant ? 'Consultation' : 'Service';
     $fallbackIcon = $isConsultant ? 'fa-briefcase' : 'fa-screwdriver-wrench';
+    $providerPhone = $biz['phones'][0] ?? null;
+    $providerWhatsapp = $biz['whatsappUrl'] ?? null;
+    $providerUrl = $biz['url'] ?? null;
 @endphp
 
 @foreach($services as $service)
@@ -42,6 +45,10 @@
                 ['Service radius', filled($service->service_radius) ? $service->service_radius.' km' : null],
                 ['Working hours', $service->working_hours],
             ])->filter(fn ($row) => filled($row[1]))->values();
+        // For the popup: not the category (it is in the header) nor what repeats the area (under the price)
+        $facts = $infoRows->slice(1)
+            ->reject(fn ($row) => filled($service->service_area) && \Illuminate\Support\Str::lower(trim((string) $row[1])) === \Illuminate\Support\Str::lower(trim($service->service_area)))
+            ->values();
     @endphp
 
     <article class="biz-item" data-biz-item data-biz-category="{{ $service->category_id }}">
@@ -68,85 +75,92 @@
 
     @auth
         @push('biz_modals')
-            <div class="modal fade consultant-service-detail-modal" id="{{ $detailModalId }}" tabindex="-1" aria-labelledby="{{ $detailModalId }}Label" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal fade biz-modal biz-modal--{{ $kind }} biz-service-modal" id="{{ $detailModalId }}" tabindex="-1" aria-labelledby="{{ $detailModalId }}Label" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
                     <div class="modal-content">
                         <div class="modal-header">
                             <div>
-                                <p class="consultant-service-detail-modal__eyebrow mb-1">{{ $categoryName }}</p>
-                                <h3 class="modal-title" id="{{ $detailModalId }}Label">{{ $service->name }}</h3>
+                                <p class="biz-modal__eyebrow">{{ $categoryName }}</p>
+                                <h3 class="biz-modal__title" id="{{ $detailModalId }}Label">{{ $service->name }}</h3>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="consultant-service-detail-modal__media consultant-service-detail-modal__media--centered">
-                                @if($image)
-                                    <img src="{{ asset($image) }}" alt="{{ $service->name }}">
-                                @else
-                                    <div class="consultant-service-detail-modal__placeholder"><i class="fa-solid {{ $fallbackIcon }}"></i></div>
-                                @endif
-                            </div>
-
-                            <div class="consultant-service-detail-modal__section">
-                                <h4>Service information</h4>
-                                <div class="consultant-service-detail-modal__info-grid">
-                                    @foreach($infoRows as [$label, $value])
-                                        <div class="consultant-service-detail-modal__info-item">
-                                            <span>{{ $label }}</span>
-                                            <strong>{{ $value }}</strong>
-                                        </div>
-                                    @endforeach
+                            <div class="biz-service-modal__top">
+                                <div class="biz-service-modal__media">
+                                    @if($image)
+                                        <img src="{{ asset($image) }}" alt="{{ $service->name }}" loading="lazy">
+                                    @else
+                                        <span class="biz-item__placeholder" aria-hidden="true"><i class="fa-solid {{ $fallbackIcon }}"></i></span>
+                                    @endif
+                                    <span class="biz-item__badge">{{ $serviceType }}</span>
                                 </div>
-                            </div>
-
-                            @if($service->short_description)
-                                <div class="consultant-service-detail-modal__section">
-                                    <h4>Brief detail</h4>
-                                    <p class="mb-0">{{ $service->short_description }}</p>
-                                </div>
-                            @endif
-
-                            @if($service->description)
-                                <div class="consultant-service-detail-modal__section">
-                                    <h4>Overview</h4>
-                                    <p class="mb-0">{!! nl2br(e($service->description)) !!}</p>
-                                </div>
-                            @endif
-
-                            <div class="consultant-service-detail-modal__section">
-                                <h4>Charges</h4>
-                                <div class="table-responsive consultant-service-detail-modal__charges-table-wrap">
-                                    <table class="table consultant-service-detail-modal__charges-table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Duration</th>
-                                                <th>Price</th>
-                                                <th>Note</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($chargeRows as $charge)
-                                                <tr>
-                                                    <td>{{ $charge['duration'] }}</td>
-                                                    <td>{{ $charge['price'] }}</td>
-                                                    <td>{{ $charge['note'] ?: '—' }}</td>
-                                                </tr>
+                                <div class="biz-service-modal__info">
+                                    <div class="biz-product__price">
+                                        @if($startingCharge)
+                                            <strong>{{ $startingCharge['price'] }}</strong>
+                                            <span class="biz-service-modal__per">{{ $startingCharge['duration'] }}</span>
+                                        @else
+                                            <strong class="biz-product__ask">Price on request</strong>
+                                        @endif
+                                    </div>
+                                    @if($service->service_area)
+                                        <p class="biz-service-modal__meta"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $service->service_area }}</p>
+                                    @endif
+                                    @if($facts->isNotEmpty())
+                                        <dl class="biz-product__facts">
+                                            @foreach($facts as [$label, $value])
+                                                <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
                                             @endforeach
-                                        </tbody>
-                                    </table>
+                                        </dl>
+                                    @endif
                                 </div>
                             </div>
+
+                            @if($service->short_description || $service->description)
+                                <section class="biz-service-modal__block">
+                                    <h4>About this service</h4>
+                                    @if($service->short_description)
+                                        <p class="biz-service-modal__lead">{{ $service->short_description }}</p>
+                                    @endif
+                                    @if($service->description)
+                                        <p class="biz-service-modal__text">{{ $service->description }}</p>
+                                    @endif
+                                </section>
+                            @endif
+
+                            <section class="biz-service-modal__block">
+                                <h4>Charges</h4>
+                                <ul class="biz-charges">
+                                    @foreach($chargeRows as $charge)
+                                        <li>
+                                            <span>{{ $charge['duration'] }}</span>
+                                            <strong>{{ $charge['price'] }}</strong>
+                                            @if($charge['note'])
+                                                <small>{{ $charge['note'] }}</small>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </section>
                         </div>
-                        <div class="modal-footer consultant-service-detail-modal__footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn consultant-service-detail-modal__contact-btn" data-bs-target="#{{ $enquiryModalId }}" data-bs-toggle="modal">Enquiry</button>
+                        <div class="modal-footer biz-service-modal__footer">
+                            @if($providerPhone)
+                                <a href="tel:{{ $providerPhone }}" class="biz-btn biz-btn--outline"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call</a>
+                            @endif
+                            @if($providerWhatsapp)
+                                <a href="{{ $providerWhatsapp }}?text={{ urlencode('Hi, I am interested in '.$service->name.($providerUrl ? ' ('.$providerUrl.')' : '')) }}" target="_blank" rel="noopener" class="biz-btn biz-btn--whatsapp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+                            @endif
+                            <button type="button" class="biz-btn biz-btn--primary" data-bs-target="#{{ $enquiryModalId }}" data-bs-toggle="modal">
+                                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enquire
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="modal fade consultant-service-enquiry-modal" id="{{ $enquiryModalId }}" tabindex="-1" aria-labelledby="{{ $enquiryModalId }}Label" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <div>

@@ -2,7 +2,9 @@
    logo and actions; a section menu (tabs on smaller screens); the sections; the contact details
    on the right. Each kind of business has its own accent colour. */
 
-.biz-page {
+/* (the colours are on popups too: they sit outside the page) */
+.biz-page,
+.biz-modal {
   --biz-accent: #2563eb;
   --biz-accent-dark: #1d4ed8;
   --biz-accent-soft: #eaf1ff;
@@ -18,13 +20,17 @@
   --biz-sticky-top: 64px;
   --biz-cover-h: 300px;
   --biz-gutter: clamp(12px, 2vw, 24px);
+}
+
+.biz-page {
   padding: 1.1rem 0 3rem;
   background: var(--biz-bg);
   color: var(--biz-ink);
   font-family: 'Inter', sans-serif;
 }
 
-.biz-page--vendor {
+.biz-page--vendor,
+.biz-modal--vendor {
   --biz-accent: #2e7d32;
   --biz-accent-dark: #1b5e20;
   --biz-accent-soft: #e8f5e9;
@@ -32,7 +38,8 @@
   --biz-cover-to: #2e7d32;
 }
 
-.biz-page--service {
+.biz-page--service,
+.biz-modal--service {
   --biz-accent: #c2410c;
   --biz-accent-dark: #9a3412;
   --biz-accent-soft: #fff1e6;
@@ -1898,6 +1905,213 @@ a.biz-contact__value:hover,
   .biz-gallery__thumb {
     flex-basis: 58px;
     height: 58px;
+  }
+}
+
+/* ---------- A service's details popup (consultants and service providers) ---------- */
+.biz-modal .modal-content {
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  font-family: 'Inter', sans-serif;
+}
+
+.biz-modal .modal-header {
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--biz-border);
+}
+
+.biz-modal__eyebrow {
+  margin: 0 0 .15rem;
+  color: var(--biz-accent);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.biz-modal__title {
+  margin: 0;
+  color: var(--biz-ink);
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.biz-modal .modal-body {
+  padding: 1.25rem;
+}
+
+.biz-service-modal__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.biz-service-modal__media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--biz-border);
+  border-radius: 14px;
+  background: #f5f6f8;
+}
+
+.biz-service-modal__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.biz-service-modal__info {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.biz-service-modal__info .biz-product__price {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.biz-service-modal__per {
+  color: var(--biz-muted);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.biz-service-modal__meta {
+  margin: 0;
+  color: var(--biz-muted);
+  font-size: .9rem;
+}
+
+.biz-service-modal__meta i {
+  margin-right: .25rem;
+  color: var(--biz-accent);
+}
+
+.biz-service-modal__info .biz-product__facts {
+  margin: 0;
+}
+
+.biz-service-modal__block {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--biz-border);
+}
+
+.biz-service-modal__block h4 {
+  margin: 0 0 .55rem;
+  color: var(--biz-muted);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.biz-service-modal__lead {
+  margin: 0 0 .5rem;
+  color: var(--biz-ink);
+  font-size: .95rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.biz-service-modal__text {
+  margin: 0;
+  color: var(--biz-text);
+  font-size: .92rem;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.biz-charges {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--biz-border);
+  border-radius: 12px;
+  list-style: none;
+}
+
+.biz-charges li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .15rem 1rem;
+  padding: .65rem .9rem;
+}
+
+.biz-charges li + li {
+  border-top: 1px solid var(--biz-border);
+}
+
+.biz-charges span {
+  color: var(--biz-ink);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.biz-charges strong {
+  color: var(--biz-accent-dark);
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+.biz-charges small {
+  grid-column: 1 / -1;
+  color: var(--biz-muted);
+  font-size: .8rem;
+}
+
+.biz-modal .modal-footer {
+  flex-wrap: nowrap;
+  gap: .5rem;
+  padding: .85rem 1.25rem;
+  border-top: 1px solid var(--biz-border);
+}
+
+.biz-modal .modal-footer > * {
+  flex: 1 1 0;
+  margin: 0;
+}
+
+/* Phones: full screen, picture above the details */
+@media (max-width: 575.98px) {
+  .biz-modal .modal-content {
+    border-radius: 0;
+  }
+
+  .biz-modal .modal-header,
+  .biz-modal .modal-body {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .biz-service-modal__top {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .biz-service-modal__media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .biz-modal .modal-footer {
+    padding: .7rem .9rem calc(.7rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .biz-modal .modal-footer .biz-btn {
+    padding-right: .5rem;
+    padding-left: .5rem;
   }
 }
 
