@@ -164,6 +164,25 @@
         });
     });
 
+    // Business details: the first three, then "More details"
+    page.querySelectorAll('[data-biz-facts]').forEach(function (facts) {
+        var button = facts.parentElement.querySelector('[data-biz-facts-more]');
+        if (!button || facts.children.length <= 3) return;
+
+        function fold(folded) {
+            facts.classList.toggle('is-folded', folded);
+            button.firstChild.textContent = folded ? 'More details ' : 'Show less ';
+            button.querySelector('i').className = folded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+            button.setAttribute('aria-expanded', folded ? 'false' : 'true');
+        }
+
+        fold(true);
+        button.hidden = false;
+        button.addEventListener('click', function () {
+            fold(!facts.classList.contains('is-folded'));
+        });
+    });
+
     // The owner's picture sections (image grid, image cards, brochure): one row that slides on by
     // itself every few seconds and by hand (arrows, swipe); it pauses while the visitor is on it
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

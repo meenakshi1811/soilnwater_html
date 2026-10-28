@@ -464,7 +464,8 @@
 
                 <div class="biz-card">
                     <h3 class="biz-card__title"><i class="fa-solid fa-building" aria-hidden="true"></i> Business details</h3>
-                    <dl class="biz-facts">
+                    {{-- The first three, then "More details" (business-profile.js) --}}
+                    <dl class="biz-facts" data-biz-facts>
                         <div><dt>Type</dt><dd>{{ $biz['typeLabel'] }}</dd></div>
                         @if($biz['category'])<div><dt>Category</dt><dd>{{ $biz['category'] }}</dd></div>@endif
                         @if(filled($biz['contactPerson']))<div><dt>Contact person</dt><dd>{{ $biz['contactPerson'] }}</dd></div>@endif
@@ -472,6 +473,7 @@
                         <div><dt>{{ $bizOffer['navLabel'] }}</dt><dd>{{ number_format($bizOffer['count']) }}</dd></div>
                         @if($biz['branches']->count() > 0)<div><dt>Branches</dt><dd>{{ $biz['branches']->count() }}</dd></div>@endif
                     </dl>
+                    <button type="button" class="biz-readmore" data-biz-facts-more hidden>More details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
                     @if($biz['facebook'] || $biz['instagram'])
                         <div class="biz-social">
                             @if($biz['facebook'])<a href="{{ $biz['facebook'] }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>@endif

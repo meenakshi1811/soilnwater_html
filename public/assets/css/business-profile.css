@@ -1395,6 +1395,16 @@ a.biz-contact__value:hover,
   border-bottom: 0;
 }
 
+/* Folded: the first three, the rest after "More details" */
+.biz-facts.is-folded > div:nth-child(n + 4) {
+  display: none;
+}
+
+.biz-facts.is-folded > div:nth-child(3) {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
 .biz-facts dt {
   color: var(--biz-muted);
   font-weight: 500;
