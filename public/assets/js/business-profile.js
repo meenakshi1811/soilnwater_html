@@ -183,12 +183,14 @@
         });
     });
 
-    // The owner's picture sections (image grid, image cards, brochure): one row that slides on by
-    // itself every few seconds and by hand (arrows, swipe); it pauses while the visitor is on it
+    // The owner's picture sections (image grid, image cards, brochure) and the similar vendors: one
+    // row that slides on by itself every few seconds and by hand (arrows, swipe); it pauses while
+    // the visitor is on it
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function initPictureRow(track) {
         if (track.children.length < 2) return;
+        var what = track.getAttribute('data-biz-carousel') || 'pictures';
 
         var wrap = document.createElement('div');
         wrap.className = 'biz-carousel';
@@ -219,7 +221,7 @@
             pausedUntil = Date.now() + (ms || 6000);
         }
 
-        [['prev', -1, 'fa-chevron-left', 'Previous pictures'], ['next', 1, 'fa-chevron-right', 'Next pictures']].forEach(function (arrow) {
+        [['prev', -1, 'fa-chevron-left', 'Previous ' + what], ['next', 1, 'fa-chevron-right', 'Next ' + what]].forEach(function (arrow) {
             var button = document.createElement('button');
             button.type = 'button';
             button.className = 'biz-carousel__arrow biz-carousel__arrow--' + arrow[0];
@@ -273,6 +275,8 @@
         });
         rows.forEach(initPictureRow);
     });
+
+    page.querySelectorAll('.biz-extra [data-biz-carousel]').forEach(initPictureRow);
 
     // Copy the profile link
     document.querySelectorAll('[data-biz-copy]').forEach(function (button) {

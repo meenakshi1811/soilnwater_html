@@ -1489,6 +1489,69 @@ a.biz-contact__value:hover,
   padding: 0;
 }
 
+/* Similar vendors: one sliding row (five cards in view, four, three, then two on phones) */
+.biz-extra .biz-similar-row {
+  --biz-similar-gap: .75rem;
+  --biz-similar-count: 5;
+  display: flex;
+  gap: var(--biz-similar-gap);
+  min-height: 0;
+  padding: 4px 2px 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-padding-inline: 2px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.biz-extra .biz-similar-row::-webkit-scrollbar {
+  display: none;
+}
+
+.biz-similar-row__item {
+  display: flex;
+  flex: 0 0 calc((100% - (var(--biz-similar-count) - 1) * var(--biz-similar-gap)) / var(--biz-similar-count));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.biz-similar-row__item .vendor-offer-card {
+  width: 100%;
+}
+
+@media (max-width: 1199.98px) {
+  .biz-extra .biz-similar-row {
+    --biz-similar-count: 4;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .biz-extra .biz-similar-row {
+    --biz-similar-count: 3;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .biz-extra .biz-similar-row {
+    --biz-similar-gap: .6rem;
+    --biz-similar-count: 2;
+  }
+
+  .biz-similar-row__item .vendor-offer-card .card-body {
+    padding: .55rem .6rem .65rem;
+  }
+
+  .biz-similar-row__item .offer-coupon-title {
+    font-size: .85rem;
+  }
+
+  .biz-similar-row__item .offer-coupon-description {
+    margin-bottom: .35rem !important;
+    font-size: .74rem;
+  }
+}
+
 /* ---------- A vendor's product page ---------- */
 .biz-product-grid {
   display: grid;

@@ -1,7 +1,3 @@
-@php
-    $similarVendors = $similarVendors ?? collect();
-@endphp
-
 @if($similarVendors->isNotEmpty())
     <section class="vendor-store-section vendor-store-similar-vendors-section">
         <div class="container">
@@ -12,9 +8,11 @@
                 </div>
                 <a href="{{ route('frontend.vendors.index') }}" class="btn btn-store-primary">View all vendors</a>
             </div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-1 offer-coupon-grid vendor-offer-grid ad-slider auto-ad-slider vendor-store-similar-vendors-slider" data-show-arrows="true" data-pause-on-hover="false" data-show-dots="false" aria-label="Similar vendors slider">
+
+            {{-- One row of cards (two in view on phones) that slides by itself and by hand (business-profile.js) --}}
+            <div class="offer-coupon-grid vendor-offer-grid vendor-store-similar-vendors-slider biz-similar-row" data-biz-carousel="vendors" aria-label="Similar vendors">
                 @foreach($similarVendors as $similarVendor)
-                    <div class="col ad-slide">
+                    <div class="biz-similar-row__item">
                         @include('frontend.partials.vendor-card', ['vendor' => $similarVendor])
                     </div>
                 @endforeach
