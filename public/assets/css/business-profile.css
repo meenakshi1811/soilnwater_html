@@ -2301,16 +2301,9 @@ a.biz-contact__value:hover,
     display: none;
   }
 
-  .biz-hero__stat {
-    padding: .65rem .4rem;
-  }
-
-  .biz-hero__stat dt {
-    font-size: .62rem;
-  }
-
-  .biz-hero__stat dd {
-    font-size: 1.02rem;
+  /* (the counts are for wider screens) */
+  .biz-hero__stats {
+    display: none;
   }
 
   .biz-section,
