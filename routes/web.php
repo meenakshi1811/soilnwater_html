@@ -870,6 +870,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/', [SchoolController::class, 'index'])->name('index');
             Route::get('/data', [SchoolController::class, 'data'])->name('data');
             Route::get('/{institute}', [SchoolController::class, 'show'])->name('show');
+            Route::get('/{institute}/edit', [SchoolController::class, 'edit'])->name('edit');
+            Route::put('/{institute}', [SchoolController::class, 'update'])->name('update');
             Route::post('/{institute}/approve', [SchoolController::class, 'approve'])->name('approve');
             Route::post('/{institute}/reject', [SchoolController::class, 'reject'])->name('reject');
             Route::delete('/{institute}', [SchoolController::class, 'destroy'])->name('destroy');
@@ -879,6 +881,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::get('/', [InstituteController::class, 'index'])->name('index');
             Route::get('/data', [InstituteController::class, 'data'])->name('data');
             Route::get('/{institute}', [InstituteController::class, 'show'])->name('show');
+            Route::get('/{institute}/edit', [InstituteController::class, 'edit'])->name('edit');
+            Route::put('/{institute}', [InstituteController::class, 'update'])->name('update');
             Route::post('/{institute}/approve', [InstituteController::class, 'approve'])->name('approve');
             Route::post('/{institute}/reject', [InstituteController::class, 'reject'])->name('reject');
             Route::delete('/{institute}', [InstituteController::class, 'destroy'])->name('destroy');

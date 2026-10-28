@@ -9,12 +9,14 @@ use App\Models\User;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use App\Support\InstituteFileUploader;
+use App\Support\ProfilePhoneNumbers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -95,6 +97,7 @@ class InstituteController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route($this->adminRoutePrefix.'.show', $institute).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-institute" data-id="'.$institute->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
                     .$approveBtn
                     .$rejectBtn
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-institute" data-id="'.$institute->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button>'
@@ -120,6 +123,82 @@ class InstituteController extends Controller
         $institute->load(['user', 'approver:id,name']);
 
         return view('backend.institutes.show', array_merge($this->adminViewData(), compact('institute')));
+    }
+
+    public function edit(Institute $institute): JsonResponse
+    {
+        $this->ensureOwnerRole($institute);
+
+        return response()->json([
+            'institute' => [
+                'id' => $institute->id,
+                'institution_name' => $institute->institution_name,
+                'display_name' => $institute->display_name,
+                'contact_person' => $institute->contact_person,
+                'slug' => $institute->slug,
+                'institution_type' => $institute->institution_type,
+                'board_affiliation' => $institute->board_affiliation,
+                'tagline' => $institute->tagline,
+                'about' => $institute->about,
+                'phone' => $institute->primaryPhoneNumber() ?? $institute->phone,
+                'whatsapp' => $institute->whatsapp,
+                'email' => $institute->email,
+                'website_url' => $institute->website_url,
+                'address' => $institute->address,
+                'city' => $institute->city,
+                'state' => $institute->state,
+                'pincode' => $institute->pincode,
+                'pan_number' => $institute->pan_number,
+                'gst_number' => $institute->gst_number,
+                'government_certificate_number' => $institute->government_certificate_number,
+                'date_of_establishment' => $institute->date_of_establishment?->format('Y-m-d'),
+            ],
+        ]);
+    }
+
+    public function update(Request $request, Institute $institute): JsonResponse
+    {
+        $this->ensureOwnerRole($institute);
+
+        $validated = $request->validate([
+            'institution_name' => ['required', 'string', 'max:255'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('institutes', 'slug')->ignore($institute->id)],
+            'institution_type' => ['required', 'string', 'in:school,college,university,coaching,other'],
+            'board_affiliation' => ['nullable', 'string', 'max:255'],
+            'tagline' => ['nullable', 'string', 'max:255'],
+            'about' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'whatsapp' => ['nullable', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'website_url' => ['nullable', 'url', 'max:500'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'state' => ['nullable', 'string', 'max:120'],
+            'pincode' => ['nullable', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'pan_number' => ['nullable', 'string', 'max:20'],
+            'gst_number' => ['nullable', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
+            'date_of_establishment' => ['nullable', 'date', 'before_or_equal:today'],
+        ], [
+            'slug.regex' => 'The page address may only use lowercase letters, numbers and single hyphens.',
+            'phone.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'whatsapp.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+        ]);
+
+        // The phone shown first on the profile is the one edited here; the school's other numbers stay
+        $phones = $institute->phoneNumbersList();
+        if (filled($validated['phone'] ?? null)) {
+            $phones[0] = $validated['phone'];
+        }
+        $validated['phone_numbers'] = ProfilePhoneNumbers::normalize($phones);
+        $validated['phone'] = $validated['phone_numbers'][0] ?? null;
+
+        $institute->update($validated);
+
+        return response()->json(['message' => $this->entityLabel.' updated successfully.']);
     }
 
     public function approve(Request $request, Institute $institute): JsonResponse
