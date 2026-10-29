@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Institute;
 use App\Http\Controllers\Controller;
 use App\Models\InstituteDiaryHoliday;
 use App\Support\InstituteDiaryConfig;
+use App\Support\ManagedInstitute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ class InstituteDiaryHolidayController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute, 403);
 
         $validated = $this->validateHoliday($request);
@@ -28,7 +29,7 @@ class InstituteDiaryHolidayController extends Controller
 
     public function update(Request $request, InstituteDiaryHoliday $holiday): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute && (int) $holiday->institute_id === (int) $institute->id, 403);
 
         $validated = $this->validateHoliday($request);
@@ -43,7 +44,7 @@ class InstituteDiaryHolidayController extends Controller
 
     public function destroy(Request $request, InstituteDiaryHoliday $holiday): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute && (int) $holiday->institute_id === (int) $institute->id, 403);
 
         $holidayId = $holiday->id;

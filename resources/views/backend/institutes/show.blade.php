@@ -14,7 +14,8 @@
             @endif
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('admin.institutes.index') }}" class="btn btn-light">Back to list</a>
+            <a href="{{ route($adminRoutePrefix.'.index') }}" class="btn btn-light">Back to list</a>
+            <a href="{{ route($adminRoutePrefix.'.manage.profile.edit', $institute) }}" class="btn btn-primary"><i class="fa-solid fa-pen me-1"></i> Edit</a>
             @if($institute->isApproved())
                 <a href="{{ $institute->publicUrl() }}" target="_blank" class="btn btn-outline-primary">View public profile</a>
             @endif

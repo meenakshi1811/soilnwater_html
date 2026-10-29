@@ -8,6 +8,8 @@
 
 @section('content')
 <div class="admin-panel ems-page institute-portal institute-diary-page">
+  @includeWhen($managedInstitute, 'backend.institute.partials.admin-manage-bar')
+
   <div class="ems-hero mb-4">
     <p class="ems-kicker mb-1">{{ $portalLabel }} administration</p>
     <h2 class="admin-title mb-1">{{ $config['moduleTitle'] }}</h2>

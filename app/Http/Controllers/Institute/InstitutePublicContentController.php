@@ -8,6 +8,7 @@ use App\Models\InstituteBook;
 use App\Models\InstituteClass;
 use App\Models\InstituteTopPerformer;
 use App\Support\InstituteFileUploader;
+use App\Support\ManagedInstitute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -206,7 +207,7 @@ class InstitutePublicContentController extends Controller
 
     private function instituteOrAbort(Request $request)
     {
-        $institute = $request->user()?->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute, 403);
 
         return $institute;

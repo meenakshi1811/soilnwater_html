@@ -17,6 +17,8 @@
   $booksFormOpen = $institute->books->isNotEmpty();
 @endphp
 <div class="admin-panel ems-page institute-portal institute-public-page">
+  @includeWhen($managedInstitute, 'backend.institute.partials.admin-manage-bar')
+
   <div class="ems-hero mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
     <div>
       <p class="ems-kicker mb-1">School public website</p>

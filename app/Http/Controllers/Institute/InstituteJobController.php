@@ -7,6 +7,7 @@ use App\Mail\InstituteJobApplicationStatusMail;
 use App\Models\InstituteJob;
 use App\Models\InstituteJobApplication;
 use App\Services\PortalNotificationService;
+use App\Support\ManagedInstitute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,7 @@ class InstituteJobController extends Controller
 {
     public function index(): View
     {
-        $institute = auth()->user()->institute;
+        $institute = ManagedInstitute::current();
         abort_unless($institute, 404);
 
         $jobs = $institute->jobs()
@@ -36,7 +37,7 @@ class InstituteJobController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $institute = auth()->user()->institute;
+        $institute = ManagedInstitute::current();
         abort_unless($institute, 404);
 
         $validated = $request->validate([
@@ -108,7 +109,7 @@ class InstituteJobController extends Controller
 
     public function updateApplication(Request $request, InstituteJobApplication $application): JsonResponse
     {
-        $institute = auth()->user()->institute;
+        $institute = ManagedInstitute::current();
         abort_unless($institute, 404);
 
         $application->loadMissing('job');
@@ -162,7 +163,7 @@ class InstituteJobController extends Controller
 
     private function authorizeJob(InstituteJob $job): void
     {
-        $institute = auth()->user()->institute;
+        $institute = ManagedInstitute::current();
         abort_unless($institute && (int) $job->institute_id === (int) $institute->id, 404);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Institute;
 use App\Support\InstituteFileUploader;
 use App\Support\InstituteGallery;
 use App\Support\InstituteGrades;
+use App\Support\ManagedInstitute;
 use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -20,17 +21,21 @@ class InstituteProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        $user = $request->user()->load('institute');
-        $institute = $user->institute;
+        // (the school's own account, also when an admin edits it)
+        $institute = ManagedInstitute::current($request);
+        abort_unless($institute, 404);
+        $user = ManagedInstitute::owner($request);
 
         return view('backend.institute.profile', compact('user', 'institute'));
     }
 
     public function update(Request $request): RedirectResponse|JsonResponse
     {
-        $user = $request->user()->load('institute');
         /** @var Institute $institute */
-        $institute = $user->institute;
+        $institute = ManagedInstitute::current($request);
+        abort_unless($institute, 404);
+        $user = ManagedInstitute::owner($request);
+        $byAdmin = ManagedInstitute::fromAdmin($request) !== null;
 
         $gradesSectionEnabled = $request->boolean('grades_section_enabled');
         $facilitiesSectionEnabled = $request->boolean('facilities_section_enabled');
@@ -144,7 +149,10 @@ class InstituteProfileController extends Controller
             $brochurePath = InstituteFileUploader::storeDocument($request->file('brochure'), 'brochures');
         }
 
-        $slug = Institute::generateUniqueSlug($validated['institution_name'], $institute->id);
+        // (an admin keeps the page address they chose; the owner's follows the name)
+        $slug = $byAdmin && filled($institute->slug)
+            ? $institute->slug
+            : Institute::generateUniqueSlug($validated['institution_name'], $institute->id);
         $gallery = $gallerySectionEnabled
             ? $this->syncGallery($request, $institute)
             : ($institute->gallery ?? []);
@@ -196,7 +204,7 @@ class InstituteProfileController extends Controller
             'pincode' => $validated['pincode'],
         ];
 
-        if ($phoneChanged) {
+        if ($phoneChanged && ! $byAdmin) {
             $userUpdate['phone_verified_at'] = null;
         }
 
@@ -222,7 +230,9 @@ class InstituteProfileController extends Controller
             ]);
         }
 
-        return redirect()->to($request->user()->portalRoute('profile.edit'))->with('status', $message);
+        return redirect()->to($byAdmin
+            ? ManagedInstitute::adminRoute($institute, 'profile.edit')
+            : $request->user()->portalRoute('profile.edit'))->with('status', $message);
     }
 
     /** @return list<array{type: string, path: string}> */

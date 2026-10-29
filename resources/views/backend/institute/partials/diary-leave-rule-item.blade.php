@@ -1,5 +1,5 @@
 @php
-    $audienceLabels = $audienceLabels ?? \App\Support\InstituteDiaryConfig::applicableAudiences(auth()->user());
+    $audienceLabels = $audienceLabels ?? \App\Support\InstituteDiaryConfig::applicableAudiences(\App\Support\ManagedInstitute::owner());
 @endphp
 <div class="sch-manage-item js-diary-leave-item" data-item-id="{{ $rule->id }}"
      data-leave-type="{{ $rule->leave_type }}"

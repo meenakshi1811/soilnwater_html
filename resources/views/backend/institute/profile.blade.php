@@ -1,6 +1,6 @@
 @extends('backend.layouts.app')
 
-@section('title', (auth()->user()?->isSchool() ? 'School Profile' : 'Institute Profile'))
+@section('title', ($institute->user?->isSchool() ? 'School Profile' : 'Institute Profile'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/institute-portal.css') }}?v={{ now()->timestamp }}">
@@ -31,6 +31,8 @@
       : $galleryItems->isNotEmpty();
 @endphp
 <div class="admin-panel ems-page institute-portal">
+    @includeWhen($managedInstitute, 'backend.institute.partials.admin-manage-bar')
+
     @if(session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
@@ -40,9 +42,9 @@
     <div class="ems-hero mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
         <div>
             <p class="ems-kicker mb-1">{{ $institute->roleLabel() }} Profile</p>
-            <h2 class="admin-title mb-1">Edit your public profile</h2>
+            <h2 class="admin-title mb-1">{{ $managedInstitute ? 'Edit public profile' : 'Edit your public profile' }}</h2>
             <p class="mb-0 text-secondary">
-              @if(auth()->user()?->isSchool())
+              @if($institute->user?->isSchool())
                 Update your school details visible on the public listing and profile page.
               @else
                 Update your institute details visible on the public listing and profile page.
@@ -81,7 +83,7 @@
                         <select class="form-select" id="institution_type" name="institution_type" required>
                             <option value="">Select type</option>
                             @php
-                                $institutionTypes = auth()->user()?->isSchool()
+                                $institutionTypes = $institute->user?->isSchool()
                                     ? ['school' => 'School', 'college' => 'College', 'university' => 'University']
                                     : ['coaching' => 'Coaching Institute', 'other' => 'Other'];
                             @endphp

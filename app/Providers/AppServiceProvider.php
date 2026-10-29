@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Support\AuthActor;
+use App\Support\ManagedInstitute;
 use App\Support\SchoolInstituteHelper;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +30,20 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('backend.institute.*', function ($view): void {
+            // An admin managing a school from the admin panel: the same pages, on the admin's routes
+            $managed = ManagedInstitute::fromAdmin();
+            if ($managed) {
+                $owner = $managed->user;
+                $view->with([
+                    'portalPrefix' => $owner?->portalRoutePrefix() ?? 'school',
+                    'portalLabel' => $owner?->isSchool() ? 'School' : 'Institute',
+                    'portalRoute' => static fn (string $suffix, mixed $parameters = []) => ManagedInstitute::adminRoute($managed, $suffix, $parameters),
+                    'managedInstitute' => $managed,
+                ]);
+
+                return;
+            }
+
             $user = AuthActor::user();
             $prefix = $user?->portalRoutePrefix() ?? 'school';
             $view->with([
@@ -37,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
                 'portalRoute' => static fn (string $suffix, mixed $parameters = []) => $user
                     ? $user->portalRoute($suffix, $parameters)
                     : SchoolInstituteHelper::routeForPrefix($prefix, $suffix, $parameters),
+                'managedInstitute' => null,
             ]);
         });
 

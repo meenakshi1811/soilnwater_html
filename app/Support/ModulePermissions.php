@@ -166,6 +166,11 @@ final class ModulePermissions
             return $overrides[$routeName];
         }
 
+        // Editing a school's or institute's profile, public page, diary or jobs
+        if (preg_match('/^admin\.(schools|institutes)\.manage\./', $routeName)) {
+            return 'write';
+        }
+
         foreach (ModuleSidebar::sections() as $section) {
             // A section lists its items directly or splits them into groups (e.g. "Offers & Ads")
             $items = $section['items'] ?? [];

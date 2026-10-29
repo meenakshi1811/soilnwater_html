@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Institute;
 use App\Http\Controllers\Controller;
 use App\Models\InstituteNotice;
 use App\Support\InstituteFileUploader;
+use App\Support\ManagedInstitute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class InstituteNoticeController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute, 403);
 
         $validated = $request->validate([
@@ -45,7 +46,7 @@ class InstituteNoticeController extends Controller
 
     public function destroy(Request $request, InstituteNotice $notice): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute && (int) $notice->institute_id === (int) $institute->id, 403);
 
         $noticeId = $notice->id;

@@ -97,7 +97,9 @@ class InstituteController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route($this->adminRoutePrefix.'.show', $institute).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
-                    .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-institute" data-id="'.$institute->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
+                    // The full profile, public page, diary and jobs, as the school edits them
+                    .'<a href="'.route($this->adminRoutePrefix.'.manage.profile.edit', $institute).'" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>'
+                    .'<button type="button" class="btn btn-sm btn-outline-secondary js-edit-institute" data-id="'.$institute->id.'" title="Account details"><i class="fa-solid fa-id-card"></i></button>'
                     .$approveBtn
                     .$rejectBtn
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-institute" data-id="'.$institute->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button>'

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Institute;
 use App\Http\Controllers\Controller;
 use App\Models\InstituteLeaveRule;
 use App\Support\InstituteDiaryConfig;
+use App\Support\ManagedInstitute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,10 +14,10 @@ class InstituteLeaveRuleController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute, 403);
 
-        $user = $request->user();
+        $user = ManagedInstitute::owner($request);
         $validated = $this->validateRule($request, $user);
         $validated['sort_order'] = (int) $institute->leaveRules()->max('sort_order') + 1;
 
@@ -34,10 +35,10 @@ class InstituteLeaveRuleController extends Controller
 
     public function update(Request $request, InstituteLeaveRule $leaveRule): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute && (int) $leaveRule->institute_id === (int) $institute->id, 403);
 
-        $user = $request->user();
+        $user = ManagedInstitute::owner($request);
         $validated = $this->validateRule($request, $user);
         $leaveRule->update($validated);
 
@@ -53,7 +54,7 @@ class InstituteLeaveRuleController extends Controller
 
     public function destroy(Request $request, InstituteLeaveRule $leaveRule): JsonResponse
     {
-        $institute = $request->user()->institute;
+        $institute = ManagedInstitute::current($request);
         abort_unless($institute && (int) $leaveRule->institute_id === (int) $institute->id, 403);
 
         $ruleId = $leaveRule->id;

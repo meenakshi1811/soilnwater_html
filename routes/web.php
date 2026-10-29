@@ -129,6 +129,7 @@ use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
+use App\Http\Middleware\ResolveManagedInstitute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -875,6 +876,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{institute}/approve', [SchoolController::class, 'approve'])->name('approve');
             Route::post('/{institute}/reject', [SchoolController::class, 'reject'])->name('reject');
             Route::delete('/{institute}', [SchoolController::class, 'destroy'])->name('destroy');
+            // The school's own profile, public page, diary and jobs pages
+            Route::prefix('/{managedInstitute}/manage')->name('manage.')
+                ->middleware(ResolveManagedInstitute::class.':school')
+                ->group(base_path('routes/includes/institute_manage.php'));
         });
 
         Route::prefix('institutes')->name('institutes.')->group(function () {
@@ -886,6 +891,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{institute}/approve', [InstituteController::class, 'approve'])->name('approve');
             Route::post('/{institute}/reject', [InstituteController::class, 'reject'])->name('reject');
             Route::delete('/{institute}', [InstituteController::class, 'destroy'])->name('destroy');
+            // The institute's own profile, public page, diary and jobs pages
+            Route::prefix('/{managedInstitute}/manage')->name('manage.')
+                ->middleware(ResolveManagedInstitute::class.':institute')
+                ->group(base_path('routes/includes/institute_manage.php'));
         });
 
         Route::prefix('parent-profiles')->name('parent-profiles.')->group(function () {
