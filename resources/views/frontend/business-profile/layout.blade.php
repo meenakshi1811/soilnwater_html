@@ -68,12 +68,6 @@
         ->when($showBranches, fn ($items) => $items->push(['id' => 'biz-branches', 'label' => 'Branches', 'icon' => 'fa-code-branch']))
         ->push(['id' => 'biz-contact', 'label' => 'Contact', 'icon' => 'fa-address-book'])
         ->values();
-
-    $stats = collect([
-        ['value' => number_format($bizOffer['count']), 'label' => $bizOffer['navLabel']],
-        $biz['branches']->count() > 0 ? ['value' => number_format($biz['branches']->count()), 'label' => Str::plural('Branch', $biz['branches']->count())] : null,
-        $biz['since'] ? ['value' => $biz['since'], 'label' => 'In business since'] : null,
-    ])->filter()->values();
 @endphp
 
 @section('meta_title', $biz['name'].' · '.$biz['typeLabel'].' | SoilnWater')
@@ -187,17 +181,6 @@
                     </button>
                 </div>
             </div>
-
-            @if($stats->count() > 1)
-                <dl class="biz-hero__stats">
-                    @foreach($stats as $stat)
-                        <div class="biz-hero__stat">
-                            <dt>{{ $stat['label'] }}</dt>
-                            <dd>{{ $stat['value'] }}</dd>
-                        </div>
-                    @endforeach
-                </dl>
-            @endif
         </section>
 
         {{-- Tabs for phones and tablets --}}
