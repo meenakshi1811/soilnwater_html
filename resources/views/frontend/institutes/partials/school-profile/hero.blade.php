@@ -59,30 +59,4 @@
 
     @include('frontend.institutes.partials.school-profile.hero-actions')
   </div>
-
-  <div class="sch-card sch-metrics-bar">
-    <div class="sch-metrics-bar__item">
-      <span class="sch-stars" aria-label="Rating {{ $profile->rating() }} out of 5">
-        @for($i = 1; $i <= 5; $i++)
-          <i class="fa-solid fa-star {{ $i <= round($profile->rating()) ? 'is-filled' : '' }}"></i>
-        @endfor
-      </span>
-      <strong>{{ number_format($profile->rating(), 1) }}</strong>
-      <span>({{ number_format($profile->reviewCount()) }} Reviews)</span>
-    </div>
-    <div class="sch-metrics-bar__item">
-      <i class="fa-solid fa-user-graduate" aria-hidden="true"></i>
-      <strong>{{ number_format($profile->studentCount()) }}</strong>
-      <span>Students</span>
-    </div>
-    <div class="sch-metrics-bar__item">
-      <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
-      <strong>{{ number_format($profile->facultyCount()) }}</strong>
-      <span>Faculty</span>
-    </div>
-    <div class="sch-metrics-bar__item">
-      <i class="fa-solid fa-award" aria-hidden="true"></i>
-      <strong>{{ $profile->boardResultPercent() }}</strong>
-    </div>
-  </div>
 </section>

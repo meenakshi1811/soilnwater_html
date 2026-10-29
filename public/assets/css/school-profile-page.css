@@ -2766,6 +2766,12 @@
     flex-basis: auto;
   }
 
+  /* The rating strip and the facilities go to the end of the page */
+  .sch-body > .sch-metrics-bar,
+  .sch-body > .sch-quick-stats {
+    order: 1;
+  }
+
   /* The details as one panel in two columns (the first goes across when the count is odd) */
   .sch-hero__facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
