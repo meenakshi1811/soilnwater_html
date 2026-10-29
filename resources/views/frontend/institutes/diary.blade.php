@@ -34,6 +34,7 @@
           'navItems' => $navItems,
           'institute' => $institute,
           'activeNavId' => $activeNavId ?? 'sch-diary',
+          'sectionBaseUrl' => $profileUrl,
         ])
       @endif
 
