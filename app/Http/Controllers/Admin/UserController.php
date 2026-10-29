@@ -301,9 +301,28 @@ class UserController extends Controller
             return $user;
         });
 
-        return response()->json([
+        $response = [
             'message' => ucfirst(str_replace('_', ' ', $user->role)).' account created successfully. Email and phone are verified; no notification was sent.',
-        ], 201);
+        ];
+
+        // A new school or institute: on to its full profile to fill in the rest
+        $institute = $user->isSchoolOrInstitute() ? $user->institute()->first() : null;
+        if ($institute && $this->canEditModule(AccountCreation::moduleForRole($user->role))) {
+            $response['redirect'] = route(($user->isSchool() ? 'admin.schools' : 'admin.institutes').'.manage.profile.edit', $institute);
+        }
+
+        return response()->json($response, 201);
+    }
+
+    private function canEditModule(?string $module): bool
+    {
+        $actor = Auth::guard('employee')->user() ?? Auth::guard('web')->user();
+
+        if ($actor && method_exists($actor, 'isAdmin') && $actor->isAdmin()) {
+            return true;
+        }
+
+        return $module !== null && $actor && method_exists($actor, 'canModule') && $actor->canModule($module, 'write');
     }
 
     public function show(User $user): JsonResponse

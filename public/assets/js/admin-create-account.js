@@ -230,6 +230,11 @@
                 },
                 onSuccess: function (response) {
                     FormHelper.showToast('success', response.message || 'User created successfully.');
+                    // (a new school or institute: on to its full profile)
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                        return;
+                    }
                     self.reloadListingTables();
                     self.createModal.hide();
                 },
