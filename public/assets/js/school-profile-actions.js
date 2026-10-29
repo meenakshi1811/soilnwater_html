@@ -97,7 +97,8 @@
                     var label = btn.querySelector('.js-sch-follow-label');
                     var icon = btn.querySelector('i');
                     if (label) {
-                        label.textContent = following ? 'Following' : 'Follow School';
+                        // (" School" is left out on phones)
+                        label.innerHTML = following ? 'Following' : 'Follow<span class="sch-hero__action-extra"> School</span>';
                     }
                     if (icon) {
                         icon.className = following ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
@@ -165,7 +166,10 @@
                     btn.classList.toggle('is-active', !!payload.in_compare);
                     var label = btn.querySelector('.js-sch-compare-label');
                     if (label) {
-                        label.textContent = payload.in_compare ? 'In compare list' : 'Compare';
+                        // (phones show "Added" on the highlighted tile)
+                        label.innerHTML = payload.in_compare
+                            ? '<span class="sch-hero__action-extra">In compare list</span><span class="sch-hero__action-short">Added</span>'
+                            : 'Compare';
                     }
                     notify('success', payload.message || 'Compare list updated.');
                     if (payload.in_compare && payload.compare_url && payload.compare_count >= 2) {

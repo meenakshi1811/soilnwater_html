@@ -345,6 +345,11 @@
   padding: 0 0.85rem;
 }
 
+/* (a shorter label for the phone tiles) */
+.sch-hero__action-short {
+  display: none;
+}
+
 .sch-hero__summary {
   margin-top: 0.75rem;
   color: #4b5d73;
@@ -2761,12 +2766,81 @@
     flex-basis: auto;
   }
 
+  /* The details as one panel in two columns (the first goes across when the count is odd) */
   .sch-hero__facts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid #e6edf6;
+    border-radius: 12px;
+    background: #e6edf6;
   }
 
+  .sch-hero__facts div {
+    min-width: 0;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 0;
+    background: #fafcff;
+  }
+
+  .sch-hero__facts div:first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .sch-hero__facts span {
+    font-size: 0.66rem;
+  }
+
+  .sch-hero__facts strong {
+    overflow-wrap: anywhere;
+    font-size: 0.84rem;
+  }
+
+  /* Enquire Now across, then the other actions as a row of icon tiles */
   .sch-hero__actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .sch-hero__actions .sch-btn-primary {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    font-size: 0.86rem;
+  }
+
+  .sch-hero__actions .sch-btn-outline {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.3rem;
+    min-height: 0;
+    padding: 0.5rem 0.1rem 0.45rem;
+    border-color: #e3eaf3;
+    color: var(--sch-ink);
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .sch-hero__actions .sch-btn-outline i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--sch-primary-soft);
+    color: var(--sch-primary);
+    font-size: 0.8rem;
+  }
+
+  .sch-hero__action-extra {
+    display: none;
+  }
+
+  .sch-hero__action-short {
+    display: inline;
   }
 
   .sch-sidebar {
@@ -2788,6 +2862,19 @@
 
   .sch-diary-hero__actions .sch-btn {
     flex: 1;
+  }
+}
+
+/* Small phones: the action tiles a little tighter so the labels fit */
+@media (max-width: 359.98px) {
+  .sch-hero__actions {
+    gap: 0.3rem;
+  }
+
+  .sch-hero__actions .sch-btn-outline {
+    padding-right: 0;
+    padding-left: 0;
+    font-size: 0.6rem;
   }
 }
 

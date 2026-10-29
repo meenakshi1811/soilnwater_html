@@ -50,7 +50,9 @@
           <div><span>Founded</span><strong>{{ $profile->establishedYear() }}</strong></div>
         @endif
         <div><span>Affiliation</span><strong>{{ $profile->affiliationLabel() }}</strong></div>
-        <div><span>School Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
+        @if($profile->schoolCode() !== '—')
+          <div><span>School Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
+        @endif
         <div><span>School Type</span><strong>{{ $profile->schoolType() }}</strong></div>
       </div>
     </div>
