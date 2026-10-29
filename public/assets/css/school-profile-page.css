@@ -2852,23 +2852,6 @@
   .sch-sidebar {
     grid-template-columns: 1fr;
   }
-
-  .sch-diary-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .sch-diary-hero {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sch-diary-hero__actions {
-    width: 100%;
-  }
-
-  .sch-diary-hero__actions .sch-btn {
-    flex: 1;
-  }
 }
 
 /* Small phones: the action tiles a little tighter so the labels fit */
@@ -3384,6 +3367,27 @@
 @media (max-width: 991.98px) {
   .sch-diary-stats {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Diary on phones: the holiday list and the month view one under the other (after the rules
+   above so they win) */
+@media (max-width: 767.98px) {
+  .sch-diary-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sch-diary-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sch-diary-hero__actions {
+    width: 100%;
+  }
+
+  .sch-diary-hero__actions .sch-btn {
+    flex: 1;
   }
 }
 
