@@ -184,12 +184,18 @@
                 if (addBtn.disabled) {
                     return;
                 }
-                var row = document.createElement('div');
-                row.className = 'input-group mb-2 js-repeat-row';
-                row.innerHTML =
-                    '<input type="text" class="form-control js-section-field" name="' + inputName + '" placeholder="' + placeholder + '" data-section="' + section + '">' +
-                    '<button type="button" class="btn btn-outline-danger js-remove-row">&times;</button>';
-                wrap.appendChild(row);
+                // (a row from the page's template when it has one, e.g. a facility with its photo)
+                var template = document.getElementById(wrapId + 'Template');
+                if (template) {
+                    wrap.appendChild(template.content.cloneNode(true));
+                } else {
+                    var row = document.createElement('div');
+                    row.className = 'input-group mb-2 js-repeat-row';
+                    row.innerHTML =
+                        '<input type="text" class="form-control js-section-field" name="' + inputName + '" placeholder="' + placeholder + '" data-section="' + section + '">' +
+                        '<button type="button" class="btn btn-outline-danger js-remove-row">&times;</button>';
+                    wrap.appendChild(row);
+                }
                 syncRepeatFieldRules(section);
             });
 
@@ -207,6 +213,41 @@
 
         bindGradesRepeat();
         bindRepeat('addFacilityRow', 'facilitiesWrap', 'facilities[]', 'e.g. Library', 'facilities');
+        // A facility's photo: a picked one shows in the row; "Remove photo" takes it off
+        function showFacilityPhoto(row, url) {
+            var img = row.querySelector('.js-facility-thumb img');
+            var icon = row.querySelector('.js-facility-thumb i');
+            row.querySelector('.js-facility-thumb').classList.toggle('is-empty', !url);
+            img.classList.toggle('d-none', !url);
+            icon.classList.toggle('d-none', !!url);
+            if (url) {
+                img.src = url;
+            } else {
+                img.removeAttribute('src');
+            }
+            row.querySelector('.js-facility-image-clear').classList.toggle('d-none', !url);
+        }
+
+        $('#facilitiesWrap').on('change', '.js-facility-image', function () {
+            var row = this.closest('.js-facility-row');
+            var file = this.files && this.files[0];
+            if (!file) {
+                return;
+            }
+            if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+                FormHelper.showToast('warning', 'Facility photos must be JPG, PNG or WebP, up to 2 MB.');
+                this.value = '';
+                return;
+            }
+            showFacilityPhoto(row, URL.createObjectURL(file));
+        });
+
+        $('#facilitiesWrap').on('click', '.js-facility-image-clear', function () {
+            var row = this.closest('.js-facility-row');
+            row.querySelector('.js-facility-image').value = '';
+            row.querySelector('.js-facility-existing').value = '';
+            showFacilityPhoto(row, null);
+        });
 
         $('.js-profile-section-toggle').on('change', function () {
             syncSectionToggle($(this).data('section'));

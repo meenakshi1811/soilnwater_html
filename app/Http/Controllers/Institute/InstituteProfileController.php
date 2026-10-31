@@ -12,6 +12,7 @@ use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -84,6 +85,10 @@ class InstituteProfileController extends Controller
                 'string',
                 'max:120',
             ],
+            'facility_images' => ['nullable', 'array'],
+            'facility_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'facility_existing_images' => ['nullable', 'array'],
+            'facility_existing_images.*' => ['nullable', 'string', 'max:255'],
             'tagline' => ['required', 'string', 'max:255'],
             'about' => ['required', 'string', 'min:10'],
             'description' => ['nullable', 'string'],
@@ -108,6 +113,9 @@ class InstituteProfileController extends Controller
             'facilities.required' => 'Add at least one facility when this section is enabled.',
             'facilities.min' => 'Add at least one facility when this section is enabled.',
             'facilities.*.required' => 'Each facility entry is required.',
+            'facility_images.*.image' => 'Each facility photo must be an image.',
+            'facility_images.*.mimes' => 'Facility photos must be JPG, PNG or WebP.',
+            'facility_images.*.max' => 'Each facility photo can be up to 2 MB.',
             'date_of_establishment.required' => 'Please enter the founded date.',
             'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
         ], ProfilePhoneNumbers::validationMessages(), InstituteGrades::validationMessages()));
@@ -156,6 +164,8 @@ class InstituteProfileController extends Controller
         $gallery = $gallerySectionEnabled
             ? $this->syncGallery($request, $institute)
             : ($institute->gallery ?? []);
+        $facilityImages = $this->syncFacilityImages($request, $institute, $facilitiesSectionEnabled);
+
 
         $institute->update([
             'institution_name' => $validated['institution_name'],
@@ -182,6 +192,7 @@ class InstituteProfileController extends Controller
             'facilities' => $facilitiesSectionEnabled
                 ? array_values(array_filter($validated['facilities'] ?? []))
                 : [],
+            'facility_images' => $facilityImages,
             'tagline' => $validated['tagline'] ?? null,
             'about' => $validated['about'] ?? null,
             'description' => $validated['description'] ?? null,
@@ -226,6 +237,7 @@ class InstituteProfileController extends Controller
                 'reload' => $request->hasFile('logo')
                     || $request->hasFile('brochure')
                     || $request->hasFile('gallery_uploads')
+                    || $request->hasFile('facility_images')
                     || $request->filled('removed_gallery'),
             ]);
         }
@@ -233,6 +245,47 @@ class InstituteProfileController extends Controller
         return redirect()->to($byAdmin
             ? ManagedInstitute::adminRoute($institute, 'profile.edit')
             : $request->user()->portalRoute('profile.edit'))->with('status', $message);
+    }
+
+    /**
+     * Each facility's photo, by name: a new upload, or the one its row already had (the row carries
+     * it, so a renamed or moved facility keeps its photo). Photos no longer used are deleted.
+     *
+     * @return array<string, string>
+     */
+    private function syncFacilityImages(Request $request, Institute $institute, bool $sectionEnabled): array
+    {
+        $stored = array_values(array_filter(
+            (array) ($institute->facility_images ?? []),
+            fn ($path) => is_string($path) && $path !== ''
+        ));
+        $images = [];
+
+        if ($sectionEnabled) {
+            $kept = (array) $request->input('facility_existing_images', []);
+            $uploads = (array) $request->file('facility_images', []);
+
+            foreach ((array) $request->input('facilities', []) as $index => $name) {
+                $name = is_string($name) ? trim($name) : '';
+                if ($name === '' || isset($images[$name])) {
+                    continue;
+                }
+
+                $upload = $uploads[$index] ?? null;
+                if ($upload instanceof UploadedFile) {
+                    $images[$name] = InstituteFileUploader::storeImage($upload, 'facilities');
+                } elseif (in_array($kept[$index] ?? null, $stored, true)) {
+                    // (only a photo this school already has; a row can't point at any other file)
+                    $images[$name] = $kept[$index];
+                }
+            }
+        }
+
+        foreach (array_diff($stored, $images) as $unused) {
+            InstituteFileUploader::deleteIfExists($unused);
+        }
+
+        return $images;
     }
 
     /** @return list<array{type: string, path: string}> */

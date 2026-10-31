@@ -571,10 +571,12 @@ final class SchoolProfilePresenter
         $gallery = $this->galleryImages();
         $facilities = collect($this->institute->facilities ?? []);
 
+        // The facility's own photo, or else one from the gallery
         $cards = $facilities->map(function ($facility, $index) use ($gallery) {
             return [
                 'name' => $facility,
-                'image' => $gallery->get($index % max($gallery->count(), 1)),
+                'image' => $this->institute->facilityImageUrl((string) $facility)
+                    ?? $gallery->get($index % max($gallery->count(), 1)),
             ];
         })->values();
 

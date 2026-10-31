@@ -137,14 +137,19 @@
                         </div>
                     </div>
                     <div id="facilitiesSectionBody" class="inst-profile-section__body @unless($facilitiesSectionEnabled) d-none @endunless" data-section-body="facilities">
+                        <p class="form-text mt-0 mb-2">Add a photo for each facility (JPG, PNG or WebP, up to 2 MB); it shows on the facility's card on your public profile.</p>
                         <div id="facilitiesWrap">
                             @foreach ($facilitiesList as $facility)
-                                <div class="input-group mb-2 js-repeat-row">
-                                    <input type="text" class="form-control js-section-field" name="facilities[]" value="{{ $facility }}" placeholder="e.g. Library" data-section="facilities">
-                                    <button type="button" class="btn btn-outline-danger js-remove-row">&times;</button>
-                                </div>
+                                @include('backend.institute.partials.facility-row', [
+                                    'facility' => $facility,
+                                    'facilityImage' => $institute->facilityImagePath($facility),
+                                ])
                             @endforeach
                         </div>
+                        {{-- (the row "+ Add facility" adds) --}}
+                        <template id="facilitiesWrapTemplate">
+                            @include('backend.institute.partials.facility-row', ['facility' => '', 'facilityImage' => null])
+                        </template>
                         <button type="button" class="btn btn-sm btn-outline-secondary js-section-control" id="addFacilityRow" data-section="facilities">+ Add facility</button>
                     </div>
                 </div>

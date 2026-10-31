@@ -260,23 +260,63 @@
 #facilitiesWrap {
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 #facilitiesWrap .js-repeat-row {
   margin-bottom: 0;
 }
 
-@media (max-width: 991.98px) {
-  #facilitiesWrap {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
-@media (max-width: 575.98px) {
-  #facilitiesWrap {
-    grid-template-columns: 1fr;
-  }
+/* A facility: its photo, name and photo picker */
+.inst-facility-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.inst-facility-row__thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e2e8f0;
+  color: #94a3b8;
+  font-size: 1.3rem;
+}
+
+.inst-facility-row__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inst-facility-row__fields {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.inst-facility-row__photo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.inst-facility-row__photo .btn-link {
+  padding: 0 0.25rem;
+  font-size: 0.8rem;
+  text-decoration: none;
 }
 
 .inst-public-page .sch-portal-section__head.inst-profile-section__head {

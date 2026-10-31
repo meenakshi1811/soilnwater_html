@@ -38,6 +38,7 @@ class Institute extends Model
         'board_affiliation',
         'grades_offered',
         'facilities',
+        'facility_images',
         'pan_number',
         'gst_number',
         'government_certificate_number',
@@ -64,6 +65,7 @@ class Institute extends Model
             'phone_numbers' => 'array',
             'grades_offered' => 'array',
             'facilities' => 'array',
+            'facility_images' => 'array',
             'gallery' => 'array',
             'is_verified' => 'boolean',
             'converted_from_user' => 'boolean',
@@ -184,6 +186,21 @@ class Institute extends Model
     public function brochureUrl(): ?string
     {
         return filled($this->brochure_path) ? asset($this->brochure_path) : null;
+    }
+
+    /** The stored photo path for a facility (by its name), if one was uploaded */
+    public function facilityImagePath(string $facility): ?string
+    {
+        $path = ($this->facility_images ?? [])[$facility] ?? null;
+
+        return is_string($path) && $path !== '' ? $path : null;
+    }
+
+    public function facilityImageUrl(string $facility): ?string
+    {
+        $path = $this->facilityImagePath($facility);
+
+        return $path ? asset($path) : null;
     }
 
     public function galleryUrls(): array
