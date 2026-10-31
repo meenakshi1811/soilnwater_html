@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Institute;
 use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use App\Support\InstituteFileUploader;
+use App\Support\InstituteCourseWings;
 use App\Support\InstituteGallery;
 use App\Support\InstituteGrades;
 use App\Support\ManagedInstitute;
@@ -57,6 +58,12 @@ class InstituteProfileController extends Controller
             ]);
         }
 
+        // (a blank, just-added course card or stream is dropped)
+        $request->merge([
+            'course_wings' => InstituteCourseWings::filledRows($request->input('course_wings', [])),
+            'streams' => InstituteCourseWings::cleanStreams($request->input('streams', [])),
+        ]);
+
         $validated = $request->validate(array_merge([
             'institution_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['required', 'string', 'max:255'],
@@ -89,6 +96,13 @@ class InstituteProfileController extends Controller
             'facility_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'facility_existing_images' => ['nullable', 'array'],
             'facility_existing_images.*' => ['nullable', 'string', 'max:255'],
+            'course_wings' => ['nullable', 'array', 'max:12'],
+            'course_wings.*.icon' => ['nullable', 'string', Rule::in(array_keys(InstituteCourseWings::ICONS))],
+            'course_wings.*.title' => ['required', 'string', 'max:80'],
+            'course_wings.*.grades' => ['nullable', 'string', 'max:80'],
+            'course_wings.*.description' => ['nullable', 'string', 'max:300'],
+            'streams' => ['nullable', 'array', 'max:12'],
+            'streams.*' => ['string', 'max:60'],
             'tagline' => ['required', 'string', 'max:255'],
             'about' => ['required', 'string', 'min:10'],
             'description' => ['nullable', 'string'],
@@ -116,6 +130,13 @@ class InstituteProfileController extends Controller
             'facility_images.*.image' => 'Each facility photo must be an image.',
             'facility_images.*.mimes' => 'Facility photos must be JPG, PNG or WebP.',
             'facility_images.*.max' => 'Each facility photo can be up to 2 MB.',
+            'course_wings.max' => 'You can add up to 12 courses or programs.',
+            'course_wings.*.title.required' => 'Each course or program needs a title.',
+            'course_wings.*.title.max' => 'A course or program title can be up to 80 characters.',
+            'course_wings.*.grades.max' => 'The classes line can be up to 80 characters.',
+            'course_wings.*.description.max' => 'A course or program description can be up to 300 characters.',
+            'streams.max' => 'You can add up to 12 streams.',
+            'streams.*.max' => 'A stream name can be up to 60 characters.',
             'date_of_establishment.required' => 'Please enter the founded date.',
             'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
         ], ProfilePhoneNumbers::validationMessages(), InstituteGrades::validationMessages()));
@@ -166,6 +187,13 @@ class InstituteProfileController extends Controller
             : ($institute->gallery ?? []);
         $facilityImages = $this->syncFacilityImages($request, $institute, $facilitiesSectionEnabled);
 
+        // The page's other settings: the courses & programs cards and streams
+        // (only from a form that has them: an emptied list sends no fields, so the form marks itself)
+        $profileMeta = (array) ($institute->profile_meta ?? []);
+        if ($request->boolean('courses_in_form')) {
+            $profileMeta['course_wings'] = InstituteCourseWings::cleanWings($validated['course_wings'] ?? []);
+            $profileMeta['streams'] = $validated['streams'] ?? [];
+        }
 
         $institute->update([
             'institution_name' => $validated['institution_name'],
@@ -202,6 +230,7 @@ class InstituteProfileController extends Controller
             'youtube_url' => $validated['youtube_url'] ?? null,
             'date_of_establishment' => $validated['date_of_establishment'],
             'gallery' => $gallery,
+            'profile_meta' => $profileMeta !== [] ? $profileMeta : null,
         ]);
 
         $userUpdate = [

@@ -29,6 +29,9 @@
   $gallerySectionEnabled = old('gallery_section_enabled') !== null
       ? (bool) old('gallery_section_enabled')
       : $galleryItems->isNotEmpty();
+  // (what the public page shows now: the saved courses and streams, or the standard ones)
+  $courseWingsList = \App\Support\InstituteCourseWings::wings(old('course_wings', data_get($institute->profile_meta, 'course_wings')));
+  $streamsList = \App\Support\InstituteCourseWings::streams(old('streams', data_get($institute->profile_meta, 'streams')));
 @endphp
 <div class="admin-panel ems-page institute-portal">
     @includeWhen($managedInstitute, 'backend.institute.partials.admin-manage-bar')
@@ -127,6 +130,40 @@
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-secondary js-section-control" id="addGradeRow" data-section="grades">+ Add grade</button>
                     </div>
+                </div>
+                {{-- The "Courses & Programs Offered" cards and the Class XI & XII streams on the public page --}}
+                <div class="mb-3 inst-profile-section">
+                    <div class="inst-profile-section__head">
+                        <span class="form-label mb-0">Courses &amp; programs offered</span>
+                    </div>
+                    <p class="form-text mt-0 mb-2">The cards in the “Courses &amp; Programs Offered” section of your public profile, e.g. Primary Wing — Nursery to Class V.</p>
+                    <input type="hidden" name="courses_in_form" value="1">
+                    <div id="courseWingsWrap" class="inst-wing-rows">
+                        @foreach ($courseWingsList as $wingIndex => $wing)
+                            @include('backend.institute.partials.course-wing-row', ['index' => $wingIndex, 'wing' => $wing])
+                        @endforeach
+                    </div>
+                    <template id="courseWingsWrapTemplate">
+                        @include('backend.institute.partials.course-wing-row', ['index' => '__INDEX__', 'wing' => []])
+                    </template>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="addCourseWingRow">+ Add course / program</button>
+
+                    <label class="form-label d-block mt-3 mb-1">Streams in Class XI &amp; XII</label>
+                    <div id="streamsWrap" class="inst-stream-rows">
+                        @foreach ($streamsList ?: [''] as $stream)
+                            <div class="input-group input-group-sm js-repeat-row">
+                                <input type="text" class="form-control" name="streams[]" value="{{ $stream }}" maxlength="60" placeholder="e.g. Science (PCM)" aria-label="Stream">
+                                <button type="button" class="btn btn-outline-danger js-remove-row" aria-label="Remove stream">&times;</button>
+                            </div>
+                        @endforeach
+                    </div>
+                    <template id="streamsWrapTemplate">
+                        <div class="input-group input-group-sm js-repeat-row">
+                            <input type="text" class="form-control" name="streams[]" value="" maxlength="60" placeholder="e.g. Science (PCM)" aria-label="Stream">
+                            <button type="button" class="btn btn-outline-danger js-remove-row" aria-label="Remove stream">&times;</button>
+                        </div>
+                    </template>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="addStreamRow">+ Add stream</button>
                 </div>
                 <div class="mb-3 inst-profile-section">
                     <div class="inst-profile-section__head">

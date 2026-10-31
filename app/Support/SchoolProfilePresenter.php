@@ -309,28 +309,13 @@ final class SchoolProfilePresenter
     /** @return list<array{icon: string, title: string, grades: string, description: string}> */
     private function allCourseWings(): array
     {
-        $custom = $this->meta('course_wings');
-
-        if (is_array($custom) && $custom !== []) {
-            return array_values($custom);
-        }
-
-        return [
-            ['icon' => 'fa-child', 'title' => 'Primary Wing', 'grades' => 'Nursery to Class V', 'description' => 'Activity-based learning with language, numeracy, and creative play.'],
-            ['icon' => 'fa-book-open', 'title' => 'Middle Wing', 'grades' => 'Class VI to VIII', 'description' => 'Concept building across science, maths, and humanities with project work.'],
-            ['icon' => 'fa-user-graduate', 'title' => 'Secondary Wing', 'grades' => 'Class IX to X', 'description' => 'Board-focused curriculum with weekly assessments and remedial support.'],
-            ['icon' => 'fa-graduation-cap', 'title' => 'Senior Secondary', 'grades' => 'Class XI to XII', 'description' => 'Specialized streams with career counselling and competitive exam prep.'],
-        ];
+        return InstituteCourseWings::wings($this->meta('course_wings'));
     }
 
     /** @return list<string> */
     public function streams(): array
     {
-        $streams = $this->meta('streams');
-
-        return is_array($streams) && $streams !== []
-            ? $streams
-            : ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Humanities'];
+        return InstituteCourseWings::streams($this->meta('streams'));
     }
 
     /** @return list<string> */

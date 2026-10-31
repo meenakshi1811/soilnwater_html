@@ -56,7 +56,8 @@
   }
 @endphp
 
-@if($showSection('courses'))
+{{-- (the school's own course cards, or the standard ones until it saves its own) --}}
+@if($showSection('courses') && ($courseWingsPreview !== [] || $classes->isNotEmpty() || $institute->gradesOfferedEntries() !== []))
   <section id="sch-courses" class="sch-card sch-section">
     <div class="sch-section__head">
       <h2 class="sch-section__title mb-0">Courses &amp; Programs Offered</h2>
@@ -69,17 +70,23 @@
         'inHead' => true,
       ])
     </div>
-    <div class="sch-course-grid">
-      @foreach($courseWingsPreview as $wing)
-        <article class="sch-course-card">
-          <span class="sch-course-card__icon"><i class="fa-solid {{ $wing['icon'] }}" aria-hidden="true"></i></span>
-          <h3>{{ $wing['title'] }}</h3>
-          <p class="sch-course-card__grades">{{ $wing['grades'] }}</p>
-          <p>{{ $wing['description'] }}</p>
-        </article>
-      @endforeach
-    </div>
-    @if(!$isProfilePreview)
+    @if($courseWingsPreview !== [])
+      <div class="sch-course-grid">
+        @foreach($courseWingsPreview as $wing)
+          <article class="sch-course-card">
+            <span class="sch-course-card__icon"><i class="fa-solid {{ $wing['icon'] }}" aria-hidden="true"></i></span>
+            <h3>{{ $wing['title'] }}</h3>
+            @if(filled($wing['grades']))
+              <p class="sch-course-card__grades">{{ $wing['grades'] }}</p>
+            @endif
+            @if(filled($wing['description']))
+              <p>{{ $wing['description'] }}</p>
+            @endif
+          </article>
+        @endforeach
+      </div>
+    @endif
+    @if(!$isProfilePreview && $profile->streams() !== [])
       <div class="sch-streams">
         <h3>Streams in Class XI &amp; XII</h3>
         <div class="sch-streams__list">

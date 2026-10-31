@@ -77,6 +77,10 @@
                 return;
             }
 
+            if (section !== 'facilities') {
+                return;
+            }
+
             $('#facilitiesWrap input[name="facilities[]"]').each(function () {
                 var $input = $(this);
                 $input.rules('remove');
@@ -213,6 +217,34 @@
 
         bindGradesRepeat();
         bindRepeat('addFacilityRow', 'facilitiesWrap', 'facilities[]', 'e.g. Library', 'facilities');
+        bindRepeat('addStreamRow', 'streamsWrap', 'streams[]', 'e.g. Science (PCM)', 'streams');
+
+        // Courses & programs cards: add one (fields numbered from the template) or remove one
+        (function () {
+            var wrap = document.getElementById('courseWingsWrap');
+            var template = document.getElementById('courseWingsWrapTemplate');
+            var addBtn = document.getElementById('addCourseWingRow');
+            if (!wrap || !template || !addBtn) {
+                return;
+            }
+
+            var nextIndex = wrap.querySelectorAll('.js-wing-row').length;
+            addBtn.addEventListener('click', function () {
+                var holder = document.createElement('div');
+                holder.innerHTML = template.innerHTML.replace(/__INDEX__/g, String(nextIndex++));
+                var row = holder.querySelector('.js-wing-row');
+                wrap.appendChild(row);
+                row.querySelector('input[name$="[title]"]').focus();
+            });
+
+            wrap.addEventListener('click', function (e) {
+                var button = e.target.closest('.js-wing-remove');
+                if (button) {
+                    button.closest('.js-wing-row').remove();
+                }
+            });
+        })();
+
         // A facility's photo: a picked one shows in the row; "Remove photo" takes it off
         function showFacilityPhoto(row, url) {
             var img = row.querySelector('.js-facility-thumb img');
