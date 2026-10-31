@@ -13,9 +13,9 @@
                 @if($institute->phoneNumbersList() !== [])
                     <p class="small mb-1"><i class="fa-solid fa-phone me-1"></i> @include('frontend.partials.profile-phone-links', ['phones' => $institute->phoneNumbersList(), 'linkClass' => 'text-white-50 text-decoration-none'])</p>
                 @endif
-                @if($institute->email)
-                    <p class="small mb-1"><i class="fa-solid fa-envelope me-1"></i> <a href="mailto:{{ $institute->email }}" class="text-white-50 text-decoration-none">{{ $institute->email }}</a></p>
-                @endif
+                @foreach($institute->emailsList() as $contactEmail)
+                    <p class="small mb-1"><i class="fa-solid fa-envelope me-1"></i> <a href="mailto:{{ $contactEmail }}" class="text-white-50 text-decoration-none">{{ $contactEmail }}</a></p>
+                @endforeach
                 @if($institute->contact_person)
                     <p class="small mb-1"><i class="fa-solid fa-user me-1"></i> {{ $institute->contact_person }}</p>
                 @endif

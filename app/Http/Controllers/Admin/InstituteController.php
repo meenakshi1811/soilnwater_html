@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\PortalNotificationService;
 use App\Support\AuthActor;
 use App\Support\InstituteFileUploader;
+use App\Support\ProfileEmails;
 use App\Support\ProfilePhoneNumbers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -197,6 +198,16 @@ class InstituteController extends Controller
         }
         $validated['phone_numbers'] = ProfilePhoneNumbers::normalize($phones);
         $validated['phone'] = $validated['phone_numbers'][0] ?? null;
+
+        // Likewise the email edited here is the main one; the school's other emails stay
+        $emails = $institute->emailsList();
+        if (filled($validated['email'] ?? null)) {
+            $emails[0] = $validated['email'];
+        } else {
+            array_shift($emails);
+        }
+        $validated['emails'] = ProfileEmails::normalize($emails) ?: null;
+        $validated['email'] = $validated['emails'][0] ?? null;
 
         $institute->update($validated);
 

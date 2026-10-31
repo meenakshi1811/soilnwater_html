@@ -2835,6 +2835,17 @@
   color: var(--sch-ink);
 }
 
+/* (a school's emails, one under the other; a long one wraps) */
+.sch-contact-emails {
+  margin-top: 0.1rem;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.sch-contact-emails li + li {
+  margin-top: 0.15rem;
+}
+
 .sch-map-wrap {
   border-radius: 12px;
   overflow: hidden;

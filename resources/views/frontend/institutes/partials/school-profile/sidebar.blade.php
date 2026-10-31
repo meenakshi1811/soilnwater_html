@@ -57,12 +57,16 @@
         </div>
       </div>
     @endif
-    @if($institute->email)
+    @if($institute->emailsList() !== [])
       <div class="sch-contact-item">
         <i class="fa-solid fa-envelope" aria-hidden="true"></i>
         <div>
           <span>Email</span>
-          <p><a href="mailto:{{ $institute->email }}">{{ $institute->email }}</a></p>
+          <ul class="list-unstyled mb-0 sch-contact-emails">
+            @foreach($institute->emailsList() as $contactEmail)
+              <li><a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></li>
+            @endforeach
+          </ul>
         </div>
       </div>
     @endif

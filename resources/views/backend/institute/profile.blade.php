@@ -206,6 +206,12 @@
                     'wrapperClass' => 'mb-3 js-profile-phone-field',
                     'inputIdPrefix' => 'institute_profile_phone',
                 ])
+                @include('backend.partials.profile-emails-fields', [
+                    'user' => $user,
+                    'entity' => $institute,
+                    'wrapperClass' => 'mb-3',
+                    'inputIdPrefix' => 'institute_profile_email',
+                ])
                 <div class="mb-3">
                     <label class="form-label" for="whatsapp_number">WhatsApp *</label>
                     <input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ old('whatsapp_number', $user->whatsapp_number) }}" required>

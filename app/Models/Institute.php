@@ -27,6 +27,7 @@ class Institute extends Model
         'phone_numbers',
         'whatsapp',
         'email',
+        'emails',
         'address',
         'city',
         'state',
@@ -64,6 +65,7 @@ class Institute extends Model
     {
         return [
             'phone_numbers' => 'array',
+            'emails' => 'array',
             'grades_offered' => 'array',
             'facilities' => 'array',
             'facility_images' => 'array',
@@ -188,6 +190,18 @@ class Institute extends Model
     public function brochureUrl(): ?string
     {
         return filled($this->brochure_path) ? asset($this->brochure_path) : null;
+    }
+
+    /**
+     * The school's contact emails, the main one first (a school that hasn't listed any: its email).
+     *
+     * @return list<string>
+     */
+    public function emailsList(): array
+    {
+        $stored = $this->emails ?? null;
+
+        return \App\Support\ProfileEmails::normalize(is_array($stored) && $stored !== [] ? $stored : [$this->email]);
     }
 
     /** The stored photo path for a facility (by its name), if one was uploaded */

@@ -9,6 +9,7 @@ use App\Support\InstituteCourseWings;
 use App\Support\InstituteGallery;
 use App\Support\InstituteGrades;
 use App\Support\ManagedInstitute;
+use App\Support\ProfileEmails;
 use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -56,6 +57,12 @@ class InstituteProfileController extends Controller
                     ->values()
                     ->all(),
             ]);
+        }
+
+        // The contact emails, from a form that has them (one open from before keeps the saved ones)
+        $emailsInForm = $request->exists('emails');
+        if ($emailsInForm) {
+            $request->merge(['emails' => ProfileEmails::normalize((array) $request->input('emails', []))]);
         }
 
         // (a blank, just-added course card or stream is dropped)
@@ -116,7 +123,7 @@ class InstituteProfileController extends Controller
             'gallery_uploads.*' => ['file'],
             'removed_gallery' => ['nullable', 'array'],
             'removed_gallery.*' => ['string', 'max:255'],
-        ], ProfilePhoneNumbers::validationRules(), InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
+        ], ProfilePhoneNumbers::validationRules(), $emailsInForm ? ProfileEmails::validationRules() : [], InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
             'contact_person.required' => 'Please enter the contact person name.',
             'institution_type.required' => 'Please select an institution type.',
             'board_affiliation.required' => 'Please enter board or affiliation.',
@@ -139,9 +146,10 @@ class InstituteProfileController extends Controller
             'streams.*.max' => 'A stream name can be up to 60 characters.',
             'date_of_establishment.required' => 'Please enter the founded date.',
             'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
-        ], ProfilePhoneNumbers::validationMessages(), InstituteGrades::validationMessages()));
+        ], ProfilePhoneNumbers::validationMessages(), ProfileEmails::validationMessages(), InstituteGrades::validationMessages()));
 
         $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
+        $emails = $emailsInForm ? $validated['emails'] : $institute->emailsList();
         $phoneChanged = ProfilePhoneNumbers::applyToUser($user, $phoneNumbers);
 
         if ($gallerySectionEnabled) {
@@ -204,7 +212,9 @@ class InstituteProfileController extends Controller
             'phone' => ProfilePhoneNumbers::primary($phoneNumbers),
             'phone_numbers' => $phoneNumbers,
             'whatsapp' => $validated['whatsapp_number'],
-            'email' => $user->email,
+            // (the first is the main one; the account's login email is not changed)
+            'email' => $emails[0] ?? $user->email,
+            'emails' => $emails !== [] ? $emails : null,
             'address' => $validated['address'],
             'city' => $validated['city'],
             'state' => $validated['state'],

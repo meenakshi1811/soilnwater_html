@@ -352,7 +352,8 @@
                         return !hasLogo;
                     }
                 },
-                gallery_section_validator: { gallerySectionFilled: true }
+                gallery_section_validator: { gallerySectionFilled: true },
+                'emails[]': { required: true, email: true, maxlength: 255 }
             }, window.ProfilePhoneNumbers ? ProfilePhoneNumbers.validationRules() : {
                 phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
             }),
@@ -365,6 +366,10 @@
                 about: {
                     required: 'Please enter the about section.',
                     minlength: 'About must be at least 10 characters.'
+                },
+                'emails[]': {
+                    required: 'Please enter an email address.',
+                    email: 'Please enter a valid email address.'
                 },
                 whatsapp_number: {
                     required: 'Please enter your WhatsApp number.',
