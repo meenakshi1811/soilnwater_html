@@ -219,6 +219,35 @@
   </section>
 @endif
 
+{{-- The notes uploaded for this school (the notes page has them all) --}}
+@if($isProfilePreview && $profile->schoolNotesCount() > 0)
+  <section id="sch-notes" class="sch-card sch-section">
+    <div class="sch-section__head">
+      <h2 class="sch-section__title mb-0">Notes</h2>
+      <a href="{{ $profile->schoolNotesUrl() }}" class="sch-section__link">
+        View all ({{ number_format($profile->schoolNotesCount()) }}) <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+    <div
+      class="sch-profile-carousel sch-notes-carousel card-carousel auto-ad-slider"
+      data-slide-by="card"
+      data-carousel-cols="3"
+      data-show-arrows="true"
+      data-show-dots="false"
+      data-pause-on-hover="true"
+      aria-label="Notes slider"
+    >
+      <div class="card-carousel-track">
+        @foreach($profile->schoolNotes() as $note)
+          <div class="card-carousel-item">
+            @include('frontend.institutes.partials.school-profile.note-card', ['note' => $note])
+          </div>
+        @endforeach
+      </div>
+    </div>
+  </section>
+@endif
+
 @if($showSection('gallery') && $gallery->count() > 1)
   <section id="sch-gallery" class="sch-card sch-section">
     <div class="sch-section__head sch-section__head--stack">

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Institute;
+use App\Models\StudyMaterial;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -16,6 +17,7 @@ final class SchoolProfilePresenter
         'facilities' => 4,
         'facilities-carousel' => 8,
         'faculty' => 4,
+        'school-notes' => 12,
         'gallery' => 6,
         'achievements' => 4,
         'results' => 6,
@@ -28,6 +30,11 @@ final class SchoolProfilePresenter
         'reviews' => 3,
         'jobs' => 4,
     ];
+
+    /** @var Collection<int, StudyMaterial>|null the school's notes (loaded once) */
+    private ?Collection $schoolNotes = null;
+
+    private ?int $schoolNotesCount = null;
 
     public function __construct(public Institute $institute)
     {
@@ -525,6 +532,43 @@ final class SchoolProfilePresenter
         return count($this->facultyMembers());
     }
 
+    /**
+     * The name this school's notes are filed under: the notes page stores a registered school's
+     * own name on the notes uploaded for it (see StudyMaterialLocation).
+     */
+    public function schoolNotesName(): string
+    {
+        return trim((string) ($this->institute->display_name ?: $this->institute->institution_name));
+    }
+
+    /** Notes, question papers and other study material uploaded for this school, newest first */
+    public function schoolNotes(): Collection
+    {
+        return $this->schoolNotes ??= $this->schoolNotesCount() > 0
+            ? StudyMaterial::query()
+                ->approved()
+                ->publiclyListed()
+                ->where('school_name', $this->schoolNotesName())
+                ->latest()
+                ->orderByDesc('id')
+                ->limit(self::PREVIEW_LIMITS['school-notes'])
+                ->get()
+            : collect();
+    }
+
+    public function schoolNotesCount(): int
+    {
+        return $this->schoolNotesCount ??= $this->schoolNotesName() === ''
+            ? 0
+            : StudyMaterial::query()->approved()->publiclyListed()->where('school_name', $this->schoolNotesName())->count();
+    }
+
+    /** The notes page, showing this school's notes */
+    public function schoolNotesUrl(): string
+    {
+        return route('study-materials.notes', ['school' => $this->schoolNotesName()]);
+    }
+
     public function isQuestionPaperBook(object $book): bool
     {
         $hay = strtolower(trim($book->title.' '.($book->subject ?? '').' '.($book->publisher ?? '')));
@@ -737,6 +781,7 @@ final class SchoolProfilePresenter
             ['id' => 'sch-admission', 'label' => 'Admission Info', 'icon' => 'fa-door-open'],
             ['id' => 'sch-facilities', 'label' => 'Facilities', 'icon' => 'fa-building'],
             ['id' => 'sch-faculty', 'label' => 'Faculty', 'icon' => 'fa-chalkboard-user'],
+            ['id' => 'sch-notes', 'label' => 'Notes', 'icon' => 'fa-file-lines'],
             ['id' => 'sch-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
             ['id' => 'sch-achievements', 'label' => 'Achievements', 'icon' => 'fa-trophy'],
             ['id' => 'sch-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn'],
@@ -768,6 +813,7 @@ final class SchoolProfilePresenter
                 'sch-notes-material' => $this->notesMaterialBooks()->isNotEmpty(),
                 'sch-question-papers' => $this->questionPaperBooks()->isNotEmpty(),
                 'sch-faculty' => $this->facultyMembers() !== [],
+                'sch-notes' => $this->schoolNotesCount() > 0,
                 'sch-facilities' => collect($this->institute->facilities ?? [])->isNotEmpty(),
                 default => true,
             };
