@@ -1,6 +1,6 @@
 @php
   $name = $member['name'] ?? 'Faculty';
-  $role = trim((string) ($member['role'] ?? 'Faculty member'));
+  $role = trim((string) ($member['role'] ?? '')) ?: 'Faculty member';
   $subject = trim((string) ($member['subject'] ?? ''));
   $initial = strtoupper(substr($name, 0, 1));
   $profileUrl = $member['profile_url'] ?? null;

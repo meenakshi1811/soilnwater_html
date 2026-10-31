@@ -53,7 +53,9 @@
         @if($profile->schoolCode() !== '—')
           <div><span>School Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
         @endif
-        <div><span>School Type</span><strong>{{ $profile->schoolType() }}</strong></div>
+        @if($profile->schoolType() !== '')
+          <div><span>School Type</span><strong>{{ $profile->schoolType() }}</strong></div>
+        @endif
       </div>
     </div>
 

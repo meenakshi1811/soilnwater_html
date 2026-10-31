@@ -5,7 +5,9 @@
         <div>
           <span class="sch-admission-modal__eyebrow"><i class="fa-solid fa-door-open" aria-hidden="true"></i> Admission</span>
           <h5 class="modal-title sch-admission-modal__title" id="schAdmissionModalLabel">Admission information</h5>
-          <p class="sch-admission-modal__lead mb-0">{{ $profile->admissionLead() }}</p>
+          @if($profile->admissionLead() !== '')
+            <p class="sch-admission-modal__lead mb-0">{{ $profile->admissionLead() }}</p>
+          @endif
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -17,7 +19,9 @@
             @endforeach
           </ul>
         @endif
-        <div class="sch-admission-modal__details">{!! nl2br(e($profile->admissionDetailsText())) !!}</div>
+        @if($profile->admissionDetailsText() !== '')
+          <div class="sch-admission-modal__details">{!! nl2br(e($profile->admissionDetailsText())) !!}</div>
+        @endif
       </div>
     </div>
   </div>

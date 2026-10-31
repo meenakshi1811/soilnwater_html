@@ -219,6 +219,33 @@
         bindRepeat('addFacilityRow', 'facilitiesWrap', 'facilities[]', 'e.g. Library', 'facilities');
         bindRepeat('addStreamRow', 'streamsWrap', 'streams[]', 'e.g. Science (PCM)', 'streams');
 
+        // Page details lists (partials/page-details-list): add a row from the template (its fields
+        // numbered on), remove one
+        $('[data-repeater]').each(function () {
+            var box = this;
+            var list = box.querySelector('.js-repeater-list');
+            var template = box.querySelector('.js-repeater-template');
+            var nextIndex = parseInt(list.getAttribute('data-next-index'), 10) || 0;
+
+            box.querySelector('.js-repeater-add').addEventListener('click', function () {
+                var holder = document.createElement('div');
+                holder.innerHTML = template.innerHTML.replace(/__INDEX__/g, String(nextIndex++));
+                var row = holder.querySelector('.js-repeater-row');
+                list.appendChild(row);
+                var first = row.querySelector('input[type="text"], textarea');
+                if (first) {
+                    first.focus();
+                }
+            });
+
+            list.addEventListener('click', function (e) {
+                var button = e.target.closest('.js-repeater-remove');
+                if (button) {
+                    button.closest('.js-repeater-row').remove();
+                }
+            });
+        });
+
         // Courses & programs cards: add one (fields numbered from the template) or remove one
         (function () {
             var wrap = document.getElementById('courseWingsWrap');

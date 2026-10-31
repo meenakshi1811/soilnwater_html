@@ -87,44 +87,57 @@
       <div class="sch-body">
         @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle', 'engagement', 'listingContext'))
 
-        {{-- The rating strip and the facilities: under the header, at the end on phones --}}
-        <div class="sch-card sch-metrics-bar">
-          <div class="sch-metrics-bar__item">
-            <span class="sch-stars" aria-label="Rating {{ $profile->rating() }} out of 5">
-              @for($i = 1; $i <= 5; $i++)
-                <i class="fa-solid fa-star {{ $i <= round($profile->rating()) ? 'is-filled' : '' }}"></i>
-              @endfor
-            </span>
-            <strong>{{ number_format($profile->rating(), 1) }}</strong>
-            <span>({{ number_format($profile->reviewCount()) }} Reviews)</span>
-          </div>
-          <div class="sch-metrics-bar__item">
-            <i class="fa-solid fa-user-graduate" aria-hidden="true"></i>
-            <strong>{{ number_format($profile->studentCount()) }}</strong>
-            <span>Students</span>
-          </div>
-          <div class="sch-metrics-bar__item">
-            <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
-            <strong>{{ number_format($profile->facultyCount()) }}</strong>
-            <span>Faculty</span>
-          </div>
-          <div class="sch-metrics-bar__item">
-            <i class="fa-solid fa-award" aria-hidden="true"></i>
-            <strong>{{ $profile->boardResultPercent() }}</strong>
-          </div>
-        </div>
-
-        <div class="sch-card sch-quick-stats">
-          @foreach($profile->quickStats() as $index => $stat)
-            <article class="sch-quick-stat sch-quick-stat--tone-{{ ($index % 6) + 1 }}">
-              <span class="sch-quick-stat__icon"><i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i></span>
-              <div>
-                <strong>{{ $stat['value'] }}</strong>
-                <span>{{ $stat['label'] }}</span>
+        {{-- The rating strip and the facilities: under the header, at the end on phones (a number
+             the school cleared is left out) --}}
+        @if($profile->rating() !== null || $profile->studentCount() > 0 || $profile->facultyCount() > 0 || $profile->boardResultPercent() !== '')
+          <div class="sch-card sch-metrics-bar">
+            @if($profile->rating() !== null)
+              <div class="sch-metrics-bar__item">
+                <span class="sch-stars" aria-label="Rating {{ $profile->rating() }} out of 5">
+                  @for($i = 1; $i <= 5; $i++)
+                    <i class="fa-solid fa-star {{ $i <= round($profile->rating()) ? 'is-filled' : '' }}"></i>
+                  @endfor
+                </span>
+                <strong>{{ number_format($profile->rating(), 1) }}</strong>
+                <span>({{ number_format($profile->reviewCount()) }} Reviews)</span>
               </div>
-            </article>
-          @endforeach
-        </div>
+            @endif
+            @if($profile->studentCount() > 0)
+              <div class="sch-metrics-bar__item">
+                <i class="fa-solid fa-user-graduate" aria-hidden="true"></i>
+                <strong>{{ number_format($profile->studentCount()) }}</strong>
+                <span>Students</span>
+              </div>
+            @endif
+            @if($profile->facultyCount() > 0)
+              <div class="sch-metrics-bar__item">
+                <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
+                <strong>{{ number_format($profile->facultyCount()) }}</strong>
+                <span>Faculty</span>
+              </div>
+            @endif
+            @if($profile->boardResultPercent() !== '')
+              <div class="sch-metrics-bar__item">
+                <i class="fa-solid fa-award" aria-hidden="true"></i>
+                <strong>{{ $profile->boardResultPercent() }}</strong>
+              </div>
+            @endif
+          </div>
+        @endif
+
+        @if($profile->quickStats() !== [])
+          <div class="sch-card sch-quick-stats">
+            @foreach($profile->quickStats() as $index => $stat)
+              <article class="sch-quick-stat sch-quick-stat--tone-{{ ($index % 6) + 1 }}">
+                <span class="sch-quick-stat__icon"><i class="fa-solid {{ $stat['icon'] ?? 'fa-chalkboard' }}" aria-hidden="true"></i></span>
+                <div>
+                  <strong>{{ $stat['value'] ?? '' }}</strong>
+                  <span>{{ $stat['label'] ?? '' }}</span>
+                </div>
+              </article>
+            @endforeach
+          </div>
+        @endif
 
         @if($institute->activeNotices->isNotEmpty())
           @php

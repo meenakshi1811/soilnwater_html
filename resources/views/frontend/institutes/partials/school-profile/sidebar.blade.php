@@ -88,13 +88,15 @@
         </div>
       </div>
     @endif
-    <div class="sch-contact-item">
-      <i class="fa-solid fa-clock" aria-hidden="true"></i>
-      <div>
-        <span>Operating Hours</span>
-        <p>{{ $profile->operatingHours() }}</p>
+    @if($profile->operatingHours() !== '')
+      <div class="sch-contact-item">
+        <i class="fa-solid fa-clock" aria-hidden="true"></i>
+        <div>
+          <span>Operating Hours</span>
+          <p>{{ $profile->operatingHours() }}</p>
+        </div>
       </div>
-    </div>
+    @endif
   </div>
 
   @if($profile->highlights())

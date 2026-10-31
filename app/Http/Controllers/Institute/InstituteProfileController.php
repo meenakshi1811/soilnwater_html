@@ -8,6 +8,7 @@ use App\Support\InstituteFileUploader;
 use App\Support\InstituteCourseWings;
 use App\Support\InstituteGallery;
 use App\Support\InstituteGrades;
+use App\Support\InstituteProfileDetails;
 use App\Support\ManagedInstitute;
 use App\Support\ProfileEmails;
 use App\Support\ProfilePhoneNumbers;
@@ -63,6 +64,12 @@ class InstituteProfileController extends Controller
         $emailsInForm = $request->exists('emails');
         if ($emailsInForm) {
             $request->merge(['emails' => ProfileEmails::normalize((array) $request->input('emails', []))]);
+        }
+
+        // The page details beyond the main fields (InstituteProfileDetails), from a form that has them
+        $detailsInForm = $request->boolean('details_in_form');
+        if ($detailsInForm) {
+            $request->merge(['details' => InstituteProfileDetails::cleanInput($request->input('details'))]);
         }
 
         // (a blank, just-added course card or stream is dropped)
@@ -123,7 +130,7 @@ class InstituteProfileController extends Controller
             'gallery_uploads.*' => ['file'],
             'removed_gallery' => ['nullable', 'array'],
             'removed_gallery.*' => ['string', 'max:255'],
-        ], ProfilePhoneNumbers::validationRules(), $emailsInForm ? ProfileEmails::validationRules() : [], InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
+        ], ProfilePhoneNumbers::validationRules(), $emailsInForm ? ProfileEmails::validationRules() : [], $detailsInForm ? InstituteProfileDetails::validationRules($byAdmin) : [], InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
             'contact_person.required' => 'Please enter the contact person name.',
             'institution_type.required' => 'Please select an institution type.',
             'board_affiliation.required' => 'Please enter board or affiliation.',
@@ -146,7 +153,7 @@ class InstituteProfileController extends Controller
             'streams.*.max' => 'A stream name can be up to 60 characters.',
             'date_of_establishment.required' => 'Please enter the founded date.',
             'date_of_establishment.before_or_equal' => 'Founded date cannot be in the future.',
-        ], ProfilePhoneNumbers::validationMessages(), ProfileEmails::validationMessages(), InstituteGrades::validationMessages()));
+        ], ProfilePhoneNumbers::validationMessages(), ProfileEmails::validationMessages(), InstituteProfileDetails::validationMessages(), InstituteGrades::validationMessages()));
 
         $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
         $emails = $emailsInForm ? $validated['emails'] : $institute->emailsList();
@@ -195,12 +202,15 @@ class InstituteProfileController extends Controller
             : ($institute->gallery ?? []);
         $facilityImages = $this->syncFacilityImages($request, $institute, $facilitiesSectionEnabled);
 
-        // The page's other settings: the courses & programs cards and streams
+        // The page's other settings: the courses & programs cards and streams, and the page details
         // (only from a form that has them: an emptied list sends no fields, so the form marks itself)
         $profileMeta = (array) ($institute->profile_meta ?? []);
         if ($request->boolean('courses_in_form')) {
             $profileMeta['course_wings'] = InstituteCourseWings::cleanWings($validated['course_wings'] ?? []);
             $profileMeta['streams'] = $validated['streams'] ?? [];
+        }
+        if ($detailsInForm) {
+            $profileMeta = InstituteProfileDetails::toMeta($validated['details'] ?? [], $byAdmin, $profileMeta);
         }
 
         $institute->update([

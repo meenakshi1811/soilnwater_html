@@ -320,6 +320,8 @@
             </div>
         </div>
 
+        @include('backend.institute.partials.page-details', ['institute' => $institute])
+
         <div class="d-flex justify-content-end gap-2 mt-3">
             <button type="submit" class="btn btn-primary" id="schoolInstituteProfileSubmitBtn">Save profile</button>
         </div>

@@ -7,11 +7,13 @@
           @if($aboutNeedsToggle)
             <button type="button" class="sch-read-more js-sch-read-more">Read More <i class="fa-solid fa-chevron-down"></i></button>
           @endif
-          <ul class="sch-check-list">
-            @foreach($profile->aboutHighlights() as $point)
-              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $point }}</li>
-            @endforeach
-          </ul>
+          @if($profile->aboutHighlights() !== [])
+            <ul class="sch-check-list">
+              @foreach($profile->aboutHighlights() as $point)
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $point }}</li>
+              @endforeach
+            </ul>
+          @endif
         </div>
       </section>
     @endif
@@ -27,7 +29,9 @@
 
     <section id="sch-admission" class="sch-card sch-section sch-admission-section">
       <h2 class="sch-section__title">Admission Info</h2>
-      <p class="sch-section__lead">{{ $profile->admissionLead() }}</p>
+      @if($profile->admissionLead() !== '')
+        <p class="sch-section__lead">{{ $profile->admissionLead() }}</p>
+      @endif
       @if($profile->admissionPreviewHighlights() !== [])
         <ul class="sch-check-list sch-admission-section__list">
           @foreach($profile->admissionPreviewHighlights() as $point)

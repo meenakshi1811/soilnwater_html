@@ -178,7 +178,7 @@ final class SchoolProfilePresenter
     {
         $parts = array_filter([
             $this->institute->board_affiliation ? $this->institute->board_affiliation.' Affiliated' : null,
-            $this->meta('co_educational_label', 'Co-Educational Day School'),
+            $this->meta('co_educational_label', InstituteProfileDetails::default('co_educational_label')),
             $this->gradesRangeLabel(),
         ]);
 
@@ -207,7 +207,7 @@ final class SchoolProfilePresenter
     public function affiliationLabel(): string
     {
         $board = $this->institute->board_affiliation ?: 'CBSE';
-        $number = $this->meta('affiliation_number', $this->institute->government_certificate_number);
+        $number = $this->meta('affiliation_number') ?: $this->institute->government_certificate_number;
 
         return $number ? $board.' ('.$number.')' : $board;
     }
@@ -217,39 +217,47 @@ final class SchoolProfilePresenter
         return (string) ($this->meta('school_code') ?: $this->institute->government_certificate_number ?: '—');
     }
 
+    /** ('' when the school cleared it: hidden) */
     public function schoolType(): string
     {
-        return (string) ($this->meta('school_type', 'Day School'));
+        return trim((string) $this->meta('school_type', InstituteProfileDetails::default('school_type')));
     }
 
-    public function rating(): float
+    /** The star rating, or null when cleared (the page then shows no rating) */
+    public function rating(): ?float
     {
-        return (float) ($this->meta('rating', 4.8));
+        $rating = $this->meta('rating', InstituteProfileDetails::default('rating'));
+
+        return is_numeric($rating) ? (float) $rating : null;
     }
 
     public function reviewCount(): int
     {
-        return (int) ($this->meta('review_count', count($this->reviews())));
+        $saved = $this->meta('review_count');
+
+        return is_numeric($saved) ? (int) $saved : count($this->reviews());
     }
 
+    /** (0 when the school cleared it: hidden) */
     public function studentCount(): int
     {
         $fromMeta = $this->meta('student_count');
 
-        if (is_numeric($fromMeta)) {
+        if (is_numeric($fromMeta) || $fromMeta === '') {
             return (int) $fromMeta;
         }
 
         $fromClasses = (int) $this->institute->schoolClasses->sum('strength');
 
-        return $fromClasses > 0 ? $fromClasses : 512;
+        return $fromClasses > 0 ? $fromClasses : InstituteProfileDetails::default('student_count');
     }
 
+    /** (0 when the school cleared it: hidden) */
     public function facultyCount(): int
     {
         $fromMeta = $this->meta('faculty_count');
 
-        if (is_numeric($fromMeta)) {
+        if (is_numeric($fromMeta) || $fromMeta === '') {
             return (int) $fromMeta;
         }
 
@@ -259,12 +267,12 @@ final class SchoolProfilePresenter
             ->unique()
             ->count();
 
-        return $teachers > 0 ? $teachers : 35;
+        return $teachers > 0 ? $teachers : InstituteProfileDetails::default('faculty_count');
     }
 
     public function boardResultPercent(): string
     {
-        return (string) ($this->meta('board_result_percent', '98% Board Result ('.now()->subYear()->year.')'));
+        return trim((string) $this->meta('board_result_percent', InstituteProfileDetails::default('board_result_percent')));
     }
 
     public function isPremium(): bool
@@ -275,18 +283,7 @@ final class SchoolProfilePresenter
     /** @return list<array{icon: string, label: string, value: string}> */
     public function quickStats(): array
     {
-        $defaults = [
-            ['icon' => 'fa-chalkboard', 'label' => 'Smart Classrooms', 'value' => 'Yes'],
-            ['icon' => 'fa-bus', 'label' => 'Transport', 'value' => 'Available'],
-            ['icon' => 'fa-book', 'label' => 'Library', 'value' => '15,000+ Books'],
-            ['icon' => 'fa-flask', 'label' => 'Laboratories', 'value' => '6 Labs'],
-            ['icon' => 'fa-futbol', 'label' => 'Sports', 'value' => '20+ Activities'],
-            ['icon' => 'fa-video', 'label' => 'CCTV Security', 'value' => '24x7'],
-        ];
-
-        $custom = $this->meta('quick_stats');
-
-        return is_array($custom) && $custom !== [] ? $custom : $defaults;
+        return $this->savedList('quick_stats');
     }
 
     /** @return list<array{icon: string, title: string, grades: string, description: string}> */
@@ -321,51 +318,34 @@ final class SchoolProfilePresenter
     /** @return list<string> */
     public function aboutHighlights(): array
     {
-        $custom = $this->meta('about_highlights');
-
-        if (is_array($custom) && $custom !== []) {
-            return $custom;
-        }
-
-        return [
-            'Student-centric learning environment',
-            'Safe, green and technology-enabled campus',
-            'Experienced and dedicated faculty',
-            'Strong focus on sports and co-curricular activities',
-            'Regular parent engagement and progress tracking',
-        ];
+        return $this->savedList('about_highlights');
     }
 
+    /** ('' when the school cleared it: hidden) */
     public function admissionLead(): string
     {
-        $lead = trim((string) $this->meta('admission.lead', ''));
-
-        if ($lead !== '') {
-            return $lead;
-        }
-
-        return 'Admissions are open for select grades. Submit an enquiry below or contact the admission office during operating hours.';
+        return trim((string) $this->meta('admission.lead', InstituteProfileDetails::default('admission.lead')));
     }
 
     /** @return list<string> */
     public function admissionHighlights(): array
     {
-        $custom = $this->meta('admission.highlights');
+        return array_values(array_filter(array_map(
+            fn ($item) => trim((string) $item),
+            $this->savedList('admission.highlights')
+        )));
+    }
 
-        if (is_array($custom) && $custom !== []) {
-            return array_values(array_filter(array_map(
-                fn ($item) => trim((string) $item),
-                $custom
-            )));
-        }
+    /**
+     * A saved list (an emptied one stays empty), or the standard one until the school saves its own.
+     *
+     * @return list<mixed>
+     */
+    private function savedList(string $key): array
+    {
+        $saved = $this->meta($key);
 
-        return [
-            'Online enquiry and campus visit scheduling available',
-            'Document checklist shared after initial enquiry',
-            'Entrance assessment for senior grades where applicable',
-            'Age criteria and grade mapping explained during counselling',
-            'Fee plan, transport, and scholarship options shared after registration',
-        ];
+        return is_array($saved) ? array_values($saved) : (array) InstituteProfileDetails::default($key);
     }
 
     /** @return list<string> */
@@ -376,26 +356,7 @@ final class SchoolProfilePresenter
 
     public function admissionDetailsText(): string
     {
-        $details = trim((string) $this->meta('admission.details', ''));
-
-        if ($details !== '') {
-            return $details;
-        }
-
-        return implode("\n\n", [
-            'How to apply',
-            '1. Submit an online enquiry or visit the admission desk on working days.',
-            '2. Attend a counselling session to confirm grade eligibility and seat availability.',
-            '3. Complete the application form and upload required documents.',
-            '4. Appear for an interaction or assessment if applicable for the selected grade.',
-            '5. Pay the registration fee to confirm provisional admission.',
-            '',
-            'Documents usually required',
-            'Birth certificate, previous report cards, transfer certificate (if applicable), passport-size photographs, parent/guardian ID proof, and address proof.',
-            '',
-            'Need help?',
-            'Contact the admission office during campus operating hours or send an enquiry from this profile page.',
-        ]);
+        return trim((string) $this->meta('admission.details', InstituteProfileDetails::default('admission.details')));
     }
 
     public function admissionHasMore(): bool
@@ -407,14 +368,15 @@ final class SchoolProfilePresenter
     /** @return list<array{icon: string, label: string, value: string}> */
     public function atAGlance(): array
     {
-        return [
+        // (a line the school cleared is left out)
+        return array_values(array_filter([
             ['icon' => 'fa-location-dot', 'label' => 'Location', 'value' => $this->institute->locationLabel() ?: '—'],
-            ['icon' => 'fa-tree', 'label' => 'Campus Area', 'value' => (string) $this->meta('campus_area', '5 Acres')],
-            ['icon' => 'fa-language', 'label' => 'Medium of Instruction', 'value' => (string) $this->meta('medium_of_instruction', 'English')],
+            ['icon' => 'fa-tree', 'label' => 'Campus Area', 'value' => trim((string) $this->meta('campus_area', InstituteProfileDetails::default('campus_area')))],
+            ['icon' => 'fa-language', 'label' => 'Medium of Instruction', 'value' => trim((string) $this->meta('medium_of_instruction', InstituteProfileDetails::default('medium_of_instruction')))],
             ['icon' => 'fa-certificate', 'label' => 'Board', 'value' => $this->institute->board_affiliation ?: '—'],
             ['icon' => 'fa-layer-group', 'label' => 'Grades Offered', 'value' => $this->gradesRangeLabel()],
             ['icon' => 'fa-phone', 'label' => 'Contact Number', 'value' => implode(', ', $this->institute->phoneNumbersList()) ?: '—'],
-        ];
+        ], fn (array $item) => $item['value'] !== ''));
     }
 
     /** @return list<string> */
@@ -432,20 +394,7 @@ final class SchoolProfilePresenter
     /** @return list<string> */
     public function whyChooseUs(): array
     {
-        $custom = $this->meta('why_choose_us');
-
-        if (is_array($custom) && $custom !== []) {
-            return $custom;
-        }
-
-        return [
-            'Quality Education & Academic Excellence',
-            'Well-qualified and Experienced Faculty',
-            'Modern Infrastructure & Smart Learning',
-            'Holistic Development Programmes',
-            'Safe & Secure Campus Environment',
-            'Strong Board Results Year-on-Year',
-        ];
+        return $this->savedList('why_choose_us');
     }
 
     /** @return list<array{name: string, role: string, subject: string, profile_url?: string, photo_url?: string|null}> */
@@ -657,7 +606,7 @@ final class SchoolProfilePresenter
         $custom = $this->meta('events');
 
         if (is_array($custom) && $custom !== []) {
-            $events = $custom;
+            $events = $this->savedEvents($custom);
 
             return $limit !== null ? array_slice($events, 0, $limit) : $events;
         }
@@ -686,10 +635,47 @@ final class SchoolProfilePresenter
         $custom = $this->meta('events');
 
         if (is_array($custom) && $custom !== []) {
-            return count($custom);
+            return count($this->savedEvents($custom));
         }
 
         return $this->institute->activeNotices->count();
+    }
+
+    /**
+     * Events saved on the profile form ({title, date, time}): today's and later ones, soonest first.
+     * (Ones saved before with their own schedule line show as they are.)
+     *
+     * @param  array<int, mixed>  $saved
+     * @return list<array{id: int, title: string, schedule: string, day: string, month: string}>
+     */
+    private function savedEvents(array $saved): array
+    {
+        $today = now()->startOfDay();
+
+        return collect($saved)
+            ->filter(fn ($event) => is_array($event))
+            ->map(function (array $event, int $index) {
+                if (! filled($event['date'] ?? null)) {
+                    return $event + ['id' => $index + 1];
+                }
+
+                $date = \Illuminate\Support\Carbon::parse($event['date']);
+                $time = trim((string) ($event['time'] ?? ''));
+
+                return [
+                    'id' => $index + 1,
+                    'title' => (string) ($event['title'] ?? ''),
+                    'schedule' => $date->format('l, j F Y').($time !== '' ? ' • '.$time : ''),
+                    'day' => $date->format('d'),
+                    'month' => strtoupper($date->format('M')),
+                    'date' => $date,
+                ];
+            })
+            ->reject(fn (array $event) => isset($event['date']) && $event['date']->lt($today))
+            ->sortBy(fn (array $event) => isset($event['date']) ? $event['date']->timestamp : PHP_INT_MAX)
+            ->map(fn (array $event) => array_diff_key($event, ['date' => true]))
+            ->values()
+            ->all();
     }
 
     /** @return list<array{name: string, relation: string, rating: float, comment: string, ago: string, initial: string, tone: string}> */
@@ -706,12 +692,13 @@ final class SchoolProfilePresenter
 
             return [
                 'name' => $name,
-                'relation' => (string) ($review['relation'] ?? 'Parent'),
+                'relation' => (string) (($review['relation'] ?? '') ?: 'Parent'),
                 'rating' => (float) ($review['rating'] ?? 5),
                 'comment' => (string) ($review['comment'] ?? ''),
-                'ago' => (string) ($review['ago'] ?? 'Recently'),
+                // ("Recently" when the form's "when" was left blank)
+                'ago' => (string) (($review['ago'] ?? '') ?: 'Recently'),
                 'initial' => Str::upper(Str::substr($name, 0, 1)),
-                'tone' => (string) ($review['tone'] ?? 'blue'),
+                'tone' => (string) (($review['tone'] ?? '') ?: 'blue'),
             ];
         });
 
@@ -729,9 +716,10 @@ final class SchoolProfilePresenter
         return is_array($custom) ? count($custom) : 0;
     }
 
+    /** ('' when the school cleared it: hidden) */
     public function operatingHours(): string
     {
-        return (string) ($this->meta('operating_hours', 'Mon – Sat: 08:00 AM – 04:00 PM'));
+        return trim((string) $this->meta('operating_hours', InstituteProfileDetails::default('operating_hours')));
     }
 
     public function mapEmbedUrl(): ?string
