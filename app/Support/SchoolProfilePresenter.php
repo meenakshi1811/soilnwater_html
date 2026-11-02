@@ -187,16 +187,16 @@ final class SchoolProfilePresenter
 
     public function gradesRangeLabel(): string
     {
-        $grades = collect($this->institute->gradesOfferedEntries());
+        // (the lowest to the highest class, whatever order they were entered in)
+        $range = InstituteGrades::range($this->institute->gradesOfferedEntries());
 
-        if ($grades->isEmpty()) {
+        if ($range === null) {
             return 'Classes: Nursery to XII';
         }
 
-        $first = $grades->first()['class'] ?? '';
-        $last = $grades->last()['class'] ?? '';
+        [$first, $last] = $range;
 
-        return 'Classes: '.$first.' to '.$last;
+        return 'Classes: '.($first === $last ? $first : $first.' to '.$last);
     }
 
     public function establishedYear(): ?int

@@ -197,6 +197,22 @@ class InstituteGrades
     }
 
     /**
+     * The lowest and highest class in school order, e.g. ['LKG', 'Class 12'] (classes it can't
+     * place count only when there are no others, then in the order entered); null for none.
+     *
+     * @param  list<array{class: string, sections: int|null, students_per_section: int|null}>  $entries
+     * @return array{0: string, 1: string}|null
+     */
+    public static function range(array $entries): ?array
+    {
+        $stages = self::byStage($entries);
+        $placed = array_filter($stages, fn (array $stage) => $stage['key'] !== 'other');
+        $classes = array_column(array_merge(...array_column($placed ?: $stages, 'entries')), 'class');
+
+        return $classes === [] ? null : [$classes[0], $classes[count($classes) - 1]];
+    }
+
+    /**
      * Totals for the classes: how many, and the sections and students where they're given.
      *
      * @return array{classes: int, sections: int|null, students: int|null}
