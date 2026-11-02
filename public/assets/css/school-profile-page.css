@@ -831,7 +831,12 @@
   font-weight: 800;
 }
 
-/* (each stage a column of its classes; on phones one under the other) */
+/* (sized by the block's own width, which the side menus change, not the screen's) */
+.sch-grades-box {
+  container-type: inline-size;
+}
+
+/* (each stage a column of its classes; see below when they don't all fit side by side) */
 .sch-grades {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -938,9 +943,29 @@
   background: #fafcff;
 }
 
-@media (max-width: 575.98px) {
-  .sch-grades {
-    grid-template-columns: minmax(0, 1fr);
+/* No room for all five stages side by side: they flow down columns instead (newspaper style),
+   each under the one before, so a short one leaves no gap under it */
+@container (max-width: 737.98px) {
+  .sch-grades:not(.sch-grades--plain) {
+    display: block;
+    column-width: 150px;
+    column-gap: 0.6rem;
+  }
+
+  .sch-grades:not(.sch-grades--plain) .sch-grades__stage {
+    margin-bottom: 0.6rem;
+    break-inside: avoid;
+  }
+
+  .sch-grades:not(.sch-grades--plain) .sch-grades__stage:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Narrow (phones): one stage under the other, two classes a row */
+@container (max-width: 479.98px) {
+  .sch-grades:not(.sch-grades--plain) {
+    columns: auto;
   }
 
   .sch-grades__stage-name {

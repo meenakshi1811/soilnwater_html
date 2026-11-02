@@ -9,7 +9,7 @@
   $showStageNames = ! (count($gradeStages) === 1 && $gradeStages[0]['key'] === 'other');
 @endphp
 
-<div id="sch-classes-detail" class="sch-classes-detail">
+<div id="sch-classes-detail" class="sch-classes-detail sch-grades-box">
   <div class="sch-grades__head">
     <h3 class="sch-classes-detail__title mb-0">Classes offered</h3>
     <ul class="sch-grades__totals">
