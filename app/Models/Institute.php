@@ -299,6 +299,14 @@ class Institute extends Model
             : route('institutes.diary', $this->slug);
     }
 
+    /** The fee structure page (schools/{slug}/fee-structure) */
+    public function publicFeeStructureUrl(): string
+    {
+        $this->loadMissing('user');
+
+        return route(($this->user?->isSchool() ? 'schools' : 'institutes').'.fee-structure', $this->slug);
+    }
+
     public function publicSectionUrl(string $section): string
     {
         $this->loadMissing('user');

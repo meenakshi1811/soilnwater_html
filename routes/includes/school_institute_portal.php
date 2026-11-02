@@ -5,6 +5,7 @@ use App\Http\Controllers\Institute\InstituteDiaryController;
 use App\Http\Controllers\Institute\InstituteDiaryHolidayController;
 use App\Http\Controllers\Institute\InstituteEngagementPortalController;
 use App\Http\Controllers\Institute\InstituteEnquiryController;
+use App\Http\Controllers\Institute\InstituteFeeStructureController;
 use App\Http\Controllers\Institute\InstituteLeaveRuleController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
@@ -26,6 +27,8 @@ Route::prefix('school')->name('school.')->middleware(['school.account'])->group(
     Route::patch('/jobs/applications/{application}', [InstituteJobController::class, 'updateApplication'])->middleware('school')->name('jobs.applications.update');
     Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('school')->name('engagement.index');
     Route::get('/diary', [InstituteDiaryController::class, 'index'])->middleware('school')->name('diary.index');
+    Route::get('/fee-structure', [InstituteFeeStructureController::class, 'edit'])->middleware('school')->name('fee-structure.edit');
+    Route::put('/fee-structure', [InstituteFeeStructureController::class, 'update'])->middleware('school')->name('fee-structure.update');
     Route::post('/diary/holidays', [InstituteDiaryHolidayController::class, 'store'])->middleware('school')->name('diary.holidays.store');
     Route::put('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'update'])->middleware('school')->name('diary.holidays.update');
     Route::delete('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'destroy'])->middleware('school')->name('diary.holidays.destroy');
@@ -57,6 +60,8 @@ Route::prefix('institute')->name('institute.')->middleware(['institute.account']
     Route::patch('/jobs/applications/{application}', [InstituteJobController::class, 'updateApplication'])->middleware('institute')->name('jobs.applications.update');
     Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware('institute')->name('engagement.index');
     Route::get('/diary', [InstituteDiaryController::class, 'index'])->middleware('institute')->name('diary.index');
+    Route::get('/fee-structure', [InstituteFeeStructureController::class, 'edit'])->middleware('institute')->name('fee-structure.edit');
+    Route::put('/fee-structure', [InstituteFeeStructureController::class, 'update'])->middleware('institute')->name('fee-structure.update');
     Route::post('/diary/holidays', [InstituteDiaryHolidayController::class, 'store'])->middleware('institute')->name('diary.holidays.store');
     Route::put('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'update'])->middleware('institute')->name('diary.holidays.update');
     Route::delete('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::class, 'destroy'])->middleware('institute')->name('diary.holidays.destroy');

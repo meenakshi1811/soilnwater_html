@@ -797,6 +797,12 @@
                                 <span>Diary</span>
                             </a>
                         </li>
+                        <li>
+                            <a class="{{ request()->routeIs('school.fee-structure.*') ? 'active' : '' }}" href="{{ $user->portalRoute('fee-structure.edit') }}">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                <span>Fee structure</span>
+                            </a>
+                        </li>
                     </ul>
                 </details>
             </li>
@@ -846,6 +852,12 @@
                             <a class="{{ request()->routeIs('institute.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
                                 <i class="fa-solid fa-book-bookmark"></i>
                                 <span>Diary</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('institute.fee-structure.*') ? 'active' : '' }}" href="{{ $user->portalRoute('fee-structure.edit') }}">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                <span>Fee structure</span>
                             </a>
                         </li>
                     </ul>

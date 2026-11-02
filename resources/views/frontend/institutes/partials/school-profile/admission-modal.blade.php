@@ -23,6 +23,14 @@
           <div class="sch-admission-modal__details">{!! nl2br(e($profile->admissionDetailsText())) !!}</div>
         @endif
       </div>
+      @if($profile->feeStructure())
+        {{-- The school's fee structure page --}}
+        <div class="modal-footer sch-admission-modal__footer">
+          <a href="{{ $profile->institute->publicFeeStructureUrl() }}" class="sch-btn sch-btn-primary">
+            <i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> View fee structure
+          </a>
+        </div>
+      @endif
     </div>
   </div>
 </div>

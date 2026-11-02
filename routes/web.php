@@ -216,6 +216,7 @@ Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, '
 Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name('schools.index');
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
 Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
+Route::get('/schools/{slug}/fee-structure', [InstituteProfileController::class, 'schoolFeeStructure'])->name('schools.fee-structure');
 Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'schoolSection'])
     ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
     ->name('schools.section');
@@ -233,6 +234,7 @@ Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolCom
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
 Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
+Route::get('/institutes/{slug}/fee-structure', [InstituteProfileController::class, 'instituteFeeStructure'])->name('institutes.fee-structure');
 Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, 'instituteSection'])
     ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
     ->name('institutes.section');

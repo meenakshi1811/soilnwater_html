@@ -3774,3 +3774,132 @@
 .sch-section-page-body .sch-card {
   margin-bottom: 1rem;
 }
+
+/* —— Fee structure page (and its link in the Admission info popup) —— */
+
+.sch-admission-modal__footer {
+  justify-content: flex-start;
+  padding: 0.85rem 1.35rem;
+  border-top: 1px solid var(--sch-border);
+}
+
+.sch-fee-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin-top: 0.35rem;
+  color: var(--sch-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.sch-fee-hero__meta i {
+  margin-right: 0.3rem;
+  color: var(--sch-primary);
+}
+
+.sch-fee-intro {
+  padding: 1rem 1.15rem;
+  color: #4b5d73;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* (a wide chart scrolls sideways, its row names staying in view) */
+.sch-fee-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--sch-border);
+  border-radius: 12px;
+}
+
+.sch-fee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.sch-fee-table th,
+.sch-fee-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid #edf2f8;
+  background: #fff;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sch-fee-table thead th {
+  min-width: 90px;
+  background: #f5f9ff;
+  color: var(--sch-primary-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: normal;
+}
+
+.sch-fee-table thead th:first-child,
+.sch-fee-table th[scope="row"] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 140px;
+  box-shadow: 1px 0 0 #edf2f8;
+  color: var(--sch-ink);
+  font-weight: 700;
+  text-align: left;
+  white-space: normal;
+}
+
+.sch-fee-table thead th:first-child {
+  background: #f5f9ff;
+}
+
+.sch-fee-table tbody tr:nth-child(even) > * {
+  background: #fafcff;
+}
+
+.sch-fee-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.sch-fee-table tfoot th,
+.sch-fee-table tfoot td {
+  border-top: 2px solid var(--sch-border);
+  border-bottom: 0;
+  background: var(--sch-primary-soft);
+  color: var(--sch-primary-dark);
+  font-weight: 800;
+}
+
+.sch-fee-card__note {
+  margin-top: 0.6rem;
+  color: var(--sch-muted);
+  font-size: 0.8rem;
+}
+
+.sch-fee-card__text {
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.sch-fee-file {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--sch-border);
+  border-radius: 12px;
+}
+
+.sch-fee-file--pdf {
+  height: 75vh;
+  min-height: 420px;
+}
+
+.sch-fee-footnote {
+  margin: 0;
+  color: var(--sch-muted);
+  font-size: 0.78rem;
+}
+
+.sch-fee-footnote i {
+  margin-right: 0.3rem;
+}

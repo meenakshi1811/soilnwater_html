@@ -315,6 +315,81 @@
   background: #f8fafc;
 }
 
+/* Fee structure: each fee table an editable grid */
+.fee-tables {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.fee-table-card {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.fee-table-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.fee-table-card__head > input {
+  flex: 1 1 240px;
+  font-weight: 600;
+}
+
+.fee-grid {
+  min-width: 100%;
+  margin-bottom: 0.5rem;
+  background: #fff;
+}
+
+.fee-grid th,
+.fee-grid td {
+  min-width: 110px;
+  padding: 0.3rem;
+  vertical-align: middle;
+}
+
+.fee-grid th:first-child,
+.fee-grid td:first-child {
+  min-width: 170px;
+}
+
+.fee-grid .fee-grid__tool {
+  width: 1%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.fee-grid__value {
+  text-align: right;
+}
+
+/* (over Bootstrap's table cell colours) */
+.fee-grid tfoot th,
+.fee-grid tfoot .fee-grid__total {
+  background: #eef4ff;
+  color: #1e40af;
+  font-weight: 700;
+  text-align: right;
+}
+
+.fee-grid tfoot th {
+  text-align: left;
+}
+
+.fee-table-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 /* A facility: its photo, name and photo picker */
 .inst-facility-row {
   display: grid;

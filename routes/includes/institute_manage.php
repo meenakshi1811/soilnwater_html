@@ -1,10 +1,12 @@
 <?php
 
-// Admin: a school's or institute's portal pages (profile, public page, diary, jobs), loaded inside
-// admin/schools/{managedInstitute}/manage and admin/institutes/{managedInstitute}/manage
+// Admin: a school's or institute's portal pages (profile, public page, diary, fee structure,
+// jobs), loaded inside admin/schools/{managedInstitute}/manage and
+// admin/institutes/{managedInstitute}/manage
 
 use App\Http\Controllers\Institute\InstituteDiaryController;
 use App\Http\Controllers\Institute\InstituteDiaryHolidayController;
+use App\Http\Controllers\Institute\InstituteFeeStructureController;
 use App\Http\Controllers\Institute\InstituteJobController;
 use App\Http\Controllers\Institute\InstituteLeaveRuleController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
@@ -33,6 +35,8 @@ Route::delete('/diary/holidays/{holiday}', [InstituteDiaryHolidayController::cla
 Route::post('/diary/leave-rules', [InstituteLeaveRuleController::class, 'store'])->name('diary.leave-rules.store');
 Route::put('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'update'])->name('diary.leave-rules.update');
 Route::delete('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'destroy'])->name('diary.leave-rules.destroy');
+Route::get('/fee-structure', [InstituteFeeStructureController::class, 'edit'])->name('fee-structure.edit');
+Route::put('/fee-structure', [InstituteFeeStructureController::class, 'update'])->name('fee-structure.update');
 Route::get('/jobs', [InstituteJobController::class, 'index'])->name('jobs.index');
 Route::post('/jobs', [InstituteJobController::class, 'store'])->name('jobs.store');
 Route::put('/jobs/{job}', [InstituteJobController::class, 'update'])->name('jobs.update');

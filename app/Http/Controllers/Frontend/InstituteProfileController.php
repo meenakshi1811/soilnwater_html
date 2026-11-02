@@ -76,6 +76,42 @@ class InstituteProfileController extends Controller
         return $this->diaryShow($slug, 'institute');
     }
 
+    public function schoolFeeStructure(string $slug): View
+    {
+        return $this->feeStructureShow($slug, 'school');
+    }
+
+    public function instituteFeeStructure(string $slug): View
+    {
+        return $this->feeStructureShow($slug, 'institute');
+    }
+
+    /** The school's fee structure page (none added: not found) */
+    public function feeStructureShow(string $slug, string $ownerRole = 'school'): View
+    {
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+        $institute->loadMissing('user');
+
+        $profile = new SchoolProfilePresenter($institute);
+        $fee = $profile->feeStructure();
+        abort_unless($fee, 404);
+
+        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
+
+        return view('frontend.institutes.fee-structure', [
+            'institute' => $institute,
+            'profile' => $profile,
+            'fee' => $fee,
+            'navItems' => $profile->navItems(),
+            'ownerRole' => $ownerRole,
+            'listingContext' => $listingContext,
+            'entityLabel' => $ownerRole === 'school' ? 'School' : 'Institute',
+            'activeNavId' => 'sch-admission',
+            'engagement' => $this->engagementState($institute, auth()->user()),
+            'shareUrl' => $institute->publicUrl(),
+        ]);
+    }
+
     public function diaryShow(string $slug, string $ownerRole = 'school'): View
     {
         $institute = $this->findApprovedProfile($slug, $ownerRole);

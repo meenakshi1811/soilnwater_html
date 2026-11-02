@@ -5,6 +5,7 @@
     'profile.edit' => ['Profile', 'fa-id-card'],
     'public-page.edit' => ['Public page', 'fa-globe'],
     'diary.index' => ['Diary', 'fa-book-bookmark'],
+    'fee-structure.edit' => ['Fee structure', 'fa-indian-rupee-sign'],
     'jobs.index' => ['Jobs', 'fa-briefcase'],
   ];
 @endphp

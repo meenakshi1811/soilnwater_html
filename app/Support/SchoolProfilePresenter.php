@@ -365,6 +365,12 @@ final class SchoolProfilePresenter
             || trim($this->admissionDetailsText()) !== '';
     }
 
+    /** The school's fee structure (InstituteFeeStructure), or null when it hasn't added one */
+    public function feeStructure(): ?array
+    {
+        return InstituteFeeStructure::fromMeta($this->meta('fee_structure'));
+    }
+
     /** @return list<array{icon: string, label: string, value: string}> */
     public function atAGlance(): array
     {
