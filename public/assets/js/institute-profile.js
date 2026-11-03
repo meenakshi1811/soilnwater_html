@@ -269,7 +269,43 @@
                 if (button) {
                     button.closest('.js-wing-row').remove();
                 }
+
+                // "Remove photo": back to the icon
+                var clear = e.target.closest('.js-wing-image-clear');
+                if (clear) {
+                    var row = clear.closest('.js-wing-row');
+                    row.querySelector('.js-wing-image').value = '';
+                    row.querySelector('.js-wing-image-existing').value = '';
+                    showWingPhoto(row, null);
+                }
             });
+
+            // A picked photo shows in the card
+            wrap.addEventListener('change', function (e) {
+                var input = e.target.closest('.js-wing-image');
+                var file = input && input.files && input.files[0];
+                if (!file) {
+                    return;
+                }
+                if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+                    FormHelper.showToast('warning', 'Course photos must be JPG, PNG or WebP, up to 2 MB.');
+                    input.value = '';
+                    return;
+                }
+                showWingPhoto(input.closest('.js-wing-row'), URL.createObjectURL(file));
+            });
+
+            function showWingPhoto(row, url) {
+                var img = row.querySelector('.js-wing-thumb img');
+                img.classList.toggle('d-none', !url);
+                row.querySelector('.js-wing-thumb i').classList.toggle('d-none', !!url);
+                if (url) {
+                    img.src = url;
+                } else {
+                    img.removeAttribute('src');
+                }
+                row.querySelector('.js-wing-image-clear').classList.toggle('d-none', !url);
+            }
         })();
 
         // A facility's photo: a picked one shows in the row; "Remove photo" takes it off

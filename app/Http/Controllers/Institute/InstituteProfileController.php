@@ -72,9 +72,16 @@ class InstituteProfileController extends Controller
             $request->merge(['details' => InstituteProfileDetails::cleanInput($request->input('details'))]);
         }
 
-        // (a blank, just-added course card or stream is dropped)
+        // (a blank, just-added course card or stream is dropped; the cards are numbered afresh, so
+        // each notes which photo upload is its own)
+        $wingRows = [];
+        foreach ((array) $request->input('course_wings', []) as $key => $row) {
+            if (is_array($row)) {
+                $wingRows[] = array_merge($row, ['upload_key' => (string) $key, 'has_upload' => $request->hasFile('course_wing_images.'.$key)]);
+            }
+        }
         $request->merge([
-            'course_wings' => InstituteCourseWings::filledRows($request->input('course_wings', [])),
+            'course_wings' => InstituteCourseWings::filledRows($wingRows),
             'streams' => InstituteCourseWings::cleanStreams($request->input('streams', [])),
         ]);
 
@@ -115,6 +122,10 @@ class InstituteProfileController extends Controller
             'course_wings.*.title' => ['required', 'string', 'max:80'],
             'course_wings.*.grades' => ['nullable', 'string', 'max:80'],
             'course_wings.*.description' => ['nullable', 'string', 'max:300'],
+            'course_wings.*.image' => ['nullable', 'string', 'max:255'],
+            'course_wings.*.upload_key' => ['nullable', 'string', 'max:10'],
+            'course_wing_images' => ['nullable', 'array'],
+            'course_wing_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'streams' => ['nullable', 'array', 'max:12'],
             'streams.*' => ['string', 'max:60'],
             'tagline' => ['required', 'string', 'max:255'],
@@ -149,6 +160,9 @@ class InstituteProfileController extends Controller
             'course_wings.*.title.max' => 'A course or program title can be up to 80 characters.',
             'course_wings.*.grades.max' => 'The classes line can be up to 80 characters.',
             'course_wings.*.description.max' => 'A course or program description can be up to 300 characters.',
+            'course_wing_images.*.image' => 'Each course or program photo must be an image.',
+            'course_wing_images.*.mimes' => 'Course or program photos must be JPG, PNG or WebP.',
+            'course_wing_images.*.max' => 'Each course or program photo can be up to 2 MB.',
             'streams.max' => 'You can add up to 12 streams.',
             'streams.*.max' => 'A stream name can be up to 60 characters.',
             'date_of_establishment.required' => 'Please enter the founded date.',
@@ -206,7 +220,7 @@ class InstituteProfileController extends Controller
         // (only from a form that has them: an emptied list sends no fields, so the form marks itself)
         $profileMeta = (array) ($institute->profile_meta ?? []);
         if ($request->boolean('courses_in_form')) {
-            $profileMeta['course_wings'] = InstituteCourseWings::cleanWings($validated['course_wings'] ?? []);
+            $profileMeta['course_wings'] = $this->syncCourseWingImages($request, $institute, $validated['course_wings'] ?? []);
             $profileMeta['streams'] = $validated['streams'] ?? [];
         }
         if ($detailsInForm) {
@@ -287,6 +301,7 @@ class InstituteProfileController extends Controller
                     || $request->hasFile('brochure')
                     || $request->hasFile('gallery_uploads')
                     || $request->hasFile('facility_images')
+                    || $request->hasFile('course_wing_images')
                     || $request->filled('removed_gallery'),
             ]);
         }
@@ -335,6 +350,39 @@ class InstituteProfileController extends Controller
         }
 
         return $images;
+    }
+
+    /**
+     * The course & program cards with their photos: a new upload, or the one the card already had
+     * (only a photo of this school's). Photos no longer used are deleted.
+     *
+     * @param  array<int, array<string, mixed>>  $rows  validated cards
+     * @return list<array{icon: string, title: string, grades: string, description: string, image: string}>
+     */
+    private function syncCourseWingImages(Request $request, Institute $institute, array $rows): array
+    {
+        $stored = array_values(array_filter(array_column(
+            InstituteCourseWings::cleanWings(data_get($institute->profile_meta, 'course_wings')),
+            'image'
+        )));
+
+        foreach ($rows as &$row) {
+            $key = (string) ($row['upload_key'] ?? '');
+            $upload = $key !== '' ? $request->file('course_wing_images.'.$key) : null;
+            if ($upload instanceof UploadedFile) {
+                $row['image'] = InstituteFileUploader::storeImage($upload, 'courses');
+            } elseif (! in_array($row['image'] ?? null, $stored, true)) {
+                $row['image'] = '';
+            }
+        }
+        unset($row);
+
+        $wings = InstituteCourseWings::cleanWings($rows);
+        foreach (array_diff($stored, array_column($wings, 'image')) as $unused) {
+            InstituteFileUploader::deleteIfExists($unused);
+        }
+
+        return $wings;
     }
 
     /** @return list<array{type: string, path: string}> */

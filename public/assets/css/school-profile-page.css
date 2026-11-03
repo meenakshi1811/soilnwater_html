@@ -678,41 +678,73 @@
   gap: 0.75rem;
 }
 
+/* A course or program: its photo (or icon) beside the title, classes and description, like a note */
 .sch-course-card {
-  padding: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0.85rem;
   border: 1px solid #edf2f8;
   border-radius: 12px;
-  background: #fafcff;
+  background: #fff;
+}
+
+.sch-course-card__icon,
+.sch-course-card__image {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
 }
 
 .sch-course-card__icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--sch-primary-soft);
   color: var(--sch-primary);
-  margin-bottom: 0.55rem;
+  font-size: 1.2rem;
+}
+
+.sch-course-card__image {
+  object-fit: cover;
+}
+
+.sch-course-card__body {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .sch-course-card h3 {
-  margin: 0 0 0.25rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.2rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .sch-course-card__grades {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
   color: var(--sch-primary);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
-.sch-course-card p:last-child {
+.sch-course-card__desc {
   margin: 0;
   color: var(--sch-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+/* (in the scroller, a long description is cut to three lines) */
+.sch-profile-carousel .sch-course-card__desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .sch-streams {
@@ -1141,6 +1173,7 @@
 
 .sch-profile-carousel .card-carousel-item > .sch-faculty-card,
 .sch-profile-carousel .card-carousel-item > .sch-note-card,
+.sch-profile-carousel .card-carousel-item > .sch-course-card,
 .sch-profile-carousel .card-carousel-item > .sch-facility-card,
 .sch-profile-carousel .card-carousel-item > .sch-class-card,
 .sch-profile-carousel .card-carousel-item > .sch-book-card,

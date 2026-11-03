@@ -25,19 +25,20 @@ final class InstituteCourseWings
     ];
 
     public const DEFAULT_WINGS = [
-        ['icon' => 'fa-child', 'title' => 'Primary Wing', 'grades' => 'Nursery to Class V', 'description' => 'Activity-based learning with language, numeracy, and creative play.'],
-        ['icon' => 'fa-book-open', 'title' => 'Middle Wing', 'grades' => 'Class VI to VIII', 'description' => 'Concept building across science, maths, and humanities with project work.'],
-        ['icon' => 'fa-user-graduate', 'title' => 'Secondary Wing', 'grades' => 'Class IX to X', 'description' => 'Board-focused curriculum with weekly assessments and remedial support.'],
-        ['icon' => 'fa-graduation-cap', 'title' => 'Senior Secondary', 'grades' => 'Class XI to XII', 'description' => 'Specialized streams with career counselling and competitive exam prep.'],
+        ['icon' => 'fa-child', 'title' => 'Primary Wing', 'grades' => 'Nursery to Class V', 'description' => 'Activity-based learning with language, numeracy, and creative play.', 'image' => ''],
+        ['icon' => 'fa-book-open', 'title' => 'Middle Wing', 'grades' => 'Class VI to VIII', 'description' => 'Concept building across science, maths, and humanities with project work.', 'image' => ''],
+        ['icon' => 'fa-user-graduate', 'title' => 'Secondary Wing', 'grades' => 'Class IX to X', 'description' => 'Board-focused curriculum with weekly assessments and remedial support.', 'image' => ''],
+        ['icon' => 'fa-graduation-cap', 'title' => 'Senior Secondary', 'grades' => 'Class XI to XII', 'description' => 'Specialized streams with career counselling and competitive exam prep.', 'image' => ''],
     ];
 
     public const DEFAULT_STREAMS = ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Humanities'];
 
     /**
      * The saved cards, cleaned (a card needs a title; an unknown icon becomes the book), or the
-     * standard ones for a school that hasn't saved any yet (a saved empty list stays empty).
+     * standard ones for a school that hasn't saved any yet (a saved empty list stays empty). A card's
+     * image is its photo's path ('' for none: the icon shows).
      *
-     * @return list<array{icon: string, title: string, grades: string, description: string}>
+     * @return list<array{icon: string, title: string, grades: string, description: string, image: string}>
      */
     public static function wings(mixed $saved): array
     {
@@ -50,7 +51,7 @@ final class InstituteCourseWings
         return is_array($saved) ? self::cleanStreams($saved) : self::DEFAULT_STREAMS;
     }
 
-    /** @return list<array{icon: string, title: string, grades: string, description: string}> */
+    /** @return list<array{icon: string, title: string, grades: string, description: string, image: string}> */
     public static function cleanWings(mixed $rows): array
     {
         if (! is_array($rows)) {
@@ -74,6 +75,7 @@ final class InstituteCourseWings
                 'title' => $title,
                 'grades' => trim((string) ($row['grades'] ?? '')),
                 'description' => trim((string) ($row['description'] ?? '')),
+                'image' => is_string($row['image'] ?? null) ? trim($row['image']) : '',
             ];
         }
 
@@ -94,7 +96,8 @@ final class InstituteCourseWings
     }
 
     /**
-     * Form rows with anything typed in them (a blank, just-added card is dropped before checking).
+     * Form rows with anything in them (a blank, just-added card is dropped before checking; a photo
+     * alone counts, so a card with only a photo is asked for its title).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -105,6 +108,7 @@ final class InstituteCourseWings
         }
 
         return array_values(array_filter($rows, fn ($row) => is_array($row)
-            && trim((string) ($row['title'] ?? '').($row['grades'] ?? '').($row['description'] ?? '')) !== ''));
+            && (trim((string) ($row['title'] ?? '').($row['grades'] ?? '').($row['description'] ?? '').($row['image'] ?? '')) !== ''
+                || ! empty($row['has_upload']))));
     }
 }

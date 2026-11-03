@@ -10,9 +10,9 @@
   $achievements = $institute->achievements;
   $performers = $institute->topPerformers;
   $gallery = $profile->galleryItems();
-  $coursesLimit = $isProfilePreview ? ($previewLimits['courses'] ?? null) : null;
   $classDetailsLimit = $isProfilePreview ? ($previewLimits['class-details'] ?? null) : null;
-  $courseWingsPreview = $profile->courseWings($coursesLimit);
+  // (all of them: on the profile they slide, like the notes)
+  $courseWingsPreview = $profile->courseWings();
   $classesForPreview = $classDetailsLimit !== null
     ? $classes->sortByDesc('id')->take($classDetailsLimit)->values()
     : $classes;
@@ -70,19 +70,28 @@
         'inHead' => true,
       ])
     </div>
-    @if($courseWingsPreview !== [])
+    @if($courseWingsPreview !== [] && $isProfilePreview)
+      <div
+        class="sch-profile-carousel sch-courses-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="3"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Courses and programs slider"
+      >
+        <div class="card-carousel-track">
+          @foreach($courseWingsPreview as $wing)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.course-card', ['wing' => $wing])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @elseif($courseWingsPreview !== [])
       <div class="sch-course-grid">
         @foreach($courseWingsPreview as $wing)
-          <article class="sch-course-card">
-            <span class="sch-course-card__icon"><i class="fa-solid {{ $wing['icon'] }}" aria-hidden="true"></i></span>
-            <h3>{{ $wing['title'] }}</h3>
-            @if(filled($wing['grades']))
-              <p class="sch-course-card__grades">{{ $wing['grades'] }}</p>
-            @endif
-            @if(filled($wing['description']))
-              <p>{{ $wing['description'] }}</p>
-            @endif
-          </article>
+          @include('frontend.institutes.partials.school-profile.course-card', ['wing' => $wing])
         @endforeach
       </div>
     @endif
