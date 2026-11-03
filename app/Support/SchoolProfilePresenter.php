@@ -784,7 +784,6 @@ final class SchoolProfilePresenter
             ['id' => 'sch-jobs', 'label' => 'Jobs & Careers', 'icon' => 'fa-briefcase'],
             ['id' => 'sch-notes-material', 'label' => 'Notes & Material', 'icon' => 'fa-note-sticky'],
             ['id' => 'sch-question-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
-            ['id' => 'sch-contact', 'label' => 'Enquiry & Contact', 'icon' => 'fa-envelope'],
         ];
 
         return array_values(array_filter($items, function ($item) {

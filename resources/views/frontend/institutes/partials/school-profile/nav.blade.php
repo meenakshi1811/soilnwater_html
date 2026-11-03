@@ -1,5 +1,6 @@
 @php
-  // On another page (the diary) the section links and Enquire Now go back to the profile
+  // On another page (the diary) the section links go back to the profile, and Enquire Now opens
+  // its enquiry popup (#enquire)
   $sectionBaseUrl = $sectionBaseUrl ?? null;
 @endphp
 <aside class="sch-nav" aria-label="School profile sections">
@@ -27,7 +28,7 @@
     </ul>
     <div class="sch-nav__actions">
       @if($sectionBaseUrl)
-        <a href="{{ $sectionBaseUrl }}#sch-contact" class="sch-btn sch-btn-primary">Enquire Now</a>
+        <a href="{{ $sectionBaseUrl }}#enquire" class="sch-btn sch-btn-primary">Enquire Now</a>
       @else
         <button type="button" class="sch-btn sch-btn-primary js-sch-open-enquiry">Enquire Now</button>
       @endif

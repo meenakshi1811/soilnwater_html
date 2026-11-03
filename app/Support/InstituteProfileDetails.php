@@ -103,7 +103,7 @@ final class InstituteProfileDetails
                 'Strong Board Results Year-on-Year',
             ],
             'admission' => [
-                'lead' => 'Admissions are open for select grades. Submit an enquiry below or contact the admission office during operating hours.',
+                'lead' => 'Admissions are open for select grades. Send an enquiry or contact the admission office during operating hours.',
                 'highlights' => [
                     'Online enquiry and campus visit scheduling available',
                     'Document checklist shared after initial enquiry',

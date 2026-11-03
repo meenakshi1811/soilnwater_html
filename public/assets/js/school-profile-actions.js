@@ -66,13 +66,17 @@
                 var modalEl = document.getElementById('schoolEnquiryModal');
                 if (modalEl && window.bootstrap) {
                     window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    return;
                 }
-
-                var contact = document.getElementById('sch-contact');
-                contact?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
+
+        // Sent here to enquire (Enquire Now on the diary and fee structure pages): the enquiry popup
+        if (window.location.hash === '#enquire') {
+            var opener = document.querySelector('.js-sch-open-enquiry');
+            if (opener) {
+                opener.click();
+            }
+        }
 
         document.querySelectorAll('.js-sch-follow').forEach(function (btn) {
             btn.addEventListener('click', async function () {

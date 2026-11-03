@@ -74,7 +74,7 @@
                 <i class="fa-solid fa-download" aria-hidden="true"></i> Download {{ $feeFileIsPdf ? 'PDF' : 'fee chart' }}
               </a>
             @endif
-            <a href="{{ $profileUrl }}#sch-contact" class="sch-btn sch-btn-primary">
+            <a href="{{ $profileUrl }}#enquire" class="sch-btn sch-btn-primary">
               <i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Enquire
             </a>
           </div>

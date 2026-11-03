@@ -55,7 +55,7 @@
               <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to profile
             </a>
             @if($navItems === [])
-              <a href="{{ $profileUrl }}#sch-contact" class="sch-btn sch-btn-primary">Enquire Now</a>
+              <a href="{{ $profileUrl }}#enquire" class="sch-btn sch-btn-primary">Enquire Now</a>
             @endif
           </div>
         </header>
