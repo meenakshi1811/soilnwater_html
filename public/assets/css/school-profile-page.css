@@ -366,6 +366,13 @@
   text-decoration: none;
 }
 
+.sch-admission-section__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+}
+
 .sch-admission-section__list {
   margin-bottom: 0.65rem;
 }

@@ -106,7 +106,7 @@ class InstituteProfileController extends Controller
             'ownerRole' => $ownerRole,
             'listingContext' => $listingContext,
             'entityLabel' => $ownerRole === 'school' ? 'School' : 'Institute',
-            'activeNavId' => 'sch-admission',
+            'activeNavId' => 'sch-fee-structure',
             'engagement' => $this->engagementState($institute, auth()->user()),
             'shareUrl' => $institute->publicUrl(),
         ]);

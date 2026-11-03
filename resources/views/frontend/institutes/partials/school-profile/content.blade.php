@@ -39,10 +39,20 @@
           @endforeach
         </ul>
       @endif
-      @if($profile->admissionHasMore())
-        <button type="button" class="sch-read-more js-sch-admission-read-more">
-          Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
+      @if($profile->admissionHasMore() || $profile->feeStructure())
+        <div class="sch-admission-section__links">
+          @if($profile->admissionHasMore())
+            <button type="button" class="sch-read-more js-sch-admission-read-more">
+              Read more <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+          @endif
+          @if($profile->feeStructure())
+            {{-- (also at the bottom of the Read more popup) --}}
+            <a href="{{ $institute->publicFeeStructureUrl() }}" class="sch-read-more">
+              <i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> View fee structure <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </a>
+          @endif
+        </div>
       @endif
     </section>
 

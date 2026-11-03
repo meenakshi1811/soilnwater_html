@@ -758,6 +758,13 @@ final class SchoolProfilePresenter
             ['id' => 'sch-about', 'label' => 'About Institution', 'icon' => 'fa-circle-info'],
             ['id' => 'sch-courses', 'label' => 'Courses & Programs', 'icon' => 'fa-book'],
             ['id' => 'sch-admission', 'label' => 'Admission Info', 'icon' => 'fa-door-open'],
+            // (its own page, like the diary)
+            [
+                'id' => 'sch-fee-structure',
+                'label' => 'Fee Structure',
+                'icon' => 'fa-indian-rupee-sign',
+                'href' => $this->institute->publicFeeStructureUrl(),
+            ],
             ['id' => 'sch-facilities', 'label' => 'Facilities', 'icon' => 'fa-building'],
             ['id' => 'sch-faculty', 'label' => 'Faculty', 'icon' => 'fa-chalkboard-user'],
             ['id' => 'sch-notes', 'label' => 'Notes', 'icon' => 'fa-file-lines'],
@@ -793,6 +800,7 @@ final class SchoolProfilePresenter
                 'sch-question-papers' => $this->questionPaperBooks()->isNotEmpty(),
                 'sch-faculty' => $this->facultyMembers() !== [],
                 'sch-notes' => $this->schoolNotesCount() > 0,
+                'sch-fee-structure' => $this->feeStructure() !== null,
                 'sch-facilities' => collect($this->institute->facilities ?? [])->isNotEmpty(),
                 default => true,
             };
