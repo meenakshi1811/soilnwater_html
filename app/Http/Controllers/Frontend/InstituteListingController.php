@@ -164,10 +164,6 @@ class InstituteListingController extends Controller
             $query->where('board_affiliation', 'like', '%'.$board.'%');
         }
 
-        if ($request->boolean('verified')) {
-            $query->where('is_verified', true);
-        }
-
         return match ($sort) {
             'name' => $query->orderBy('institution_name'),
             'distance' => ($lat !== null && $lng !== null)
@@ -178,14 +174,13 @@ class InstituteListingController extends Controller
     }
 
     /**
-     * @return array{verified: int, total: int, cities: int}
+     * @return array{total: int, cities: int}
      */
     private function listingStats(string $ownerRole = 'school'): array
     {
         $approved = Institute::query()->approved()->forOwnerRole($ownerRole);
 
         return [
-            'verified' => (clone $approved)->where('is_verified', true)->count(),
             'total' => (clone $approved)->count(),
             'cities' => $this->availableCities()->count(),
         ];

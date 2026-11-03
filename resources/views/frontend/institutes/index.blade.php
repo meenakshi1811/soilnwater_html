@@ -100,13 +100,6 @@
           </select>
         </div>
 
-        <div class="vendors-filter-group">
-          <label class="form-check">
-            <input type="checkbox" class="form-check-input" id="institutesMarketFilterVerified" @checked(request()->boolean('verified'))>
-            Verified only
-          </label>
-        </div>
-
         <button type="button" class="btn btn-primary w-100" id="institutesMarketApplyFilters">Apply filters</button>
       </div>
     </aside>
@@ -119,21 +112,14 @@
             {{ $pageTitle }} Marketplace
           </span>
           <h1>{{ $isSchoolListing ? 'Discover Trusted Schools Near You' : 'Discover Trusted Institutes Near You' }}</h1>
-          <p>Explore verified {{ strtolower($pageTitle) }} by city, board, and institution type on SoilnWater.</p>
+          <p>Explore {{ strtolower($pageTitle) }} by city, board, and institution type on SoilnWater.</p>
         </div>
-        <div class="vendors-hero__stats">
+        <div class="vendors-hero__stats vendors-hero__stats--three">
           <div class="vendors-stat">
             <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
             <div class="vendors-stat__text">
               <strong>{{ number_format($instituteStats['total']) }}</strong>
               <span>{{ $isSchoolListing ? 'Schools listed' : 'Institutes listed' }}</span>
-            </div>
-          </div>
-          <div class="vendors-stat">
-            <span class="vendors-stat__icon vendors-stat__icon--premium" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
-            <div class="vendors-stat__text">
-              <strong>{{ number_format($instituteStats['verified']) }}</strong>
-              <span>Verified profiles</span>
             </div>
           </div>
           <div class="vendors-stat">

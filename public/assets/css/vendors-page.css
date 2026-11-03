@@ -320,6 +320,11 @@
   overflow: hidden;
 }
 
+/* (a page with three counts, e.g. schools) */
+.vendors-hero__stats--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .vendors-stat {
   display: flex;
   align-items: center;

@@ -6,11 +6,8 @@
       ? number_format((float) $institute->distance_km, 1).' km'
       : null;
   @endphp
-  <article class="vendors-compact-card institutes-card{{ $institute->is_verified ? ' is-verified' : '' }}">
+  <article class="vendors-compact-card institutes-card">
     <a href="{{ $institute->publicUrl() }}" class="vendors-compact-card__media institutes-card__media" aria-label="View {{ $institute->displayName() }} profile">
-      @if($institute->is_verified)
-        <span class="vendors-compact-card__badge institutes-card__badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
-      @endif
       <img
         src="{{ $photo }}"
         alt="{{ $institute->displayName() }}"

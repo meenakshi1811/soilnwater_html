@@ -54,9 +54,6 @@
             <div class="flex-grow-1">
                 <div class="school-hero-badges mb-2">
                     <span class="school-hero-badge">{{ $institute->institutionTypeLabel() }}</span>
-                    @if($institute->is_verified)
-                        <span class="school-hero-badge school-hero-badge--verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                    @endif
                     @if($institute->board_affiliation)
                         <span class="school-hero-badge school-hero-badge--muted">{{ $institute->board_affiliation }}</span>
                     @endif

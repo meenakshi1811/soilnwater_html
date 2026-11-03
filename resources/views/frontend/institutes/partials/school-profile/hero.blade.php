@@ -10,14 +10,11 @@
     </div>
 
     <div class="sch-hero__body">
-      <div class="sch-hero__badges">
-        @if($institute->is_verified)
-          <span class="sch-badge sch-badge--verified"><i class="fa-solid fa-circle-check"></i> Verified Institution</span>
-        @endif
-        @if($profile->isPremium())
+      @if($profile->isPremium())
+        <div class="sch-hero__badges">
           <span class="sch-badge sch-badge--premium"><i class="fa-solid fa-crown"></i> Premium Member</span>
-        @endif
-      </div>
+        </div>
+      @endif
 
       <div class="sch-hero__title-row">
         <h1>{{ $profile->displayName() }}</h1>

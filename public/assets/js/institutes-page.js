@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const cityFilter = document.getElementById('institutesMarketFilterCity');
   const boardFilter = document.getElementById('institutesMarketFilterBoard');
   const radiusFilter = document.getElementById('institutesMarketFilterRadius');
-  const verifiedFilter = document.getElementById('institutesMarketFilterVerified');
   const locationFilter = document.getElementById('institutesMarketFilterLocation');
   const sortFilter = document.getElementById('institutesMarketSort');
   const applyFiltersBtn = document.getElementById('institutesMarketApplyFilters');
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeFilter && typeFilter.value) params.set('type', typeFilter.value); else params.delete('type');
     if (cityFilter && cityFilter.value) params.set('city', cityFilter.value); else params.delete('city');
     if (boardFilter && boardFilter.value) params.set('board', boardFilter.value); else params.delete('board');
-    if (verifiedFilter && verifiedFilter.checked) params.set('verified', '1'); else params.delete('verified');
+    params.delete('verified'); // (from an old "Verified only" link)
     if (radiusFilter && radiusFilter.value && hasLocation) params.set('radius', radiusFilter.value); else params.delete('radius');
     if (sortFilter && sortFilter.value && sortFilter.value !== 'recent') params.set('sort', sortFilter.value); else params.delete('sort');
 
@@ -159,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cityFilter) cityFilter.value = '';
     if (boardFilter) boardFilter.value = '';
     if (radiusFilter) radiusFilter.value = '';
-    if (verifiedFilter) verifiedFilter.checked = false;
     if (sortFilter) sortFilter.value = 'recent';
     reloadInstitutesFromStart();
   }
@@ -169,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
     locationFilter.value = headerLocationInput.value.trim();
   }
 
-  [typeFilter, cityFilter, boardFilter, radiusFilter, verifiedFilter, sortFilter].forEach(function (el) {
+  [typeFilter, cityFilter, boardFilter, radiusFilter, sortFilter].forEach(function (el) {
     if (!el) return;
     el.addEventListener('change', function () {
       scheduleReload(0);

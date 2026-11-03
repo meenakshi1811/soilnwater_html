@@ -67,13 +67,6 @@
       </select>
     </div>
 
-    <div class="vendors-filter-group">
-      <label class="form-check">
-        <input type="checkbox" class="form-check-input" id="institutesMarketFilterVerified" @checked(request()->boolean('verified'))>
-        Verified only
-      </label>
-    </div>
-
     <button type="button" class="btn btn-primary w-100" id="institutesMarketApplyFilters">Apply filters</button>
   </div>
 </aside>

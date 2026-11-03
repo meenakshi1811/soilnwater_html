@@ -9,9 +9,6 @@
             <p class="ems-kicker mb-1">{{ $institute->roleLabel() }}</p>
             <h2 class="admin-title mb-1">{{ $institute->displayName() }}</h2>
             <span class="badge text-bg-{{ $institute->status === 'approved' ? 'success' : ($institute->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($institute->status) }}</span>
-            @if($institute->is_verified)
-                <span class="badge text-bg-primary">Verified</span>
-            @endif
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route($adminRoutePrefix.'.index') }}" class="btn btn-light">Back to list</a>
