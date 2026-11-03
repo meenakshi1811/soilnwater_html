@@ -21,7 +21,7 @@
 
   <div class="ems-hero mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
     <div>
-      <p class="ems-kicker mb-1">School public website</p>
+      <p class="ems-kicker mb-1">{{ $portalLabel }} public website</p>
       <h2 class="admin-title mb-1">Manage public page content</h2>
       <p class="mb-0 text-secondary">Add notices, classes, results, achievements, and books shown on your public profile.</p>
     </div>
@@ -226,7 +226,7 @@
       <span class="sch-portal-section__icon sch-portal-section__icon--green"><i class="fa-solid fa-trophy"></i></span>
       <div class="flex-grow-1">
         <h3 class="mb-1">Achievements</h3>
-        <p class="text-secondary mb-0">Highlight school awards, sports wins, and academic milestones.</p>
+        <p class="text-secondary mb-0">Highlight {{ strtolower($portalLabel) }} awards, sports wins, and academic milestones.</p>
       </div>
       <div class="form-check form-switch inst-profile-section__switch mb-0">
         <input class="form-check-input js-public-page-section-toggle" type="checkbox" role="switch" id="achievements_section_enabled" data-section="achievements" @checked($achievementsFormOpen)>

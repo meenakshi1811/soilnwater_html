@@ -1,12 +1,17 @@
 {{-- Everything else the public page shows (InstituteProfileDetails), with what it shows now --}}
 @php
   $details = \App\Support\InstituteProfileDetails::forForm($institute);
+  // (a school's words, or an institute's)
+  $isSchoolProfile = $institute->user?->isSchool() ?? true;
+  $entityName = $isSchoolProfile ? 'School' : 'Institute';
   $detailTextFields = [
-    'co_educational_label' => ['Co-education line', 'e.g. Co-Educational Day School', 'Shown under your name.'],
-    'school_type' => ['School type', 'e.g. Day School, Boarding School', null],
+    'co_educational_label' => $isSchoolProfile
+      ? ['Co-education line', 'e.g. Co-Educational Day School', 'Shown under your name.']
+      : ['Line under your name', 'e.g. Coaching for Classes 9–12', 'Shown under your name.'],
+    'school_type' => [$entityName.' type', $isSchoolProfile ? 'e.g. Day School, Boarding School' : 'e.g. Coaching Centre, Training Institute', null],
     'medium_of_instruction' => ['Medium of instruction', 'e.g. English', null],
     'campus_area' => ['Campus area', 'e.g. 5 Acres', null],
-    'school_code' => ['School code', 'e.g. 81234', 'Blank: your government certificate number.'],
+    'school_code' => [$entityName.' code', 'e.g. 81234', 'Blank: your government certificate number.'],
     'affiliation_number' => ['Affiliation number', 'e.g. 3330456', 'Blank: your government certificate number.'],
     'operating_hours' => ['Operating hours', 'e.g. Mon – Sat: 08:00 AM – 04:00 PM', null],
     'board_result_percent' => ['Board result', 'e.g. 98% Board Result (2025)', 'Shown in the numbers strip.'],
@@ -18,7 +23,7 @@
   <p class="text-secondary mb-3">Everything else your public profile shows. A line you clear is hidden.</p>
 
   <section class="inst-detail-group">
-    <h4 class="inst-detail-group__title">School details</h4>
+    <h4 class="inst-detail-group__title">{{ $entityName }} details</h4>
     <div class="row g-3">
       @foreach($detailTextFields as $key => [$label, $placeholder, $hint])
         <div class="col-md-6 col-xl-4">
@@ -104,7 +109,7 @@
 
   <section class="inst-detail-group">
     <h4 class="inst-detail-group__title">Faculty</h4>
-    @include('backend.institute.partials.page-details-list', ['kind' => 'faculty', 'rows' => $details['faculty'], 'addLabel' => 'Add faculty member', 'hint' => 'Teachers who link their own profile to your school show too. Leave empty to show your class teachers.'])
+    @include('backend.institute.partials.page-details-list', ['kind' => 'faculty', 'rows' => $details['faculty'], 'addLabel' => 'Add faculty member', 'hint' => 'Teachers who link their own profile to your '.strtolower($entityName).' show too. Leave empty to show your class teachers.'])
   </section>
 
   <section class="inst-detail-group">

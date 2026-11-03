@@ -178,7 +178,7 @@ final class SchoolProfilePresenter
     {
         $parts = array_filter([
             $this->institute->board_affiliation ? $this->institute->board_affiliation.' Affiliated' : null,
-            $this->meta('co_educational_label', InstituteProfileDetails::default('co_educational_label')),
+            $this->meta('co_educational_label', InstituteProfileDetails::default('co_educational_label', $this->forSchool())),
             $this->gradesRangeLabel(),
         ]);
 
@@ -220,7 +220,13 @@ final class SchoolProfilePresenter
     /** ('' when the school cleared it: hidden) */
     public function schoolType(): string
     {
-        return trim((string) $this->meta('school_type', InstituteProfileDetails::default('school_type')));
+        return trim((string) $this->meta('school_type', InstituteProfileDetails::default('school_type', $this->forSchool())));
+    }
+
+    /** A school's page (not an institute's): some standard wording is for schools only */
+    private function forSchool(): bool
+    {
+        return $this->institute->user?->isSchool() ?? true;
     }
 
     /** The star rating, or null when cleared (the page then shows no rating) */
@@ -306,13 +312,13 @@ final class SchoolProfilePresenter
     /** @return list<array{icon: string, title: string, grades: string, description: string}> */
     private function allCourseWings(): array
     {
-        return InstituteCourseWings::wings($this->meta('course_wings'));
+        return InstituteCourseWings::wings($this->meta('course_wings'), $this->forSchool());
     }
 
     /** @return list<string> */
     public function streams(): array
     {
-        return InstituteCourseWings::streams($this->meta('streams'));
+        return InstituteCourseWings::streams($this->meta('streams'), $this->forSchool());
     }
 
     /** @return list<string> */

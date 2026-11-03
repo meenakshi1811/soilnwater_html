@@ -35,20 +35,21 @@ final class InstituteCourseWings
 
     /**
      * The saved cards, cleaned (a card needs a title; an unknown icon becomes the book), or the
-     * standard ones for a school that hasn't saved any yet (a saved empty list stays empty). A card's
-     * image is its photo's path ('' for none: the icon shows).
+     * standard ones for a school that hasn't saved any yet (a saved empty list stays empty; an
+     * institute has no standard ones). A card's image is its photo's path ('' for none: the icon
+     * shows).
      *
      * @return list<array{icon: string, title: string, grades: string, description: string, image: string}>
      */
-    public static function wings(mixed $saved): array
+    public static function wings(mixed $saved, bool $forSchool = true): array
     {
-        return is_array($saved) ? self::cleanWings($saved) : self::DEFAULT_WINGS;
+        return is_array($saved) ? self::cleanWings($saved) : ($forSchool ? self::DEFAULT_WINGS : []);
     }
 
     /** @return list<string> */
-    public static function streams(mixed $saved): array
+    public static function streams(mixed $saved, bool $forSchool = true): array
     {
-        return is_array($saved) ? self::cleanStreams($saved) : self::DEFAULT_STREAMS;
+        return is_array($saved) ? self::cleanStreams($saved) : ($forSchool ? self::DEFAULT_STREAMS : []);
     }
 
     /** @return list<array{icon: string, title: string, grades: string, description: string, image: string}> */

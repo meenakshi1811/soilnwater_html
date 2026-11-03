@@ -48,10 +48,10 @@
         @endif
         <div><span>Affiliation</span><strong>{{ $profile->affiliationLabel() }}</strong></div>
         @if($profile->schoolCode() !== '—')
-          <div><span>School Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
+          <div><span>{{ $entityLabel ?? 'School' }} Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
         @endif
         @if($profile->schoolType() !== '')
-          <div><span>School Type</span><strong>{{ $profile->schoolType() }}</strong></div>
+          <div><span>{{ $entityLabel ?? 'School' }} Type</span><strong>{{ $profile->schoolType() }}</strong></div>
         @endif
       </div>
     </div>

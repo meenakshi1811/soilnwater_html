@@ -63,15 +63,16 @@ final class InstituteProfileDetails
     ];
 
     /**
-     * The standard wording, shown until a school saves its own.
+     * The standard wording, shown until a school saves its own (an institute has no school-only
+     * lines: no "Co-Educational Day School" or "Day School").
      *
      * @return array<string, mixed>
      */
-    public static function defaults(): array
+    public static function defaults(bool $forSchool = true): array
     {
         return [
-            'co_educational_label' => 'Co-Educational Day School',
-            'school_type' => 'Day School',
+            'co_educational_label' => $forSchool ? 'Co-Educational Day School' : '',
+            'school_type' => $forSchool ? 'Day School' : '',
             'medium_of_instruction' => 'English',
             'campus_area' => '5 Acres',
             'operating_hours' => 'Mon – Sat: 08:00 AM – 04:00 PM',
@@ -129,9 +130,9 @@ final class InstituteProfileDetails
         ];
     }
 
-    public static function default(string $key): mixed
+    public static function default(string $key, bool $forSchool = true): mixed
     {
-        return data_get(self::defaults(), $key);
+        return data_get(self::defaults($forSchool), $key);
     }
 
     /**
@@ -148,7 +149,7 @@ final class InstituteProfileDetails
         $savedList = fn (string $key) => is_array($saved($key)) ? array_values($saved($key)) : [];
 
         $values = [
-            'co_educational_label' => (string) $profile->meta('co_educational_label', self::default('co_educational_label')),
+            'co_educational_label' => (string) $profile->meta('co_educational_label', self::default('co_educational_label', $institute->user?->isSchool() ?? true)),
             'school_type' => $profile->schoolType(),
             'medium_of_instruction' => (string) $profile->meta('medium_of_instruction', self::default('medium_of_instruction')),
             'campus_area' => (string) $profile->meta('campus_area', self::default('campus_area')),

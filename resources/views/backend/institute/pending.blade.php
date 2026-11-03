@@ -13,13 +13,13 @@
 
     <div class="chart-card text-center py-5">
         <i class="fa-solid {{ $isRejected ? 'fa-circle-xmark text-danger' : 'fa-hourglass-half text-warning' }} fa-3x mb-3"></i>
-        <h2 class="admin-title">{{ $isRejected ? 'School / Institute application rejected' : 'Account pending approval' }}</h2>
+        <h2 class="admin-title">{{ $isRejected ? $portalLabel.' application rejected' : 'Account pending approval' }}</h2>
         <p class="text-secondary col-lg-8 mx-auto">
             @if ($isRejected)
-                Your school / institute application was rejected by the admin team. Please contact support for the next steps.
+                Your {{ strtolower($portalLabel) }} application was rejected by the admin team. Please contact support for the next steps.
             @else
-                Thank you for registering your school / institute on SoilNWater. Our team is reviewing your application.
-                You will be able to access the institute portal once an administrator approves your account.
+                Thank you for registering your {{ strtolower($portalLabel) }} on SoilNWater. Our team is reviewing your application.
+                You will be able to access the {{ strtolower($portalLabel) }} portal once an administrator approves your account.
             @endif
         </p>
         @if($institute)

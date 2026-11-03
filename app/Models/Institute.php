@@ -254,9 +254,16 @@ class Institute extends Model
         return $this->status === 'rejected';
     }
 
+    /** "School" or "Institute", by the account's role */
     public function roleLabel(): string
     {
-        return 'School / Institute';
+        $this->loadMissing('user');
+
+        return match ($this->user?->role) {
+            'school' => 'School',
+            'institute' => 'Institute',
+            default => 'School / Institute',
+        };
     }
 
     public function displayName(): string

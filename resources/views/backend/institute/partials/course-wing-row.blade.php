@@ -3,6 +3,8 @@
 @php
   $wing = $wing ?? [];
   $wingIcon = $wing['icon'] ?? 'fa-book-open';
+  // (a school's examples, or an institute's)
+  $wingForSchool = $institute->user?->isSchool() ?? true;
   $wingImage = filled($wing['image'] ?? null) ? (string) $wing['image'] : '';
   $wingImageUrl = $wingImage !== '' ? asset($wingImage) : null;
 @endphp
@@ -10,11 +12,11 @@
   <div class="row g-2">
     <div class="col-12">
       <label class="form-label small mb-1" for="course_wing_{{ $index }}_title">Title *</label>
-      <input type="text" class="form-control form-control-sm" id="course_wing_{{ $index }}_title" name="course_wings[{{ $index }}][title]" value="{{ $wing['title'] ?? '' }}" maxlength="80" placeholder="e.g. Primary Wing">
+      <input type="text" class="form-control form-control-sm" id="course_wing_{{ $index }}_title" name="course_wings[{{ $index }}][title]" value="{{ $wing['title'] ?? '' }}" maxlength="80" placeholder="{{ $wingForSchool ? 'e.g. Primary Wing' : 'e.g. JEE Foundation' }}">
     </div>
     <div class="col-6">
       <label class="form-label small mb-1" for="course_wing_{{ $index }}_grades">Classes</label>
-      <input type="text" class="form-control form-control-sm" id="course_wing_{{ $index }}_grades" name="course_wings[{{ $index }}][grades]" value="{{ $wing['grades'] ?? '' }}" maxlength="80" placeholder="e.g. Nursery to Class V">
+      <input type="text" class="form-control form-control-sm" id="course_wing_{{ $index }}_grades" name="course_wings[{{ $index }}][grades]" value="{{ $wing['grades'] ?? '' }}" maxlength="80" placeholder="{{ $wingForSchool ? 'e.g. Nursery to Class V' : 'e.g. Class 9 to 10' }}">
     </div>
     <div class="col-6">
       <label class="form-label small mb-1" for="course_wing_{{ $index }}_icon">Icon</label>

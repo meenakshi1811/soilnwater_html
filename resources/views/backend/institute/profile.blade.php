@@ -30,8 +30,8 @@
       ? (bool) old('gallery_section_enabled')
       : $galleryItems->isNotEmpty();
   // (what the public page shows now: the saved courses and streams, or the standard ones)
-  $courseWingsList = \App\Support\InstituteCourseWings::wings(old('course_wings', data_get($institute->profile_meta, 'course_wings')));
-  $streamsList = \App\Support\InstituteCourseWings::streams(old('streams', data_get($institute->profile_meta, 'streams')));
+  $courseWingsList = \App\Support\InstituteCourseWings::wings(old('course_wings', data_get($institute->profile_meta, 'course_wings')), $institute->user?->isSchool() ?? true);
+  $streamsList = \App\Support\InstituteCourseWings::streams(old('streams', data_get($institute->profile_meta, 'streams')), $institute->user?->isSchool() ?? true);
 @endphp
 <div class="admin-panel ems-page institute-portal">
     @includeWhen($managedInstitute, 'backend.institute.partials.admin-manage-bar')
@@ -136,7 +136,7 @@
                     <div class="inst-profile-section__head">
                         <span class="form-label mb-0">Courses &amp; programs offered</span>
                     </div>
-                    <p class="form-text mt-0 mb-2">The cards in the “Courses &amp; Programs Offered” section of your public profile, e.g. Primary Wing — Nursery to Class V.</p>
+                    <p class="form-text mt-0 mb-2">The cards in the “Courses &amp; Programs Offered” section of your public profile, e.g. {{ $institute->user?->isSchool() ? 'Primary Wing — Nursery to Class V' : 'JEE Foundation — Class 9 to 10' }}.</p>
                     <input type="hidden" name="courses_in_form" value="1">
                     <div id="courseWingsWrap" class="inst-wing-rows">
                         @foreach ($courseWingsList as $wingIndex => $wing)
@@ -255,7 +255,7 @@
                 <div class="mb-3">
                     <label class="form-label" for="date_of_establishment">Founded date *</label>
                     <input type="date" class="form-control" id="date_of_establishment" name="date_of_establishment" value="{{ old('date_of_establishment', optional($institute->date_of_establishment)->format('Y-m-d')) }}" max="{{ now()->toDateString() }}" required>
-                    <div class="form-text">When the school or institute was established (shown on your public profile).</div>
+                    <div class="form-text">When the {{ $institute->user?->isSchool() ? 'school' : 'institute' }} was established (shown on your public profile).</div>
                 </div>
             </div>
         </div>
