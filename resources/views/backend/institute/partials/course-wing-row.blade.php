@@ -28,7 +28,7 @@
     </div>
     <div class="col-12">
       <label class="form-label small mb-1" for="course_wing_{{ $index }}_description">Description</label>
-      <textarea class="form-control form-control-sm" id="course_wing_{{ $index }}_description" name="course_wings[{{ $index }}][description]" rows="2" maxlength="300" placeholder="What students learn here">{{ $wing['description'] ?? '' }}</textarea>
+      <textarea class="form-control form-control-sm" id="course_wing_{{ $index }}_description" name="course_wings[{{ $index }}][description]" rows="4" maxlength="1000" placeholder="What students learn here">{{ $wing['description'] ?? '' }}</textarea>
     </div>
     <div class="col-12">
       <label class="form-label small mb-1" for="course_wing_{{ $index }}_image">Photo <span class="text-secondary">(instead of the icon)</span></label>
