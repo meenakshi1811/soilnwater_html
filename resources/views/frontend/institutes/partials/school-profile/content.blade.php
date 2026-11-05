@@ -20,6 +20,8 @@
 
     @include('frontend.institutes.partials.school-profile.sections', [
       'onlySection' => null,
+      // (Jobs & Careers comes under Admission Info, below)
+      'skipSections' => ['jobs'],
       'isProfilePreview' => true,
       'profile' => $profile,
       'institute' => $institute,
@@ -55,4 +57,13 @@
         </div>
       @endif
     </section>
+
+    @include('frontend.institutes.partials.school-profile.sections', [
+      'onlySection' => 'jobs',
+      'isProfilePreview' => true,
+      'profile' => $profile,
+      'institute' => $institute,
+      'entityLabel' => $entityLabel ?? 'School',
+      'listingContext' => $listingContext ?? 'schools',
+    ])
 </div>

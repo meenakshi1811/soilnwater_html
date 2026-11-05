@@ -821,6 +821,8 @@ final class SchoolProfilePresenter
             ['id' => 'sch-about', 'label' => 'About Institution', 'icon' => 'fa-circle-info'],
             ['id' => 'sch-courses', 'label' => 'Courses & Programs', 'icon' => 'fa-book'],
             ['id' => 'sch-admission', 'label' => 'Admission Info', 'icon' => 'fa-door-open'],
+            // (right under Admission Info, as on the page)
+            ['id' => 'sch-jobs', 'label' => 'Jobs & Careers', 'icon' => 'fa-briefcase'],
             // (its own page, like the diary)
             [
                 'id' => 'sch-fee-structure',
@@ -844,7 +846,6 @@ final class SchoolProfilePresenter
             ['id' => 'sch-news', 'label' => 'News & Announcements', 'icon' => 'fa-newspaper'],
             ['id' => 'sch-reviews', 'label' => 'Reviews & Ratings', 'icon' => 'fa-star'],
             ['id' => 'sch-results', 'label' => 'Results', 'icon' => 'fa-medal'],
-            ['id' => 'sch-jobs', 'label' => 'Jobs & Careers', 'icon' => 'fa-briefcase'],
             ['id' => 'sch-notes-material', 'label' => 'Notes & Material', 'icon' => 'fa-note-sticky'],
             ['id' => 'sch-question-papers', 'label' => 'Question Papers', 'icon' => 'fa-file-circle-question'],
         ];

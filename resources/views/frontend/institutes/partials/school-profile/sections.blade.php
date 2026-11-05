@@ -4,7 +4,11 @@
   $onlySection = $onlySection ?? null;
   $isProfilePreview = $isProfilePreview ?? ($onlySection === null);
   $previewLimits = SchoolProfilePresenter::PREVIEW_LIMITS;
-  $showSection = fn (string $key): bool => $onlySection === null || $onlySection === $key;
+  // (sections the caller renders elsewhere, e.g. the profile shows Jobs under Admission Info)
+  $skipSections = $skipSections ?? [];
+  $showSection = fn (string $key): bool => $onlySection === null
+    ? ! in_array($key, $skipSections, true)
+    : $onlySection === $key;
 
   $classes = $institute->schoolClasses;
   $achievements = $institute->achievements;
