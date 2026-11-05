@@ -14,18 +14,34 @@
     <div class="row g-2 flex-grow-1">
       @switch($kind)
         @case('quick_stats')
-          <div class="col-sm-4">
-            <select class="form-select form-select-sm" name="{{ $name('icon') }}" aria-label="Icon">
+          {{-- The tile as it shows on the page (institute-profile.js keeps it in step), then its fields --}}
+          @php
+            $factIcon = $value('icon') ?: 'fa-chalkboard';
+          @endphp
+          <div class="col-md-4 col-xl-3">
+            <div class="inst-fact-preview js-fact-preview" aria-hidden="true">
+              <span class="inst-fact-preview__icon"><i class="fa-solid {{ $factIcon }}"></i></span>
+              <span class="inst-fact-preview__text">
+                <strong class="js-fact-preview-value">{{ $value('value') ?: '6 Labs' }}</strong>
+                <small class="js-fact-preview-label">{{ $value('label') ?: 'Laboratories' }}</small>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label class="form-label small mb-1">Name</label>
+            <input type="text" class="form-control form-control-sm js-fact-label" name="{{ $name('label') }}" value="{{ $value('label') }}" maxlength="60" placeholder="e.g. Laboratories">
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label class="form-label small mb-1">Shown in bold</label>
+            <input type="text" class="form-control form-control-sm js-fact-value" name="{{ $name('value') }}" value="{{ $value('value') }}" maxlength="60" placeholder="e.g. 6 Labs">
+          </div>
+          <div class="col-md-2 col-xl-3">
+            <label class="form-label small mb-1">Icon</label>
+            <select class="form-select form-select-sm js-fact-icon" name="{{ $name('icon') }}">
               @foreach(\App\Support\InstituteProfileDetails::STAT_ICONS as $iconClass => $iconName)
-                <option value="{{ $iconClass }}" @selected($value('icon') === $iconClass)>{{ $iconName }}</option>
+                <option value="{{ $iconClass }}" @selected($factIcon === $iconClass)>{{ $iconName }}</option>
               @endforeach
             </select>
-          </div>
-          <div class="col-sm-4">
-            <input type="text" class="form-control form-control-sm" name="{{ $name('value') }}" value="{{ $value('value') }}" maxlength="60" placeholder="Value, e.g. 6 Labs" aria-label="Value">
-          </div>
-          <div class="col-sm-4">
-            <input type="text" class="form-control form-control-sm" name="{{ $name('label') }}" value="{{ $value('label') }}" maxlength="60" placeholder="Label, e.g. Laboratories" aria-label="Label">
           </div>
           @break
         @case('faculty')

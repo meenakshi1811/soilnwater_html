@@ -246,6 +246,21 @@
             });
         });
 
+        // Quick facts: the preview tile follows its fields
+        function syncFactPreview(row) {
+            var preview = row.querySelector('.js-fact-preview');
+            if (!preview) {
+                return;
+            }
+            preview.querySelector('.js-fact-preview-label').textContent = row.querySelector('.js-fact-label').value.trim() || 'Laboratories';
+            preview.querySelector('.js-fact-preview-value').textContent = row.querySelector('.js-fact-value').value.trim() || '6 Labs';
+            preview.querySelector('i').className = 'fa-solid ' + row.querySelector('.js-fact-icon').value;
+        }
+
+        $(document).on('input change', '.js-fact-label, .js-fact-value, .js-fact-icon', function () {
+            syncFactPreview(this.closest('.js-repeater-row'));
+        });
+
         // Courses & programs cards: add one (fields numbered from the template) or remove one
         (function () {
             var wrap = document.getElementById('courseWingsWrap');

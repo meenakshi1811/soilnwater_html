@@ -74,7 +74,7 @@
 
   <section class="inst-detail-group">
     <h4 class="inst-detail-group__title">Quick facts</h4>
-    @include('backend.institute.partials.page-details-list', ['kind' => 'quick_stats', 'rows' => $details['quick_stats'], 'addLabel' => 'Add fact', 'hint' => 'The tiles under your name, e.g. Laboratories — 6 Labs.'])
+    @include('backend.institute.partials.page-details-list', ['kind' => 'quick_stats', 'rows' => $details['quick_stats'], 'addLabel' => 'Add fact', 'hint' => 'Small tiles near the top of your page. Each has a name (e.g. Laboratories), a detail shown in bold (e.g. 6 Labs) and an icon; the box on the left shows how it will look.'])
   </section>
 
   <div class="row g-4">
