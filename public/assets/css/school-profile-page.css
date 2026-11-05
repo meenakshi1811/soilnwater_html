@@ -163,6 +163,16 @@
   white-space: nowrap;
 }
 
+/* Tablets: every section link in view at once, as in the desktop side nav (no hidden swipe row;
+   phones keep the swipe row) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .sch-nav-mobile__inner {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+}
+
 .sch-main {
   display: flex;
   flex-direction: column;
@@ -3072,6 +3082,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /* Enquire Now full-width at the very bottom of the actions, not in the middle */
+  .sch-hero__actions .sch-btn-primary {
+    grid-column: 1 / -1;
+    order: 1;
+  }
+
   .sch-hero__facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3152,6 +3168,7 @@
 
   .sch-hero__actions .sch-btn-primary {
     grid-column: 1 / -1;
+    order: 1; /* Enquire Now sits below the icon tiles — at the very bottom, not in the middle */
     min-height: 44px;
     font-size: 0.86rem;
   }
