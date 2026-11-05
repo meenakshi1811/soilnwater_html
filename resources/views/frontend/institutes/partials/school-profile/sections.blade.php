@@ -245,7 +245,8 @@
 @endif
 
 {{-- The notes uploaded for this school (the notes page has them all) --}}
-@if($isProfilePreview && $profile->schoolNotesCount() > 0)
+{{-- (once: not again where the page shows only Jobs, under Admission Info) --}}
+@if($isProfilePreview && $showSection('school-notes') && $profile->schoolNotesCount() > 0)
   <section id="sch-notes" class="sch-card sch-section">
     <div class="sch-section__head">
       <h2 class="sch-section__title mb-0">Notes</h2>
