@@ -583,10 +583,23 @@
                 <div class="sm-upload-dropzone__icon"><i class="fa-solid fa-file-circle-check"></i></div>
                 <p class="sm-upload-dropzone__text">Drag & drop solution file here or click to browse</p>
                 <button type="button" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Choose Solution File</button>
-                <input type="file" id="solutionFileInput" name="solution_file" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <input type="file" id="solutionFileInput" name="solution_file" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" data-remove-flag="#removeSolutionFileInput" data-existing=".js-existing-solution-file">
                 <p class="sm-upload-dropzone__hint">Supported formats: PDF, DOC, DOCX, JPG, PNG | Max file size: 50 MB</p>
-                <div class="sm-upload-dropzone__file-name">{{ $existingSolutionFileName }}</div>
+                <div class="sm-upload-dropzone__file-name"></div>
               </div>
+              <input type="hidden" name="remove_solution_file" id="removeSolutionFileInput" value="0">
+              @if($isEdit && $existingSolutionFileName)
+                <div class="js-existing-solution-file d-flex flex-wrap align-items-center gap-2 mt-2">
+                  <span class="small text-muted"><i class="fa-solid fa-paperclip me-1"></i>Current file: {{ $existingSolutionFileName }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-danger js-remove-existing-file"
+                          data-flag="#removeSolutionFileInput"
+                          data-input="#solutionFileInput"
+                          data-file-name="#solutionFileDropzone .sm-upload-dropzone__file-name"
+                          data-container=".js-existing-solution-file">
+                    <i class="fa-solid fa-trash me-1"></i> Remove
+                  </button>
+                </div>
+              @endif
             </div>
 
             <div class="js-qp-solution-custom-panel {{ $qpSolutionMode === 'custom' ? '' : 'd-none' }}">
@@ -622,10 +635,23 @@
                 <div class="sm-upload-dropzone__icon"><i class="fa-solid fa-file-circle-check"></i></div>
                 <p class="sm-upload-dropzone__text">Drag & drop solved worksheet file here or click to browse</p>
                 <button type="button" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Choose Solved Worksheet File</button>
-                <input type="file" id="solvedWorksheetFileInput" name="solved_worksheet_file" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <input type="file" id="solvedWorksheetFileInput" name="solved_worksheet_file" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" data-remove-flag="#removeSolvedWorksheetFileInput" data-existing=".js-existing-solved-worksheet-file">
                 <p class="sm-upload-dropzone__hint">Supported formats: PDF, DOC, DOCX, JPG, PNG | Max file size: 50 MB</p>
-                <div class="sm-upload-dropzone__file-name">{{ $existingSolvedWorksheetFileName }}</div>
+                <div class="sm-upload-dropzone__file-name"></div>
               </div>
+              <input type="hidden" name="remove_solved_worksheet_file" id="removeSolvedWorksheetFileInput" value="0">
+              @if($isEdit && $existingSolvedWorksheetFileName)
+                <div class="js-existing-solved-worksheet-file d-flex flex-wrap align-items-center gap-2 mt-2">
+                  <span class="small text-muted"><i class="fa-solid fa-paperclip me-1"></i>Current file: {{ $existingSolvedWorksheetFileName }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-danger js-remove-existing-file"
+                          data-flag="#removeSolvedWorksheetFileInput"
+                          data-input="#solvedWorksheetFileInput"
+                          data-file-name="#solvedWorksheetFileDropzone .sm-upload-dropzone__file-name"
+                          data-container=".js-existing-solved-worksheet-file">
+                    <i class="fa-solid fa-trash me-1"></i> Remove
+                  </button>
+                </div>
+              @endif
             </div>
 
             <div class="js-worksheet-solved-custom-panel {{ $worksheetSolvedMode === 'custom' ? '' : 'd-none' }}">

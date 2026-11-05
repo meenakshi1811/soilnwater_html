@@ -867,6 +867,12 @@
                 if ($name.length) {
                     $name.text(file ? file.name : '');
                 }
+                // Choosing a new file cancels a pending "remove existing file"
+                var removeFlag = $(this).data('removeFlag');
+                if (file && removeFlag) {
+                    $(removeFlag).val('0');
+                    $($(this).data('existing')).removeClass('d-none');
+                }
                 $(this).removeClass('is-invalid');
                 $(this).closest('.sm-upload-step').find('.ajax-error').remove();
             });
@@ -876,6 +882,16 @@
         bindDropzone('#coverDropzone', '#materialCoverInput');
         bindDropzone('#solutionFileDropzone', '#solutionFileInput');
         bindDropzone('#solvedWorksheetFileDropzone', '#solvedWorksheetFileInput');
+
+        // Remove an already-uploaded (existing) optional file, e.g. a solution or solved worksheet
+        // added by mistake. Marks it for deletion on save and clears any newly chosen file.
+        $form.on('click', '.js-remove-existing-file', function () {
+            var $btn = $(this);
+            $($btn.data('flag')).val('1');
+            $($btn.data('input')).val('');
+            $($btn.data('fileName')).text('');
+            $($btn.data('container')).addClass('d-none');
+        });
 
         var qpInstitutionLabels = {
             university: 'University Name',

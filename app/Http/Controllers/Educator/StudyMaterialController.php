@@ -691,6 +691,22 @@ class StudyMaterialController extends Controller
             return $meta;
         }
 
+        // The owner removed a solution file uploaded by mistake, without adding a new one
+        if ($request->boolean('remove_solution_file')) {
+            if ($material && filled(data_get($material->meta, 'solution_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solution_file_path'));
+            }
+
+            unset(
+                $meta['solution_file_path'],
+                $meta['solution_file_name'],
+                $meta['solution_file_type'],
+                $meta['solution_file_size']
+            );
+
+            return $meta;
+        }
+
         foreach (['solution_file_path', 'solution_file_name', 'solution_file_type', 'solution_file_size'] as $key) {
             $existing = data_get($material?->meta, $key);
             if (filled($existing)) {
@@ -767,6 +783,22 @@ class StudyMaterialController extends Controller
             $meta['solved_worksheet_file_name'] = $file->getClientOriginalName();
             $meta['solved_worksheet_file_type'] = strtolower($file->getClientOriginalExtension() ?: 'bin');
             $meta['solved_worksheet_file_size'] = $file->getSize();
+
+            return $meta;
+        }
+
+        // The owner removed a solved worksheet file uploaded by mistake, without adding a new one
+        if ($request->boolean('remove_solved_worksheet_file')) {
+            if ($material && filled(data_get($material->meta, 'solved_worksheet_file_path'))) {
+                EducatorFileUploader::deleteIfExists(data_get($material->meta, 'solved_worksheet_file_path'));
+            }
+
+            unset(
+                $meta['solved_worksheet_file_path'],
+                $meta['solved_worksheet_file_name'],
+                $meta['solved_worksheet_file_type'],
+                $meta['solved_worksheet_file_size']
+            );
 
             return $meta;
         }
