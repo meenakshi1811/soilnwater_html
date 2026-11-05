@@ -45,6 +45,8 @@
             $('#createBusinessFields').toggleClass('d-none', !showBusiness);
             $('#createDateOfBirthWrap').toggleClass('d-none', showBusiness);
             $('#createProfileImageWrap').toggleClass('d-none', !showProfileImage);
+            // (a school's or institute's picture is its logo)
+            $('#createProfileImageLabel').text(role === 'school' || role === 'institute' ? 'Logo' : 'Profile Image');
             $('#createGstNumberWrap').toggleClass('d-none', !showGst);
             $('#createRoleWrap').toggleClass('d-none', !!this.lockedRole);
 

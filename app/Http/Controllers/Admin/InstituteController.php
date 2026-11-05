@@ -52,6 +52,7 @@ class InstituteController extends Controller
                 'id',
                 'user_id',
                 'institution_name',
+                'logo',
                 'contact_person',
                 'slug',
                 'email',
@@ -66,7 +67,9 @@ class InstituteController extends Controller
             ]);
 
         return DataTables::of($query)
-            ->addColumn('name', fn (Institute $institute) => e($institute->institution_name ?: '—'))
+            ->addColumn('name', fn (Institute $institute) => ($institute->logoUrl()
+                ? '<img src="'.e($institute->logoUrl()).'" alt="" class="me-2 rounded border bg-white" width="32" height="32" style="object-fit:contain">'
+                : '').e($institute->institution_name ?: '—'))
             ->addColumn('type_label', fn (Institute $institute) => e($institute->institutionTypeLabel()))
             ->addColumn('email_display', fn (Institute $institute) => e($institute->email ?: $institute->user?->email ?: '—'))
             ->addColumn('phone_display', fn (Institute $institute) => e($institute->phone ?: $institute->user?->phone_number ?: '—'))
@@ -116,7 +119,7 @@ class InstituteController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['status_badge', 'public_page_link', 'actions'])
+            ->rawColumns(['name', 'status_badge', 'public_page_link', 'actions'])
             ->make(true);
     }
 

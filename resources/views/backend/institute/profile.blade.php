@@ -193,12 +193,19 @@
             </div>
 
             <div class="col-md-4">
-                <div class="mb-3 text-center">
-                    <label class="form-label d-block">Logo @unless($institute->logoUrl()) * @endunless</label>
-                    @if($institute->logoUrl())
-                        <img src="{{ $institute->logoUrl() }}" alt="Logo" class="institute-portal__logo-preview mb-2">
-                    @endif
-                    <input type="file" class="form-control" name="logo" accept="image/*" @unless($institute->logoUrl()) required @endunless>
+                {{-- The logo: on the public page, listings, cards and searches (a picked one previews here) --}}
+                <div class="mb-3 inst-logo-field">
+                    <label class="form-label d-block" for="institute_logo">Logo @unless($institute->logoUrl()) * @endunless</label>
+                    <div class="inst-logo-field__box">
+                        <span class="inst-logo-field__preview js-logo-preview">
+                            <img src="{{ $institute->logoUrl() }}" alt="" class="{{ $institute->logoUrl() ? '' : 'd-none' }}">
+                            <i class="fa-regular fa-image {{ $institute->logoUrl() ? 'd-none' : '' }}" aria-hidden="true"></i>
+                        </span>
+                        <div class="inst-logo-field__fields">
+                            <input type="file" class="form-control form-control-sm js-logo-input" id="institute_logo" name="logo" accept="image/jpeg,image/png,image/webp" @unless($institute->logoUrl()) required @endunless>
+                            <div class="form-text">{{ $institute->logoUrl() ? 'Choose a file to replace it. ' : '' }}JPG, PNG or WebP, up to 2 MB; a square image looks best. Shown on your page, in listings and on cards.</div>
+                        </div>
+                    </div>
                 </div>
                 @include('backend.partials.profile-phone-numbers-fields', [
                     'user' => $user,

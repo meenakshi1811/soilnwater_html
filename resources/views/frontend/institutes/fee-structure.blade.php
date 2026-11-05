@@ -6,6 +6,7 @@
 
 @section('meta_title', $feeTitle.($fee['session'] !== '' ? ' '.$fee['session'] : '').' · '.$institute->displayName().' | SoilnWater')
 @section('meta_description', \Illuminate\Support\Str::limit($feeTitle.($fee['session'] !== '' ? ' '.$fee['session'] : '').' of '.$institute->displayName().': fees by class, admission charges and payment details.', 160))
+@section('meta_image', $institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">

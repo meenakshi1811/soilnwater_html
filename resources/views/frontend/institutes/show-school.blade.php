@@ -10,6 +10,7 @@
 
 @section('meta_title', $profile->displayName().' · '.$entityLabel.' | SoilnWater')
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($profile->aboutText() ?: $institute->tagline ?: $entityLabel.' profile on SoilnWater'), 160))
+@section('meta_image', $institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">

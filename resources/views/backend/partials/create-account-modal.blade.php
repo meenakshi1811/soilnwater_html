@@ -76,7 +76,7 @@
                             </select>
                         </div>
                         <div class="col-md-6" id="createProfileImageWrap">
-                            <label class="form-label" for="createProfileImage">Profile Image <span class="text-muted fw-normal">(optional)</span></label>
+                            <label class="form-label" for="createProfileImage"><span id="createProfileImageLabel">Profile Image</span> <span class="text-muted fw-normal">(optional)</span></label>
                             <input type="file" name="profile_image" id="createProfileImage" class="form-control" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">JPG, PNG, or WebP up to 2 MB. Leave empty to skip.</small>
                         </div>

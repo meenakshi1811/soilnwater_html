@@ -421,6 +421,43 @@
   gap: 0.4rem;
 }
 
+/* The logo field: a preview beside the file picker */
+.inst-logo-field__box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.inst-logo-field__preview {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 1.4rem;
+}
+
+.inst-logo-field__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.inst-logo-field__fields {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* Reviews: the admin's switch and the visitors' reviews */
 .inst-review-switch,
 .inst-visitor-reviews {

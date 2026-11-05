@@ -294,15 +294,33 @@
 
 .sch-hero__title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
+.sch-hero__logo {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  padding: 4px;
+  border: 1px solid var(--sch-border);
+  border-radius: 12px;
+  background: #fff;
+  object-fit: contain;
+}
+
 .sch-hero__title-row h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: clamp(1.35rem, 2vw, 1.85rem);
   line-height: 1.15;
+  text-align: left;
+}
+
+.sch-bookmark {
+  flex-shrink: 0;
 }
 
 .sch-bookmark {

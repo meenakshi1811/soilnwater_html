@@ -18,6 +18,9 @@
                     <th scope="row">Name</th>
                     @foreach($items as $item)
                         <td>
+                            @if($item->institute->logoUrl())
+                                <img src="{{ $item->institute->logoUrl() }}" alt="" class="d-block mb-2 rounded border bg-white" width="48" height="48" style="object-fit:contain">
+                            @endif
                             <a href="{{ $item->institute->publicUrl() }}" class="fw-semibold">{{ $item->institute->displayName() }}</a>
                         </td>
                     @endforeach

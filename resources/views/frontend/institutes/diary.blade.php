@@ -2,6 +2,7 @@
 
 @section('meta_title', $institute->displayName().' · '.$entityLabel.' Diary | SoilnWater')
 @section('meta_description', \Illuminate\Support\Str::limit('Holiday calendar and leave guidelines for '.$institute->displayName(), 160))
+@section('meta_image', $institute->logoUrl() ?: asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">

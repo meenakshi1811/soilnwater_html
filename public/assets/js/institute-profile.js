@@ -246,6 +246,24 @@
             });
         });
 
+        // A picked logo previews before saving
+        $(document).on('change', '.js-logo-input', function () {
+            var file = this.files && this.files[0];
+            var preview = document.querySelector('.js-logo-preview');
+            if (!file || !preview) {
+                return;
+            }
+            if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+                FormHelper.showToast('warning', 'The logo must be JPG, PNG or WebP, up to 2 MB.');
+                this.value = '';
+                return;
+            }
+            var img = preview.querySelector('img');
+            img.src = URL.createObjectURL(file);
+            img.classList.remove('d-none');
+            preview.querySelector('i').classList.add('d-none');
+        });
+
         // The admin removing a visitor's review
         $(document).on('click', '.js-visitor-review-delete', function () {
             var button = this;

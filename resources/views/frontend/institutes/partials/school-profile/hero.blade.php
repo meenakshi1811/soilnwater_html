@@ -17,6 +17,9 @@
       @endif
 
       <div class="sch-hero__title-row">
+        @if($institute->logoUrl() && $profile->heroImage() !== $institute->logoUrl())
+          <img src="{{ $institute->logoUrl() }}" alt="{{ $profile->displayName() }} logo" class="sch-hero__logo" width="56" height="56">
+        @endif
         <h1>{{ $profile->displayName() }}</h1>
         <button
           type="button"
