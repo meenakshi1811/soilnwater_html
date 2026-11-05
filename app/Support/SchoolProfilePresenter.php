@@ -797,7 +797,9 @@ final class SchoolProfilePresenter
                 'sch-about' => filled($this->aboutText()),
                 'sch-gallery' => $this->galleryItems()->count() > 1,
                 'sch-achievements' => $this->institute->achievements->isNotEmpty(),
-                'sch-notices', 'sch-events', 'sch-news' => $this->institute->activeNotices->isNotEmpty(),
+                'sch-notices', 'sch-news' => $this->institute->activeNotices->isNotEmpty(),
+                // (the events saved on the profile form, else the notices)
+                'sch-events' => $this->upcomingEventsCount() > 0,
                 'sch-reviews' => $this->reviews() !== [],
                 'sch-results' => $this->institute->topPerformers->isNotEmpty(),
                 'sch-jobs' => $this->openJobsCount() > 0,
