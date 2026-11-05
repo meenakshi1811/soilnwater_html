@@ -51,7 +51,7 @@
   @include('frontend.partials.profile-report-modal', [
     'reportModalId' => 'schoolProfileReportModal',
     'reportFormId' => 'schoolProfileReportForm',
-    'reportLabel' => ($listingContext ?? 'schools') === 'schools' ? 'School profile' : 'Institute profile',
+    'reportLabel' => \App\Support\SchoolInstituteHelper::labelForListing(($listingContext ?? 'schools')).' profile',
     'reportAction' => route(($listingContext ?? 'schools').'.report', $institute->slug),
   ])
 @endif

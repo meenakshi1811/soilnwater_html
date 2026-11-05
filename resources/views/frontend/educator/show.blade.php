@@ -270,7 +270,7 @@
                   @endif
                 </span>
                 <span class="edu-affiliation-card__body">
-                  <span class="edu-affiliation-card__eyebrow">{{ $institute->user?->isSchool() ? 'School' : 'Institute' }}</span>
+                  <span class="edu-affiliation-card__eyebrow">{{ \App\Support\SchoolInstituteHelper::label($institute->user?->role) }}</span>
                   <span class="edu-affiliation-card__name">{{ $institute->displayName() }}</span>
                   @if($institute->pivot->role_title || $institute->pivot->subject)
                     <span class="edu-affiliation-card__meta">

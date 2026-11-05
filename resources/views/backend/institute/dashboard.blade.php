@@ -44,7 +44,7 @@
             <a href="{{ $portalRoute('enquiries.index') }}" class="btn btn-outline-secondary">View enquiries</a>
             <a href="{{ $portalRoute('jobs.index') }}" class="btn btn-outline-secondary">Manage jobs</a>
             <a href="{{ $portalRoute('engagement.index') }}" class="btn btn-outline-secondary">Engagement</a>
-            <a href="{{ route($portalPrefix === 'school' ? 'schools.index' : 'institutes.index') }}" target="_blank" class="btn btn-outline-success">Browse public listing</a>
+            <a href="{{ route(\App\Support\SchoolInstituteHelper::kind($portalPrefix)['listing'].'.index') }}" target="_blank" class="btn btn-outline-success">Browse public listing</a>
         </div>
     </div>
 </div>

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ChildProfileController as AdminChildProfileContro
 use App\Http\Controllers\Admin\EducatorController;
 use App\Http\Controllers\Admin\InstituteController;
 use App\Http\Controllers\Admin\SchoolController;
+use App\Http\Controllers\Admin\CollegeController;
 use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
 use App\Http\Controllers\Admin\StudyMaterialApprovalController;
 use App\Http\Controllers\Admin\ContactSupportController;
@@ -260,6 +261,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/schools/{slug}/inline-edit/{section}', [InstituteInlineEditController::class, 'section'])->defaults('ownerRole', 'school')->name('schools.inline.section');
     Route::get('/institutes/{slug}/inline-edit/{section}/form', [InstituteInlineEditController::class, 'form'])->defaults('ownerRole', 'institute')->name('institutes.inline.form');
     Route::get('/institutes/{slug}/inline-edit/{section}', [InstituteInlineEditController::class, 'section'])->defaults('ownerRole', 'institute')->name('institutes.inline.section');
+    Route::put('/colleges/{slug}/inline-edit/basics', [InstituteInlineEditController::class, 'updateBasics'])->defaults('ownerRole', 'college')->name('colleges.inline.basics.update');
+    Route::post('/colleges/{slug}/inline-edit/facilities/add', [InstituteInlineEditController::class, 'addFacility'])->defaults('ownerRole', 'college')->name('colleges.inline.facilities.add');
+    Route::delete('/colleges/{slug}/inline-edit/facilities', [InstituteInlineEditController::class, 'removeFacility'])->defaults('ownerRole', 'college')->name('colleges.inline.facilities.remove');
+    Route::post('/colleges/{slug}/inline-edit/gallery/add', [InstituteInlineEditController::class, 'addGalleryItems'])->defaults('ownerRole', 'college')->name('colleges.inline.gallery.add');
+    Route::delete('/colleges/{slug}/inline-edit/gallery', [InstituteInlineEditController::class, 'removeGalleryItem'])->defaults('ownerRole', 'college')->name('colleges.inline.gallery.remove');
+    Route::post('/colleges/{slug}/inline-edit/courses/add', [InstituteInlineEditController::class, 'addCourseWing'])->defaults('ownerRole', 'college')->name('colleges.inline.courses.add');
+    Route::delete('/colleges/{slug}/inline-edit/courses', [InstituteInlineEditController::class, 'removeCourseWing'])->defaults('ownerRole', 'college')->name('colleges.inline.courses.remove');
+    Route::put('/colleges/{slug}/inline-edit/fee', [InstituteInlineEditController::class, 'updateFee'])->defaults('ownerRole', 'college')->name('colleges.inline.fee.update');
+    Route::get('/colleges/{slug}/inline-edit/{section}/form', [InstituteInlineEditController::class, 'form'])->defaults('ownerRole', 'college')->name('colleges.inline.form');
+    Route::get('/colleges/{slug}/inline-edit/{section}', [InstituteInlineEditController::class, 'section'])->defaults('ownerRole', 'college')->name('colleges.inline.section');
 });
 
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
@@ -281,6 +292,26 @@ Route::post('/institutes/{slug}/compare', [InstituteEngagementController::class,
 Route::post('/institutes/{slug}/brochure', [InstituteEngagementController::class, 'instituteBrochure'])->middleware('auth')->name('institutes.brochure');
 Route::post('/institutes/{slug}/helpful', [InstituteEngagementController::class, 'instituteHelpful'])->middleware('auth')->name('institutes.helpful');
 Route::post('/institutes/{slug}/report', [ProfileReportController::class, 'institute'])->middleware(['auth', 'verified'])->name('institutes.report');
+
+Route::get('/colleges', [InstituteListingController::class, 'collegeIndex'])->name('colleges.index');
+Route::get('/colleges/listings', [InstituteListingController::class, 'collegeListings'])->name('colleges.listings');
+// (before /colleges/{slug}, which would take "compare" for a college's address)
+Route::get('/colleges/compare', [InstituteEngagementController::class, 'collegeComparePage'])->middleware('auth')->name('colleges.compare');
+Route::get('/colleges/{slug}/diary', [InstituteProfileController::class, 'collegeDiary'])->name('colleges.diary');
+Route::get('/colleges/{slug}/fee-structure', [InstituteProfileController::class, 'collegeFeeStructure'])->name('colleges.fee-structure');
+Route::get('/colleges/{slug}/{section}', [InstituteProfileController::class, 'collegeSection'])
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
+    ->name('colleges.section');
+Route::get('/colleges/{slug}', [InstituteProfileController::class, 'collegeShow'])->name('colleges.show');
+Route::post('/colleges/{slug}/enquiry', [InstituteProfileController::class, 'collegeEnquiry'])->middleware('auth')->name('colleges.enquiry');
+Route::post('/colleges/{slug}/review', [InstituteProfileController::class, 'collegeReview'])->middleware('auth')->name('colleges.review');
+Route::post('/colleges/{slug}/jobs/{job}/apply', [InstituteProfileController::class, 'collegeJobApply'])->middleware('auth')->name('colleges.jobs.apply');
+Route::post('/colleges/{slug}/follow', [InstituteEngagementController::class, 'collegeFollow'])->middleware('auth')->name('colleges.follow');
+Route::post('/colleges/{slug}/bookmark', [InstituteEngagementController::class, 'collegeBookmark'])->middleware('auth')->name('colleges.bookmark');
+Route::post('/colleges/{slug}/compare', [InstituteEngagementController::class, 'collegeCompare'])->middleware('auth')->name('colleges.compare.toggle');
+Route::post('/colleges/{slug}/brochure', [InstituteEngagementController::class, 'collegeBrochure'])->middleware('auth')->name('colleges.brochure');
+Route::post('/colleges/{slug}/helpful', [InstituteEngagementController::class, 'collegeHelpful'])->middleware('auth')->name('colleges.helpful');
+Route::post('/colleges/{slug}/report', [ProfileReportController::class, 'college'])->middleware(['auth', 'verified'])->name('colleges.report');
 
 Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
 
@@ -468,6 +499,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/educator/pending', [EducatorPendingController::class, 'show'])->name('educator.pending');
 
     Route::get('/school/pending', [InstitutePendingController::class, 'show'])->name('school.pending');
+    Route::get('/college/pending', [InstitutePendingController::class, 'show'])->name('college.pending');
     Route::get('/institute/pending', [InstitutePendingController::class, 'show'])->name('institute.pending');
 
     require __DIR__.'/includes/school_institute_portal.php';
@@ -936,6 +968,21 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             // The institute's own profile, public page, diary and jobs pages
             Route::prefix('/{managedInstitute}/manage')->name('manage.')
                 ->middleware(ResolveManagedInstitute::class.':institute')
+                ->group(base_path('routes/includes/institute_manage.php'));
+        });
+
+        Route::prefix('colleges')->name('colleges.')->group(function () {
+            Route::get('/', [CollegeController::class, 'index'])->name('index');
+            Route::get('/data', [CollegeController::class, 'data'])->name('data');
+            Route::get('/{institute}', [CollegeController::class, 'show'])->name('show');
+            Route::get('/{institute}/edit', [CollegeController::class, 'edit'])->name('edit');
+            Route::put('/{institute}', [CollegeController::class, 'update'])->name('update');
+            Route::post('/{institute}/approve', [CollegeController::class, 'approve'])->name('approve');
+            Route::post('/{institute}/reject', [CollegeController::class, 'reject'])->name('reject');
+            Route::delete('/{institute}', [CollegeController::class, 'destroy'])->name('destroy');
+            // The college's own profile, public page, diary and jobs pages
+            Route::prefix('/{managedInstitute}/manage')->name('manage.')
+                ->middleware(ResolveManagedInstitute::class.':college')
                 ->group(base_path('routes/includes/institute_manage.php'));
         });
 

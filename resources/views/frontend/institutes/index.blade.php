@@ -2,9 +2,8 @@
 
 @php
   $listingContext = $listingContext ?? 'schools';
-  $isSchoolListing = $listingContext === 'schools';
-  $pageTitle = $isSchoolListing ? 'Schools' : 'Institutes';
-  $joinRole = $isSchoolListing ? 'school' : 'institute';
+  $pageTitle = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
+  $joinRole = strtolower(\App\Support\SchoolInstituteHelper::labelForListing($listingContext));
 @endphp
 
 @section('meta_title', $pageTitle.' | SoilnWater')
@@ -111,7 +110,7 @@
             <span class="vendors-hero__eyebrow-icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
             {{ $pageTitle }} Marketplace
           </span>
-          <h1>{{ $isSchoolListing ? 'Discover Trusted Schools Near You' : 'Discover Trusted Institutes Near You' }}</h1>
+          <h1>{{ 'Discover Trusted '.$pageTitle.' Near You' }}</h1>
           <p>Explore {{ strtolower($pageTitle) }} by city, board, and institution type on SoilnWater.</p>
         </div>
         <div class="vendors-hero__stats vendors-hero__stats--three">
@@ -119,7 +118,7 @@
             <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-school"></i></span>
             <div class="vendors-stat__text">
               <strong>{{ number_format($instituteStats['total']) }}</strong>
-              <span>{{ $isSchoolListing ? 'Schools listed' : 'Institutes listed' }}</span>
+              <span>{{ $pageTitle.' listed' }}</span>
             </div>
           </div>
           <div class="vendors-stat">
@@ -141,7 +140,7 @@
 
       <section class="vendors-section" id="institutesAllSection">
         <div class="vendors-section__head">
-          <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> {{ $isSchoolListing ? 'School Listing' : 'Institute Listing' }}</h2>
+          <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> {{ \App\Support\SchoolInstituteHelper::labelForListing($listingContext).' Listing' }}</h2>
           <a href="{{ route($listingContext.'.listings', request()->query()) }}" class="vendors-section__link" id="institutesViewAllLink">
             View all listings <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
           </a>
@@ -160,7 +159,7 @@
               @endif
             </select>
             <a href="{{ $joinUrl }}" class="institutes-register-btn">
-              Register your {{ $isSchoolListing ? 'school' : 'institute' }}
+              Register your {{ strtolower(\App\Support\SchoolInstituteHelper::labelForListing($listingContext)) }}
             </a>
           </div>
         </div>
@@ -180,11 +179,11 @@
       <section class="vendors-cta">
         <div class="vendors-cta__icon" aria-hidden="true"><i class="fa-solid fa-school"></i></div>
         <div class="vendors-cta__copy">
-          <h3>Run a {{ $isSchoolListing ? 'school' : 'institute' }}?</h3>
+          <h3>Run a {{ strtolower(\App\Support\SchoolInstituteHelper::labelForListing($listingContext)) }}?</h3>
           <p>List your institution on SoilnWater, share updates, and connect with parents and students.</p>
         </div>
         <div class="vendors-cta__actions">
-          <a href="{{ $joinUrl }}" class="vendors-cta__primary">Register your {{ $isSchoolListing ? 'school' : 'institute' }}</a>
+          <a href="{{ $joinUrl }}" class="vendors-cta__primary">Register your {{ strtolower(\App\Support\SchoolInstituteHelper::labelForListing($listingContext)) }}</a>
           <a href="{{ route($listingContext.'.listings', request()->query()) }}" class="vendors-cta__secondary">Browse all listings</a>
         </div>
       </section>

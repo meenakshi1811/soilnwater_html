@@ -260,16 +260,23 @@ class Institute extends Model
         return $this->status === 'rejected';
     }
 
-    /** "School" or "Institute", by the account's role */
+    /** "School", "College" or "Institute", by the account's role */
     public function roleLabel(): string
     {
         $this->loadMissing('user');
 
         return match ($this->user?->role) {
-            'school' => 'School',
-            'institute' => 'Institute',
+            'school', 'college', 'institute' => \App\Support\SchoolInstituteHelper::label($this->user->role),
             default => 'School / Institute',
         };
+    }
+
+    /** The public listing it's in ("schools", "colleges" or "institutes"): its route prefix too */
+    public function listingContext(): string
+    {
+        $this->loadMissing('user');
+
+        return \App\Support\SchoolInstituteHelper::listingContext($this->user?->role);
     }
 
     public function displayName(): string
@@ -298,34 +305,25 @@ class Institute extends Model
     {
         $this->loadMissing('user');
 
-        return $this->user?->isSchool()
-            ? route('schools.show', $this->slug)
-            : route('institutes.show', $this->slug);
+        return route($this->listingContext().'.show', $this->slug);
     }
 
     public function publicDiaryUrl(): string
     {
         $this->loadMissing('user');
 
-        return $this->user?->isSchool()
-            ? route('schools.diary', $this->slug)
-            : route('institutes.diary', $this->slug);
+        return route($this->listingContext().'.diary', $this->slug);
     }
 
     /** The fee structure page (schools/{slug}/fee-structure) */
     public function publicFeeStructureUrl(): string
     {
-        $this->loadMissing('user');
-
-        return route(($this->user?->isSchool() ? 'schools' : 'institutes').'.fee-structure', $this->slug);
+        return route($this->listingContext().'.fee-structure', $this->slug);
     }
 
     public function publicSectionUrl(string $section): string
     {
-        $this->loadMissing('user');
-        $routePrefix = $this->user?->isSchool() ? 'schools' : 'institutes';
-
-        return route($routePrefix.'.section', ['slug' => $this->slug, 'section' => $section]);
+        return route($this->listingContext().'.section', ['slug' => $this->slug, 'section' => $section]);
     }
 
     public function scopeForOwnerRole(Builder $query, string $role): Builder
@@ -341,6 +339,11 @@ class Institute extends Model
     public function scopeInstitutes(Builder $query): Builder
     {
         return $query->forOwnerRole('institute');
+    }
+
+    public function scopeColleges(Builder $query): Builder
+    {
+        return $query->forOwnerRole('college');
     }
 
     public function locationLabel(): string

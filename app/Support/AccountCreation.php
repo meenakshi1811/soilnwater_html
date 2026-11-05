@@ -18,6 +18,7 @@ final class AccountCreation
             'service_provider' => 'service_providers',
             'teacher' => 'educators',
             'school' => 'schools',
+            'college' => 'colleges',
             'institute' => 'institutes',
         ];
     }

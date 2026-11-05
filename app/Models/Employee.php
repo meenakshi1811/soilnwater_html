@@ -111,6 +111,11 @@ class Employee extends Authenticatable
         return false;
     }
 
+    public function isCollege(): bool
+    {
+        return false;
+    }
+
     public function isSchoolOrInstitute(): bool
     {
         return false;

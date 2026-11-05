@@ -1,10 +1,10 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', ($listingContext === 'schools' ? 'Compare schools' : 'Compare institutes').' | SoilnWater')
+@section('meta_title', ('Compare '.strtolower(\App\Support\SchoolInstituteHelper::pluralForListing($listingContext))).' | SoilnWater')
 
 @section('content')
 <div class="container py-5">
-    <h1 class="h3 fw-bold mb-2">{{ $listingContext === 'schools' ? 'Compare schools' : 'Compare institutes' }}</h1>
+    <h1 class="h3 fw-bold mb-2">{{ 'Compare '.strtolower(\App\Support\SchoolInstituteHelper::pluralForListing($listingContext)) }}</h1>
     <p class="text-secondary mb-4">Side-by-side view of profiles you added from the compare button (up to 3).</p>
 
     @if($items->isEmpty())

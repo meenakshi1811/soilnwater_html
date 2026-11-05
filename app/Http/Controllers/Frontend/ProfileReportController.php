@@ -41,6 +41,13 @@ class ProfileReportController extends Controller
         return $this->store($request, $institute, 'Institute profile');
     }
 
+    public function college(Request $request, string $slug): JsonResponse
+    {
+        $institute = $this->findApprovedInstitute($slug, 'college');
+
+        return $this->store($request, $institute, 'College profile');
+    }
+
     private function findApprovedInstitute(string $slug, string $ownerRole): Institute
     {
         return Institute::query()

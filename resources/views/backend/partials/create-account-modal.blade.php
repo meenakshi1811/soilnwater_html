@@ -13,6 +13,7 @@
         'service_provider' => 'Service Provider',
         'teacher' => 'Teacher / Tutor',
         'school' => 'School',
+        'college' => 'College',
         'institute' => 'Institute',
     ] as $roleKey => $roleLabel) {
         if (AccountCreation::canCreateRole($portalActor, $portalIsAdmin, $roleKey)) {

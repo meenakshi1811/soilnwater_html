@@ -611,7 +611,7 @@
 
             var isBusinessRole = function () {
                 var role = $role.val();
-                return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'institute';
+                return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'college' || role === 'institute';
             };
             var toggleGst = function () {
                 var showGst = isBusinessRole() && $('input[name="has_gst"]:checked').val() === '1';
@@ -624,7 +624,7 @@
             var toggleBusinessFields = function () {
                 var role = $role.val();
                 var showBusinessFields = isBusinessRole();
-                var showProfileImage = role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student' || role === 'school' || role === 'institute';
+                var showProfileImage = role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student' || role === 'school' || role === 'college' || role === 'institute';
                 $businessFields.toggleClass('d-none', !showBusinessFields);
                 $profileImageWrap.toggleClass('d-none', !showProfileImage);
                 $profileImage.prop('required', showProfileImage);
@@ -926,14 +926,14 @@
                     pan_number: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'institute';
+                            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'college' || role === 'institute';
                         },
                         maxlength: 20
                     },
                     has_gst: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'institute';
+                            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'college' || role === 'institute';
                         }
                     },
                     gst_number: {
@@ -946,7 +946,7 @@
                     profile_image: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student' || role === 'school' || role === 'institute';
+                            return role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'teacher' || role === 'student' || role === 'school' || role === 'college' || role === 'institute';
                         }
                     },
                     date_of_birth: { required: true, date: true, registerDobEligible: true },

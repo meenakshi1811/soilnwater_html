@@ -2,10 +2,10 @@
 
 @php
   $listingContext = $listingContext ?? 'schools';
-  $entityLabel = ($ownerRole ?? ($listingContext === 'schools' ? 'school' : 'institute')) === 'school' ? 'School' : 'Institute';
-  $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
-  $listingSectionLabel = $listingContext === 'schools' ? 'Schools & Colleges' : 'Institutes';
-  $listingTypeLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
+  $entityLabel = \App\Support\SchoolInstituteHelper::label($ownerRole ?? \App\Support\SchoolInstituteHelper::roleForListing($listingContext));
+  $listingIndexRoute = $listingContext.'.index';
+  $listingSectionLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
+  $listingTypeLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
 @endphp
 
 @section('meta_title', $profile->displayName().' · '.$entityLabel.' | SoilnWater')

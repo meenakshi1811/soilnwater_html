@@ -7,16 +7,17 @@
     $isConsultant = $user->isConsultant();
     $isServiceProvider = $user->isServiceProvider();
     $isEducator = $user->isEducator();
-    $isSchool = $user->isSchool();
-    $isInstitute = $user->isInstitute();
+    // A school, college or institute: the same pages, under its own portal prefix and name
+    $isEducationProvider = $user->isSchoolOrInstitute();
     $isStudent = $user->isStudent();
     $isParent = $user->isParent();
     $vendorApproved = $isVendor && $user->vendor?->isApproved();
     $consultantApproved = $isConsultant && $user->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && $user->serviceProvider?->isApproved();
     $educatorApproved = $isEducator && $user->educator?->isApproved();
-    $schoolApproved = $isSchool && $user->institute?->isApproved();
-    $instituteApproved = $isInstitute && $user->institute?->isApproved();
+    $educationProviderApproved = $isEducationProvider && $user->institute?->isApproved();
+    $providerPortal = $isEducationProvider ? $user->portalRoutePrefix() : null;
+    $providerKind = \App\Support\SchoolInstituteHelper::kind($user->role);
     $canAccessOffers = $isAdmin || $user->canManageOwnOffersAndAds() || $user->canModule('offers', 'read') || $user->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
@@ -38,8 +39,8 @@
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $educatorPagesMenuActive = request()->routeIs('educator.profile.*') || request()->routeIs('educator.tuition.*') || request()->routeIs('educator.notices.*') || request()->routeIs('educator.materials.*') || request()->routeIs('educator.enquiries.*');
-    $schoolPagesMenuActive = request()->routeIs('school.profile.*') || request()->routeIs('school.public-page.*') || request()->routeIs('school.enquiries.*') || request()->routeIs('school.jobs.*') || request()->routeIs('school.engagement.*') || request()->routeIs('school.diary.*');
-    $institutePagesMenuActive = request()->routeIs('institute.profile.*') || request()->routeIs('institute.public-page.*') || request()->routeIs('institute.enquiries.*') || request()->routeIs('institute.jobs.*') || request()->routeIs('institute.engagement.*') || request()->routeIs('institute.diary.*');
+    $providerPagesMenuActive = $providerPortal !== null && collect(['profile', 'public-page', 'enquiries', 'jobs', 'engagement', 'diary', 'fee-structure'])
+        ->contains(fn (string $page): bool => request()->routeIs($providerPortal.'.'.$page.'.*'));
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
     $parentDashboardActive = request()->routeIs('parent.*');
     $hasParentProfileEnabled = (bool) $user?->parentProfile?->is_enabled;
@@ -64,12 +65,9 @@
     } elseif ($isEducator && $educatorApproved) {
         $dashboardUrl = route('educator.dashboard');
         $dashboardActive = request()->routeIs('educator.dashboard');
-    } elseif ($isSchool && $schoolApproved) {
+    } elseif ($educationProviderApproved) {
         $dashboardUrl = $user->portalRoute('dashboard');
-        $dashboardActive = request()->routeIs('school.dashboard');
-    } elseif ($isInstitute && $instituteApproved) {
-        $dashboardUrl = $user->portalRoute('dashboard');
-        $dashboardActive = request()->routeIs('institute.dashboard');
+        $dashboardActive = request()->routeIs($providerPortal.'.dashboard');
     } elseif ($isStudent) {
         $dashboardUrl = route('child.dashboard');
         $dashboardActive = request()->routeIs('child.*');
@@ -750,112 +748,55 @@
                 </details>
             </li>
 
-        @elseif($isSchool && $schoolApproved)
+        @elseif($educationProviderApproved)
             <li class="admin-sidebar-group">
-                <details {{ $schoolPagesMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $schoolPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                <details {{ $providerPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $providerPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
                         <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-school"></i>
-                            <span>School Pages</span>
+                            <i class="fa-solid {{ $providerKind['icon'] }}"></i>
+                            <span>{{ $providerKind['label'] }} Pages</span>
                         </span>
                         <i class="fa-solid fa-chevron-down small"></i>
                     </summary>
                     <ul class="list-unstyled ps-4">
                         <li>
-                            <a class="{{ request()->routeIs('school.profile.*') ? 'active' : '' }}" href="{{ $user->portalRoute('profile.edit') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.profile.*') ? 'active' : '' }}" href="{{ $user->portalRoute('profile.edit') }}">
                                 <i class="fa-solid fa-id-card"></i>
                                 <span>Profile</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.public-page.*') ? 'active' : '' }}" href="{{ $user->portalRoute('public-page.edit') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.public-page.*') ? 'active' : '' }}" href="{{ $user->portalRoute('public-page.edit') }}">
                                 <i class="fa-solid fa-globe"></i>
                                 <span>Public page</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Enquiries</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.jobs.*') ? 'active' : '' }}" href="{{ $user->portalRoute('jobs.index') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.jobs.*') ? 'active' : '' }}" href="{{ $user->portalRoute('jobs.index') }}">
                                 <i class="fa-solid fa-briefcase"></i>
                                 <span>Jobs</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
                                 <i class="fa-solid fa-chart-line"></i>
                                 <span>Engagement</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
                                 <i class="fa-solid fa-book-bookmark"></i>
                                 <span>Diary</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('school.fee-structure.*') ? 'active' : '' }}" href="{{ $user->portalRoute('fee-structure.edit') }}">
-                                <i class="fa-solid fa-indian-rupee-sign"></i>
-                                <span>Fee structure</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
-            </li>
-
-        @elseif($isInstitute && $instituteApproved)
-            <li class="admin-sidebar-group">
-                <details {{ $institutePagesMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $institutePagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
-                        <span class="d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-building-columns"></i>
-                            <span>Institute Pages</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-down small"></i>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('institute.profile.*') ? 'active' : '' }}" href="{{ $user->portalRoute('profile.edit') }}">
-                                <i class="fa-solid fa-id-card"></i>
-                                <span>Profile</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.public-page.*') ? 'active' : '' }}" href="{{ $user->portalRoute('public-page.edit') }}">
-                                <i class="fa-solid fa-globe"></i>
-                                <span>Public page</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.enquiries.*') ? 'active' : '' }}" href="{{ $user->portalRoute('enquiries.index') }}">
-                                <i class="fa-solid fa-envelope-open-text"></i>
-                                <span>Enquiries</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.jobs.*') ? 'active' : '' }}" href="{{ $user->portalRoute('jobs.index') }}">
-                                <i class="fa-solid fa-briefcase"></i>
-                                <span>Jobs</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
-                                <i class="fa-solid fa-chart-line"></i>
-                                <span>Engagement</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.diary.*') ? 'active' : '' }}" href="{{ $user->portalRoute('diary.index') }}">
-                                <i class="fa-solid fa-book-bookmark"></i>
-                                <span>Diary</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('institute.fee-structure.*') ? 'active' : '' }}" href="{{ $user->portalRoute('fee-structure.edit') }}">
+                            <a class="{{ request()->routeIs($providerPortal.'.fee-structure.*') ? 'active' : '' }}" href="{{ $user->portalRoute('fee-structure.edit') }}">
                                 <i class="fa-solid fa-indian-rupee-sign"></i>
                                 <span>Fee structure</span>
                             </a>

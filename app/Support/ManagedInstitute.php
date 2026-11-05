@@ -43,7 +43,7 @@ final class ManagedInstitute
     {
         $institute->loadMissing('user');
 
-        return ($institute->user?->isSchool() ? 'admin.schools' : 'admin.institutes').'.manage';
+        return \App\Support\SchoolInstituteHelper::adminPrefix($institute->user?->role).'.manage';
     }
 
     public static function adminRoute(Institute $institute, string $suffix, mixed $parameters = []): string

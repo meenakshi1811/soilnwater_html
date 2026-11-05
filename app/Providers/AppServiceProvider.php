@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
                 $owner = $managed->user;
                 $view->with([
                     'portalPrefix' => $owner?->portalRoutePrefix() ?? 'school',
-                    'portalLabel' => $owner?->isSchool() ? 'School' : 'Institute',
+                    'portalLabel' => \App\Support\SchoolInstituteHelper::label($owner?->role),
                     'portalRoute' => static fn (string $suffix, mixed $parameters = []) => ManagedInstitute::adminRoute($managed, $suffix, $parameters),
                     'managedInstitute' => $managed,
                 ]);
@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
             $prefix = $user?->portalRoutePrefix() ?? 'school';
             $view->with([
                 'portalPrefix' => $prefix,
-                'portalLabel' => $user?->isSchool() ? 'School' : 'Institute',
+                'portalLabel' => \App\Support\SchoolInstituteHelper::label($user?->role),
                 'portalRoute' => static fn (string $suffix, mixed $parameters = []) => $user
                     ? $user->portalRoute($suffix, $parameters)
                     : SchoolInstituteHelper::routeForPrefix($prefix, $suffix, $parameters),

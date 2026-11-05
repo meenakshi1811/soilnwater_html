@@ -1,6 +1,6 @@
 @php
   $listingContext = $listingContext ?? 'schools';
-  $portalPrefix = $listingContext === 'schools' ? 'school' : 'institute';
+  $portalPrefix = \App\Support\SchoolInstituteHelper::portalForListing($listingContext);
   $owner = $institute->user;
   $leaveTypes = \App\Support\InstituteDiaryConfig::leaveTypes();
   $audiences = \App\Support\InstituteDiaryConfig::applicableAudiences($owner);

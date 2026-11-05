@@ -64,20 +64,18 @@ class InstituteDiaryConfig
 
     public static function moduleTitle(User $user): string
     {
-        return $user->isSchool() ? 'School Diary' : 'Institute Diary';
+        return \App\Support\SchoolInstituteHelper::label($user->role).' Diary';
     }
 
     public static function moduleDescription(User $user): string
     {
-        return $user->isSchool()
-            ? 'Manage holidays, leave rules, and day-to-day school configuration in one place.'
-            : 'Manage holidays, leave rules, and day-to-day institute configuration in one place.';
+        return 'Manage holidays, leave rules, and day-to-day '.strtolower(\App\Support\SchoolInstituteHelper::label($user->role)).' configuration in one place.';
     }
 
     public static function entityLabel(Institute $institute): string
     {
         $institute->loadMissing('user');
 
-        return $institute->user?->isSchool() ? 'School' : 'Institute';
+        return \App\Support\SchoolInstituteHelper::label($institute->user?->role);
     }
 }

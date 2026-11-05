@@ -36,6 +36,11 @@ class InstituteProfileController extends Controller
         return $this->show($slug, 'institute');
     }
 
+    public function collegeShow(string $slug): View
+    {
+        return $this->show($slug, 'college');
+    }
+
     public function schoolSection(string $slug, string $section): View
     {
         return $this->sectionShow($slug, 'school', $section);
@@ -46,14 +51,19 @@ class InstituteProfileController extends Controller
         return $this->sectionShow($slug, 'institute', $section);
     }
 
+    public function collegeSection(string $slug, string $section): View
+    {
+        return $this->sectionShow($slug, 'college', $section);
+    }
+
     public function sectionShow(string $slug, string $ownerRole, string $section): View
     {
         abort_unless(SchoolProfilePresenter::isValidSection($section), 404);
 
         $institute = $this->findApprovedProfile($slug, $ownerRole);
         $catalog = SchoolProfilePresenter::sectionCatalog()[$section];
-        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
-        $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
+        $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
+        $entityLabel = SchoolInstituteHelper::label($ownerRole);
 
         return view('frontend.institutes.section', [
             'institute' => $institute,
@@ -77,6 +87,11 @@ class InstituteProfileController extends Controller
         return $this->diaryShow($slug, 'institute');
     }
 
+    public function collegeDiary(string $slug): View
+    {
+        return $this->diaryShow($slug, 'college');
+    }
+
     public function schoolFeeStructure(string $slug): View
     {
         return $this->feeStructureShow($slug, 'school');
@@ -85,6 +100,11 @@ class InstituteProfileController extends Controller
     public function instituteFeeStructure(string $slug): View
     {
         return $this->feeStructureShow($slug, 'institute');
+    }
+
+    public function collegeFeeStructure(string $slug): View
+    {
+        return $this->feeStructureShow($slug, 'college');
     }
 
     /** The school's fee structure page (none added: not found) */
@@ -97,7 +117,7 @@ class InstituteProfileController extends Controller
         $fee = $profile->feeStructure();
         abort_unless($fee, 404);
 
-        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
+        $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
 
         return view('frontend.institutes.fee-structure', [
             'institute' => $institute,
@@ -106,7 +126,7 @@ class InstituteProfileController extends Controller
             'navItems' => $profile->navItems(),
             'ownerRole' => $ownerRole,
             'listingContext' => $listingContext,
-            'entityLabel' => $ownerRole === 'school' ? 'School' : 'Institute',
+            'entityLabel' => SchoolInstituteHelper::label($ownerRole),
             'activeNavId' => 'sch-fee-structure',
             'engagement' => $this->engagementState($institute, auth()->user()),
             'shareUrl' => $institute->publicUrl(),
@@ -157,8 +177,8 @@ class InstituteProfileController extends Controller
         $audiences = InstituteDiaryConfig::applicableAudiences($institute->user);
 
         $authUser = auth()->user();
-        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
-        $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
+        $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
+        $entityLabel = SchoolInstituteHelper::label($ownerRole);
 
         $profile = new SchoolProfilePresenter($institute);
 
@@ -196,7 +216,7 @@ class InstituteProfileController extends Controller
             'institute' => $institute,
             'profile' => new SchoolProfilePresenter($institute),
             'ownerRole' => $ownerRole,
-            'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+            'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
             'activeNav' => 'home',
             'engagement' => $engagement,
             // The owner, viewing their own public page, may edit it inline (AJAX)
@@ -222,6 +242,11 @@ class InstituteProfileController extends Controller
         return $this->saveReview($request, $slug, 'institute');
     }
 
+    public function collegeReview(Request $request, string $slug): RedirectResponse
+    {
+        return $this->saveReview($request, $slug, 'college');
+    }
+
     /** A visitor's review on the page (one each: writing again updates it); not on one's own page */
     private function saveReview(Request $request, string $slug, string $ownerRole): RedirectResponse
     {
@@ -234,7 +259,7 @@ class InstituteProfileController extends Controller
             'review' => ['nullable', 'string', 'max:1000'],
         ], [
             'rating.required' => 'Please choose a star rating.',
-            'relation.required' => 'Please tell us who you are to the '.($ownerRole === 'school' ? 'school' : 'institute').'.',
+            'relation.required' => 'Please tell us who you are to the '.strtolower(SchoolInstituteHelper::label($ownerRole)).'.',
         ]);
 
         InstituteReview::updateOrCreate(
@@ -255,6 +280,11 @@ class InstituteProfileController extends Controller
         return $this->enquiry($request, $slug, 'institute');
     }
 
+    public function collegeEnquiry(Request $request, string $slug): RedirectResponse|JsonResponse
+    {
+        return $this->enquiry($request, $slug, 'college');
+    }
+
     public function schoolJobApply(Request $request, string $slug, InstituteJob $job): JsonResponse
     {
         return $this->jobApply($request, $slug, $job, 'school');
@@ -263,6 +293,11 @@ class InstituteProfileController extends Controller
     public function instituteJobApply(Request $request, string $slug, InstituteJob $job): JsonResponse
     {
         return $this->jobApply($request, $slug, $job, 'institute');
+    }
+
+    public function collegeJobApply(Request $request, string $slug, InstituteJob $job): JsonResponse
+    {
+        return $this->jobApply($request, $slug, $job, 'college');
     }
 
     public function jobApply(Request $request, string $slug, InstituteJob $job, string $ownerRole): JsonResponse
@@ -301,7 +336,7 @@ class InstituteProfileController extends Controller
         ]);
 
         $owner = $institute->user;
-        $portalPrefix = $ownerRole === 'school' ? 'school' : 'institute';
+        $portalPrefix = SchoolInstituteHelper::kind($ownerRole)['portal'];
         $jobsPortalUrl = $owner?->portalRoute('jobs.index')
             ?? SchoolInstituteHelper::routeForPrefix($portalPrefix, 'jobs.index');
 
@@ -363,7 +398,7 @@ class InstituteProfileController extends Controller
 
         $owner = $institute->user;
         $fromName = $enquiry->name ?: 'Someone';
-        $portalPrefix = $ownerRole === 'school' ? 'school' : 'institute';
+        $portalPrefix = SchoolInstituteHelper::kind($ownerRole)['portal'];
         $enquiriesPortalUrl = $owner?->portalRoute('enquiries.index')
             ?? SchoolInstituteHelper::routeForPrefix($portalPrefix, 'enquiries.index');
 
@@ -406,8 +441,8 @@ class InstituteProfileController extends Controller
     /** @return array<string, mixed> */
     private function engagementState(Institute $institute, ?\App\Models\User $user): array
     {
-        $listingContext = $institute->user?->isSchool() ? 'schools' : 'institutes';
-        $compareUrl = $listingContext === 'schools' ? route('schools.compare') : route('institutes.compare');
+        $listingContext = $institute->listingContext();
+        $compareUrl = route($listingContext.'.compare');
         $helpfulVote = null;
 
         if ($user) {

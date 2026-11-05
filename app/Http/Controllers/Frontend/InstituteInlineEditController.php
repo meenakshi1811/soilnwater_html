@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Support\SchoolInstituteHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use App\Support\InstituteCourseWings;
@@ -39,7 +40,7 @@ class InstituteInlineEditController extends Controller
         if (in_array($section, ['basics', 'facilities', 'gallery', 'courses', 'jobs', 'fee', 'diary-holiday', 'diary-leave'], true)) {
             return response(view('frontend.institutes.partials.school-profile.inline.'.$section.'-form', [
                 'institute' => $institute,
-                'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+                'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
             ])->render());
         }
 
@@ -104,7 +105,7 @@ class InstituteInlineEditController extends Controller
             'message' => 'Facility added.',
             'item_html' => view('frontend.institutes.partials.school-profile.inline.facility-item', [
                 'institute' => $institute,
-                'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+                'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
                 'name' => $name,
                 'image' => $images[$name],
             ])->render(),
@@ -151,7 +152,7 @@ class InstituteInlineEditController extends Controller
             ]);
         }
 
-        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
+        $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
         $itemsHtml = '';
         foreach ($files as $file) {
             $type = InstituteGallery::assertUploadValid($file);
@@ -229,7 +230,7 @@ class InstituteInlineEditController extends Controller
             'message' => 'Course added.',
             'item_html' => view('frontend.institutes.partials.school-profile.inline.course-wing-item', [
                 'institute' => $institute,
-                'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+                'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
                 'wing' => end($wings),
             ])->render(),
         ]);
@@ -348,8 +349,8 @@ class InstituteInlineEditController extends Controller
     {
         $institute = $this->ownedInstituteOrAbort($slug, $ownerRole);
         $profile = new SchoolProfilePresenter($institute);
-        $listingContext = $ownerRole === 'school' ? 'schools' : 'institutes';
-        $entityLabel = $ownerRole === 'school' ? 'School' : 'Institute';
+        $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
+        $entityLabel = SchoolInstituteHelper::label($ownerRole);
 
         if ($section === 'notices') {
             return response(view('frontend.institutes.partials.school-profile.inline.notices-public', [

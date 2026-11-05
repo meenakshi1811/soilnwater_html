@@ -15,8 +15,8 @@
 @section('content')
 @php
   $canEditInline = $canEditInline ?? false;
-  $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
-  $listingLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
+  $listingIndexRoute = $listingContext.'.index';
+  $listingLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
   $profileUrl = $institute->publicUrl();
   $holidayCount = $holidays->count();
   $leaveCount = $leaveRules->count();

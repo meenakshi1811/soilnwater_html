@@ -112,6 +112,7 @@ class StudyMaterialApprovalController extends Controller
             $user->isAdmin() => 'Admin',
             $user->isTeacher() => 'Teacher',
             $user->isSchool() => 'School',
+            $user->isCollege() => 'College',
             $user->isInstitute() => 'Institute',
             $user->isStudent() => 'Student',
             $user->isParent() => 'Parent',

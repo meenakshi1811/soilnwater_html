@@ -31,7 +31,7 @@ class EducatorInstituteAffiliationController extends Controller
             ->map(fn (Institute $institute): array => [
                 'id' => $institute->id,
                 'name' => $institute->displayName(),
-                'type' => $institute->user?->isSchool() ? 'School' : 'Institute',
+                'type' => \App\Support\SchoolInstituteHelper::label($institute->user?->role),
                 'city' => $institute->city,
                 'state' => $institute->state,
                 'url' => $institute->publicUrl(),

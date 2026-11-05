@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Support\SchoolInstituteHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +31,16 @@ class InstituteListingController extends Controller
     public function instituteListings(Request $request): View|JsonResponse
     {
         return $this->listings($request, 'institute');
+    }
+
+    public function collegeIndex(Request $request): View|JsonResponse
+    {
+        return $this->index($request, 'college');
+    }
+
+    public function collegeListings(Request $request): View|JsonResponse
+    {
+        return $this->listings($request, 'college');
     }
 
     public function index(Request $request, string $ownerRole = 'school'): View|JsonResponse
@@ -62,7 +73,7 @@ class InstituteListingController extends Controller
     {
         return array_merge($listingData, [
             'ownerRole' => $ownerRole,
-            'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+            'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
             'instituteStats' => $this->listingStats($ownerRole),
         ]);
     }

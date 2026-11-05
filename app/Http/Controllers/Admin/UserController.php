@@ -84,6 +84,7 @@ class UserController extends Controller
                     'service_provider' => ['Service Provider', 'text-bg-teal'],
                     'teacher' => ['Teacher / Tutor', 'text-bg-success'],
                     'school' => ['School', 'text-bg-success'],
+                    'college' => ['College', 'text-bg-info'],
                     'institute' => ['Institute', 'text-bg-warning'],
                     'admin' => ['Admin', 'text-bg-danger'],
                     'employee' => ['Employee', 'text-bg-dark'],
@@ -308,7 +309,7 @@ class UserController extends Controller
         // A new school or institute: on to its full profile to fill in the rest
         $institute = $user->isSchoolOrInstitute() ? $user->institute()->first() : null;
         if ($institute && $this->canEditModule(AccountCreation::moduleForRole($user->role))) {
-            $response['redirect'] = route(($user->isSchool() ? 'admin.schools' : 'admin.institutes').'.manage.profile.edit', $institute);
+            $response['redirect'] = route(\App\Support\SchoolInstituteHelper::adminPrefix($user?->role).'.manage.profile.edit', $institute);
         }
 
         return response()->json($response, 201);
@@ -442,14 +443,14 @@ class UserController extends Controller
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher,school,institute'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,consultant,service_provider,teacher,school,college,institute'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['nullable', 'required_if:role,user,teacher', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
-            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'date', 'before_or_equal:today'],
+            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'date', 'before_or_equal:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',

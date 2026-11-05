@@ -25,6 +25,7 @@ final class ModulePermissions
             'service_providers' => 'Services',
             'educators' => 'Teachers & Tutors',
             'schools' => 'Schools',
+            'colleges' => 'Colleges',
             'institutes' => 'Institutes',
             'enquiry' => 'Enquiry',
             'products' => 'Products',
@@ -76,6 +77,7 @@ final class ModulePermissions
             'service_providers' => 'admin.service_providers.index',
             'educators' => 'admin.educators.index',
             'schools' => 'admin.schools.index',
+            'colleges' => 'admin.colleges.index',
             'institutes' => 'admin.institutes.index',
             'offers' => 'offers.index',
             'ads' => 'ads.index',
@@ -103,6 +105,7 @@ final class ModulePermissions
             'admin.educators.' => 'educators',
             'admin.study-materials.' => 'educators',
             'admin.schools.' => 'schools',
+            'admin.colleges.' => 'colleges',
             'admin.institutes.' => 'institutes',
             'admin.offers.' => 'offers',
             'admin.offer-prices.' => 'offers',
@@ -166,8 +169,8 @@ final class ModulePermissions
             return $overrides[$routeName];
         }
 
-        // Editing a school's or institute's profile, public page, diary or jobs
-        if (preg_match('/^admin\.(schools|institutes)\.manage\./', $routeName)) {
+        // Editing a school's, college's or institute's profile, public page, diary or jobs
+        if (preg_match('/^admin\.(schools|colleges|institutes)\.manage\./', $routeName)) {
             return 'write';
         }
 

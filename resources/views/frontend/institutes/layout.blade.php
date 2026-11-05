@@ -12,10 +12,10 @@
 @section('content')
 @php
     $ownerRole = $ownerRole ?? 'school';
-    $listingContext = $listingContext ?? ($ownerRole === 'school' ? 'schools' : 'institutes');
-    $listingLabel = $ownerRole === 'school' ? 'Schools' : 'Institutes';
-    $homeLabel = $ownerRole === 'school' ? 'School Home' : 'Institute Home';
-    $listingIcon = $ownerRole === 'school' ? 'fa-school' : 'fa-building-columns';
+    $listingContext = $listingContext ?? (\App\Support\SchoolInstituteHelper::listingContext($ownerRole));
+    $listingLabel = \App\Support\SchoolInstituteHelper::plural($ownerRole);
+    $homeLabel = \App\Support\SchoolInstituteHelper::label($ownerRole).' Home';
+    $listingIcon = \App\Support\SchoolInstituteHelper::kind($ownerRole)['icon'];
 @endphp
 <div class="vendor-store-page" id="instituteProfilePage"
     data-enquiry-url="{{ route($listingContext.'.enquiry', $institute->slug) }}"

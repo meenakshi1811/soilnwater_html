@@ -9,9 +9,9 @@
 
 @section('content')
 @php
-  $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
-  $listingSectionLabel = $listingContext === 'schools' ? 'Schools & Colleges' : 'Institutes';
-  $listingTypeLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
+  $listingIndexRoute = $listingContext.'.index';
+  $listingSectionLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
+  $listingTypeLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
 @endphp
 
 <div

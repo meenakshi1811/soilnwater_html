@@ -93,15 +93,13 @@ class EducationHubController extends Controller
     }
 
     /**
-     * Schools, colleges (and universities) and other institutes, each with how many are listed
-     * and a few of them as cards (verified first, then the latest).
+     * Schools, colleges (and universities) and institutes, each with how many are listed and a
+     * few of them as cards (verified first, then the latest).
      *
      * @return list<array<string, mixed>>
      */
     private function institutionGroups(int $limit): array
     {
-        $collegeTypes = ['college', 'university'];
-
         $groups = [
             [
                 'title' => 'Schools', 'hint' => 'Classes 1 – 12', 'noun' => 'school', 'icon' => 'fa-school', 'theme' => 'schools',
@@ -110,15 +108,13 @@ class EducationHubController extends Controller
             ],
             [
                 'title' => 'Colleges', 'hint' => 'Colleges & universities', 'noun' => 'college', 'icon' => 'fa-building-columns', 'theme' => 'colleges',
-                'url' => route('institutes.index', ['type' => 'college']),
-                'query' => fn () => Institute::query()->institutes()->whereIn('institution_type', $collegeTypes),
+                'url' => route('colleges.index'),
+                'query' => fn () => Institute::query()->colleges(),
             ],
             [
                 'title' => 'Institutes', 'hint' => 'Coaching & training', 'noun' => 'institute', 'icon' => 'fa-chalkboard-user', 'theme' => 'institutes',
                 'url' => route('institutes.index'),
-                'query' => fn () => Institute::query()->institutes()->where(fn ($query) => $query
-                    ->whereNull('institution_type')
-                    ->orWhereNotIn('institution_type', $collegeTypes)),
+                'query' => fn () => Institute::query()->institutes(),
             ],
         ];
 

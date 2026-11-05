@@ -7,8 +7,8 @@
     $hasBooks = ($institute->books ?? collect())->isNotEmpty();
     $hasGallery = count($institute->galleryUrls()) > 1;
     $hasFacilities = collect($institute->facilities ?? [])->isNotEmpty();
-    $entityLabel = ($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute';
-    $listingContext = $listingContext ?? (($ownerRole ?? 'school') === 'school' ? 'schools' : 'institutes');
+    $entityLabel = \App\Support\SchoolInstituteHelper::label(($ownerRole ?? 'school'));
+    $listingContext = $listingContext ?? (\App\Support\SchoolInstituteHelper::listingContext(($ownerRole ?? 'school')));
     $diaryUrl = route($listingContext.'.diary', $institute->slug);
 @endphp
 

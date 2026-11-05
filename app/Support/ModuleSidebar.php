@@ -108,6 +108,7 @@ final class ModuleSidebar
                     'admin.educators.*',
                     'admin.study-materials.*',
                     'admin.schools.*',
+                    'admin.colleges.*',
                     'admin.institutes.*',
                     'admin.parent-profiles.*',
                     'admin.child-profiles.*',
@@ -145,6 +146,14 @@ final class ModuleSidebar
                         'active_routes' => ['admin.schools.*'],
                         'items' => [
                             ['label' => 'All Schools', 'route' => 'admin.schools.index', 'icon' => 'fa-solid fa-list', 'module' => 'schools', 'action' => 'read', 'active' => 'admin.schools.*'],
+                        ],
+                    ],
+                    'colleges' => [
+                        'label' => 'Colleges',
+                        'icon' => 'fa-solid fa-graduation-cap',
+                        'active_routes' => ['admin.colleges.*'],
+                        'items' => [
+                            ['label' => 'All Colleges', 'route' => 'admin.colleges.index', 'icon' => 'fa-solid fa-list', 'module' => 'colleges', 'action' => 'read', 'active' => 'admin.colleges.*'],
                         ],
                     ],
                     'institutes' => [

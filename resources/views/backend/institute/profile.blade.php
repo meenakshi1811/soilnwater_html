@@ -1,6 +1,6 @@
 @extends('backend.layouts.app')
 
-@section('title', ($institute->user?->isSchool() ? 'School Profile' : 'Institute Profile'))
+@section('title', $institute->roleLabel().' Profile')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/institute-portal.css') }}?v={{ now()->timestamp }}">
@@ -47,11 +47,7 @@
             <p class="ems-kicker mb-1">{{ $institute->roleLabel() }} Profile</p>
             <h2 class="admin-title mb-1">{{ $managedInstitute ? 'Edit public profile' : 'Edit your public profile' }}</h2>
             <p class="mb-0 text-secondary">
-              @if($institute->user?->isSchool())
-                Update your school details visible on the public listing and profile page.
-              @else
-                Update your institute details visible on the public listing and profile page.
-              @endif
+                Update your {{ strtolower($institute->roleLabel()) }} details visible on the public listing and profile page.
             </p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
@@ -86,9 +82,11 @@
                         <select class="form-select" id="institution_type" name="institution_type" required>
                             <option value="">Select type</option>
                             @php
-                                $institutionTypes = $institute->user?->isSchool()
-                                    ? ['school' => 'School', 'college' => 'College', 'university' => 'University']
-                                    : ['coaching' => 'Coaching Institute', 'other' => 'Other'];
+                                $institutionTypes = \App\Support\SchoolInstituteHelper::institutionTypeOptions($institute->user?->role);
+                                // (a type saved before keeps its option)
+                                if (filled($institute->institution_type) && ! isset($institutionTypes[$institute->institution_type])) {
+                                    $institutionTypes[$institute->institution_type] = $institute->institutionTypeLabel();
+                                }
                             @endphp
                             @foreach ($institutionTypes as $value => $label)
                                 <option value="{{ $value }}" @selected(old('institution_type', $institute->institution_type) === $value)>{{ $label }}</option>
@@ -136,7 +134,7 @@
                     <div class="inst-profile-section__head">
                         <span class="form-label mb-0">Courses &amp; programs offered</span>
                     </div>
-                    <p class="form-text mt-0 mb-2">The cards in the “Courses &amp; Programs Offered” section of your public profile, e.g. {{ $institute->user?->isSchool() ? 'Primary Wing — Nursery to Class V' : 'JEE Foundation — Class 9 to 10' }}.</p>
+                    <p class="form-text mt-0 mb-2">The cards in the “Courses &amp; Programs Offered” section of your public profile, e.g. {{ match ($institute->user?->role) { 'school' => 'Primary Wing — Nursery to Class V', 'college' => 'B.Com — 3-year undergraduate programme', default => 'JEE Foundation — Class 9 to 10' } }}.</p>
                     <input type="hidden" name="courses_in_form" value="1">
                     <div id="courseWingsWrap" class="inst-wing-rows">
                         @foreach ($courseWingsList as $wingIndex => $wing)
@@ -262,7 +260,7 @@
                 <div class="mb-3">
                     <label class="form-label" for="date_of_establishment">Founded date *</label>
                     <input type="date" class="form-control" id="date_of_establishment" name="date_of_establishment" value="{{ old('date_of_establishment', optional($institute->date_of_establishment)->format('Y-m-d')) }}" max="{{ now()->toDateString() }}" required>
-                    <div class="form-text">When the {{ $institute->user?->isSchool() ? 'school' : 'institute' }} was established (shown on your public profile).</div>
+                    <div class="form-text">When the {{ strtolower(\App\Support\SchoolInstituteHelper::label($institute->user?->role)) }} was established (shown on your public profile).</div>
                 </div>
             </div>
         </div>

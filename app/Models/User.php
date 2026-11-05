@@ -252,14 +252,20 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'institute';
     }
 
+    public function isCollege(): bool
+    {
+        return $this->role === 'college';
+    }
+
+    /** A school, college or institute account (they share the institute profile and pages) */
     public function isSchoolOrInstitute(): bool
     {
-        return $this->isSchool() || $this->isInstitute();
+        return $this->isSchool() || $this->isCollege() || $this->isInstitute();
     }
 
     public function portalRoutePrefix(): string
     {
-        return $this->isSchool() ? 'school' : 'institute';
+        return \App\Support\SchoolInstituteHelper::kind($this->role)['portal'];
     }
 
     public function portalRoute(string $name, mixed $parameters = [], bool $absolute = true): string
@@ -361,6 +367,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return 'School Dashboard';
         }
 
+        if ($this->isCollege()) {
+            return 'College Dashboard';
+        }
+
         if ($this->isInstitute()) {
             return 'Institute Dashboard';
         }
@@ -400,6 +410,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         if ($this->isSchool()) {
             return request()->routeIs('school.dashboard');
+        }
+
+        if ($this->isCollege()) {
+            return request()->routeIs('college.dashboard');
         }
 
         if ($this->isInstitute()) {

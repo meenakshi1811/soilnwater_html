@@ -1,6 +1,6 @@
 @extends('frontend.institutes.layout')
 
-@section('title', $institute->displayName().' – '.(($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute'))
+@section('title', $institute->displayName().' – '.\App\Support\SchoolInstituteHelper::label(($ownerRole ?? 'school')))
 
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($institute->about ?: $institute->tagline ?: $institute->description ?: 'School profile on SoilnWater'), 160))
 
@@ -22,7 +22,7 @@
     $aboutText = trim((string) ($institute->about ?: $institute->description));
     $aboutNeedsToggle = strlen($aboutText) > 320;
     $establishedYear = $institute->establishedYear();
-    $entityLabel = ($ownerRole ?? 'school') === 'school' ? 'School' : 'Institute';
+    $entityLabel = \App\Support\SchoolInstituteHelper::label(($ownerRole ?? 'school'));
 @endphp
 
 @section('institute_content')

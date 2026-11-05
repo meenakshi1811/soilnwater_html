@@ -11,7 +11,7 @@
     <div>
       <strong>{{ $institute?->displayName() ?? 'Institution' }}</strong>
       <div class="text-secondary small">
-        {{ $institute?->user?->isSchool() ? 'School' : 'Institute' }}
+        {{ \App\Support\SchoolInstituteHelper::label($institute?->user?->role) }}
         @if($institute?->city)
           · {{ $institute->city }}
         @endif

@@ -2,8 +2,7 @@
 
 @php
   $listingContext = $listingContext ?? 'schools';
-  $isSchoolListing = $listingContext === 'schools';
-  $pageTitle = $isSchoolListing ? 'Schools' : 'Institutes';
+  $pageTitle = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
 @endphp
 
 @section('meta_title', 'All '.$pageTitle.' | SoilnWater')

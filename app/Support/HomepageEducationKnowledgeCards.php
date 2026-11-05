@@ -44,6 +44,11 @@ final class HomepageEducationKnowledgeCards
                 ->map(fn (Institute $institute): array => self::fromInstitute($institute, 'institutes'))
                 ->values()
                 ->all(),
+            // (colleges: with the institutes' Education images)
+            self::pool(self::instituteQuery($lat, $lng)->colleges(), $hasLocation, $poolSize)
+                ->map(fn (Institute $college): array => self::fromInstitute($college, 'institutes'))
+                ->values()
+                ->all(),
             self::pool(self::instituteQuery($lat, $lng)->schools(), $hasLocation, $poolSize)
                 ->map(fn (Institute $school): array => self::fromInstitute($school, 'schools'))
                 ->values()

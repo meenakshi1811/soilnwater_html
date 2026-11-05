@@ -54,7 +54,7 @@
   $openJobsTotal = $profile->openJobsCount();
   $jobsPreview = $jobsLimit !== null ? $profile->openJobs($jobsLimit) : $profile->openJobs();
   $jobsCarouselCols = min(max($jobsPreview->count(), 1), 3);
-  $listingContext = $listingContext ?? ($institute->user?->isSchool() ? 'schools' : 'institutes');
+  $listingContext = $listingContext ?? (\App\Support\SchoolInstituteHelper::listingContext($institute->user?->role));
   $appliedJobIds = [];
   if (auth()->check()) {
       $appliedJobIds = \App\Models\InstituteJobApplication::query()

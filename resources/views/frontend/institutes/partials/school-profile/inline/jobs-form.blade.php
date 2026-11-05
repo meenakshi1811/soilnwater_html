@@ -1,6 +1,6 @@
 @php
   $listingContext = $listingContext ?? 'schools';
-  $portalPrefix = $listingContext === 'schools' ? 'school' : 'institute';
+  $portalPrefix = \App\Support\SchoolInstituteHelper::portalForListing($listingContext);
   $types = \App\Models\InstituteJob::EMPLOYMENT_TYPES;
   $jobs = $institute->jobs()
     ->withCount('applications')

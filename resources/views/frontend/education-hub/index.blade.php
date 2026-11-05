@@ -19,8 +19,8 @@
         ]],
         ['label' => 'Courses', 'icon' => 'fa-graduation-cap', 'items' => [
             ['label' => 'Coaching Institutes', 'url' => route('institutes.index', ['type' => 'coaching'])],
-            ['label' => 'Colleges', 'url' => route('institutes.index', ['type' => 'college'])],
-            ['label' => 'Universities', 'url' => route('institutes.index', ['type' => 'university'])],
+            ['label' => 'Colleges', 'url' => route('colleges.index')],
+            ['label' => 'Universities', 'url' => route('colleges.index', ['type' => 'university'])],
             ['label' => 'All Institutes', 'url' => route('institutes.index')],
         ]],
         ['label' => 'Teachers & Tutors', 'icon' => 'fa-chalkboard-user', 'url' => route('educator.index')],
@@ -51,7 +51,7 @@
 
     $categories = [
         ['label' => 'School Education', 'hint' => 'Classes 1 – 12', 'icon' => 'fa-school', 'tone' => 'blue', 'url' => route('schools.index')],
-        ['label' => 'College Education', 'hint' => 'UG, PG & Diploma', 'icon' => 'fa-building-columns', 'tone' => 'green', 'url' => route('institutes.index', ['type' => 'college'])],
+        ['label' => 'College Education', 'hint' => 'UG, PG & Diploma', 'icon' => 'fa-building-columns', 'tone' => 'green', 'url' => route('colleges.index')],
         ['label' => 'Competitive Exams', 'hint' => 'Govt. & Entrance', 'icon' => 'fa-award', 'tone' => 'purple', 'url' => route('institutes.index', ['type' => 'coaching'])],
         ['label' => 'Skill Development', 'hint' => 'Learn New Skills', 'icon' => 'fa-user-gear', 'tone' => 'orange', 'url' => route('institutes.index', ['search' => 'skill'])],
         ['label' => 'Languages', 'hint' => 'Learn Languages', 'icon' => 'fa-language', 'tone' => 'teal', 'url' => route('study-materials.notes', ['q' => 'language'])],

@@ -71,16 +71,14 @@
                         <div class="col-md-6">
                             <label class="form-label" for="instituteSlug">Page address</label>
                             <input type="text" name="slug" id="instituteSlug" class="form-control" required>
-                            <small class="text-muted">/{{ ($ownerRole ?? 'institute') === 'school' ? 'schools' : 'institutes' }}/<span id="instituteSlugPreview">slug</span></small>
+                            <small class="text-muted">/{{ \App\Support\SchoolInstituteHelper::listingContext($ownerRole ?? 'institute') }}/<span id="instituteSlugPreview">slug</span></small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="instituteType">Type</label>
                             <select name="institution_type" id="instituteType" class="form-select" required>
-                                <option value="school">School</option>
-                                <option value="college">College</option>
-                                <option value="university">University</option>
-                                <option value="coaching">Coaching Institute</option>
-                                <option value="other">Other</option>
+                                @foreach((\App\Support\SchoolInstituteHelper::institutionTypeOptions($ownerRole ?? 'institute') + ['school' => 'School', 'college' => 'College', 'university' => 'University', 'coaching' => 'Coaching Institute', 'other' => 'Other']) as $typeValue => $typeLabel)
+                                    <option value="{{ $typeValue }}">{{ $typeLabel }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">

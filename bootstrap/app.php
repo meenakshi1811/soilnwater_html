@@ -77,6 +77,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'educator.account' => EnsureEducatorAccount::class,
             'school.account' => \App\Http\Middleware\EnsureSchoolAccount::class,
             'school' => \App\Http\Middleware\EnsureUserIsSchool::class,
+            'college.account' => \App\Http\Middleware\EnsureCollegeAccount::class,
+            'college' => \App\Http\Middleware\EnsureUserIsCollege::class,
             'institute.account' => EnsureInstituteAccount::class,
             'institute' => EnsureUserIsInstitute::class,
             'student.account' => EnsureStudentAccount::class,

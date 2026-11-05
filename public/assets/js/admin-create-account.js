@@ -8,7 +8,7 @@
         lockedRole: null,
 
         isBusinessRole: function (role) {
-            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'institute';
+            return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'college' || role === 'institute';
         },
 
         isEducatorRole: function (role) {
@@ -46,7 +46,7 @@
             $('#createDateOfBirthWrap').toggleClass('d-none', showBusiness);
             $('#createProfileImageWrap').toggleClass('d-none', !showProfileImage);
             // (a school's or institute's picture is its logo)
-            $('#createProfileImageLabel').text(role === 'school' || role === 'institute' ? 'Logo' : 'Profile Image');
+            $('#createProfileImageLabel').text(role === 'school' || role === 'college' || role === 'institute' ? 'Logo' : 'Profile Image');
             $('#createGstNumberWrap').toggleClass('d-none', !showGst);
             $('#createRoleWrap').toggleClass('d-none', !!this.lockedRole);
 

@@ -392,7 +392,7 @@ class LoginController extends Controller
     public function googleRegister(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,school,institute'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,school,college,institute'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'whatsapp_same_as_phone' => ['nullable', 'boolean'],
@@ -526,7 +526,7 @@ class LoginController extends Controller
                 } elseif ($user->isSchoolOrInstitute() && $user->institute) {
                     Mail::to($user->email)->send(\App\Mail\InstituteStatusMail::forInstitute($user->institute, 'pending'));
                     PortalNotificationService::notifyAdminsOfApprovalRequest(
-                        $user->isSchool() ? 'School account' : 'Institute account',
+                        \App\Support\SchoolInstituteHelper::label($user?->role).' account',
                         $user->institute->institution_name,
                         \App\Support\SchoolInstituteHelper::adminShowRoute($user->institute)
                     );
@@ -620,12 +620,12 @@ class LoginController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,school,institute'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,institute', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider,teacher,school,college,institute'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,school,institute', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider,teacher,school,college,institute', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
@@ -773,11 +773,9 @@ class LoginController extends Controller
                 PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor account', $vendor->company_name, route('admin.vendors.show', $vendor));
             } elseif ($institute) {
                 Mail::to($user->email)->send(\App\Mail\InstituteStatusMail::forInstitute($institute, 'pending'));
-                $message = $user->isSchool()
-                    ? 'Thank you for registering. Your school profile is under observation. Admin will check and approve it soon.'
-                    : 'Thank you for registering. Your institute profile is under observation. Admin will check and approve it soon.';
+                $message = 'Thank you for registering. Your '.strtolower(\App\Support\SchoolInstituteHelper::label($user->role)).' profile is under observation. Admin will check and approve it soon.';
                 PortalNotificationService::notifyAdminsOfApprovalRequest(
-                    $user->isSchool() ? 'School account' : 'Institute account',
+                    \App\Support\SchoolInstituteHelper::label($user?->role).' account',
                     $institute->institution_name,
                     \App\Support\SchoolInstituteHelper::adminShowRoute($institute)
                 );
@@ -996,8 +994,8 @@ class LoginController extends Controller
                 : 'Your '.$user->educator->roleLabel().' account is pending admin approval. You will be able to log in once approved.';
         } elseif ($user->isSchoolOrInstitute() && ! $user->institute?->isApproved()) {
             $message = $user->institute?->isRejected()
-                ? 'Your '.($user->isSchool() ? 'school' : 'institute').' account has been rejected by the admin. Please contact support for more information.'
-                : 'Your '.($user->isSchool() ? 'school' : 'institute').' account is pending admin approval. You will be able to log in once approved.';
+                ? 'Your '.strtolower(\App\Support\SchoolInstituteHelper::label($user?->role)).' account has been rejected by the admin. Please contact support for more information.'
+                : 'Your '.strtolower(\App\Support\SchoolInstituteHelper::label($user?->role)).' account is pending admin approval. You will be able to log in once approved.';
         }
 
         if (! $message) {

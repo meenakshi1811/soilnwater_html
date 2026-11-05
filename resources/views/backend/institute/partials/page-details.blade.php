@@ -1,9 +1,9 @@
 {{-- Everything else the public page shows (InstituteProfileDetails), with what it shows now --}}
 @php
   $details = \App\Support\InstituteProfileDetails::forForm($institute);
-  // (a school's words, or an institute's)
+  // (a school's words, or a college's or institute's)
   $isSchoolProfile = $institute->user?->isSchool() ?? true;
-  $entityName = $isSchoolProfile ? 'School' : 'Institute';
+  $entityName = \App\Support\SchoolInstituteHelper::label($institute->user?->role ?? 'school');
   $detailTextFields = [
     'co_educational_label' => $isSchoolProfile
       ? ['Co-education line', 'e.g. Co-Educational Day School', 'Shown under your name.']

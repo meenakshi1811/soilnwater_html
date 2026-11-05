@@ -16,8 +16,8 @@
 @php
   use App\Support\InstituteFeeStructure;
 
-  $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
-  $listingLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
+  $listingIndexRoute = $listingContext.'.index';
+  $listingLabel = \App\Support\SchoolInstituteHelper::pluralForListing($listingContext);
   $profileUrl = $institute->publicUrl();
   $feeFileUrl = $fee['file'] ? asset($fee['file']) : null;
   $feeFileIsPdf = $fee['file'] && str_ends_with(strtolower($fee['file']), '.pdf');

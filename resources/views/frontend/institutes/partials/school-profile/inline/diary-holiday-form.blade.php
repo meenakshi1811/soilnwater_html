@@ -1,6 +1,6 @@
 @php
   $listingContext = $listingContext ?? 'schools';
-  $portalPrefix = $listingContext === 'schools' ? 'school' : 'institute';
+  $portalPrefix = \App\Support\SchoolInstituteHelper::portalForListing($listingContext);
   $types = \App\Support\InstituteDiaryConfig::holidayTypes();
   $ay = \App\Support\InstituteDiaryConfig::defaultAcademicYear();
   $holidays = $institute->diaryHolidays()->orderBy('start_date')->get();

@@ -30,6 +30,11 @@ class InstituteEngagementController extends Controller
         return $this->follow($request, $slug, 'institute');
     }
 
+    public function collegeFollow(Request $request, string $slug): JsonResponse
+    {
+        return $this->follow($request, $slug, 'college');
+    }
+
     public function schoolBookmark(Request $request, string $slug): JsonResponse
     {
         return $this->bookmark($request, $slug, 'school');
@@ -38,6 +43,11 @@ class InstituteEngagementController extends Controller
     public function instituteBookmark(Request $request, string $slug): JsonResponse
     {
         return $this->bookmark($request, $slug, 'institute');
+    }
+
+    public function collegeBookmark(Request $request, string $slug): JsonResponse
+    {
+        return $this->bookmark($request, $slug, 'college');
     }
 
     public function schoolCompare(Request $request, string $slug): JsonResponse
@@ -50,6 +60,11 @@ class InstituteEngagementController extends Controller
         return $this->compare($request, $slug, 'institute');
     }
 
+    public function collegeCompare(Request $request, string $slug): JsonResponse
+    {
+        return $this->compare($request, $slug, 'college');
+    }
+
     public function schoolBrochure(Request $request, string $slug): JsonResponse
     {
         return $this->brochure($request, $slug, 'school');
@@ -58,6 +73,11 @@ class InstituteEngagementController extends Controller
     public function instituteBrochure(Request $request, string $slug): JsonResponse
     {
         return $this->brochure($request, $slug, 'institute');
+    }
+
+    public function collegeBrochure(Request $request, string $slug): JsonResponse
+    {
+        return $this->brochure($request, $slug, 'college');
     }
 
     public function schoolComparePage(Request $request): View
@@ -70,6 +90,11 @@ class InstituteEngagementController extends Controller
         return $this->comparePage($request, 'institute');
     }
 
+    public function collegeComparePage(Request $request): View
+    {
+        return $this->comparePage($request, 'college');
+    }
+
     public function schoolHelpful(Request $request, string $slug): JsonResponse
     {
         return $this->helpful($request, $slug, 'school');
@@ -78,6 +103,11 @@ class InstituteEngagementController extends Controller
     public function instituteHelpful(Request $request, string $slug): JsonResponse
     {
         return $this->helpful($request, $slug, 'institute');
+    }
+
+    public function collegeHelpful(Request $request, string $slug): JsonResponse
+    {
+        return $this->helpful($request, $slug, 'college');
     }
 
     public function helpful(Request $request, string $slug, string $ownerRole): JsonResponse
@@ -187,7 +217,7 @@ class InstituteEngagementController extends Controller
         } else {
             $institute->bookmarks()->attach($userId);
             $bookmarked = true;
-            $message = 'School saved to your bookmarks.';
+            $message = $institute->roleLabel().' saved to your bookmarks.';
 
             $this->logEngagement($institute, $userId, InstituteEngagement::ACTION_BOOKMARK);
             $this->notifyOwner(
@@ -224,7 +254,7 @@ class InstituteEngagementController extends Controller
             if ($count >= self::COMPARE_LIMIT) {
                 return response()->json([
                     'ok' => false,
-                    'message' => 'You can compare up to '.self::COMPARE_LIMIT.' schools at a time. Remove one from your compare list first.',
+                    'message' => 'You can compare up to '.self::COMPARE_LIMIT.' '.strtolower(SchoolInstituteHelper::plural($ownerRole)).' at a time. Remove one from your compare list first.',
                 ], 422);
             }
 
@@ -239,9 +269,7 @@ class InstituteEngagementController extends Controller
             $this->logEngagement($institute, $userId, InstituteEngagement::ACTION_COMPARE_ADD);
         }
 
-        $compareUrl = $ownerRole === 'school'
-            ? route('schools.compare')
-            : route('institutes.compare');
+        $compareUrl = route(SchoolInstituteHelper::listingContext($ownerRole).'.compare');
 
         return response()->json([
             'ok' => true,
@@ -292,16 +320,14 @@ class InstituteEngagementController extends Controller
                     return false;
                 }
 
-                return $ownerRole === 'school'
-                    ? $institute->user?->isSchool()
-                    : $institute->user?->isInstitute();
+                return $institute->user?->role === $ownerRole;
             })
             ->values();
 
         return view('frontend.institutes.compare', [
             'items' => $items,
             'ownerRole' => $ownerRole,
-            'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
+            'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
         ]);
     }
 
