@@ -215,6 +215,8 @@ Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, '
 
 Route::get('/schools', [InstituteListingController::class, 'schoolIndex'])->name('schools.index');
 Route::get('/schools/listings', [InstituteListingController::class, 'schoolListings'])->name('schools.listings');
+// (before /schools/{slug}, which would take "compare" for a school's address)
+Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolComparePage'])->middleware('auth')->name('schools.compare');
 Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
 Route::get('/schools/{slug}/fee-structure', [InstituteProfileController::class, 'schoolFeeStructure'])->name('schools.fee-structure');
 Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'schoolSection'])
@@ -230,10 +232,11 @@ Route::post('/schools/{slug}/compare', [InstituteEngagementController::class, 's
 Route::post('/schools/{slug}/brochure', [InstituteEngagementController::class, 'schoolBrochure'])->middleware('auth')->name('schools.brochure');
 Route::post('/schools/{slug}/helpful', [InstituteEngagementController::class, 'schoolHelpful'])->middleware('auth')->name('schools.helpful');
 Route::post('/schools/{slug}/report', [ProfileReportController::class, 'school'])->middleware(['auth', 'verified'])->name('schools.report');
-Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolComparePage'])->middleware('auth')->name('schools.compare');
 
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
+// (before /institutes/{slug}, which would take "compare" for a institute's address)
+Route::get('/institutes/compare', [InstituteEngagementController::class, 'instituteComparePage'])->middleware('auth')->name('institutes.compare');
 Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
 Route::get('/institutes/{slug}/fee-structure', [InstituteProfileController::class, 'instituteFeeStructure'])->name('institutes.fee-structure');
 Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, 'instituteSection'])
@@ -249,7 +252,6 @@ Route::post('/institutes/{slug}/compare', [InstituteEngagementController::class,
 Route::post('/institutes/{slug}/brochure', [InstituteEngagementController::class, 'instituteBrochure'])->middleware('auth')->name('institutes.brochure');
 Route::post('/institutes/{slug}/helpful', [InstituteEngagementController::class, 'instituteHelpful'])->middleware('auth')->name('institutes.helpful');
 Route::post('/institutes/{slug}/report', [ProfileReportController::class, 'institute'])->middleware(['auth', 'verified'])->name('institutes.report');
-Route::get('/institutes/compare', [InstituteEngagementController::class, 'instituteComparePage'])->middleware('auth')->name('institutes.compare');
 
 Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
 
