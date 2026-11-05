@@ -10,6 +10,7 @@ use App\Models\InstituteEnquiry;
 use App\Models\InstituteJob;
 use App\Models\InstituteJobApplication;
 use App\Models\InstituteProfileFeedback;
+use App\Models\InstituteReview;
 use App\Mail\InstituteJobApplicationReceivedMail;
 use App\Services\PortalNotificationService;
 use App\Support\InstituteDiaryConfig;
@@ -198,6 +199,39 @@ class InstituteProfileController extends Controller
             'activeNav' => 'home',
             'engagement' => $engagement,
         ]);
+    }
+
+    public function schoolReview(Request $request, string $slug): RedirectResponse
+    {
+        return $this->saveReview($request, $slug, 'school');
+    }
+
+    public function instituteReview(Request $request, string $slug): RedirectResponse
+    {
+        return $this->saveReview($request, $slug, 'institute');
+    }
+
+    /** A visitor's review on the page (one each: writing again updates it); not on one's own page */
+    private function saveReview(Request $request, string $slug, string $ownerRole): RedirectResponse
+    {
+        $institute = $this->findApprovedProfile($slug, $ownerRole);
+        abort_if((int) $institute->user_id === (int) $request->user()->id, 403, 'You cannot review your own profile.');
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'relation' => ['required', 'string', 'in:'.implode(',', InstituteReview::RELATIONS)],
+            'review' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'rating.required' => 'Please choose a star rating.',
+            'relation.required' => 'Please tell us who you are to the '.($ownerRole === 'school' ? 'school' : 'institute').'.',
+        ]);
+
+        InstituteReview::updateOrCreate(
+            ['institute_id' => $institute->id, 'user_id' => $request->user()->id],
+            ['rating' => $validated['rating'], 'relation' => $validated['relation'], 'review' => $validated['review'] ?? null]
+        );
+
+        return redirect()->to($institute->publicUrl().'#sch-reviews')->with('status', 'Thank you! Your review is on the page.');
     }
 
     public function schoolEnquiry(Request $request, string $slug): RedirectResponse|JsonResponse

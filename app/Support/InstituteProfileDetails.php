@@ -162,6 +162,7 @@ final class InstituteProfileDetails
             'rating' => $profile->rating() ?? '',
             'review_count' => is_numeric($saved('review_count')) ? (int) $saved('review_count') : '',
             'is_premium' => $profile->isPremium(),
+            'use_admin_reviews' => $profile->useAdminReviews(),
             'quick_stats' => $profile->quickStats(),
             'about_highlights' => $profile->aboutHighlights(),
             'why_choose_us' => $profile->whyChooseUs(),
@@ -260,6 +261,7 @@ final class InstituteProfileDetails
             $rules['details.rating'] = ['nullable', 'numeric', 'min:0', 'max:5'];
             $rules['details.review_count'] = ['nullable', 'integer', 'min:0', 'max:1000000'];
             $rules['details.is_premium'] = ['nullable', 'boolean'];
+            $rules['details.use_admin_reviews'] = ['nullable', 'boolean'];
         }
 
         return $rules;
@@ -289,7 +291,7 @@ final class InstituteProfileDetails
 
     /**
      * The profile settings with the submitted details in (other settings stay). The rating,
-     * review count and premium badge change only from the admin panel.
+     * review count, premium badge and which reviews show change only from the admin panel.
      *
      * @param  array<string, mixed>  $details  validated details
      * @param  array<string, mixed>  $meta  the settings saved now
@@ -345,6 +347,7 @@ final class InstituteProfileDetails
             $meta['rating'] = is_numeric($details['rating'] ?? null) ? round((float) $details['rating'], 1) : '';
             $meta['review_count'] = is_numeric($details['review_count'] ?? null) ? (int) $details['review_count'] : '';
             $meta['is_premium'] = filter_var($details['is_premium'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $meta['use_admin_reviews'] = filter_var($details['use_admin_reviews'] ?? true, FILTER_VALIDATE_BOOLEAN);
         }
 
         return $meta;

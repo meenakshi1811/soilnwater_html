@@ -222,6 +222,7 @@ Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'sch
     ->name('schools.section');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
+Route::post('/schools/{slug}/review', [InstituteProfileController::class, 'schoolReview'])->middleware('auth')->name('schools.review');
 Route::post('/schools/{slug}/jobs/{job}/apply', [InstituteProfileController::class, 'schoolJobApply'])->middleware('auth')->name('schools.jobs.apply');
 Route::post('/schools/{slug}/follow', [InstituteEngagementController::class, 'schoolFollow'])->middleware('auth')->name('schools.follow');
 Route::post('/schools/{slug}/bookmark', [InstituteEngagementController::class, 'schoolBookmark'])->middleware('auth')->name('schools.bookmark');
@@ -240,6 +241,7 @@ Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, '
     ->name('institutes.section');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
+Route::post('/institutes/{slug}/review', [InstituteProfileController::class, 'instituteReview'])->middleware('auth')->name('institutes.review');
 Route::post('/institutes/{slug}/jobs/{job}/apply', [InstituteProfileController::class, 'instituteJobApply'])->middleware('auth')->name('institutes.jobs.apply');
 Route::post('/institutes/{slug}/follow', [InstituteEngagementController::class, 'instituteFollow'])->middleware('auth')->name('institutes.follow');
 Route::post('/institutes/{slug}/bookmark', [InstituteEngagementController::class, 'instituteBookmark'])->middleware('auth')->name('institutes.bookmark');

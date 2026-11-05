@@ -3815,6 +3815,26 @@
   margin-bottom: 1rem;
 }
 
+/* —— A visitor's review form (under Top Reviews) —— */
+
+.sch-review-empty {
+  margin: 0 0 0.75rem;
+  color: var(--sch-muted);
+  font-size: 0.86rem;
+}
+
+.sch-review-form-wrap {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sch-border);
+}
+
+.sch-review-form__title {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
 /* —— Fee structure page (and its link in the Admission info popup) —— */
 
 .sch-admission-modal__footer {

@@ -119,6 +119,38 @@
 
   <section class="inst-detail-group mb-0">
     <h4 class="inst-detail-group__title">Reviews</h4>
+    @if($managedInstitute)
+      {{-- (the admin's: which reviews and rating the page shows, and the visitors' reviews) --}}
+      @php
+        $visitorReviews = $institute->visitorReviews()->with('user:id,name')->get();
+      @endphp
+      <div class="inst-review-switch mb-3">
+        <div class="form-check form-switch mb-1">
+          <input type="hidden" name="details[use_admin_reviews]" value="0">
+          <input class="form-check-input" type="checkbox" role="switch" id="details_use_admin_reviews" name="details[use_admin_reviews]" value="1" @checked($details['use_admin_reviews'])>
+          <label class="form-check-label fw-semibold" for="details_use_admin_reviews">Show the reviews and rating entered here <span class="badge text-bg-secondary">Admin</span></label>
+        </div>
+        <p class="form-text mb-0">On: the page shows the reviews below and the star rating above. Off: it shows the reviews visitors write on the page, their average rating, and a form for writing one.</p>
+      </div>
+      <div class="inst-visitor-reviews mb-3">
+        <p class="small fw-semibold mb-2">Visitors' reviews ({{ $visitorReviews->count() }})</p>
+        @forelse($visitorReviews as $visitorReview)
+          <div class="inst-visitor-review js-visitor-review">
+            <div class="flex-grow-1">
+              <strong>{{ $visitorReview->user?->name ?: 'Visitor' }}</strong>
+              <span class="text-secondary small">({{ $visitorReview->relation ?: 'Visitor' }}) · {{ str_repeat('★', (int) $visitorReview->rating) }} · {{ $visitorReview->created_at?->format('j M Y') }}</span>
+              @if(filled($visitorReview->review))
+                <p class="mb-0 small">{{ $visitorReview->review }}</p>
+              @endif
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger js-visitor-review-delete" data-url="{{ $portalRoute('reviews.destroy', $visitorReview) }}">Delete</button>
+          </div>
+        @empty
+          <p class="text-secondary small mb-0">None yet.</p>
+        @endforelse
+      </div>
+      <p class="small fw-semibold mb-2">Reviews entered here</p>
+    @endif
     @include('backend.institute.partials.page-details-list', ['kind' => 'reviews', 'rows' => $details['reviews'], 'addLabel' => 'Add review', 'hint' => 'What parents and students say (“Top Reviews”).'])
   </section>
 </div>

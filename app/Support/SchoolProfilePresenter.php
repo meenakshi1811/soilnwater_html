@@ -36,6 +36,9 @@ final class SchoolProfilePresenter
 
     private ?int $schoolNotesCount = null;
 
+    /** @var Collection<int, \App\Models\InstituteReview>|null visitors' reviews (loaded once) */
+    private ?Collection $visitorReviews = null;
+
     public function __construct(public Institute $institute)
     {
         $this->institute->loadMissing([
@@ -229,9 +232,33 @@ final class SchoolProfilePresenter
         return $this->institute->user?->isSchool() ?? true;
     }
 
-    /** The star rating, or null when cleared (the page then shows no rating) */
+    /**
+     * Whether the page shows the reviews and rating entered on the profile form (the admin's
+     * switch; on until the admin turns it off), or else the reviews visitors wrote.
+     */
+    public function useAdminReviews(): bool
+    {
+        return filter_var($this->meta('use_admin_reviews', true), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /** @return Collection<int, \App\Models\InstituteReview> visitors' reviews, newest first */
+    public function visitorReviews(): Collection
+    {
+        return $this->visitorReviews ??= $this->institute->visitorReviews()->with('user:id,name')->get();
+    }
+
+    /**
+     * The star rating: the one entered on the form (null when cleared: no rating shows), or the
+     * visitors' average (null before any review).
+     */
     public function rating(): ?float
     {
+        if (! $this->useAdminReviews()) {
+            $reviews = $this->visitorReviews();
+
+            return $reviews->isEmpty() ? null : round((float) $reviews->avg('rating'), 1);
+        }
+
         $rating = $this->meta('rating', InstituteProfileDetails::default('rating'));
 
         return is_numeric($rating) ? (float) $rating : null;
@@ -239,6 +266,10 @@ final class SchoolProfilePresenter
 
     public function reviewCount(): int
     {
+        if (! $this->useAdminReviews()) {
+            return $this->visitorReviews()->count();
+        }
+
         $saved = $this->meta('review_count');
 
         return is_numeric($saved) ? (int) $saved : count($this->reviews());
@@ -690,9 +721,31 @@ final class SchoolProfilePresenter
             ->all();
     }
 
-    /** @return list<array{name: string, relation: string, rating: float, comment: string, ago: string, initial: string, tone: string}> */
+    /**
+     * The reviews on the page: the ones entered on the form, or the visitors' (by the admin's switch).
+     *
+     * @return list<array{name: string, relation: string, rating: float, comment: string, ago: string, initial: string, tone: string}>
+     */
     public function reviews(?int $limit = null): array
     {
+        if (! $this->useAdminReviews()) {
+            $items = $this->visitorReviews()->map(function ($review) {
+                $name = (string) ($review->user?->name ?: 'Visitor');
+
+                return [
+                    'name' => $name,
+                    'relation' => (string) ($review->relation ?: 'Visitor'),
+                    'rating' => (float) $review->rating,
+                    'comment' => (string) $review->review,
+                    'ago' => $review->created_at?->diffForHumans() ?? 'Recently',
+                    'initial' => Str::upper(Str::substr($name, 0, 1)),
+                    'tone' => 'blue',
+                ];
+            });
+
+            return ($limit !== null ? $items->take($limit) : $items)->values()->all();
+        }
+
         $custom = $this->meta('reviews');
 
         if (! is_array($custom) || $custom === []) {
@@ -723,6 +776,10 @@ final class SchoolProfilePresenter
 
     public function reviewsCount(): int
     {
+        if (! $this->useAdminReviews()) {
+            return $this->visitorReviews()->count();
+        }
+
         $custom = $this->meta('reviews');
 
         return is_array($custom) ? count($custom) : 0;
@@ -800,7 +857,8 @@ final class SchoolProfilePresenter
                 'sch-notices', 'sch-news' => $this->institute->activeNotices->isNotEmpty(),
                 // (the events saved on the profile form, else the notices)
                 'sch-events' => $this->upcomingEventsCount() > 0,
-                'sch-reviews' => $this->reviews() !== [],
+                // (with visitors' reviews on, the section always shows: it has the review form)
+                'sch-reviews' => $this->reviews() !== [] || ! $this->useAdminReviews(),
                 'sch-results' => $this->institute->topPerformers->isNotEmpty(),
                 'sch-jobs' => $this->openJobsCount() > 0,
                 'sch-notes-material' => $this->notesMaterialBooks()->isNotEmpty(),

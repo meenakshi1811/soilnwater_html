@@ -4,6 +4,7 @@
 // jobs), loaded inside admin/schools/{managedInstitute}/manage and
 // admin/institutes/{managedInstitute}/manage
 
+use App\Http\Controllers\Admin\InstituteReviewController;
 use App\Http\Controllers\Institute\InstituteDiaryController;
 use App\Http\Controllers\Institute\InstituteDiaryHolidayController;
 use App\Http\Controllers\Institute\InstituteFeeStructureController;
@@ -37,6 +38,8 @@ Route::put('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::clas
 Route::delete('/diary/leave-rules/{leaveRule}', [InstituteLeaveRuleController::class, 'destroy'])->name('diary.leave-rules.destroy');
 Route::get('/fee-structure', [InstituteFeeStructureController::class, 'edit'])->name('fee-structure.edit');
 Route::put('/fee-structure', [InstituteFeeStructureController::class, 'update'])->name('fee-structure.update');
+// (the admin's only: removing a visitor's review)
+Route::delete('/reviews/{review}', [InstituteReviewController::class, 'destroy'])->name('reviews.destroy');
 Route::get('/jobs', [InstituteJobController::class, 'index'])->name('jobs.index');
 Route::post('/jobs', [InstituteJobController::class, 'store'])->name('jobs.store');
 Route::put('/jobs/{job}', [InstituteJobController::class, 'update'])->name('jobs.update');

@@ -634,7 +634,8 @@
   </section>
 @endif
 
-@if($showSection('reviews') && $profile->reviewsCount() > 0)
+{{-- (the admin's reviews, or visitors': then the section always shows, with its review form) --}}
+@if($showSection('reviews') && ($profile->reviewsCount() > 0 || ! $profile->useAdminReviews()))
   <section id="sch-reviews" class="sch-card sch-section">
     <div class="sch-section__head">
       <h2 class="sch-section__title mb-0">Top Reviews</h2>
@@ -665,10 +666,18 @@
               </div>
             </div>
           </div>
-          <p>{{ $review['comment'] }}</p>
+          @if(filled($review['comment']))
+            <p>{{ $review['comment'] }}</p>
+          @endif
         </article>
       @endforeach
     </div>
+    @if(! $profile->useAdminReviews())
+      @if($reviews === [])
+        <p class="sch-review-empty">No reviews yet. Be the first to review this {{ strtolower($entityLabel ?? 'school') }}.</p>
+      @endif
+      @include('frontend.institutes.partials.school-profile.review-form')
+    @endif
     @include('frontend.institutes.partials.school-profile.section-view-all', [
       'institute' => $institute,
       'isProfilePreview' => $isProfilePreview,

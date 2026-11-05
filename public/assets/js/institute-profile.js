@@ -246,6 +246,26 @@
             });
         });
 
+        // The admin removing a visitor's review
+        $(document).on('click', '.js-visitor-review-delete', function () {
+            var button = this;
+            if (!window.confirm('Delete this review from the page?')) {
+                return;
+            }
+            button.disabled = true;
+            $.ajax({
+                url: button.dataset.url,
+                type: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'), Accept: 'application/json' }
+            }).done(function (response) {
+                button.closest('.js-visitor-review').remove();
+                FormHelper.showToast('success', response.message || 'Review removed.');
+            }).fail(function () {
+                button.disabled = false;
+                FormHelper.showToast('error', 'Unable to remove the review right now.');
+            });
+        });
+
         // Quick facts: the preview tile follows its fields
         function syncFactPreview(row) {
             var preview = row.querySelector('.js-fact-preview');

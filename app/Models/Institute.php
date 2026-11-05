@@ -98,6 +98,12 @@ class Institute extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    /** Reviews visitors wrote on the page */
+    public function visitorReviews(): HasMany
+    {
+        return $this->hasMany(InstituteReview::class)->latest();
+    }
+
     public function enquiries(): HasMany
     {
         return $this->hasMany(InstituteEnquiry::class)->latest();
