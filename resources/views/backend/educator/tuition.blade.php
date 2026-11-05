@@ -15,6 +15,9 @@
   $tuitionDeliveryOptions = $educator->normalizedTuitionDeliveryOptions();
 @endphp
 <div class="admin-panel ems-page edu-profile-page">
+  @if($managedEducator ?? null)
+    @include('backend.educator.partials.admin-manage-bar')
+  @endif
   <div class="mb-4">
     <p class="ems-kicker mb-1">Educator Portal</p>
     <h2 class="admin-title mb-1">Tuition details</h2>
@@ -26,7 +29,7 @@
     <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
   @endif
 
-  <form method="POST" action="{{ route('educator.tuition.update') }}" class="chart-card p-3 p-lg-4">
+  <form method="POST" action="{{ $educatorRoute('tuition.update') }}" class="chart-card p-3 p-lg-4">
     @csrf
     @method('PUT')
 
@@ -38,7 +41,7 @@
     ])
 
     <div class="d-flex gap-2 mt-4 pt-3 border-top">
-      <a href="{{ route('educator.dashboard') }}" class="btn btn-outline-secondary">Back</a>
+      <a href="{{ ($managedEducator ?? null) ? route('admin.educators.index') : route('educator.dashboard') }}" class="btn btn-outline-secondary">Back</a>
       <button type="submit" class="btn btn-primary ems-btn-primary px-4">
         <i class="fa-solid fa-floppy-disk me-1"></i> Save tuition details
       </button>

@@ -73,6 +73,8 @@ class EducatorController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route('admin.educators.show', $educator).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    // The full profile (their public page) and tuition, as the teacher / tutor edits them
+                    .'<a href="'.route('admin.educators.manage.profile.edit', $educator).'" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>'
                     .$approveBtn
                     .$rejectBtn
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-educator" data-id="'.$educator->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button>'

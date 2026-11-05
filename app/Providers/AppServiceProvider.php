@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Support\AuthActor;
+use App\Support\ManagedEducator;
 use App\Support\ManagedInstitute;
 use App\Support\SchoolInstituteHelper;
 
@@ -53,6 +54,24 @@ class AppServiceProvider extends ServiceProvider
                     ? $user->portalRoute($suffix, $parameters)
                     : SchoolInstituteHelper::routeForPrefix($prefix, $suffix, $parameters),
                 'managedInstitute' => null,
+            ]);
+        });
+
+        View::composer(['backend.educator.profile', 'backend.educator.tuition'], function ($view): void {
+            // An admin managing a teacher / tutor from the admin panel: the same pages, on the admin's routes
+            $managed = ManagedEducator::fromAdmin();
+            if ($managed) {
+                $view->with([
+                    'educatorRoute' => static fn (string $suffix, mixed $parameters = []) => ManagedEducator::adminRoute($managed, $suffix, $parameters),
+                    'managedEducator' => $managed,
+                ]);
+
+                return;
+            }
+
+            $view->with([
+                'educatorRoute' => static fn (string $suffix, mixed $parameters = []) => route('educator.'.$suffix, $parameters),
+                'managedEducator' => null,
             ]);
         });
 

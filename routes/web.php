@@ -129,6 +129,7 @@ use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
+use App\Http\Middleware\ResolveManagedEducator;
 use App\Http\Middleware\ResolveManagedInstitute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -871,6 +872,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/{educator}/approve', [EducatorController::class, 'approve'])->name('approve');
             Route::post('/{educator}/reject', [EducatorController::class, 'reject'])->name('reject');
             Route::delete('/{educator}', [EducatorController::class, 'destroy'])->name('destroy');
+            // The teacher / tutor's own profile and tuition pages, as they edit them
+            Route::prefix('/{managedEducator}/manage')->name('manage.')
+                ->middleware(ResolveManagedEducator::class)
+                ->group(base_path('routes/includes/educator_manage.php'));
         });
 
         Route::prefix('schools')->name('schools.')->group(function () {

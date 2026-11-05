@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Educator;
 use App\Support\EducatorFileUploader;
 use App\Support\EducatorSubjects;
+use App\Support\ManagedEducator;
 use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,19 +19,19 @@ class EducatorProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        $user = $request->user()->load('educator');
+        // (the teacher's own account, also when an admin edits it)
+        $educator = ManagedEducator::current($request);
+        abort_unless($educator, 404);
+        $user = ManagedEducator::owner($request);
 
-        if ($user->educator?->display_name) {
-            $user->name = $user->educator->display_name;
+        if ($educator->display_name) {
+            $user->name = $educator->display_name;
         }
 
-        $educator = $user->educator;
-        $educator?->recalculateRating();
-        $educator?->refresh();
+        $educator->recalculateRating();
+        $educator->refresh();
 
-        $instituteAffiliations = $educator
-            ? $educator->instituteAffiliations()->with(['institute.user:id,role'])->get()
-            : collect();
+        $instituteAffiliations = $educator->instituteAffiliations()->with(['institute.user:id,role'])->get();
 
         return view('backend.educator.profile', [
             'user' => $user,
@@ -41,9 +42,11 @@ class EducatorProfileController extends Controller
 
     public function update(Request $request): RedirectResponse|JsonResponse
     {
-        $user = $request->user()->load('educator');
         /** @var Educator $educator */
-        $educator = $user->educator;
+        $educator = ManagedEducator::current($request);
+        abort_unless($educator, 404);
+        $user = ManagedEducator::owner($request);
+        $byAdmin = ManagedEducator::fromAdmin($request) !== null;
 
         $validated = $request->validate(array_merge([
             'name' => ['required', 'string', 'max:255'],
@@ -179,7 +182,9 @@ class EducatorProfileController extends Controller
             'success_rate',
         ])->all());
 
-        if ($phoneChanged) {
+        // Only the owner editing their own profile is logged out to re-verify a changed number;
+        // an admin editing on their behalf keeps their admin session.
+        if ($phoneChanged && ! $byAdmin) {
             return $this->logoutForPhoneVerification($request);
         }
 
@@ -194,7 +199,7 @@ class EducatorProfileController extends Controller
         }
 
         return redirect()
-            ->route('educator.profile.edit')
+            ->to($byAdmin ? ManagedEducator::adminRoute($educator, 'profile.edit') : route('educator.profile.edit'))
             ->with('status', 'Profile updated successfully.');
     }
 

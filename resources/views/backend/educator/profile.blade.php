@@ -22,6 +22,9 @@
   $photoUrl = $educator->photoUrl();
 @endphp
 <div class="admin-panel ems-page edu-profile-page">
+  @if($managedEducator ?? null)
+    @include('backend.educator.partials.admin-manage-bar')
+  @endif
   <div class="edu-profile-hero ems-hero">
     <div class="edu-profile-hero__inner">
       <div class="edu-profile-hero__identity">
@@ -69,7 +72,7 @@
     </nav>
 
     <div class="edu-profile-content">
-      <form id="educatorProfileForm" method="POST" action="{{ route('educator.profile.update') }}" enctype="multipart/form-data" novalidate>
+      <form id="educatorProfileForm" method="POST" action="{{ $educatorRoute('profile.update') }}" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
 
@@ -161,6 +164,7 @@
             </div>
           </div>
 
+          @unless($managedEducator ?? null)
           <div id="eduSchoolAffiliationBlock" class="edu-profile-subsection edu-profile-subsection--affiliations @if($isTutorProfile && ! $associatedWithSchool) d-none @endif">
             <div class="edu-profile-subsection__head">
               <div>
@@ -200,6 +204,7 @@
               @endforelse
             </div>
           </div>
+          @endunless
 
           <div class="edu-profile-subsection">
             <div class="edu-profile-subsection__head">
@@ -412,7 +417,7 @@
         <div class="edu-profile-savebar">
           <p class="edu-profile-savebar__hint"><i class="fa-solid fa-circle-info me-1"></i> Changes are saved to your public profile after you click Save.</p>
           <div class="d-flex gap-2">
-            <a href="{{ route('educator.dashboard') }}" class="btn btn-outline-secondary">Back</a>
+            <a href="{{ ($managedEducator ?? null) ? route('admin.educators.index') : route('educator.dashboard') }}" class="btn btn-outline-secondary">Back</a>
             <button id="educatorProfileSubmitBtn" type="submit" class="btn btn-primary ems-btn-primary px-4">
               <i class="fa-solid fa-floppy-disk me-1"></i> Save changes
             </button>
@@ -433,6 +438,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+@unless($managedEducator ?? null)
 <script>
 window.eduAffiliationRoutes = {
   search: @json(route('educator.affiliations.search')),
@@ -440,6 +446,7 @@ window.eduAffiliationRoutes = {
 };
 </script>
 <script src="{{ asset('assets/js/educator-institute-affiliations.js') }}?v={{ now()->timestamp }}"></script>
+@endunless
 <script src="{{ asset('assets/js/profile-phone-numbers.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script>
