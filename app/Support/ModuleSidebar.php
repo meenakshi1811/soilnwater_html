@@ -162,8 +162,13 @@ final class ModuleSidebar
                 'label' => 'Community',
                 'icon' => 'fa-solid fa-pen-nib',
                 'hidden_for_admin' => true,
-                'active_routes' => ['admin.community-posts.*', 'admin.community-chats.*', 'admin.foul-words.*'],
+                'active_routes' => ['admin.community-posts.*', 'admin.community-chats.*', 'admin.foul-words.*', 'community.posts.*', 'community.saved.*', 'community.subscriptions.*', 'community.author-questions.*'],
                 'items' => [
+                    // Posting as the admin team (see EnsureCommunityActor)
+                    ['label' => 'My Posts', 'route' => 'community.posts.index', 'icon' => 'fa-solid fa-user-pen', 'module' => 'community', 'action' => 'read', 'active' => 'community.posts.*'],
+                    ['label' => 'Saved Posts', 'route' => 'community.saved.index', 'icon' => 'fa-solid fa-bookmark', 'module' => 'community', 'action' => 'read', 'active' => 'community.saved.*'],
+                    ['label' => 'Subscriptions', 'route' => 'community.subscriptions.index', 'icon' => 'fa-solid fa-bell', 'module' => 'community', 'action' => 'read', 'active' => 'community.subscriptions.*'],
+                    ['label' => 'Reader Questions', 'route' => 'community.author-questions.index', 'icon' => 'fa-solid fa-circle-question', 'module' => 'community', 'action' => 'read', 'active' => 'community.author-questions.*'],
                     ['label' => 'Post Approvals', 'route' => 'admin.community-posts.index', 'icon' => 'fa-solid fa-clipboard-check', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.*', 'active_except' => ['admin.community-posts.all.*', 'admin.community-posts.reports.*']],
                     ['label' => 'All Posts', 'route' => 'admin.community-posts.all.index', 'icon' => 'fa-solid fa-rectangle-list', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.all.*'],
                     ['label' => 'Reported Posts', 'route' => 'admin.community-posts.reports.index', 'icon' => 'fa-regular fa-flag', 'module' => 'community', 'action' => 'read', 'active' => 'admin.community-posts.reports.*'],

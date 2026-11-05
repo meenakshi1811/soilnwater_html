@@ -1,6 +1,9 @@
 @php
-  $user = auth()->user();
-  $dashboardUrl = \App\Support\UserDashboard::url($user);
+  // The acting employee on community pages, otherwise the signed-in account
+  $user = \App\Support\AuthActor::viewer();
+  $isEmployeeViewer = $user instanceof \App\Models\Employee;
+  $dashboardUrl = $isEmployeeViewer ? $user->dashboardUrl() : \App\Support\UserDashboard::url($user);
+  $logoutUrl = $isEmployeeViewer ? route('employee.logout') : route('logout');
   $isHomepage = request()->routeIs('frontend.index');
 @endphp
 
@@ -40,7 +43,7 @@
             <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'service') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
           @endif
           <li>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ $logoutUrl }}">
               @csrf
               <button type="submit" class="dropdown-item">Logout</button>
             </form>
@@ -77,7 +80,7 @@
       @elseif($user->isServiceProvider() && ! $user->serviceProvider?->is_premium)
         <a class="btn-offer" href="{{ route('frontend.premium.show', 'service') }}">Get Premium</a>
       @endif
-      <form method="POST" action="{{ route('logout') }}" class="header-mobile-logout">
+      <form method="POST" action="{{ $logoutUrl }}" class="header-mobile-logout">
         @csrf
         <button type="submit" class="btn-login">Logout</button>
       </form>

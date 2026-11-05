@@ -11,6 +11,24 @@ use Illuminate\Support\Facades\Auth;
  */
 final class AuthActor
 {
+    /**
+     * Request attribute holding the employee who is using the community module on behalf of the
+     * admin team for the current request (set by EnsureCommunityActor).
+     */
+    public const ACTING_EMPLOYEE = 'community_acting_employee';
+
+    /**
+     * The person actually looking at the page: the acting employee when one is set for this
+     * request, otherwise the account on the active guard. Use it for header/sidebar chrome
+     * (name, profile link, logout) so an acting employee still sees their own account.
+     */
+    public static function viewer(): ?Authenticatable
+    {
+        $actingEmployee = request()->attributes->get(self::ACTING_EMPLOYEE);
+
+        return $actingEmployee instanceof Authenticatable ? $actingEmployee : Auth::user();
+    }
+
     public static function user(): ?Authenticatable
     {
         return Auth::guard('employee')->user() ?? Auth::guard('web')->user();

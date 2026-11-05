@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureUserIsInstitute;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureServiceProviderIsApproved;
 use App\Http\Middleware\EnsureChatNotBlocked;
+use App\Http\Middleware\EnsureCommunityActor;
 use App\Http\Middleware\EnsureAdminOrModuleAccess;
 use App\Http\Middleware\EnsureEmployeeIsActive;
 use App\Http\Middleware\EnsureEmployeeOrAdmin;
@@ -59,6 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'admin.or.module' => EnsureAdminOrModuleAccess::class,
             'auth.web_or_employee' => EnsureWebVerifiedOrEmployee::class,
+            'community.actor' => EnsureCommunityActor::class,
             'employee.active' => EnsureEmployeeIsActive::class,
             'employee.or.admin' => EnsureEmployeeOrAdmin::class,
             'chat.not_blocked' => EnsureChatNotBlocked::class,

@@ -1,5 +1,6 @@
 @php
-    $user = auth()->user();
+    // The acting employee on community pages, otherwise the signed-in account
+    $user = \App\Support\AuthActor::viewer();
     $isGeneralUser = $user->isGeneralUser();
     $isVendor = $user->isVendor();
     $isConsultant = $user->isConsultant();

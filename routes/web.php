@@ -171,18 +171,21 @@ Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
-Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
-Route::get('/community/all', [CommunityPostController::class, 'index'])->name('community.all');
-Route::redirect('/community/my-area', '/community?type=local-voices')->name('community.my-area.index');
-Route::get('/community/community-issues', [CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
-Route::get('/community/community-issues/heat-map', [CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
-Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
-Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
-Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
-Route::post('/community/{post:slug}/awareness-engagement/volunteer', [CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
-Route::post('/community/{post:slug}/environment-engagement/volunteer', [CommunityEnvironmentEngagementController::class, 'volunteer'])->name('community.environment-engagement.volunteer');
-Route::post('/community/{post:slug}/business-engagement/query', [CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
-Route::post('/community/{post:slug}/astro-consultancy-engagement/private-query', [CommunityAstroConsultancyEngagementController::class, 'submitPrivateQuery'])->name('community.astro-consultancy-engagement.private-query');
+// Public community pages: employees with Community access are recognised as signed in here too
+Route::middleware('community.actor:optional')->group(function () {
+    Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+    Route::get('/community/all', [CommunityPostController::class, 'index'])->name('community.all');
+    Route::redirect('/community/my-area', '/community?type=local-voices')->name('community.my-area.index');
+    Route::get('/community/community-issues', [CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
+    Route::get('/community/community-issues/heat-map', [CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
+    Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
+    Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
+    Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
+    Route::post('/community/{post:slug}/awareness-engagement/volunteer', [CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
+    Route::post('/community/{post:slug}/environment-engagement/volunteer', [CommunityEnvironmentEngagementController::class, 'volunteer'])->name('community.environment-engagement.volunteer');
+    Route::post('/community/{post:slug}/business-engagement/query', [CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
+    Route::post('/community/{post:slug}/astro-consultancy-engagement/private-query', [CommunityAstroConsultancyEngagementController::class, 'submitPrivateQuery'])->name('community.astro-consultancy-engagement.private-query');
+});
 
 Route::post('/frontend/location', function (Request $request) {
     $data = $request->validate([
@@ -528,7 +531,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('post-ad');
         });
     });
+});
 
+// Community actions and author dashboard: signed-in (verified) users, and employees with Community access
+Route::middleware('community.actor')->group(function () {
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
     Route::post('/community/{post:slug}/rate', [CommunityPostController::class, 'rateStory'])->name('community.story.rate');
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
@@ -664,7 +670,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             });
             Route::get('/all', [CommunityPostApprovalController::class, 'allIndex'])->name('all.index');
             Route::get('/all/data', [CommunityPostApprovalController::class, 'allData'])->name('all.data');
-            Route::delete('/{post}', [CommunityPostController::class, 'destroy'])->name('destroy');
+            Route::delete('/{post}', [CommunityPostController::class, 'destroy'])->middleware('community.actor')->name('destroy');
             Route::get('/{post}/preview', [CommunityPostApprovalController::class, 'preview'])->name('preview');
             Route::get('/{post}', [CommunityPostApprovalController::class, 'show'])->name('show');
             Route::post('/{post}/approve', [CommunityPostApprovalController::class, 'approve'])->name('approve');

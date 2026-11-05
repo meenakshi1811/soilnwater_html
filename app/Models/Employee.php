@@ -204,6 +204,20 @@ class Employee extends Authenticatable
         return $this->can($moduleSlug.'.'.$action);
     }
 
+    /**
+     * Whether the employee's role grants any permission on the module (add/read/write/delete/approve).
+     */
+    public function hasModuleAccess(string $moduleSlug): bool
+    {
+        foreach (ModulePermissions::ACTIONS as $action) {
+            if ($this->canModule($moduleSlug, $action)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function firstReadableModuleSlug(): ?string
     {
         foreach (array_keys(ModulePermissions::modules()) as $slug) {
