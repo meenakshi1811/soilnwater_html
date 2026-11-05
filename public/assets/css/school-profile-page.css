@@ -3998,3 +3998,96 @@
 .sch-fee-footnote i {
   margin-right: 0.3rem;
 }
+
+/* ============================================================
+   Inline (owner) editor — Phase 1
+   ============================================================ */
+.sch-inline-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1050;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35);
+  cursor: pointer;
+}
+.sch-inline-fab:hover { background: #0b5ed7; }
+body.sch-edit-mode .sch-inline-fab { background: #198754; box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35); }
+
+.sch-inline-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 1050;
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+}
+body.sch-edit-mode .sch-inline-toolbar { display: flex; }
+.sch-inline-toolbar__label { font-size: 0.85rem; color: #64748b; font-weight: 600; }
+.sch-inline-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.sch-inline-toolbar__btn:hover { background: #e2e8f0; }
+
+/* Per-section pencils: only visible in edit mode */
+.sch-inline-pencil {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: 0.5rem;
+  border: 1px solid #0d6efd;
+  border-radius: 50%;
+  background: #eef4ff;
+  color: #0d6efd;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.sch-inline-pencil:hover { background: #0d6efd; color: #fff; }
+body.sch-edit-mode .sch-inline-pencil { display: inline-flex; }
+
+.sch-inline-section-tools {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+}
+.sch-notice-section { position: relative; }
+
+/* Offcanvas sits above the FAB/toolbar */
+.sch-inline-offcanvas { z-index: 1060; width: min(680px, 95vw); }
+
+/* In the inline jobs popup, applications are managed in the portal, not here */
+.sch-inline-offcanvas .sch-job-applications { display: none; }
+
+/* Inline diary popups support add + delete; per-item edit stays in the portal */
+.sch-inline-offcanvas .js-diary-holiday-edit,
+.sch-inline-offcanvas .js-diary-leave-edit { display: none; }
+

@@ -262,7 +262,7 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
   });
 })();
 
-(function(){
+window.initCardCarousels = function initCardCarousels(){
   const carousels = Array.from(document.querySelectorAll('[data-slide-by="card"]'));
 
   if (!carousels.length) return;
@@ -416,7 +416,8 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       window.addEventListener('load', refreshAuto);
     }
   });
-})();
+};
+window.initCardCarousels();
 
 (function(){
   const topSidebarAds = document.querySelector('.top-sidebar-ads');

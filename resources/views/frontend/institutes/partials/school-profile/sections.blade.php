@@ -9,6 +9,11 @@
   $showSection = fn (string $key): bool => $onlySection === null
     ? ! in_array($key, $skipSections, true)
     : $onlySection === $key;
+  $canEditInline = $canEditInline ?? false;
+  // Public section key => inline editor key for its pencil button
+  $inlinePencil = fn (string $editorKey) => $canEditInline
+    ? '<button type="button" class="sch-inline-pencil js-sch-inline-edit" data-inline-edit="'.$editorKey.'" title="Edit"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>'
+    : '';
 
   $classes = $institute->schoolClasses;
   $achievements = $institute->achievements;
@@ -64,7 +69,7 @@
 @if($showSection('courses') && ($courseWingsPreview !== [] || $classes->isNotEmpty() || $institute->gradesOfferedEntries() !== []))
   <section id="sch-courses" class="sch-card sch-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Courses &amp; Programs Offered</h2>
+      <h2 class="sch-section__title mb-0">Courses &amp; Programs Offered</h2>{!! $inlinePencil('courses') !!}
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -112,7 +117,7 @@
     @if($classes->isNotEmpty())
       <div id="sch-classes-detail" class="sch-classes-detail">
         <div class="sch-section__head sch-classes-detail__head">
-          <h3 class="sch-classes-detail__title mb-0">Class details</h3>
+          <h3 class="sch-classes-detail__title mb-0">Class details</h3>{!! $inlinePencil('classes') !!}
           @include('frontend.institutes.partials.school-profile.section-view-all', [
             'institute' => $institute,
             'isProfilePreview' => $isProfilePreview,
@@ -158,7 +163,7 @@
 @if($showSection('facilities') && collect($institute->facilities ?? [])->isNotEmpty())
   <section id="sch-facilities" class="sch-card sch-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Our Facilities</h2>
+      <h2 class="sch-section__title mb-0">Our Facilities</h2>{!! $inlinePencil('facilities') !!}
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -272,7 +277,7 @@
   <section id="sch-gallery" class="sch-card sch-section">
     <div class="sch-section__head sch-section__head--stack">
       <div>
-        <h2 class="sch-section__title mb-1">Gallery</h2>
+        <h2 class="sch-section__title mb-1">Gallery</h2>{!! $inlinePencil('gallery') !!}
         <p class="sch-section__lead mb-0">Campus photos and videos. Videos play only when you tap Play.</p>
       </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
@@ -316,7 +321,7 @@
 @if($showSection('achievements') && $achievements->isNotEmpty())
   <section id="sch-achievements" class="sch-card sch-section sch-achievements-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Achievements</h2>
+      <h2 class="sch-section__title mb-0">Achievements</h2>{!! $inlinePencil('achievements') !!}
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -361,7 +366,7 @@
 @if($showSection('results') && $performers->isNotEmpty())
   <section id="sch-results" class="sch-card sch-section">
     <div class="sch-section__head">
-      <h2 class="sch-section__title mb-0">Results</h2>
+      <h2 class="sch-section__title mb-0">Results</h2>{!! $inlinePencil('performers') !!}
       @include('frontend.institutes.partials.school-profile.section-view-all', [
         'institute' => $institute,
         'isProfilePreview' => $isProfilePreview,
@@ -400,7 +405,7 @@
   <section id="sch-jobs" class="sch-card sch-section sch-jobs-section">
     <div class="sch-section__head">
       <div>
-        <h2 class="sch-section__title mb-1">Jobs &amp; Careers</h2>
+        <h2 class="sch-section__title mb-1">Jobs &amp; Careers</h2>{!! $inlinePencil('jobs') !!}
         <p class="sch-section__lead mb-0">Latest openings at this institution. Log in to apply online.</p>
       </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
@@ -456,7 +461,7 @@
   <section id="sch-notes-material" class="sch-card sch-section sch-books-section">
     <div class="sch-section__head sch-books-section__head">
       <div>
-        <h2 class="sch-section__title mb-1">Notes &amp; Study Material</h2>
+        <h2 class="sch-section__title mb-1">Notes &amp; Study Material</h2>{!! $inlinePencil('books') !!}
         <p class="sch-section__lead mb-0">Textbooks, notes, and study resources used across classes.</p>
       </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [
@@ -501,7 +506,7 @@
   <section id="sch-question-papers" class="sch-card sch-section sch-books-section">
     <div class="sch-section__head sch-books-section__head">
       <div>
-        <h2 class="sch-section__title mb-1">Question Papers</h2>
+        <h2 class="sch-section__title mb-1">Question Papers</h2>{!! $inlinePencil('books') !!}
         <p class="sch-section__lead mb-0">Sample papers and previous-year papers for exam preparation.</p>
       </div>
       @include('frontend.institutes.partials.school-profile.section-view-all', [

@@ -6,10 +6,15 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">
+@if($canEditInline ?? false)
+  <link rel="stylesheet" href="{{ asset('assets/css/institute-portal.css') }}?v={{ now()->timestamp }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/educator-portal-profile.css') }}?v={{ now()->timestamp }}">
+@endif
 @endpush
 
 @section('content')
 @php
+  $canEditInline = $canEditInline ?? false;
   $listingIndexRoute = $listingContext === 'schools' ? 'schools.index' : 'institutes.index';
   $listingLabel = $listingContext === 'schools' ? 'Schools' : 'Institutes';
   $profileUrl = $institute->publicUrl();
@@ -227,6 +232,16 @@
   ])
 @endif
 @include('community.partials.toastr-assets')
+@if($canEditInline)
+  @include('frontend.institutes.partials.school-profile.inline.editor-ui', [
+    'institute' => $institute,
+    'listingContext' => $listingContext,
+    'inlineSections' => [
+      'diary-holiday' => ['Holidays', 'fa-calendar-days'],
+      'diary-leave' => ['Leave rules', 'fa-clipboard-list'],
+    ],
+  ])
+@endif
 @endsection
 
 @push('scripts')
@@ -235,5 +250,8 @@
 <script src="{{ asset('assets/js/institute-enquiry-form.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
+@endif
+@if($canEditInline ?? false)
+<script src="{{ asset('assets/js/school-profile-inline-edit.js') }}?v={{ now()->timestamp }}" defer></script>
 @endif
 @endpush

@@ -14,6 +14,11 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/school-profile-page.css') }}?v={{ now()->timestamp }}">
+@if($canEditInline ?? false)
+  {{-- Portal styles so the inline editor popups (which reuse portal forms/items) look right --}}
+  <link rel="stylesheet" href="{{ asset('assets/css/institute-portal.css') }}?v={{ now()->timestamp }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/educator-portal-profile.css') }}?v={{ now()->timestamp }}">
+@endif
 @endpush
 
 @section('content')
@@ -21,6 +26,7 @@
   /** @var \App\Support\SchoolProfilePresenter $profile */
   $navItems = $profile->navItems();
   $authUser = auth()->user();
+  $canEditInline = $canEditInline ?? false;
   $shareUrl = $institute->publicUrl();
   $aboutText = $profile->aboutText();
   $aboutNeedsToggle = strlen($aboutText) > 320;
@@ -86,7 +92,7 @@
       @include('frontend.institutes.partials.school-profile.nav', ['navItems' => $navItems, 'institute' => $institute, 'shareUrl' => $shareUrl])
 
       <div class="sch-body">
-        @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle', 'engagement', 'listingContext'))
+        @include('frontend.institutes.partials.school-profile.hero', compact('profile', 'institute', 'aboutText', 'aboutNeedsToggle', 'engagement', 'listingContext', 'canEditInline'))
 
         {{-- The rating strip and the facilities: under the header, at the end on phones (a number
              the school cleared is left out) --}}
@@ -140,23 +146,12 @@
           </div>
         @endif
 
-        @if($institute->activeNotices->isNotEmpty())
-          @php
-            $noticesTotal = $institute->activeNotices->count();
-            $noticesPreviewLimit = \App\Support\SchoolProfilePresenter::PREVIEW_LIMITS['notices'];
-          @endphp
-          <section class="sch-notice-section" id="sch-notices" aria-label="Notice Board">
-            <div class="sch-notice-section__frame sch-card">
-              @include('frontend.institutes.partials.notice-board', [
-                'notices' => $institute->activeNotices->take($noticesPreviewLimit),
-                'featured' => true,
-                'layout' => 'grid',
-                'viewAllUrl' => $institute->publicSectionUrl('notices'),
-                'viewAllLabel' => 'View all notices',
-                'showViewAll' => true,
-              ])
-            </div>
-          </section>
+        @if($canEditInline)
+          <div data-inline-wrap="notices">
+            @include('frontend.institutes.partials.school-profile.inline.notices-public', ['institute' => $institute, 'canEditInline' => true])
+          </div>
+        @else
+          @include('frontend.institutes.partials.school-profile.inline.notices-public', ['institute' => $institute])
         @endif
 
         <div class="sch-tabs" role="tablist" aria-label="{{ $entityLabel }} profile sections">
@@ -177,7 +172,7 @@
 
         <div class="sch-lower-grid">
           <main class="sch-main">
-            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle', 'listingContext', 'entityLabel', 'engagement'))
+            @include('frontend.institutes.partials.school-profile.content', compact('profile', 'institute', 'authUser', 'aboutText', 'aboutNeedsToggle', 'listingContext', 'entityLabel', 'engagement', 'canEditInline'))
           </main>
 
           @include('frontend.institutes.partials.school-profile.sidebar', compact('profile', 'institute', 'shareUrl'))
@@ -191,6 +186,9 @@
 
 @include('frontend.institutes.partials.school-profile.modals', compact('institute', 'shareUrl', 'profile', 'engagement', 'listingContext'))
 @include('community.partials.toastr-assets')
+@if($canEditInline)
+  @include('frontend.institutes.partials.school-profile.inline.editor-ui', compact('institute', 'listingContext'))
+@endif
 @endsection
 
 @push('scripts')
@@ -200,6 +198,9 @@
 <script src="{{ asset('assets/js/school-profile-actions.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-jobs.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/school-profile-page.js') }}?v={{ now()->timestamp }}" defer></script>
+@if($canEditInline)
+<script src="{{ asset('assets/js/school-profile-inline-edit.js') }}?v={{ now()->timestamp }}" defer></script>
+@endif
 <script defer>
 document.addEventListener('DOMContentLoaded', function () {
   var pageRoot = document.getElementById('schoolProfilePage');

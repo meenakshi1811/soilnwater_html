@@ -181,6 +181,7 @@ class InstituteProfileController extends Controller
             'audiences' => $audiences,
             'diaryUrl' => route($listingContext.'.diary', $institute->slug),
             'shareUrl' => $institute->publicUrl(),
+            'canEditInline' => $this->ownerCanEditInline($institute, $authUser, $ownerRole),
         ]);
     }
 
@@ -198,7 +199,17 @@ class InstituteProfileController extends Controller
             'listingContext' => $ownerRole === 'school' ? 'schools' : 'institutes',
             'activeNav' => 'home',
             'engagement' => $engagement,
+            // The owner, viewing their own public page, may edit it inline (AJAX)
+            'canEditInline' => $this->ownerCanEditInline($institute, $authUser, $ownerRole),
         ]);
+    }
+
+    /** True when the signed-in user owns this profile and so may edit it inline on the public page. */
+    private function ownerCanEditInline(Institute $institute, ?\App\Models\User $authUser, string $ownerRole): bool
+    {
+        return $authUser !== null
+            && (int) $authUser->id === (int) $institute->user_id
+            && $authUser->role === $ownerRole;
     }
 
     public function schoolReview(Request $request, string $slug): RedirectResponse

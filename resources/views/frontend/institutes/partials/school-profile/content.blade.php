@@ -1,7 +1,7 @@
 <div class="sch-content-main">
     @if($aboutText)
       <section id="sch-about" class="sch-card sch-section">
-        <h2 class="sch-section__title">About the {{ $entityLabel ?? 'School' }}</h2>
+        <h2 class="sch-section__title">About the {{ $entityLabel ?? 'School' }}@if($canEditInline ?? false)<button type="button" class="sch-inline-pencil js-sch-inline-edit" data-inline-edit="basics" title="Edit about"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>@endif</h2>
         <div class="sch-about">
           <div class="sch-about__text js-sch-about-text {{ $aboutNeedsToggle ? 'is-collapsed' : '' }}">{!! nl2br(e($aboutText)) !!}</div>
           @if($aboutNeedsToggle)
@@ -27,6 +27,7 @@
       'institute' => $institute,
       'entityLabel' => $entityLabel ?? 'School',
       'listingContext' => $listingContext ?? 'schools',
+      'canEditInline' => $canEditInline ?? false,
     ])
 
     <section id="sch-admission" class="sch-card sch-section sch-admission-section">
@@ -65,5 +66,6 @@
       'institute' => $institute,
       'entityLabel' => $entityLabel ?? 'School',
       'listingContext' => $listingContext ?? 'schools',
+      'canEditInline' => $canEditInline ?? false,
     ])
 </div>

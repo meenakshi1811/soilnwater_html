@@ -21,6 +21,9 @@
           <img src="{{ $institute->logoUrl() }}" alt="{{ $profile->displayName() }} logo" class="sch-hero__logo" width="56" height="56">
         @endif
         <h1>{{ $profile->displayName() }}</h1>
+        @if($canEditInline ?? false)
+          <button type="button" class="sch-inline-pencil js-sch-inline-edit" data-inline-edit="basics" title="Edit about & info"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+        @endif
         <button
           type="button"
           class="sch-bookmark js-sch-bookmark {{ !empty($engagement['is_bookmarked']) ? 'is-active' : '' }}"

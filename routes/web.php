@@ -96,6 +96,7 @@ use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Frontend\EducatorProfileController as FrontendEducatorProfileController;
 use App\Http\Controllers\Frontend\EducationHubController;
 use App\Http\Controllers\Frontend\EducatorListingController;
+use App\Http\Controllers\Frontend\InstituteInlineEditController;
 use App\Http\Controllers\Frontend\InstituteListingController;
 use App\Http\Controllers\Frontend\InstituteEngagementController;
 use App\Http\Controllers\Frontend\InstituteProfileController;
@@ -233,6 +234,30 @@ Route::post('/schools/{slug}/compare', [InstituteEngagementController::class, 's
 Route::post('/schools/{slug}/brochure', [InstituteEngagementController::class, 'schoolBrochure'])->middleware('auth')->name('schools.brochure');
 Route::post('/schools/{slug}/helpful', [InstituteEngagementController::class, 'schoolHelpful'])->middleware('auth')->name('schools.helpful');
 Route::post('/schools/{slug}/report', [ProfileReportController::class, 'school'])->middleware(['auth', 'verified'])->name('schools.report');
+
+// Owner-only inline editing of the public page (AJAX form + section re-render)
+Route::middleware('auth')->group(function () {
+    Route::put('/schools/{slug}/inline-edit/basics', [InstituteInlineEditController::class, 'updateBasics'])->defaults('ownerRole', 'school')->name('schools.inline.basics.update');
+    Route::put('/institutes/{slug}/inline-edit/basics', [InstituteInlineEditController::class, 'updateBasics'])->defaults('ownerRole', 'institute')->name('institutes.inline.basics.update');
+    Route::post('/schools/{slug}/inline-edit/facilities/add', [InstituteInlineEditController::class, 'addFacility'])->defaults('ownerRole', 'school')->name('schools.inline.facilities.add');
+    Route::delete('/schools/{slug}/inline-edit/facilities', [InstituteInlineEditController::class, 'removeFacility'])->defaults('ownerRole', 'school')->name('schools.inline.facilities.remove');
+    Route::post('/institutes/{slug}/inline-edit/facilities/add', [InstituteInlineEditController::class, 'addFacility'])->defaults('ownerRole', 'institute')->name('institutes.inline.facilities.add');
+    Route::delete('/institutes/{slug}/inline-edit/facilities', [InstituteInlineEditController::class, 'removeFacility'])->defaults('ownerRole', 'institute')->name('institutes.inline.facilities.remove');
+    Route::post('/schools/{slug}/inline-edit/gallery/add', [InstituteInlineEditController::class, 'addGalleryItems'])->defaults('ownerRole', 'school')->name('schools.inline.gallery.add');
+    Route::delete('/schools/{slug}/inline-edit/gallery', [InstituteInlineEditController::class, 'removeGalleryItem'])->defaults('ownerRole', 'school')->name('schools.inline.gallery.remove');
+    Route::post('/institutes/{slug}/inline-edit/gallery/add', [InstituteInlineEditController::class, 'addGalleryItems'])->defaults('ownerRole', 'institute')->name('institutes.inline.gallery.add');
+    Route::delete('/institutes/{slug}/inline-edit/gallery', [InstituteInlineEditController::class, 'removeGalleryItem'])->defaults('ownerRole', 'institute')->name('institutes.inline.gallery.remove');
+    Route::post('/schools/{slug}/inline-edit/courses/add', [InstituteInlineEditController::class, 'addCourseWing'])->defaults('ownerRole', 'school')->name('schools.inline.courses.add');
+    Route::delete('/schools/{slug}/inline-edit/courses', [InstituteInlineEditController::class, 'removeCourseWing'])->defaults('ownerRole', 'school')->name('schools.inline.courses.remove');
+    Route::post('/institutes/{slug}/inline-edit/courses/add', [InstituteInlineEditController::class, 'addCourseWing'])->defaults('ownerRole', 'institute')->name('institutes.inline.courses.add');
+    Route::delete('/institutes/{slug}/inline-edit/courses', [InstituteInlineEditController::class, 'removeCourseWing'])->defaults('ownerRole', 'institute')->name('institutes.inline.courses.remove');
+    Route::put('/schools/{slug}/inline-edit/fee', [InstituteInlineEditController::class, 'updateFee'])->defaults('ownerRole', 'school')->name('schools.inline.fee.update');
+    Route::put('/institutes/{slug}/inline-edit/fee', [InstituteInlineEditController::class, 'updateFee'])->defaults('ownerRole', 'institute')->name('institutes.inline.fee.update');
+    Route::get('/schools/{slug}/inline-edit/{section}/form', [InstituteInlineEditController::class, 'form'])->defaults('ownerRole', 'school')->name('schools.inline.form');
+    Route::get('/schools/{slug}/inline-edit/{section}', [InstituteInlineEditController::class, 'section'])->defaults('ownerRole', 'school')->name('schools.inline.section');
+    Route::get('/institutes/{slug}/inline-edit/{section}/form', [InstituteInlineEditController::class, 'form'])->defaults('ownerRole', 'institute')->name('institutes.inline.form');
+    Route::get('/institutes/{slug}/inline-edit/{section}', [InstituteInlineEditController::class, 'section'])->defaults('ownerRole', 'institute')->name('institutes.inline.section');
+});
 
 Route::get('/institutes', [InstituteListingController::class, 'instituteIndex'])->name('institutes.index');
 Route::get('/institutes/listings', [InstituteListingController::class, 'instituteListings'])->name('institutes.listings');
