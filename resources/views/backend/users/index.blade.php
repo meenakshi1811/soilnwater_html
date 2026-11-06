@@ -272,10 +272,8 @@
                     <div id="userPasswordAlert" class="alert alert-danger d-none"></div>
                     <div class="mb-3">
                         <label class="form-label" for="userNewPassword">New password</label>
-                        <div class="input-group">
-                            <input type="password" name="password" id="userNewPassword" class="form-control" minlength="8" autocomplete="new-password" required>
-                            <button type="button" class="btn btn-outline-secondary js-password-visibility" data-target="#userNewPassword" title="Show password"><i class="fa-solid fa-eye"></i></button>
-                        </div>
+                        {{-- (the eye to show it comes from password-toggle.js, as on every password field) --}}
+                        <input type="password" name="password" id="userNewPassword" class="form-control" minlength="8" autocomplete="new-password" required>
                         <div class="form-text">At least 8 characters.</div>
                     </div>
                     <div>

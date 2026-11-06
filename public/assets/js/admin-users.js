@@ -368,13 +368,6 @@
                 self.passwordModal.show();
             });
 
-            $(document).on('click', '.js-password-visibility', function () {
-                var $input = $($(this).data('target'));
-                var show = $input.attr('type') === 'password';
-                $input.attr('type', show ? 'text' : 'password');
-                $(this).find('i').toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
-            });
-
             $(document).on('click', '.js-view-user', function () {
                 var id = $(this).data('id');
                 $('#userViewContent').html('<div class="text-center py-5 text-secondary">Loading details...</div>');
