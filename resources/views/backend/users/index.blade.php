@@ -256,6 +256,45 @@
     </div>
 </div>
 
+{{-- The admin sets a new password for a user --}}
+<div class="modal fade" id="userPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content ems-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Update password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="userPasswordForm" method="POST" action="#" novalidate autocomplete="off">
+                @csrf
+                <input type="hidden" name="_method" value="PUT">
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">Set a new password for <strong id="userPasswordName">this user</strong>. They sign in with it from now on.</p>
+                    <div id="userPasswordAlert" class="alert alert-danger d-none"></div>
+                    <div class="mb-3">
+                        <label class="form-label" for="userNewPassword">New password</label>
+                        <div class="input-group">
+                            <input type="password" name="password" id="userNewPassword" class="form-control" minlength="8" autocomplete="new-password" required>
+                            <button type="button" class="btn btn-outline-secondary js-password-visibility" data-target="#userNewPassword" title="Show password"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                        <div class="form-text">At least 8 characters.</div>
+                    </div>
+                    <div>
+                        <label class="form-label" for="userNewPasswordConfirm">Confirm new password</label>
+                        <input type="password" name="password_confirmation" id="userNewPasswordConfirm" class="form-control" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="userPasswordSubmitBtn" class="btn btn-primary ems-btn-primary">
+                        <span class="btn-text">Update password</span>
+                        <span class="btn-loader d-none" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="userViewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content ems-modal">

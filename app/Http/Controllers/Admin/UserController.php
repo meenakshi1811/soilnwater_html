@@ -163,6 +163,7 @@ class UserController extends Controller
                 return '<div class="d-flex gap-2 justify-content-end align-items-center">'
                     . '<button type="button" class="btn btn-sm btn-outline-secondary js-view-user" data-id="'.$user->id.'" title="View details"><i class="fa-solid fa-eye"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-primary js-edit-user" data-id="'.$user->id.'" title="Edit user"><i class="fa-solid fa-pen"></i></button>'
+                    . '<button type="button" class="btn btn-sm btn-outline-warning js-password-user" data-id="'.$user->id.'" data-name="'.e($user->full_name ?: $user->name).'" title="Update password"><i class="fa-solid fa-key"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-user" data-id="'.$user->id.'" title="Delete user"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
             })
@@ -366,6 +367,30 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully.',
+        ]);
+    }
+
+    /** The admin sets a new password for the account (it signs in with it from now on) */
+    public function updatePassword(Request $request, User $user): JsonResponse
+    {
+        // (an admin account's password: only an admin changes it, not an employee with Users access)
+        $actor = $request->user();
+        abort_if($user->isAdmin() && ! ($actor instanceof User && $actor->isAdmin()), 403, 'Only an admin can change an admin account\'s password.');
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.confirmed' => 'The two passwords do not match.',
+        ]);
+
+        $user->forceFill([
+            'password' => Hash::make($validated['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        return response()->json([
+            'message' => 'Password updated for '.($user->full_name ?: $user->name).'.',
         ]);
     }
 

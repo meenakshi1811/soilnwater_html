@@ -352,6 +352,28 @@
             var self = this;
             self.modal = new bootstrap.Modal(document.getElementById('userModal'));
             self.viewModal = new bootstrap.Modal(document.getElementById('userViewModal'));
+            self.passwordModal = new bootstrap.Modal(document.getElementById('userPasswordModal'));
+
+            // Update password: the popup for this user
+            $(document).on('click', '.js-password-user', function () {
+                var $form = $('#userPasswordForm');
+                $form[0].reset();
+                if ($form.data('validator')) {
+                    $form.validate().resetForm();
+                }
+                $form.find('.is-invalid').removeClass('is-invalid');
+                $('#userPasswordAlert').addClass('d-none').empty();
+                $('#userPasswordName').text($(this).data('name') || 'this user');
+                $form.attr('action', '/admin/users/' + $(this).data('id') + '/password');
+                self.passwordModal.show();
+            });
+
+            $(document).on('click', '.js-password-visibility', function () {
+                var $input = $($(this).data('target'));
+                var show = $input.attr('type') === 'password';
+                $input.attr('type', show ? 'text' : 'password');
+                $(this).find('i').toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
+            });
 
             $(document).on('click', '.js-view-user', function () {
                 var id = $(this).data('id');
@@ -517,6 +539,38 @@
             });
         },
 
+        initPasswordForm: function () {
+            var self = this;
+
+            FormHelper.attachAjaxForm({
+                formSelector: '#userPasswordForm',
+                buttonSelector: '#userPasswordSubmitBtn',
+                alertSelector: '#userPasswordAlert',
+                defaultText: 'Update password',
+                loadingText: 'Updating...',
+                rules: {
+                    password: { required: true, minlength: 8 },
+                    password_confirmation: { required: true, equalTo: '#userNewPassword' }
+                },
+                messages: {
+                    password: { minlength: 'The password must be at least 8 characters.' },
+                    password_confirmation: { equalTo: 'The two passwords do not match.' }
+                },
+                onSuccess: function (response) {
+                    FormHelper.showToast('success', response.message || 'Password updated.');
+                    self.passwordModal.hide();
+                },
+                onError: function (xhr, message) {
+                    if (xhr.status === 422) {
+                        FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
+                        return;
+                    }
+
+                    FormHelper.showToast('danger', message || 'Unable to update the password.');
+                }
+            });
+        },
+
         init: function () {
             if (!$('#usersTable').length) {
                 return;
@@ -525,6 +579,7 @@
             this.initTable();
             this.bindUi();
             this.initForm();
+            this.initPasswordForm();
         }
     };
 

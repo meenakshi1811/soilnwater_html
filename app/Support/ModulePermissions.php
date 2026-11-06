@@ -141,6 +141,7 @@ final class ModulePermissions
             'admin.users.show' => 'read',
             'admin.users.store' => 'add',
             'admin.users.update' => 'write',
+            'admin.users.password' => 'write',
             'admin.users.destroy' => 'delete',
             'admin.users.toggle-block' => 'write',
             'admin.users.toggle-status' => 'write',

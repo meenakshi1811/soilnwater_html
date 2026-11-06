@@ -795,6 +795,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::post('/', [UserController::class, 'store'])->name('store');
             Route::get('/{user}', [UserController::class, 'show'])->name('show');
             Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::put('/{user}/password', [UserController::class, 'updatePassword'])->name('password');
             Route::patch('/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('toggle-block');
             Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
             Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
