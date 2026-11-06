@@ -4002,11 +4002,13 @@
 /* ============================================================
    Inline (owner) editor — Phase 1
    ============================================================ */
+/* Bottom-left: the site's chat button (discussion.css) holds the bottom-right corner */
 .sch-inline-fab {
   position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 1050;
+  left: calc(24px + env(safe-area-inset-left, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 1061;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -4022,12 +4024,13 @@
 .sch-inline-fab:hover { background: #0b5ed7; }
 body.sch-edit-mode .sch-inline-fab { background: #198754; box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35); }
 
+/* (above the Edit page and chat buttons, so it covers neither) */
 .sch-inline-toolbar {
   position: fixed;
   left: 50%;
-  bottom: 1rem;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  z-index: 1050;
+  z-index: 1061;
   display: none;
   flex-wrap: wrap;
   align-items: center;
@@ -4091,3 +4094,37 @@ body.sch-edit-mode .sch-inline-pencil { display: inline-flex; }
 .sch-inline-offcanvas .js-diary-holiday-edit,
 .sch-inline-offcanvas .js-diary-leave-edit { display: none; }
 
+
+/* Phones: level with the chat button there (16px in) */
+@media (max-width: 767px) {
+  .sch-inline-fab {
+    left: calc(16px + env(safe-area-inset-left, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* one row across the screen that scrolls sideways, not a tall column over the page */
+  .sch-inline-toolbar {
+    left: 12px;
+    right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    max-width: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .sch-inline-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sch-inline-toolbar__label {
+    display: none;
+  }
+
+  .sch-inline-toolbar__btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
