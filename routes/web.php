@@ -242,6 +242,9 @@ Route::post('/schools/{slug}/report', [ProfileReportController::class, 'school']
 // Owner-only inline editing of the public page (AJAX form + section re-render)
 Route::middleware('auth')->group(function () {
     Route::put('/schools/{slug}/inline-edit/basics', [InstituteInlineEditController::class, 'updateBasics'])->defaults('ownerRole', 'school')->name('schools.inline.basics.update');
+    Route::put('/schools/{slug}/inline-edit/admission', [InstituteInlineEditController::class, 'updateAdmission'])->defaults('ownerRole', 'school')->name('schools.inline.admission.update');
+    Route::put('/institutes/{slug}/inline-edit/admission', [InstituteInlineEditController::class, 'updateAdmission'])->defaults('ownerRole', 'institute')->name('institutes.inline.admission.update');
+    Route::put('/colleges/{slug}/inline-edit/admission', [InstituteInlineEditController::class, 'updateAdmission'])->defaults('ownerRole', 'college')->name('colleges.inline.admission.update');
     Route::put('/institutes/{slug}/inline-edit/basics', [InstituteInlineEditController::class, 'updateBasics'])->defaults('ownerRole', 'institute')->name('institutes.inline.basics.update');
     Route::post('/schools/{slug}/inline-edit/facilities/add', [InstituteInlineEditController::class, 'addFacility'])->defaults('ownerRole', 'school')->name('schools.inline.facilities.add');
     Route::delete('/schools/{slug}/inline-edit/facilities', [InstituteInlineEditController::class, 'removeFacility'])->defaults('ownerRole', 'school')->name('schools.inline.facilities.remove');

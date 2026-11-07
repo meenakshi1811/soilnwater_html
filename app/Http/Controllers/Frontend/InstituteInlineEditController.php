@@ -9,6 +9,7 @@ use App\Support\InstituteCourseWings;
 use App\Support\InstituteFeeStructure;
 use App\Support\InstituteFileUploader;
 use App\Support\InstituteGallery;
+use App\Support\InstituteProfileDetails;
 use App\Support\SchoolProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class InstituteInlineEditController extends Controller
     {
         $institute = $this->ownedInstituteOrAbort($slug, $ownerRole);
 
-        if (in_array($section, ['basics', 'facilities', 'gallery', 'courses', 'jobs', 'fee', 'diary-holiday', 'diary-leave'], true)) {
+        if (in_array($section, ['basics', 'admission', 'facilities', 'gallery', 'courses', 'jobs', 'fee', 'diary-holiday', 'diary-leave'], true)) {
             return response(view('frontend.institutes.partials.school-profile.inline.'.$section.'-form', [
                 'institute' => $institute,
                 'listingContext' => SchoolInstituteHelper::listingContext($ownerRole),
@@ -74,6 +75,46 @@ class InstituteInlineEditController extends Controller
         ]);
 
         return response()->json(['message' => 'About section updated.']);
+    }
+
+    /**
+     * Save the Admission Info text edited inline: the short intro, the key points (one per line;
+     * the first two show on the page) and the full details in the Read more popup.
+     */
+    public function updateAdmission(Request $request, string $slug, string $ownerRole = 'school'): JsonResponse
+    {
+        $institute = $this->ownedInstituteOrAbort($slug, $ownerRole);
+        [$maxPoints, $maxLength] = InstituteProfileDetails::LINE_LISTS['admission_highlights'];
+
+        $validated = $request->validate([
+            'lead' => ['nullable', 'string', 'max:500'],
+            'highlights' => ['nullable', 'string', 'max:'.($maxPoints * ($maxLength + 2))],
+            'details' => ['nullable', 'string', 'max:5000'],
+        ], [
+            'lead.max' => 'The short intro can be up to 500 characters.',
+            'details.max' => 'The full details can be up to 5,000 characters.',
+        ]);
+
+        $highlights = collect(preg_split('/\R/', (string) ($validated['highlights'] ?? '')))
+            ->map(fn (string $line): string => trim($line))
+            ->filter(fn (string $line): bool => $line !== '')
+            ->values();
+        if ($highlights->count() > $maxPoints) {
+            throw ValidationException::withMessages(['highlights' => 'Up to '.$maxPoints.' key points, one per line.']);
+        }
+        if ($highlights->contains(fn (string $line): bool => mb_strlen($line) > $maxLength)) {
+            throw ValidationException::withMessages(['highlights' => 'Each key point can be up to '.$maxLength.' characters.']);
+        }
+
+        $meta = is_array($institute->profile_meta) ? $institute->profile_meta : [];
+        $meta['admission'] = array_merge((array) ($meta['admission'] ?? []), [
+            'lead' => trim((string) ($validated['lead'] ?? '')),
+            'highlights' => $highlights->all(),
+            'details' => trim((string) ($validated['details'] ?? '')),
+        ]);
+        $institute->forceFill(['profile_meta' => $meta])->save();
+
+        return response()->json(['message' => 'Admission info updated.']);
     }
 
     /** Add one facility (name + photo) to the profile's facilities list. */
@@ -356,6 +397,13 @@ class InstituteInlineEditController extends Controller
             return response(view('frontend.institutes.partials.school-profile.inline.notices-public', [
                 'institute' => $institute,
                 'canEditInline' => true,
+            ])->render());
+        }
+
+        // The Admission Info Read more popup (outside the main content block)
+        if ($section === 'admission-modal') {
+            return response(view('frontend.institutes.partials.school-profile.admission-modal', [
+                'profile' => $profile,
             ])->render());
         }
 

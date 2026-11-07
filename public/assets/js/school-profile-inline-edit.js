@@ -21,7 +21,7 @@
   var activeSection = null;
 
   var SECTION_LABELS = {
-    basics: 'About & info', notices: 'Notices', classes: 'Classes', courses: 'Courses',
+    basics: 'About & info', admission: 'Admission info', notices: 'Notices', classes: 'Classes', courses: 'Courses',
     performers: 'Results', achievements: 'Achievements', books: 'Books',
     facilities: 'Facilities', gallery: 'Gallery', jobs: 'Jobs', fee: 'Fee structure',
     'diary-holiday': 'Holidays', 'diary-leave': 'Leave rules'
@@ -30,6 +30,7 @@
   // 'diary' is a page-level key: re-fetch the current page and swap its body (used on the diary page).
   var REFRESH_MAP = {
     basics: ['content', 'hero'],
+    admission: ['content', 'admission-modal'],
     notices: ['notices'],
     classes: ['content'], courses: ['content'], performers: ['content'],
     achievements: ['content'], books: ['content'], facilities: ['content'],
@@ -237,6 +238,19 @@
         tmp.innerHTML = html;
         var fresh = tmp.querySelector('.sch-content-main') || tmp.firstElementChild;
         if (fresh) main.replaceWith(fresh);
+      }
+    } else if (key === 'admission-modal') {
+      // The Read more popup: swapped for the saved text (it isn't open while the editor is)
+      var modal = document.getElementById('schAdmissionModal');
+      if (modal) {
+        var tmpModal = document.createElement('div');
+        tmpModal.innerHTML = html;
+        var freshModal = tmpModal.querySelector('#schAdmissionModal');
+        if (freshModal) {
+          var instance = window.bootstrap && window.bootstrap.Modal.getInstance(modal);
+          if (instance) instance.dispose();
+          modal.replaceWith(freshModal);
+        }
       }
     } else if (key === 'notices') {
       var wrap = document.querySelector('[data-inline-wrap="notices"]');

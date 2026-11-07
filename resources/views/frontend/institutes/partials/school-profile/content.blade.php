@@ -31,7 +31,7 @@
     ])
 
     <section id="sch-admission" class="sch-card sch-section sch-admission-section">
-      <h2 class="sch-section__title">Admission Info</h2>
+      <h2 class="sch-section__title">Admission Info @if($canEditInline ?? false)<button type="button" class="sch-inline-pencil js-sch-inline-edit" data-inline-edit="admission" title="Edit admission info"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>@endif</h2>
       @if($profile->admissionLead() !== '')
         <p class="sch-section__lead">{{ $profile->admissionLead() }}</p>
       @endif

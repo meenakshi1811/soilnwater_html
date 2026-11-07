@@ -5,6 +5,7 @@
   // Callers (e.g. the diary page) may pass their own section list; otherwise the full profile set.
   $inlineSections = $inlineSections ?? [
     'basics' => ['About & info', 'fa-circle-info'],
+    'admission' => ['Admission info', 'fa-door-open'],
     'notices' => ['Notices', 'fa-bullhorn'],
     'courses' => ['Courses', 'fa-layer-group'],
     'classes' => ['Classes', 'fa-chalkboard'],
