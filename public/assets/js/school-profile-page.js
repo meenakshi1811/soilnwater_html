@@ -205,35 +205,39 @@ document.addEventListener('DOMContentLoaded', function () {
         window.initProfileSectionNav('.js-sch-nav-link');
     }
 
-    document.querySelectorAll('.js-sch-read-more').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var text = document.querySelector('.js-sch-about-text');
-            if (!text) {
-                return;
+    // (one document-level handler: the buttons still work after the owner's inline edit redraws them)
+    function onClick(selector, handler) {
+        document.addEventListener('click', function (event) {
+            var target = event.target.closest(selector);
+            if (target) {
+                handler(target, event);
             }
-
-            var collapsed = text.classList.toggle('is-collapsed');
-            btn.innerHTML = collapsed
-                ? 'Read More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>'
-                : 'Read Less <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>';
         });
+    }
+
+    onClick('.js-sch-read-more', function (btn, event) {
+        var text = document.querySelector('.js-sch-about-text');
+        if (!text) {
+            return;
+        }
+
+        var collapsed = text.classList.toggle('is-collapsed');
+        btn.innerHTML = collapsed
+            ? 'Read More <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>'
+            : 'Read Less <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>';
     });
 
-    document.querySelectorAll('.js-sch-admission-read-more').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var modalEl = document.getElementById('schAdmissionModal');
-            if (!modalEl || !window.bootstrap) {
-                return;
-            }
+    onClick('.js-sch-admission-read-more', function (btn, event) {
+        var modalEl = document.getElementById('schAdmissionModal');
+        if (!modalEl || !window.bootstrap) {
+            return;
+        }
 
-            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        });
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
 
-    document.querySelectorAll('.js-sch-gallery-open').forEach(function (button) {
-        button.addEventListener('click', function () {
-            openGalleryModal(button);
-        });
+    onClick('.js-sch-gallery-open', function (button, event) {
+        openGalleryModal(button);
     });
 
     function resetGalleryModalMedia() {
