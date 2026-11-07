@@ -1,7 +1,7 @@
 /**
  * Inline (AJAX) editing of a school/institute public page by its owner.
  * - Toggles an "edit mode" that reveals per-section pencils + a section toolbar.
- * - Loads a section's form into an offcanvas, saves via the existing portal endpoints,
+ * - Loads a section's form into a popup (a wide modal), saves via the existing portal endpoints,
  *   then re-renders just the affected public section(s) — no full page reload.
  */
 (function () {
@@ -17,7 +17,7 @@
   var offcanvasEl = document.getElementById('schInlineEditor');
   var bodyEl = document.getElementById('schInlineEditorBody');
   var titleEl = document.getElementById('schInlineEditorLabel');
-  var offcanvas = null;
+  var popup = null;
   var activeSection = null;
 
   var SECTION_LABELS = {
@@ -44,11 +44,11 @@
 
   function buildUrl(base, section) { return base.replace('__SECTION__', section); }
 
-  function getOffcanvas() {
-    if (!offcanvas && window.bootstrap && window.bootstrap.Offcanvas) {
-      offcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+  function getPopup() {
+    if (!popup && window.bootstrap && window.bootstrap.Modal) {
+      popup = window.bootstrap.Modal.getOrCreateInstance(offcanvasEl);
     }
-    return offcanvas;
+    return popup;
   }
 
   function setEditMode(on) {
@@ -82,7 +82,7 @@
     activeSection = section;
     if (titleEl) titleEl.textContent = 'Edit ' + (SECTION_LABELS[section] || section);
     bodyEl.innerHTML = '<div class="text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2"></span> Loading…</div>';
-    var oc = getOffcanvas(); if (oc) oc.show();
+    var oc = getPopup(); if (oc) oc.show();
 
     fetch(buildUrl(formUrlBase, section), {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },

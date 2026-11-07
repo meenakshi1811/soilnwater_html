@@ -43,15 +43,19 @@
   </div>
 </div>
 
-{{-- Shared offcanvas the forms load into --}}
-<div class="offcanvas offcanvas-end sch-inline-offcanvas" tabindex="-1" id="schInlineEditor" aria-labelledby="schInlineEditorLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="schInlineEditorLabel">Edit section</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body" id="schInlineEditorBody">
-    <div class="text-center text-muted py-5 js-sch-inline-loading">
-      <span class="spinner-border spinner-border-sm me-2"></span> Loading…
+{{-- The shared popup the forms load into: wide, in the middle of the screen --}}
+<div class="modal fade sch-inline-modal" tabindex="-1" id="schInlineEditor" aria-labelledby="schInlineEditorLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="schInlineEditorLabel">Edit section</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="schInlineEditorBody">
+        <div class="text-center text-muted py-5 js-sch-inline-loading">
+          <span class="spinner-border spinner-border-sm me-2"></span> Loading…
+        </div>
+      </div>
     </div>
   </div>
 </div>

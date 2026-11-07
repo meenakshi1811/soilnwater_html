@@ -4084,15 +4084,20 @@ body.sch-edit-mode .sch-inline-pencil { display: inline-flex; }
 }
 .sch-notice-section { position: relative; }
 
-/* Offcanvas sits above the FAB/toolbar */
-.sch-inline-offcanvas { z-index: 1060; width: min(680px, 95vw); }
+/* The editor popup: above the Edit page button, the section bar and the chat button */
+.sch-inline-modal { z-index: 1070; }
+.sch-inline-modal .modal-body { padding: 1.25rem 1.5rem; }
+body.modal-open .sch-inline-fab,
+body.modal-open.sch-edit-mode .sch-inline-toolbar,
+body.modal-open .discussion-banner-chat,
+body.modal-open .discussion-fab { visibility: hidden; }
 
 /* In the inline jobs popup, applications are managed in the portal, not here */
-.sch-inline-offcanvas .sch-job-applications { display: none; }
+.sch-inline-modal .sch-job-applications { display: none; }
 
 /* Inline diary popups support add + delete; per-item edit stays in the portal */
-.sch-inline-offcanvas .js-diary-holiday-edit,
-.sch-inline-offcanvas .js-diary-leave-edit { display: none; }
+.sch-inline-modal .js-diary-holiday-edit,
+.sch-inline-modal .js-diary-leave-edit { display: none; }
 
 
 /* Phones: level with the chat button there (16px in) */
