@@ -3291,3 +3291,127 @@
   font-size: 0.78rem;
   margin-left: 1.35rem;
 }
+
+/* ── Tablets and phones: the overview laid out like the school page's header ──
+   Left-aligned, a smaller photo, the three numbers in one row, the smaller buttons side by side
+   and Send Enquiry full width at the bottom; no decorative banner (the school page has none). */
+@media (max-width: 991px) {
+  .edu-profile-top {
+    display: none;
+  }
+
+  .edu-overview__grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    text-align: left;
+  }
+
+  .edu-overview__photo {
+    width: 84px;
+    height: 84px;
+    margin: 0;
+  }
+
+  .edu-overview__name {
+    justify-content: flex-start;
+  }
+
+  .edu-overview__rating,
+  .edu-overview__meta-item,
+  .edu-pill-row {
+    justify-content: flex-start;
+  }
+
+  .edu-overview__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: none;
+    margin-inline: 0;
+    overflow: hidden;
+  }
+
+  .edu-overview__stat + .edu-overview__stat {
+    border-top: 0;
+    border-left: 1px solid var(--edu-border);
+  }
+
+  .edu-overview__actions-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--edu-border);
+  }
+
+  .edu-overview__actions-col > .edu-overview__meta-item,
+  .edu-overview__actions-col > .edu-pill-row {
+    flex: 0 0 100%;
+    margin-bottom: 0;
+  }
+
+  .edu-overview__actions-col > .edu-btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    width: auto;
+  }
+
+  /* the main action last, full width (as Enquire Now on the school page) */
+  .edu-overview__actions-col > .edu-btn-primary {
+    flex-basis: 100%;
+    order: 1;
+  }
+}
+
+/* Tablets: every section link in view at once (phones keep the swipe row) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .edu-nav-mobile {
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .edu-nav-mobile__inner {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .edu-overview__photo {
+    width: 72px;
+    height: 72px;
+  }
+
+  .edu-overview__name {
+    font-size: 1.3rem;
+  }
+
+  .edu-overview__stat {
+    padding: 0.55rem 0.35rem;
+  }
+
+  .edu-overview__stat span {
+    font-size: 0.62rem;
+  }
+}
+
+/* Up to laptops: the sidebar (availability, location, contact, stats, achievements,
+   certifications) under the main column, as on the school page; two columns, one on phones */
+@media (max-width: 1199px) {
+  .edu-sidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    grid-column: 1 / -1;
+    align-items: start;
+  }
+
+  .edu-sidebar > .edu-sidebar-card {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .edu-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
