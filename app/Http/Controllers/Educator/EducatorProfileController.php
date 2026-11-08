@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Educator;
 use App\Support\EducatorFileUploader;
 use App\Support\EducatorSubjects;
+use App\Support\EducatorProfileLists;
 use App\Support\ManagedEducator;
 use App\Support\ProfilePhoneNumbers;
 use Illuminate\Http\JsonResponse;
@@ -141,10 +142,10 @@ class EducatorProfileController extends Controller
 
         $user->save();
 
-        $validated['languages'] = $this->cleanStringList($validated['languages'] ?? []);
-        $validated['teaching_modes'] = $this->cleanStringList($validated['teaching_modes'] ?? []);
-        $validated['achievements'] = $this->cleanStringList($validated['achievements'] ?? []);
-        $validated['certifications'] = $this->cleanStringList($validated['certifications'] ?? []);
+        $validated['languages'] = EducatorProfileLists::strings($validated['languages'] ?? []);
+        $validated['teaching_modes'] = EducatorProfileLists::strings($validated['teaching_modes'] ?? []);
+        $validated['achievements'] = EducatorProfileLists::strings($validated['achievements'] ?? []);
+        $validated['certifications'] = EducatorProfileLists::strings($validated['certifications'] ?? []);
         $validated['subjects'] = EducatorSubjects::fromFormSubmission($validated['subjects'] ?? []);
         $validated['classes'] = EducatorSubjects::aggregateClasses($validated['subjects']);
         $validated['boards'] = EducatorSubjects::aggregateBoards($validated['subjects']);
@@ -156,8 +157,8 @@ class EducatorProfileController extends Controller
         }
         $validated['city'] = trim((string) ($validated['teaching_city'] ?? ''));
         unset($validated['teaching_city']);
-        $validated['qualifications'] = $this->cleanObjectList($validated['qualifications'] ?? [], ['degree', 'institution', 'year']);
-        $validated['experiences'] = $this->cleanExperiences($validated['experiences'] ?? []);
+        $validated['qualifications'] = EducatorProfileLists::rows($validated['qualifications'] ?? [], ['degree', 'institution', 'year']);
+        $validated['experiences'] = EducatorProfileLists::experiences($validated['experiences'] ?? []);
         $validated['tagline'] = Educator::excerptFromAbout($validated['about'] ?? null);
         $validated['display_name'] = $validated['name'];
         $validated['phone'] = ProfilePhoneNumbers::primary($phoneNumbers);
@@ -219,87 +220,5 @@ class EducatorProfileController extends Controller
         }
 
         return redirect()->route('login')->with('status', $message);
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     * @return list<string>
-     */
-    private function cleanStringList(array $items): array
-    {
-        return collect($items)
-            ->map(fn ($item) => is_string($item) ? trim($item) : '')
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     * @return list<array{title: string, organization: string, start_year: string, end_year: string, is_current: bool, duration: string, description: string}>
-     */
-    private function cleanExperiences(array $items): array
-    {
-        return collect($items)
-            ->map(function ($item) {
-                if (! is_array($item)) {
-                    return null;
-                }
-
-                $title = trim((string) ($item['title'] ?? ''));
-                $organization = trim((string) ($item['organization'] ?? ''));
-                $description = trim((string) ($item['description'] ?? ''));
-                $startYear = trim((string) ($item['start_year'] ?? ''));
-                $isCurrent = filter_var($item['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
-                $endYear = $isCurrent ? '' : trim((string) ($item['end_year'] ?? ''));
-
-                if ($title === '' && $organization === '' && $startYear === '' && $endYear === '' && $description === '') {
-                    return null;
-                }
-
-                return [
-                    'title' => $title,
-                    'organization' => $organization,
-                    'start_year' => $startYear,
-                    'end_year' => $endYear,
-                    'is_current' => $isCurrent,
-                    'duration' => Educator::formatExperienceDuration($startYear, $endYear, $isCurrent),
-                    'description' => $description,
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     * @return list<array{name: string, level: string}>
-     */
-    /**
-     * @param  array<int, mixed>  $items
-     * @param  list<string>  $keys
-     * @return list<array<string, string>>
-     */
-    private function cleanObjectList(array $items, array $keys): array
-    {
-        return collect($items)
-            ->map(function ($item) use ($keys) {
-                if (! is_array($item)) {
-                    return null;
-                }
-                $row = [];
-                foreach ($keys as $key) {
-                    $row[$key] = trim((string) ($item[$key] ?? ''));
-                }
-                if (collect($row)->filter()->isEmpty()) {
-                    return null;
-                }
-
-                return $row;
-            })
-            ->filter()
-            ->values()
-            ->all();
     }
 }

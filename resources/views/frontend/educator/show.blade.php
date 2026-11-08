@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-profile.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/educator-study-materials.css') }}?v={{ now()->timestamp }}">
+@if($canEditInline ?? false)
+<link rel="stylesheet" href="{{ asset('assets/css/educator-inline-edit.css') }}?v={{ now()->timestamp }}">
+@endif
 @endpush
 
 @section('content')
@@ -58,6 +61,12 @@
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
     ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
     )->filter(fn ($item) => ! array_key_exists('show_when', $item) || $item['show_when'])->values()->all();
+
+  // The owner, on their own page: a pencil on each section (in edit mode), opening its popup form
+  $canEditInline = $canEditInline ?? false;
+  $eduPencil = fn (string $section, string $label): string => $canEditInline
+    ? '<button type="button" class="edu-inline-pencil js-edu-inline-edit" data-inline-edit="'.$section.'" data-label="'.e($label).'" title="Edit '.e(strtolower($label)).'"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>'
+    : '';
 @endphp
 
 <div
@@ -148,6 +157,7 @@
                 @if($educator->isVerified())
                   <i class="fa-solid fa-star" aria-hidden="true" title="Verified educator"></i>
                 @endif
+                {!! $eduPencil('overview', 'Photo & headline') !!}
               </h1>
 
               <p class="edu-overview__headline">{{ $educator->professional_headline ?: $educator->publicHeadlineFallback() }}</p>
@@ -258,7 +268,7 @@
 
         @if($affiliatedInstitutes->isNotEmpty())
         <section class="edu-section" id="edu-affiliations">
-          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Associated Schools &amp; Institutes</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Associated Schools &amp; Institutes{!! $eduPencil('affiliations', 'Schools & institutes') !!}</h2>
           <div class="edu-affiliations-grid">
             @foreach($affiliatedInstitutes as $institute)
               <a href="{{ $institute->publicUrl() }}" class="edu-affiliation-card">
@@ -290,7 +300,7 @@
 
         {{-- 2. About Me --}}
         <section class="edu-section" id="edu-about">
-          <h2 class="edu-section__title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About Me</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About Me{!! $eduPencil('about', 'About me') !!}</h2>
           @if($aboutText !== '')
             <p class="edu-about__text js-edu-about-text {{ $aboutNeedsToggle ? 'is-collapsed' : '' }}">{{ $aboutText }}</p>
             @if($aboutNeedsToggle)
@@ -308,7 +318,7 @@
 
         {{-- 3. Subjects & Classes --}}
         <section class="edu-section" id="edu-subjects">
-          <h2 class="edu-section__title"><i class="fa-solid fa-book" aria-hidden="true"></i> Subjects &amp; Classes</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-book" aria-hidden="true"></i> Subjects &amp; Classes{!! $eduPencil('subjects', 'Subjects & classes') !!}</h2>
           @if($subjects->isNotEmpty())
             <div class="edu-subjects-grid edu-subjects-grid--detailed">
               @foreach($subjects as $index => $subject)
@@ -355,7 +365,7 @@
 
         {{-- 4. Experience & Education --}}
         <section class="edu-section" id="edu-experience">
-          <h2 class="edu-section__title"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Experience &amp; Education</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Experience &amp; Education{!! $eduPencil('experience', 'Experience & education') !!}</h2>
 
           <div class="edu-exp-stats">
             <div class="edu-exp-stat">
@@ -415,7 +425,7 @@
         {{-- 5. Courses --}}
         <section class="edu-section" id="edu-courses">
           <div class="edu-section__head">
-            <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses</h2>
+            <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses{!! $eduPencil('materials', 'Courses & material') !!}</h2>
             @if(($coursesTotal ?? $courses->count()) > 0)
               <a href="{{ route('educator.courses', $educator->slug) }}" class="edu-section__link">
                 View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -448,7 +458,7 @@
         {{-- Study Material --}}
         <section class="edu-section" id="edu-study-materials">
           <div class="edu-section__head">
-            <h2 class="edu-section__title"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Study Material</h2>
+            <h2 class="edu-section__title"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Study Material{!! $eduPencil('materials', 'Courses & material') !!}</h2>
             @if(($studyMaterialsTotal ?? $studyMaterials->count()) > 0)
               <a href="{{ route('educator.study-materials', $educator->slug) }}" class="edu-section__link edu-section__link--cta">
                 Browse all materials <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -493,7 +503,7 @@
         @if($showTuitionDetails)
         {{-- 14. Fees & Packages --}}
         <section class="edu-section" id="edu-fees">
-          <h2 class="edu-section__title"><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> Fees &amp; Packages</h2>
+          <h2 class="edu-section__title"><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> Fees &amp; Packages{!! $eduPencil('fees', 'Fees & packages') !!}</h2>
           @php
             $tuitionBatches = $educator->normalizedTuitionBatches();
             $tuitionDeliveryOptions = $educator->activeTuitionDeliveryOptions();
@@ -1054,7 +1064,7 @@
         </div>
 
         <div class="edu-sidebar-card">
-          <h3><i class="fa-solid fa-trophy" aria-hidden="true"></i> Achievements</h3>
+          <h3><i class="fa-solid fa-trophy" aria-hidden="true"></i> Achievements{!! $eduPencil('achievements', 'Achievements') !!}</h3>
           @forelse($achievements as $item)
             <div class="edu-cert-item"><i class="fa-solid fa-trophy" aria-hidden="true"></i> {{ $item }}</div>
           @empty
@@ -1063,7 +1073,7 @@
         </div>
 
         <div class="edu-sidebar-card">
-          <h3><i class="fa-solid fa-award" aria-hidden="true"></i> Certifications</h3>
+          <h3><i class="fa-solid fa-award" aria-hidden="true"></i> Certifications{!! $eduPencil('achievements', 'Achievements') !!}</h3>
           @forelse($certifications as $item)
             <div class="edu-cert-item"><i class="fa-solid fa-certificate" aria-hidden="true"></i> {{ $item }}</div>
           @empty
@@ -1179,10 +1189,16 @@
     </div>
   </div>
 </div>
+@if($canEditInline)
+  @include('frontend.educator.partials.inline.editor-ui', ['educator' => $educator])
+@endif
 @endsection
 
 @push('scripts')
 @include('community.partials.toastr-assets')
 <script src="{{ asset('assets/js/profile-section-nav.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/educator-profile.js') }}?v={{ now()->timestamp }}"></script>
+@if($canEditInline ?? false)
+<script src="{{ asset('assets/js/educator-inline-edit.js') }}?v={{ now()->timestamp }}"></script>
+@endif
 @endpush

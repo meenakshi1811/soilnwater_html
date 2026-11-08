@@ -1,0 +1,148 @@
+/* A teacher / tutor editing their own public page (educator-inline-edit.js), like the school page's
+   editor: the Edit page button bottom-left (the chat button holds bottom-right), the section bar
+   above it, a pencil on each section in edit mode, and a wide popup. */
+
+.edu-inline-fab {
+  position: fixed;
+  left: calc(24px + env(safe-area-inset-left, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 1061;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35);
+  cursor: pointer;
+}
+
+.edu-inline-fab:hover { background: #0b5ed7; }
+body.edu-edit-mode .edu-inline-fab { background: #198754; box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35); }
+
+.edu-inline-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1061;
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+}
+
+body.edu-edit-mode .edu-inline-toolbar { display: flex; }
+.edu-inline-toolbar__label { font-size: 0.85rem; color: #64748b; font-weight: 600; }
+
+.edu-inline-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.edu-inline-toolbar__btn:hover { background: #e2e8f0; }
+
+/* A section's pencil: only in edit mode */
+.edu-inline-pencil {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 0.5rem;
+  padding: 0;
+  border: 1px solid #bfdbfe;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #0d6efd;
+  font-size: 0.8rem;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.edu-inline-pencil:hover { background: #0d6efd; color: #fff; }
+body.edu-edit-mode .edu-inline-pencil { display: inline-flex; }
+
+/* The popup: above the button, the section bar and the chat button, which hide meanwhile */
+.edu-inline-modal { z-index: 1070; }
+.edu-inline-modal .modal-body { padding: 1.25rem 1.5rem; }
+body.modal-open .edu-inline-fab,
+body.modal-open.edu-edit-mode .edu-inline-toolbar,
+body.modal-open .discussion-banner-chat,
+body.modal-open .discussion-fab { visibility: hidden; }
+
+.edu-inline-photo { display: flex; flex-direction: column; gap: 0.5rem; }
+.edu-inline-photo__img { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; border: 1px solid #e2e8f0; }
+
+.edu-inline-rows { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.6rem; }
+.edu-inline-row { padding: 0.65rem; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+
+.edu-inline-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.edu-inline-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+.edu-inline-list__thumb { width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px; object-fit: cover; }
+
+.edu-inline-link-panel { display: flex; align-items: flex-start; gap: 1rem; padding: 0.5rem 0; }
+.edu-inline-link-panel__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #0d6efd;
+  font-size: 1.2rem;
+}
+
+/* Phones: level with the chat button; the section bar one row that scrolls sideways */
+@media (max-width: 767px) {
+  .edu-inline-fab {
+    left: calc(16px + env(safe-area-inset-left, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .edu-inline-toolbar {
+    left: 12px;
+    right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    width: auto;
+    max-width: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .edu-inline-toolbar::-webkit-scrollbar { display: none; }
+  .edu-inline-toolbar__label { display: none; }
+  .edu-inline-toolbar__btn { flex: 0 0 auto; }
+}

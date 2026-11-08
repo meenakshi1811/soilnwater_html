@@ -97,6 +97,7 @@ use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Frontend\EducatorProfileController as FrontendEducatorProfileController;
 use App\Http\Controllers\Frontend\EducationHubController;
 use App\Http\Controllers\Frontend\EducatorListingController;
+use App\Http\Controllers\Frontend\EducatorInlineEditController;
 use App\Http\Controllers\Frontend\InstituteInlineEditController;
 use App\Http\Controllers\Frontend\InstituteListingController;
 use App\Http\Controllers\Frontend\InstituteEngagementController;
@@ -330,6 +331,11 @@ Route::get('/teachers-tutors/{slug}', [FrontendEducatorProfileController::class,
 Route::post('/teachers-tutors/{slug}/enquiry', [FrontendEducatorProfileController::class, 'enquiry'])->middleware('auth')->name('educator.enquiry');
 Route::post('/teachers-tutors/{slug}/follow', [FrontendEducatorProfileController::class, 'follow'])->middleware('auth')->name('educator.follow');
 Route::post('/teachers-tutors/{slug}/review', [FrontendEducatorProfileController::class, 'review'])->middleware('auth')->name('educator.review');
+// The owner's inline editing of their public page (popup forms; each section saved on its own)
+Route::middleware('auth')->group(function () {
+    Route::get('/teachers-tutors/{slug}/inline-edit/{section}/form', [EducatorInlineEditController::class, 'form'])->name('educator.inline.form');
+    Route::put('/teachers-tutors/{slug}/inline-edit/{section}', [EducatorInlineEditController::class, 'update'])->name('educator.inline.update');
+});
 
 Route::get('/study-materials', [StudyMaterialLibraryController::class, 'index'])->name('study-materials.library');
 Route::get('/study-materials/notes', [StudyMaterialLibraryController::class, 'notes'])->name('study-materials.notes');

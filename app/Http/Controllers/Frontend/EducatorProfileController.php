@@ -75,7 +75,10 @@ class EducatorProfileController extends Controller
             'notices',
             'userReview',
             'canWriteReview'
-        ));
+        ) + [
+            // The teacher / tutor, on their own page, may edit it inline
+            'canEditInline' => $authUser !== null && (int) $authUser->id === (int) $educator->user_id && $authUser->isTeacher(),
+        ]);
     }
 
     public function notices(string $slug): View
