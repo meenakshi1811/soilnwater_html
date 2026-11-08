@@ -439,7 +439,7 @@ class InstituteProfileController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function engagementState(Institute $institute, ?\App\Models\User $user): array
+    public function engagementState(Institute $institute, ?\App\Models\User $user): array
     {
         $listingContext = $institute->listingContext();
         $compareUrl = route($listingContext.'.compare');

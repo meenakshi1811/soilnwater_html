@@ -413,7 +413,7 @@ class InstituteInlineEditController extends Controller
             return response(view('frontend.institutes.partials.school-profile.hero', [
                 'profile' => $profile,
                 'institute' => $institute,
-                'engagement' => [],
+                'engagement' => app(InstituteProfileController::class)->engagementState($institute, auth()->user()),
                 'aboutText' => $aboutText,
                 'aboutNeedsToggle' => strlen($aboutText) > 320,
                 'listingContext' => $listingContext,
@@ -432,7 +432,7 @@ class InstituteInlineEditController extends Controller
             'aboutNeedsToggle' => strlen($aboutText) > 320,
             'listingContext' => $listingContext,
             'entityLabel' => $entityLabel,
-            'engagement' => [],
+            'engagement' => app(InstituteProfileController::class)->engagementState($institute, auth()->user()),
             'canEditInline' => true,
         ])->render());
     }
