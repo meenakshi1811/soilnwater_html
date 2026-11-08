@@ -27,8 +27,8 @@
 <div
   class="vendors-page vendors-page--listings educators-page"
   id="educatorsPageRoot"
-  data-index-url="{{ route('educator.listings') }}"
-  data-listings-url="{{ route('educator.listings') }}"
+  data-index-url="{{ route('educator.index') }}"
+  data-listings-url="{{ route('educator.index') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-preview-listing="0"
 >
@@ -225,7 +225,6 @@
         </div>
         <div class="vendors-cta__actions">
           <a href="{{ $joinUrl }}" class="vendors-cta__primary">Join as Teacher / Tutor</a>
-          <a href="{{ route('educator.index') }}" class="vendors-cta__secondary">Back to overview</a>
         </div>
       </section>
     </main>

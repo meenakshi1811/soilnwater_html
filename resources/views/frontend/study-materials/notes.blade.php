@@ -280,7 +280,7 @@
                 <div class="sm-side-card">
                     <div class="sm-side-card__head">
                         <h3>Top Contributors</h3>
-                        <a href="{{ route('educator.listings') }}">View All</a>
+                        <a href="{{ route('educator.index') }}">View All</a>
                     </div>
                     <div class="sm-contributor-list">
                         @forelse($topContributors as $row)

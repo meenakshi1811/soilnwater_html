@@ -89,7 +89,7 @@
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
       <a href="{{ route('educator.index') }}">Teachers &amp; Tutors</a>
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
-      <a href="{{ route('educator.listings', array_filter(['subject' => $primarySubject, 'takes_tuitions' => $isTutorProfile ? '1' : '0'])) }}">{{ $primarySubject }} {{ $educator->publicListingLabel() }}</a>
+      <a href="{{ route('educator.index', array_filter(['subject' => $primarySubject, 'takes_tuitions' => $isTutorProfile ? '1' : '0'])) }}">{{ $primarySubject }} {{ $educator->publicListingLabel() }}</a>
       <span class="edu-breadcrumb__sep" aria-hidden="true">›</span>
       <span class="edu-breadcrumb__current" aria-current="page">{{ $educator->display_name }}</span>
     </nav>

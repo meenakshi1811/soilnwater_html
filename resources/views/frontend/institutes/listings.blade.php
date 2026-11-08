@@ -22,7 +22,7 @@
   class="vendors-page institutes-page"
   id="institutesPageRoot"
   data-index-url="{{ route($listingContext.'.index') }}"
-  data-listings-url="{{ route($listingContext.'.listings') }}"
+  data-listings-url="{{ route($listingContext.'.index') }}"
   data-has-location="{{ $hasLocation ? '1' : '0' }}"
   data-preview-listing="0"
 >
@@ -44,9 +44,6 @@
       <section class="vendors-section" id="institutesAllSection">
         <div class="vendors-section__head">
           <h2><i class="fa-solid fa-border-all" aria-hidden="true"></i> All {{ $pageTitle }}</h2>
-          <a href="{{ route($listingContext.'.index') }}" class="vendors-section__link">
-            Back to marketplace <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
-          </a>
         </div>
 
         <div class="vendors-all__toolbar institutes-toolbar">

@@ -7,41 +7,20 @@ use App\Models\Educator;
 use App\Models\StudyMaterial;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class EducatorListingController extends Controller
 {
+    /** The listing page (/teachers-tutors): every approved teacher and tutor, with the filters */
     public function index(Request $request): View|JsonResponse
-    {
-        $listingData = $this->listingPageData($request, 12);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return $this->listingJsonResponse($request, $listingData, includeFeatured: true);
-        }
-
-        $featuredEducators = $this->featuredQuery($request)
-            ->limit(5)
-            ->get();
-
-        return view('frontend.educator.index', [
-            'educators' => $listingData['educators'],
-            'featuredEducators' => $featuredEducators,
-            'topSubjects' => $listingData['topSubjects'],
-            'cities' => $listingData['cities'],
-            'subjects' => $listingData['subjects'],
-            'educatorStats' => $this->listingStats(),
-            'hasLocation' => $listingData['hasLocation'],
-        ]);
-    }
-
-    public function listings(Request $request): View|JsonResponse
     {
         $listingData = $this->listingPageData($request, 24);
 
         if ($request->ajax() || $request->wantsJson()) {
-            return $this->listingJsonResponse($request, $listingData, includeFeatured: false);
+            return $this->listingJsonResponse($listingData);
         }
 
         return view('frontend.educator.listings', [
@@ -52,6 +31,12 @@ class EducatorListingController extends Controller
             'educatorStats' => $this->listingStats(),
             'hasLocation' => $listingData['hasLocation'],
         ]);
+    }
+
+    /** The old "all listings" address (/teachers-tutors/listings): now the listing page itself */
+    public function listings(Request $request): RedirectResponse
+    {
+        return redirect()->route('educator.index', $request->query(), 301);
     }
 
     /**
@@ -92,7 +77,7 @@ class EducatorListingController extends Controller
      *     hasLocation: bool
      * }  $listingData
      */
-    private function listingJsonResponse(Request $request, array $listingData, bool $includeFeatured): JsonResponse
+    private function listingJsonResponse(array $listingData): JsonResponse
     {
         $payload = [
             'html' => view('frontend.educator.partials.cards', [
@@ -103,15 +88,6 @@ class EducatorListingController extends Controller
             'loaded_to' => $listingData['educators']->lastItem() ?? 0,
             'total' => $listingData['educators']->total(),
         ];
-
-        if ($includeFeatured) {
-            $featured = $this->featuredQuery($request)->limit(5)->get();
-            $payload['featured_html'] = view('frontend.educator.partials.featured-cards', [
-                'featuredEducators' => $featured,
-                'hasLocation' => $listingData['hasLocation'],
-            ])->render();
-            $payload['featured_total'] = $featured->count();
-        }
 
         return response()->json($payload);
     }
@@ -191,14 +167,6 @@ class EducatorListingController extends Controller
                 : $query->latest('approved_at'),
             default => $query->latest('approved_at'),
         };
-    }
-
-    private function featuredQuery(Request $request): Builder
-    {
-        return $this->baseQuery($request)
-            ->where('is_verified', true)
-            ->orderByDesc('average_rating')
-            ->orderByDesc('reviews_count');
     }
 
     /**

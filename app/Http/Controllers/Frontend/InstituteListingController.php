@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Institute;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -18,7 +19,7 @@ class InstituteListingController extends Controller
         return $this->index($request, 'school');
     }
 
-    public function schoolListings(Request $request): View|JsonResponse
+    public function schoolListings(Request $request): RedirectResponse
     {
         return $this->listings($request, 'school');
     }
@@ -28,7 +29,7 @@ class InstituteListingController extends Controller
         return $this->index($request, 'institute');
     }
 
-    public function instituteListings(Request $request): View|JsonResponse
+    public function instituteListings(Request $request): RedirectResponse
     {
         return $this->listings($request, 'institute');
     }
@@ -38,23 +39,13 @@ class InstituteListingController extends Controller
         return $this->index($request, 'college');
     }
 
-    public function collegeListings(Request $request): View|JsonResponse
+    public function collegeListings(Request $request): RedirectResponse
     {
         return $this->listings($request, 'college');
     }
 
+    /** The listing page (/schools, /colleges, /institutes): every approved one, with the filters */
     public function index(Request $request, string $ownerRole = 'school'): View|JsonResponse
-    {
-        $listingData = $this->listingPageData($request, 12, $ownerRole);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return $this->listingJsonResponse($listingData);
-        }
-
-        return view('frontend.institutes.index', $this->listingViewData($listingData, $ownerRole));
-    }
-
-    public function listings(Request $request, string $ownerRole = 'school'): View|JsonResponse
     {
         $listingData = $this->listingPageData($request, 24, $ownerRole);
 
@@ -63,6 +54,12 @@ class InstituteListingController extends Controller
         }
 
         return view('frontend.institutes.listings', $this->listingViewData($listingData, $ownerRole));
+    }
+
+    /** The old "all listings" address (/schools/listings, …): now the listing page itself */
+    public function listings(Request $request, string $ownerRole = 'school'): RedirectResponse
+    {
+        return redirect()->route(SchoolInstituteHelper::listingContext($ownerRole).'.index', $request->query(), 301);
     }
 
     /**
