@@ -199,6 +199,7 @@
                             @php $rating = (float) $teacher->average_rating; @endphp
                             {{-- A card: photo (verified tick), name, subject, rating, city, View profile --}}
                             <a href="{{ $teacher->publicUrl() }}" class="eh-teacher">
+                                <span class="eh-teacher__cover" aria-hidden="true"></span>
                                 <span class="eh-teacher__photo-wrap">
                                     <img src="{{ $teacher->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="" class="eh-teacher__photo" loading="lazy" width="72" height="72">
                                     @if($teacher->isVerified())
