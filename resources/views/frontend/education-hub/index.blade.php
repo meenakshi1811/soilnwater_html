@@ -269,14 +269,14 @@
             </section>
         </div>
 
-        {{-- Schools, colleges and institutes: a full-width colourful panel each, six cards --}}
-        <div class="eh-cpanels eh-cpanels--stack">
+        {{-- Schools, colleges and institutes: three colourful panels side by side, three cards each --}}
+        <div class="eh-cpanels eh-cpanels--side">
             @foreach($institutionGroups as $group)
                 @include('frontend.education-hub.partials.colour-panel', [
                     'id' => 'ehInstitutions'.$group['title'], 'theme' => $group['theme'], 'icon' => $group['icon'],
                     'lead' => 'Top', 'accent' => $group['title'],
                     'subtitle' => $group['hint'].' · '.number_format($group['count']).' listed',
-                    'url' => $group['url'], 'cards' => $group['cards'], 'columns' => 6,
+                    'url' => $group['url'], 'cards' => $group['cards'], 'columns' => 3,
                     'join' => ['title' => 'List your '.$group['noun'], 'hint' => 'Free listing on SoilnWater', 'url' => route('register')],
                 ])
             @endforeach
