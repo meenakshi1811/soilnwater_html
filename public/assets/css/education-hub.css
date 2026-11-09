@@ -13,16 +13,17 @@
   color: var(--eh-text);
 }
 
-/* Full width on every screen, with side padding */
+/* Full width on every screen, with side padding (--eh-gutter: the hero reaches past it) */
 .eh-container {
+  --eh-gutter: 24px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--eh-gutter);
 }
 
 @media (min-width: 1600px) {
   .eh-container {
-    padding: 0 40px;
+    --eh-gutter: 40px;
   }
 
   .eh-hero {
@@ -173,15 +174,17 @@
 }
 
 /* ---------- Hero ---------- */
-/* The picture's doodle background across the whole banner (the student is cut out and stands on it) */
+/* The picture's doodle background across the whole banner (the student is cut out and stands on it).
+   Full width: out to the screen's edges over the container's side padding, right under the menu,
+   its content kept in line (the gutter added to its own padding). */
 .eh-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 1.5rem;
   align-items: center;
-  margin-top: 1rem;
-  padding: 1.25rem 1.25rem 1.25rem 2.5rem;
-  border-radius: 18px;
+  margin: 0 calc(-1 * var(--eh-gutter, 24px));
+  padding: 1.25rem calc(var(--eh-gutter, 24px) + 1.25rem) 1.25rem calc(var(--eh-gutter, 24px) + 2.5rem);
+  border-radius: 0;
   background:
     /* a little calmer behind the heading and text */
     linear-gradient(90deg, rgba(232, 241, 253, .6) 0, rgba(232, 241, 253, .45) 38%, rgba(232, 241, 253, 0) 58%),
@@ -1191,7 +1194,7 @@
 @media (max-width: 1199px) {
   .eh-hero {
     grid-template-columns: minmax(0, 1fr) 280px;
-    padding-left: 1.5rem;
+    padding-left: calc(var(--eh-gutter, 24px) + 1.5rem);
   }
 
   .eh-hero__main {
@@ -1285,7 +1288,7 @@
 /* ---------- Phone ---------- */
 @media (max-width: 767px) {
   .eh-container {
-    padding: 0 16px;
+    --eh-gutter: 16px;
   }
 
   .eh-nav__list {
@@ -1308,7 +1311,7 @@
   }
 
   .eh-hero {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem calc(var(--eh-gutter, 16px) + 1rem);
   }
 
   .eh-hero__image {
