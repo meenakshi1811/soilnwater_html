@@ -22,7 +22,7 @@ class EducationHubController extends Controller
     public function index(): View
     {
         $publicMaterials = StudyMaterial::query()->approved()->publiclyListed();
-        $institutionGroups = $this->institutionGroups(3);
+        $institutionGroups = $this->institutionGroups(6);
 
         // Cards show their images at about 300px: small copies, not the originals
         $withThumbnails = fn (array $cards): array => array_map(
@@ -40,7 +40,7 @@ class EducationHubController extends Controller
                 ['label' => 'Colleges', 'count' => Institute::query()->colleges()->approved()->count(), 'icon' => 'fa-graduation-cap', 'tone' => 'teal', 'url' => route('colleges.index')],
                 ['label' => 'Institutes', 'count' => Institute::query()->institutes()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('institutes.index')],
             ],
-            'trendingGroups' => $this->trendingGroups($publicMaterials, 3),
+            'trendingGroups' => $this->trendingGroups($publicMaterials, 6),
             'topTeachers' => Educator::query()
                 ->approved()
                 ->with('user:id,name,profile_image')

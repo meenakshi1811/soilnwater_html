@@ -1336,104 +1336,115 @@
   }
 }
 
-/* ---------- Top schools, colleges and institutes: three panels side by side ----------
-   Each panel's three cards one under the other, picture on the left and the name in full on the
-   right; tablets: the panels one under the other, three cards a row; phones: the sideways rail. */
+/* ---------- Colourful panels three side by side (trending study materials; top schools,
+   colleges and institutes) ----------
+   Laptops: the three panels in a row, each with up to six upright cards, three a row; tablets: the
+   panels one under the other, three cards a row; phones: two cards a row (no sideways scroll). */
 .eh-cpanels--side {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
 .eh-cpanels--side .eh-cp__title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+}
+
+.eh-cpanels--side .eh-cp__subtitle {
+  font-size: 0.8125rem;
 }
 
 .eh-cpanels--side .eh-cp__grid {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: auto;
-  gap: 12px;
-}
-
-/* cards at their own height (fewer than three: space under them); an empty panel's note or
-   "List your …" fills it */
-.eh-cpanels--side .eh-cp__grid {
   align-content: start;
+  gap: 10px;
 }
 
+/* an empty panel's note or "List your …" fills it */
 .eh-cpanels--side .eh-cp__grid:has(> .eh-cp-join--empty, > .eh-cp-empty) {
   align-content: stretch;
 }
 
-.eh-cpanels--side .eh-cp-card {
-  flex-direction: row;
-}
-
 .eh-cpanels--side .eh-cp-card__media {
-  flex: 0 0 42%;
-  min-height: 112px;
-  margin: 8px 0 8px 8px;
-  aspect-ratio: auto;
+  margin: 6px 6px 0;
 }
 
 .eh-cpanels--side .eh-cp-card__body {
-  justify-content: center;
-  padding: 10px 14px;
+  padding: 9px 9px 10px;
 }
 
 .eh-cpanels--side .eh-cp-card__title {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  min-height: 2.5em;
   white-space: normal;
-  font-size: 1rem;
+  font-size: 0.84rem;
 }
 
-/* "List your …": one more row under the cards, or the whole panel when nothing is listed */
-.eh-cpanels--side .eh-cp-join {
-  grid-column: auto;
-  min-height: 96px;
+.eh-cpanels--side .eh-cp-card__pill {
+  padding: 3px 7px;
+  font-size: 0.65rem;
 }
 
-.eh-cpanels--side .eh-cp-join--empty {
-  min-height: 0;
+.eh-cpanels--side .eh-cp-card__line {
+  font-size: 0.68rem;
 }
 
-@media (max-width: 991px) {
+.eh-cpanels--side .eh-cp-card__verified {
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  font-size: 0.58rem;
+}
+
+/* "List your …": the rest of the last row; the whole panel when nothing is listed */
+.eh-cpanels--side .eh-cp-join--fill {
+  grid-column: span var(--eh-cp-free, 1);
+}
+
+.eh-cpanels--side .eh-cp-join--empty,
+.eh-cpanels--side .eh-cp-empty {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1199px) {
   .eh-cpanels--side {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .eh-cpanels--side .eh-cp__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .eh-cpanels--side .eh-cp-card {
-    flex-direction: column;
-  }
-
-  .eh-cpanels--side .eh-cp-card__media {
-    flex: none;
-    min-height: 0;
-    margin: 8px 8px 0;
-    aspect-ratio: 16 / 10;
-  }
-
-  .eh-cpanels--side .eh-cp-join--empty {
-    grid-column: 1 / -1;
+  .eh-cpanels--side .eh-cp__title {
+    font-size: 1.5rem;
   }
 }
 
+/* Phones: two cards a row, one under the other (no sideways scroll) */
 @media (max-width: 767px) {
+  .eh-cpanels--side .eh-cp__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .eh-cpanels--side .eh-cp-card,
+  .eh-cpanels--side .eh-cp-join,
+  .eh-cpanels--side .eh-cp-empty {
+    flex: none;
+  }
+
   .eh-cpanels--side .eh-cp__title {
     font-size: 1.05rem;
   }
 
   .eh-cpanels--side .eh-cp-card__title {
+    min-height: 0;
     font-size: 0.8125rem;
   }
 
-  .eh-cpanels--side .eh-cp-join--empty {
-    flex-basis: 100%;
+  .eh-cpanels--side .eh-cp-join--fill {
+    grid-column: 1 / -1;
   }
 }
 
@@ -1475,48 +1486,5 @@
   .eh-cp-empty {
     flex: 0 0 100%;
     min-height: 0;
-  }
-}
-
-/* Phones: each panel's three cards one under the other (picture on the left), not a sideways
-   scroll */
-@media (max-width: 767px) {
-  .eh-cpanels--side .eh-cp__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-    overflow: visible;
-    padding-bottom: 0;
-  }
-
-  .eh-cpanels--side .eh-cp-card,
-  .eh-cpanels--side .eh-cp-join,
-  .eh-cpanels--side .eh-cp-empty {
-    flex: none;
-  }
-
-  .eh-cpanels--side .eh-cp-card {
-    flex-direction: row;
-  }
-
-  .eh-cpanels--side .eh-cp-card__media {
-    flex: 0 0 38%;
-    min-height: 96px;
-    margin: 6px 0 6px 6px;
-    aspect-ratio: auto;
-  }
-
-  .eh-cpanels--side .eh-cp-card__body {
-    justify-content: center;
-    padding: 8px 10px;
-  }
-
-  .eh-cpanels--side .eh-cp-card__title {
-    font-size: 0.875rem;
-  }
-
-  .eh-cpanels--side .eh-cp-join {
-    min-height: 0;
-    padding: 14px 12px;
   }
 }

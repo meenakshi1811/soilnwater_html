@@ -1,14 +1,15 @@
 {{--
     A colourful panel like the homepage's education sections: gradient shell, a heading with one
     word in the accent colour, white cards (picture, name, tag, one line). With $join, the free
-    places in a row of $columns show one "List your …" card.
+    places in the last row of $columns show one "List your …" card.
 --}}
 @php
     $nav = $nav ?? [];
     $subtitle = $subtitle ?? null;
     $join = $join ?? null;
     $columns = $columns ?? 3;
-    $freeSlots = $join ? max(0, $columns - count($cards)) : 0;
+    // (the free places in the last row of $columns cards; the whole panel when there are none)
+    $freeSlots = ! $join ? 0 : (count($cards) === 0 ? $columns : ($columns - count($cards) % $columns) % $columns);
 @endphp
 
 <section class="eh-cp eh-cp--{{ $theme }}" aria-labelledby="{{ $id }}">
