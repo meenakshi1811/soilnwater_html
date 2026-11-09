@@ -10,6 +10,7 @@ use App\Models\InstituteNotice;
 use App\Models\StudyMaterial;
 use App\Models\User;
 use App\Support\ImageThumbnail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -88,12 +89,13 @@ class EducationHubController extends Controller
             unset($group['query']);
 
             $group['count'] = (clone $query)->count();
-            $group['cards'] = $query
-                ->with('user:id,role')
-                ->orderByDesc('is_verified')
-                ->latest('approved_at')
-                ->limit($limit)
-                ->get()
+            // (the verified first, then the latest: a different six of them on each visit)
+            $group['cards'] = $this->freshPick(
+                $query->orderByDesc('is_verified')->latest('approved_at'),
+                'institutions.'.$group['theme'],
+                $limit,
+                fn (Builder $picked) => $picked->with('user:id,role'),
+            )
                 ->map(fn (Institute $institution): array => $this->institutionCard($institution, $group['noun'] === 'school'))
                 ->all();
 
@@ -132,18 +134,57 @@ class EducationHubController extends Controller
         ];
 
         return array_map(function (array $group) use ($limit): array {
-            $group['cards'] = ($group['query'])()
-                ->orderByDesc('views_count')
-                ->orderByDesc('downloads_count')
-                ->latest('id')
-                ->limit($limit)
-                ->get()
+            // (the most viewed, then downloaded: a different six of them on each visit)
+            $group['cards'] = $this->freshPick(
+                ($group['query'])()->orderByDesc('views_count')->orderByDesc('downloads_count')->latest('id'),
+                'trending.'.$group['key'],
+                $limit,
+            )
                 ->map(fn (StudyMaterial $material): array => $this->materialCard($material))
                 ->all();
             unset($group['query']);
 
             return $group;
         }, $groups);
+    }
+
+    /**
+     * A box's records for this visit: $limit picked at random from the first $pool of the ordered
+     * query, leaving out the ones this visitor was shown before (kept in the session) until none
+     * are left, then starting over. A box with no more than $limit shows them all, shuffled.
+     *
+     * @param  \Closure(Builder): mixed|null  $load  eager loads for the picked records
+     * @return Collection<int, \Illuminate\Database\Eloquent\Model>
+     */
+    private function freshPick(Builder $ordered, string $box, int $limit, ?\Closure $load = null, int $pool = 60): Collection
+    {
+        $model = $ordered->getModel();
+        $ids = (clone $ordered)->limit($pool)->pluck($model->getQualifiedKeyName())->map(fn ($id) => (int) $id);
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $sessionKey = 'education_hub_seen.'.$box;
+        $seen = collect(session($sessionKey, []))->map(fn ($id) => (int) $id);
+        $unseen = $ids->diff($seen)->shuffle();
+
+        if ($unseen->count() >= $limit) {
+            $picked = $unseen->take($limit)->values();
+            $seen = $seen->merge($picked)->intersect($ids)->values();
+        } else {
+            // (too few left unseen: those first, then the others; the round starts over)
+            $picked = $unseen->merge($ids->diff($unseen)->shuffle())->take($limit)->values();
+            $seen = $picked;
+        }
+        session([$sessionKey => $seen->all()]);
+
+        $query = $model->newQuery()->whereKey($picked->all());
+        if ($load) {
+            $load($query);
+        }
+        $records = $query->get()->keyBy(fn ($record) => (int) $record->getKey());
+
+        return $picked->map(fn (int $id) => $records->get($id))->filter()->values();
     }
 
     /**
