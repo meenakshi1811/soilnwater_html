@@ -1477,3 +1477,46 @@
     min-height: 0;
   }
 }
+
+/* Phones: each panel's three cards one under the other (picture on the left), not a sideways
+   scroll */
+@media (max-width: 767px) {
+  .eh-cpanels--side .eh-cp__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .eh-cpanels--side .eh-cp-card,
+  .eh-cpanels--side .eh-cp-join,
+  .eh-cpanels--side .eh-cp-empty {
+    flex: none;
+  }
+
+  .eh-cpanels--side .eh-cp-card {
+    flex-direction: row;
+  }
+
+  .eh-cpanels--side .eh-cp-card__media {
+    flex: 0 0 38%;
+    min-height: 96px;
+    margin: 6px 0 6px 6px;
+    aspect-ratio: auto;
+  }
+
+  .eh-cpanels--side .eh-cp-card__body {
+    justify-content: center;
+    padding: 8px 10px;
+  }
+
+  .eh-cpanels--side .eh-cp-card__title {
+    font-size: 0.875rem;
+  }
+
+  .eh-cpanels--side .eh-cp-join {
+    min-height: 0;
+    padding: 14px 12px;
+  }
+}
