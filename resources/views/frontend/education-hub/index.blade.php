@@ -215,26 +215,6 @@
             @endif
         </section>
 
-        {{-- The homepage's colourful education sections --}}
-        @if(count($educationCards) > 0 || count($studyMaterialCards) > 0)
-            <div class="eh-cpanels eh-cpanels--two">
-                @if(count($educationCards) > 0)
-                    @include('frontend.education-hub.partials.colour-panel', [
-                        'id' => 'ehEducationTitle', 'theme' => 'education', 'icon' => 'fa-graduation-cap',
-                        'lead' => 'Education &', 'accent' => 'Knowledge', 'subtitle' => 'Learn, build skills and stay informed',
-                        'url' => route('schools.index'), 'cards' => $educationCards,
-                    ])
-                @endif
-                @if(count($studyMaterialCards) > 0)
-                    @include('frontend.education-hub.partials.colour-panel', [
-                        'id' => 'ehLibraryTitle', 'theme' => 'study', 'icon' => 'fa-book',
-                        'lead' => 'Study Material', 'accent' => 'Library', 'nav' => $studyMaterialNavLinks,
-                        'url' => route('study-materials.library'), 'cards' => $studyMaterialCards,
-                    ])
-                @endif
-            </div>
-        @endif
-
         {{-- Top teachers, announcements --}}
         <div class="eh-panels">
             <section class="eh-card eh-panel" aria-labelledby="ehTeachersTitle">

@@ -9,9 +9,6 @@ use App\Models\Institute;
 use App\Models\InstituteNotice;
 use App\Models\StudyMaterial;
 use App\Models\User;
-use App\Support\HomepageEducationKnowledgeCards;
-use App\Support\HomepageImageRegistry;
-use App\Support\HomepageStudyMaterialLibraryCards;
 use App\Support\ImageThumbnail;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -26,21 +23,6 @@ class EducationHubController extends Controller
     {
         $publicMaterials = StudyMaterial::query()->approved()->publiclyListed();
         $institutionGroups = $this->institutionGroups(3);
-
-        // The homepage's colourful Education & Knowledge and Study Material Library sections. No
-        // image twice on the page: the study material cards (set in admin) and the institutions'
-        // photos are claimed first, so the education cards pick other ones.
-        $images = new HomepageImageRegistry();
-        $studyMaterialCards = HomepageStudyMaterialLibraryCards::build();
-        $images->claimCards($studyMaterialCards);
-        foreach ($institutionGroups as $group) {
-            $images->claimCards($group['cards']);
-        }
-        $educationCards = HomepageEducationKnowledgeCards::build(
-            is_numeric(session('frontend_lat')) ? (float) session('frontend_lat') : null,
-            is_numeric(session('frontend_lng')) ? (float) session('frontend_lng') : null,
-            $images
-        );
 
         // Cards show their images at about 300px: small copies, not the originals
         $withThumbnails = fn (array $cards): array => array_map(
@@ -74,20 +56,6 @@ class EducationHubController extends Controller
                 ->limit(4)
                 ->get(),
             'announcements' => $this->announcements(3),
-            'educationCards' => $withThumbnails(array_map(fn (array $card): array => [
-                'url' => $card['url'],
-                'image' => $card['image'],
-                'title' => $card['title'],
-                'pill' => $card['category_label'],
-                'place' => $card['location'],
-            ], $educationCards)),
-            'studyMaterialCards' => $withThumbnails(array_map(fn (array $card): array => [
-                'url' => $card['url'],
-                'image' => $card['image'],
-                'title' => $card['title'],
-                'line' => $card['subtitle'],
-            ], $studyMaterialCards)),
-            'studyMaterialNavLinks' => HomepageStudyMaterialLibraryCards::navLinks(),
             'institutionGroups' => array_map(
                 fn (array $group): array => ['cards' => $withThumbnails($group['cards'])] + $group,
                 $institutionGroups
