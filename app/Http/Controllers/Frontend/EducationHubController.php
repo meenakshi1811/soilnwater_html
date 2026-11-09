@@ -40,13 +40,7 @@ class EducationHubController extends Controller
                 ['label' => 'Colleges', 'count' => Institute::query()->colleges()->approved()->count(), 'icon' => 'fa-graduation-cap', 'tone' => 'teal', 'url' => route('colleges.index')],
                 ['label' => 'Institutes', 'count' => Institute::query()->institutes()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('institutes.index')],
             ],
-            'trendingMaterials' => (clone $publicMaterials)
-                ->with(['educator:id,display_name,slug', 'user:id,name'])
-                ->orderByDesc('views_count')
-                ->orderByDesc('downloads_count')
-                ->latest('id')
-                ->limit(6)
-                ->get(),
+            'trendingGroups' => $this->trendingGroups($publicMaterials, 6),
             'topTeachers' => Educator::query()
                 ->approved()
                 ->with('user:id,name,profile_image')
@@ -102,6 +96,49 @@ class EducationHubController extends Controller
                 ->get()
                 ->map(fn (Institute $institution): array => $this->institutionCard($institution, $group['noun'] === 'school'))
                 ->all();
+
+            return $group;
+        }, $groups);
+    }
+
+    /**
+     * Trending Study Materials in three groups: board question papers, school question papers and
+     * notes, each its most viewed (then downloaded) and a link to all of them.
+     *
+     * @return list<array{key: string, title: string, hint: string, icon: string, tone: string, badge: string, source_icon: string, url: string, items: \Illuminate\Support\Collection<int, StudyMaterial>}>
+     */
+    private function trendingGroups($publicMaterials, int $limit): array
+    {
+        $groups = [
+            [
+                'key' => 'board', 'title' => 'Board Question Papers', 'hint' => 'CBSE, ICSE, state boards and more',
+                'icon' => 'fa-building-columns', 'tone' => 'blue', 'badge' => 'Board Paper', 'source_icon' => 'fa-building-columns',
+                'url' => route('study-materials.notes', ['material_type' => 'question_papers', 'paper_source' => 'board', 'sort' => 'downloads']),
+                'query' => fn () => (clone $publicMaterials)->boardPapers(),
+            ],
+            [
+                'key' => 'school', 'title' => 'School Question Papers', 'hint' => 'Exams set by schools',
+                'icon' => 'fa-school', 'tone' => 'green', 'badge' => 'School Paper', 'source_icon' => 'fa-school',
+                'url' => route('study-materials.notes', ['material_type' => 'question_papers', 'paper_source' => 'school', 'sort' => 'downloads']),
+                'query' => fn () => (clone $publicMaterials)->schoolPapers(),
+            ],
+            [
+                'key' => 'notes', 'title' => 'Notes', 'hint' => 'Chapter-wise notes and summaries',
+                'icon' => 'fa-note-sticky', 'tone' => 'orange', 'badge' => 'Notes', 'source_icon' => 'fa-book',
+                'url' => route('study-materials.notes', ['material_type' => 'notes', 'sort' => 'downloads']),
+                'query' => fn () => (clone $publicMaterials)->where('material_type', 'notes'),
+            ],
+        ];
+
+        return array_map(function (array $group) use ($limit): array {
+            $group['items'] = ($group['query'])()
+                ->with(['educator:id,display_name,slug', 'user:id,name'])
+                ->orderByDesc('views_count')
+                ->orderByDesc('downloads_count')
+                ->latest('id')
+                ->limit($limit)
+                ->get();
+            unset($group['query']);
 
             return $group;
         }, $groups);

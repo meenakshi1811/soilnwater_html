@@ -399,6 +399,8 @@ class StudyMaterialLibraryController extends Controller
             'board_university' => $request->string('board_university')->toString() ?: null,
             'topic_chapter' => $request->string('topic_chapter')->toString() ?: null,
             'school' => $request->string('school')->toString() ?: null,
+            // (question papers: a board's, or a school's own exams)
+            'paper_source' => in_array($request->string('paper_source')->toString(), ['board', 'school'], true) ? $request->string('paper_source')->toString() : null,
             'city' => $request->string('city')->toString() ?: null,
             'language' => $request->string('language')->toString() ?: null,
             'difficulty' => $request->string('difficulty')->toString() ?: null,
@@ -428,6 +430,12 @@ class StudyMaterialLibraryController extends Controller
 
         if (! empty($filters['school'])) {
             $query->where('school_name', $filters['school']);
+        }
+
+        if (($filters['paper_source'] ?? null) === 'board') {
+            $query->boardPapers();
+        } elseif (($filters['paper_source'] ?? null) === 'school') {
+            $query->schoolPapers();
         }
 
         if (! empty($filters['city'])) {

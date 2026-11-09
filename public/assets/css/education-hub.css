@@ -1518,3 +1518,91 @@
     font-size: 0.82rem;
   }
 }
+
+/* ---------- Trending study materials: three groups (board papers, school papers, notes) ---------- */
+.eh-tgroups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.eh-tgroup {
+  padding: 1rem;
+  background: var(--eh-card);
+  border: 1px solid var(--eh-line);
+  border-radius: var(--eh-radius);
+  box-shadow: var(--eh-shadow);
+}
+
+/* a coloured edge per group */
+.eh-tgroup--board { border-top: 3px solid #2563eb; }
+.eh-tgroup--school { border-top: 3px solid #16a34a; }
+.eh-tgroup--notes { border-top: 3px solid #ea580c; }
+
+.eh-tgroup__head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.eh-tgroup__heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.eh-tgroup__title {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--eh-navy);
+}
+
+.eh-tgroup__hint {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--eh-muted);
+}
+
+.eh-tgroup__more {
+  flex-shrink: 0;
+}
+
+.eh-tgroup__empty {
+  margin: 0.25rem 0 0.35rem;
+  text-align: left;
+}
+
+/* Up to laptops: each group one row that scrolls sideways (not three long grids) */
+@media (max-width: 1199px) {
+  .eh-trending--row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - 2rem) / 3);
+    grid-template-columns: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+
+  .eh-trending--row > .eh-tm {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 767px) {
+  .eh-tgroup {
+    padding: 0.85rem;
+  }
+
+  .eh-trending--row {
+    grid-auto-columns: 62%;
+    gap: 0.6rem;
+  }
+
+  .eh-tgroup__hint {
+    display: none;
+  }
+}

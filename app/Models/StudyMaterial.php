@@ -723,6 +723,21 @@ class StudyMaterial extends Model
         return $query->where('status', 'approved');
     }
 
+    /** Question papers of a board exam (the upload form's default: is_board on, or not recorded) */
+    public function scopeBoardPapers(Builder $query): Builder
+    {
+        return $query->where('material_type', 'question_papers')
+            ->where(fn (Builder $board) => $board->whereNull('meta->is_board')->orWhere('meta->is_board', true));
+    }
+
+    /** Question papers of a school's own exams (not a board's) */
+    public function scopeSchoolPapers(Builder $query): Builder
+    {
+        return $query->where('material_type', 'question_papers')
+            ->where('meta->is_board', false)
+            ->where('meta->institution_type', 'school');
+    }
+
     public function scopePubliclyListed(Builder $query): Builder
     {
         return $query->where(function (Builder $builder): void {
