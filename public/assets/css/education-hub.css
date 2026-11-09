@@ -1606,3 +1606,54 @@
     display: none;
   }
 }
+
+/* ---------- Top schools, colleges and institutes: a full-width panel each ----------
+   One under the other, six cards a row (three on tablets; phones keep the sideways rail), the
+   names on two lines instead of cut short. */
+.eh-cpanels--stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+.eh-cpanels--stack .eh-cp__grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.eh-cpanels--stack .eh-cp-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 2.5em;
+  white-space: normal;
+}
+
+/* "List your …": the rest of the row, or the whole row when nothing is listed */
+.eh-cp-join--fill {
+  grid-column: span var(--eh-cp-free, 1);
+}
+
+.eh-cp-join--empty {
+  grid-column: 1 / -1;
+  min-height: 150px;
+}
+
+@media (max-width: 1199px) {
+  .eh-cpanels--stack .eh-cp__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .eh-cpanels--stack .eh-cp-join--fill:not(.eh-cp-join--empty) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .eh-cpanels--stack .eh-cp-card__title {
+    min-height: 0;
+  }
+
+  .eh-cp-join--empty {
+    flex-basis: 100%;
+    min-height: 0;
+  }
+}

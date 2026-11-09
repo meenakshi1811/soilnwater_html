@@ -22,7 +22,7 @@ class EducationHubController extends Controller
     public function index(): View
     {
         $publicMaterials = StudyMaterial::query()->approved()->publiclyListed();
-        $institutionGroups = $this->institutionGroups(3);
+        $institutionGroups = $this->institutionGroups(6);
 
         // Cards show their images at about 300px: small copies, not the originals
         $withThumbnails = fn (array $cards): array => array_map(
