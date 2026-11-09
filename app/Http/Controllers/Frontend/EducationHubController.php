@@ -11,6 +11,8 @@ use App\Models\StudyMaterial;
 use App\Models\User;
 use App\Support\ImageThumbnail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -20,6 +22,39 @@ use Illuminate\View\View;
  */
 class EducationHubController extends Controller
 {
+    /** Kinds of notice (who posted it): kind => [tab label, icon, tone, one of them] */
+    public const NOTICE_KINDS = [
+        'school' => ['Schools', 'fa-school', 'blue', 'School'],
+        'college' => ['Colleges', 'fa-graduation-cap', 'purple', 'College'],
+        'institute' => ['Institutes', 'fa-building-columns', 'green', 'Institute'],
+        'teacher' => ['Teachers & Tutors', 'fa-chalkboard-user', 'orange', 'Teacher'],
+    ];
+
+    /** Every active notice of approved schools, colleges, institutes and teachers, newest first, by kind */
+    public function notices(Request $request): View
+    {
+        $all = $this->announcements();
+        $kind = array_key_exists((string) $request->query('kind'), self::NOTICE_KINDS) ? (string) $request->query('kind') : null;
+        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
+
+        $perPage = 12;
+        $page = max(1, (int) $request->query('page', 1));
+        $notices = new LengthAwarePaginator(
+            $shown->forPage($page, $perPage)->values(),
+            $shown->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => array_filter(['kind' => $kind])]
+        );
+
+        return view('frontend.education-hub.notices', [
+            'notices' => $notices,
+            'kind' => $kind,
+            'kinds' => self::NOTICE_KINDS,
+            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
+        ]);
+    }
+
     public function index(): View
     {
         $publicMaterials = StudyMaterial::query()->approved()->publiclyListed();
@@ -50,7 +85,8 @@ class EducationHubController extends Controller
                 ->latest('id')
                 ->limit(4)
                 ->get(),
-            'announcements' => $this->announcements(3),
+            // (all active ones, newest first, moving upward in the box)
+            'announcements' => $this->announcements()->take(50)->values(),
             'institutionGroups' => array_map(
                 fn (array $group): array => ['cards' => $withThumbnails($group['cards'])] + $group,
                 $institutionGroups
@@ -235,23 +271,26 @@ class EducationHubController extends Controller
     }
 
     /**
-     * The latest notices of approved schools, institutes and teachers that haven't expired.
+     * The active notices of approved schools, colleges, institutes and teachers, newest first: each
+     * with its kind, title, short text, picture, who posted it, the dates and their notices page.
      *
-     * @return Collection<int, array{title: string, source: string, date: ?\Illuminate\Support\Carbon, url: string}>
+     * @return Collection<int, array<string, mixed>>
      */
-    private function announcements(int $limit): Collection
+    private function announcements(): Collection
     {
         $instituteNotices = InstituteNotice::query()
             ->active()
             ->whereHas('institute', fn ($query) => $query->approved())
             ->with('institute.user:id,role')
-            ->latest()
-            ->limit($limit)
             ->get()
             ->map(fn (InstituteNotice $notice): array => [
+                'kind' => in_array($notice->institute->user?->role, ['school', 'college'], true) ? $notice->institute->user->role : 'institute',
                 'title' => $notice->displayTitle(),
+                'excerpt' => $notice->excerpt(160),
+                'image' => $notice->imageUrl(),
                 'source' => $notice->institute->publicDisplayName(),
                 'date' => $notice->created_at,
+                'expires' => $notice->expires_at,
                 'url' => $notice->institute->publicSectionUrl('notices'),
             ]);
 
@@ -259,19 +298,20 @@ class EducationHubController extends Controller
             ->active()
             ->whereHas('educator', fn ($query) => $query->approved())
             ->with('educator:id,display_name,slug')
-            ->latest()
-            ->limit($limit)
             ->get()
             ->map(fn (EducatorNotice $notice): array => [
+                'kind' => 'teacher',
                 'title' => $notice->displayTitle(),
+                'excerpt' => $notice->excerpt(160),
+                'image' => $notice->imageUrl(),
                 'source' => (string) $notice->educator->display_name,
                 'date' => $notice->created_at,
+                'expires' => $notice->expires_at,
                 'url' => $notice->educator->publicNoticesUrl(),
             ]);
 
         return $instituteNotices->concat($educatorNotices)
             ->sortByDesc(fn (array $notice) => $notice['date']?->timestamp ?? 0)
-            ->take($limit)
             ->values();
     }
 }

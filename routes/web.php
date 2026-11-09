@@ -318,6 +318,7 @@ Route::post('/colleges/{slug}/helpful', [InstituteEngagementController::class, '
 Route::post('/colleges/{slug}/report', [ProfileReportController::class, 'college'])->middleware(['auth', 'verified'])->name('colleges.report');
 
 Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
+Route::get('/education-hub/notices', [EducationHubController::class, 'notices'])->name('education.notices');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');

@@ -61,8 +61,6 @@
         ['label' => 'More', 'hint' => 'Categories', 'icon' => 'fa-ellipsis', 'tone' => 'slate', 'url' => route('study-materials.library')],
     ];
 
-    $announcementIcons = [['fa-bullhorn', 'blue'], ['fa-calendar-days', 'purple'], ['fa-graduation-cap', 'green']];
-
     // 1234 → 1.2K+, small numbers as they are
     $statCount = fn (int $count): string => \App\Models\StudyMaterial::formatCompactCount($count).($count >= 1000 ? '+' : '');
 @endphp
@@ -233,26 +231,28 @@
             <section class="eh-card eh-panel" aria-labelledby="ehAnnouncementsTitle">
                 <div class="eh-panel__head">
                     <h2 class="eh-panel__title" id="ehAnnouncementsTitle"><i class="fa-solid fa-bullhorn eh-tone--blue" aria-hidden="true"></i> Announcements &amp; Events</h2>
-                    <a href="{{ route('schools.index') }}" class="eh-panel__more">View all</a>
+                    <a href="{{ route('education.notices') }}" class="eh-panel__more">View all</a>
                 </div>
                 @if($announcements->isNotEmpty())
-                    <ul class="eh-announcements">
-                        @foreach($announcements as $announcement)
-                            @php [$icon, $tone] = $announcementIcons[$loop->index % count($announcementIcons)]; @endphp
-                            <li>
-                                <a href="{{ $announcement['url'] }}" class="eh-announcement">
-                                    <span class="eh-icon eh-icon--square eh-icon--{{ $tone }}"><i class="fa-solid {{ $icon }}" aria-hidden="true"></i></span>
-                                    <span class="eh-announcement__body">
-                                        <strong>{{ $announcement['title'] }}</strong>
-                                        <small>{{ $announcement['source'] }}</small>
-                                    </span>
-                                    @if($announcement['date'])
-                                        <time class="eh-announcement__date" datetime="{{ $announcement['date']->toDateString() }}">{{ $announcement['date']->format('j M Y') }}</time>
-                                    @endif
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
+                    {{-- All active notices moving upward (more than three; paused on hover); the
+                         list twice, so it loops without a jump --}}
+                    @php $tickerMoves = $announcements->count() > 3; @endphp
+                    <div class="eh-ticker {{ $tickerMoves ? 'is-moving' : '' }}" style="--eh-ticker-time: {{ max(12, $announcements->count() * 4) }}s">
+                        <div class="eh-ticker__track">
+                            <ul class="eh-announcements">
+                                @foreach($announcements as $announcement)
+                                    @include('frontend.education-hub.partials.announcement-item', ['announcement' => $announcement])
+                                @endforeach
+                            </ul>
+                            @if($tickerMoves)
+                                <ul class="eh-announcements eh-ticker__copy" aria-hidden="true">
+                                    @foreach($announcements as $announcement)
+                                        @include('frontend.education-hub.partials.announcement-item', ['announcement' => $announcement, 'copy' => true])
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </div>
                 @else
                     <p class="eh-empty">No announcements right now.</p>
                 @endif
