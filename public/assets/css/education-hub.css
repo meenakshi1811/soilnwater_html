@@ -494,154 +494,11 @@
   text-align: center;
 }
 
-/* Trending study materials: cards with the cover image (or the file-type icon) */
+/* A section heading with an icon */
 .eh-section__title--icon {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-}
-
-.eh-trending {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.eh-tm {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--eh-line);
-  border-radius: var(--eh-radius);
-  background: #fff;
-  box-shadow: var(--eh-shadow);
-  color: inherit;
-  text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.eh-tm:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
-  color: inherit;
-}
-
-.eh-tm__media {
-  position: relative;
-  display: grid;
-  place-items: center;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: #f1f5f9;
-  font-size: 2.3rem;
-}
-
-.eh-tm__media img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.35s ease;
-}
-
-.eh-tm:hover .eh-tm__media img {
-  transform: scale(1.04);
-}
-
-.eh-tm__media--pdf { background: #fee2e2; color: #dc2626; }
-.eh-tm__media--doc { background: #dbeafe; color: #2563eb; }
-.eh-tm__media--ppt { background: #ffedd5; color: #ea580c; }
-.eh-tm__media--xls { background: #dcfce7; color: #16a34a; }
-.eh-tm__media--img { background: #ede9fe; color: #7c3aed; }
-.eh-tm__media--file { background: #e2e8f0; color: #475569; }
-
-.eh-tm__type {
-  position: absolute;
-  top: 0.55rem;
-  left: 0.55rem;
-  z-index: 1;
-  max-width: calc(100% - 1.1rem);
-  padding: 0.22rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #fff;
-  font-size: 0.66rem;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  backdrop-filter: blur(4px);
-}
-
-.eh-tm__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-width: 0;
-  padding: 0.75rem 0.8rem 0.8rem;
-}
-
-.eh-tm__title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.6em;
-  margin-bottom: 0.1rem;
-  font-size: 0.86rem;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--eh-navy);
-}
-
-.eh-tm:hover .eh-tm__title {
-  color: var(--eh-blue);
-}
-
-.eh-tm__line {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
-  font-size: 0.75rem;
-  color: var(--eh-muted);
-}
-
-.eh-tm__line i {
-  flex: 0 0 0.9rem;
-  text-align: center;
-  font-size: 0.72rem;
-  color: #94a3b8;
-}
-
-.eh-tm__line span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.eh-tm__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 0.85rem;
-  margin-top: auto;
-  padding-top: 0.55rem;
-  border-top: 1px solid #eef2f7;
-  font-size: 0.72rem;
-  color: var(--eh-muted);
-}
-
-.eh-tm__meta i {
-  margin-right: 0.25rem;
-}
-
-.eh-tm__star {
-  color: #f59e0b;
 }
 
 /* Teachers */
@@ -1213,10 +1070,6 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .eh-trending {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   /* Schools, colleges and institutes one under the other */
   .eh-cpanels--three {
     grid-template-columns: minmax(0, 1fr);
@@ -1345,42 +1198,6 @@
 
   .eh-panels {
     grid-template-columns: 1fr;
-  }
-
-  /* Two trending cards per row */
-  .eh-trending {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-
-  .eh-tm__media {
-    font-size: 1.8rem;
-  }
-
-  .eh-tm__type {
-    top: 0.4rem;
-    left: 0.4rem;
-    font-size: 0.58rem;
-  }
-
-  .eh-tm__body {
-    gap: 0.2rem;
-    padding: 0.55rem 0.6rem 0.65rem;
-  }
-
-  .eh-tm__title {
-    font-size: 0.78rem;
-  }
-
-  .eh-tm__line {
-    gap: 0.35rem;
-    font-size: 0.68rem;
-  }
-
-  .eh-tm__meta {
-    gap: 0.2rem 0.6rem;
-    padding-top: 0.4rem;
-    font-size: 0.66rem;
   }
 
   /* Colourful panels as on the homepage: the cards in a sideways rail, the next one peeking */
@@ -1519,131 +1336,6 @@
   }
 }
 
-/* ---------- Trending study materials: three groups side by side ----------
-   Board papers, school papers and notes in one row, three cards each one under the other
-   (picture on the left, details on the right); tablets and phones: the groups one under the
-   other, each a sideways row. */
-.eh-tgroups {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  align-items: stretch;
-}
-
-.eh-tgroup {
-  min-width: 0;
-  padding: 1rem;
-  background: var(--eh-card);
-  border: 1px solid var(--eh-line);
-  border-radius: var(--eh-radius);
-  box-shadow: var(--eh-shadow);
-}
-
-/* a coloured edge per group */
-.eh-tgroup--board { border-top: 3px solid #2563eb; }
-.eh-tgroup--school { border-top: 3px solid #16a34a; }
-.eh-tgroup--notes { border-top: 3px solid #ea580c; }
-
-.eh-tgroup__head {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.85rem;
-}
-
-.eh-tgroup__heading {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.eh-tgroup__title {
-  margin: 0;
-  font-family: 'Manrope', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--eh-navy);
-}
-
-.eh-tgroup__hint {
-  margin: 0.1rem 0 0;
-  font-size: 0.8rem;
-  color: var(--eh-muted);
-}
-
-.eh-tgroup__more {
-  flex-shrink: 0;
-}
-
-.eh-tgroup__empty {
-  margin: 0.25rem 0 0.35rem;
-  text-align: left;
-}
-
-/* the group's cards one under the other, each picture-left */
-.eh-trending--row {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.75rem;
-}
-
-.eh-trending--row .eh-tm {
-  flex-direction: row;
-}
-
-.eh-trending--row .eh-tm__media {
-  flex: 0 0 40%;
-  aspect-ratio: auto;
-  min-height: 132px;
-}
-
-.eh-trending--row .eh-tm__body {
-  justify-content: center;
-}
-
-/* Tablets and phones: the groups one under the other, each a sideways row of upright cards */
-@media (max-width: 991px) {
-  .eh-tgroups {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-  }
-
-  .eh-trending--row {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: calc((100% - 1.5rem) / 3);
-    grid-template-columns: none;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 0.35rem;
-    scrollbar-width: thin;
-  }
-
-  .eh-trending--row .eh-tm {
-    flex-direction: column;
-    scroll-snap-align: start;
-  }
-
-  .eh-trending--row .eh-tm__media {
-    flex: none;
-    aspect-ratio: 16 / 10;
-    min-height: 0;
-  }
-}
-
-@media (max-width: 767px) {
-  .eh-tgroup {
-    padding: 0.85rem;
-  }
-
-  .eh-trending--row {
-    grid-auto-columns: 62%;
-    gap: 0.6rem;
-  }
-
-  .eh-tgroup__hint {
-    display: none;
-  }
-}
-
 /* ---------- Top schools, colleges and institutes: three panels side by side ----------
    Each panel's three cards one under the other, picture on the left and the name in full on the
    right; tablets: the panels one under the other, three cards a row; phones: the sideways rail. */
@@ -1660,6 +1352,16 @@
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: auto;
   gap: 12px;
+}
+
+/* cards at their own height (fewer than three: space under them); an empty panel's note or
+   "List your …" fills it */
+.eh-cpanels--side .eh-cp__grid {
+  align-content: start;
+}
+
+.eh-cpanels--side .eh-cp__grid:has(> .eh-cp-join--empty, > .eh-cp-empty) {
+  align-content: stretch;
 }
 
 .eh-cpanels--side .eh-cp-card {
@@ -1732,5 +1434,46 @@
 
   .eh-cpanels--side .eh-cp-join--empty {
     flex-basis: 100%;
+  }
+}
+
+/* ---------- Trending study materials: colourful panels (board papers, school papers, notes) ----------
+   As the top schools, colleges and institutes: board blue, school papers violet, notes rose. */
+.eh-cpanels--trending {
+  margin-top: 0;
+}
+
+.eh-cp--board {
+  --eh-cp-bg: linear-gradient(115deg, #bfdbfe 0%, #60a5fa 45%, #2563eb 100%);
+  --eh-cp-accent: #1e3a8a;
+  --eh-cp-tint: #eff6ff;
+}
+
+.eh-cp--notes {
+  --eh-cp-bg: linear-gradient(115deg, #fecdd3 0%, #fb7185 45%, #e11d48 100%);
+  --eh-cp-accent: #881337;
+  --eh-cp-tint: #fff1f2;
+}
+
+/* nothing in a panel yet */
+.eh-cp-empty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  margin: 0;
+  padding: 16px 12px;
+  border: 2px dashed rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f1111;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .eh-cp-empty {
+    flex: 0 0 100%;
+    min-height: 0;
   }
 }

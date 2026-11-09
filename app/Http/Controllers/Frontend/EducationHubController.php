@@ -103,45 +103,69 @@ class EducationHubController extends Controller
 
     /**
      * Trending Study Materials in three groups: board question papers, school question papers and
-     * notes, each its most viewed (then downloaded) and a link to all of them.
+     * notes, each its most viewed (then downloaded) as cards for a colourful panel (like the top
+     * schools, colleges and institutes) and a link to all of them.
      *
-     * @return list<array{key: string, title: string, hint: string, icon: string, tone: string, badge: string, source_icon: string, url: string, items: \Illuminate\Support\Collection<int, StudyMaterial>}>
+     * @return list<array{key: string, lead: string, accent: string, hint: string, icon: string, theme: string, url: string, empty: string, cards: list<array<string, mixed>>}>
      */
     private function trendingGroups($publicMaterials, int $limit): array
     {
         $groups = [
             [
-                'key' => 'board', 'title' => 'Board Question Papers', 'hint' => 'CBSE, ICSE, state boards and more',
-                'icon' => 'fa-building-columns', 'tone' => 'blue', 'badge' => 'Board Paper', 'source_icon' => 'fa-building-columns',
+                'key' => 'board', 'lead' => 'Board', 'accent' => 'Question Papers', 'hint' => 'CBSE, ICSE, state boards and more',
+                'icon' => 'fa-building-columns', 'theme' => 'board', 'empty' => 'Board question papers will appear here soon.',
                 'url' => route('study-materials.notes', ['material_type' => 'question_papers', 'paper_source' => 'board', 'sort' => 'downloads']),
                 'query' => fn () => (clone $publicMaterials)->boardPapers(),
             ],
             [
-                'key' => 'school', 'title' => 'School Question Papers', 'hint' => 'Exams set by schools',
-                'icon' => 'fa-school', 'tone' => 'green', 'badge' => 'School Paper', 'source_icon' => 'fa-school',
+                'key' => 'school', 'lead' => 'School', 'accent' => 'Question Papers', 'hint' => 'Exams set by schools',
+                'icon' => 'fa-school', 'theme' => 'study', 'empty' => 'School question papers will appear here soon.',
                 'url' => route('study-materials.notes', ['material_type' => 'question_papers', 'paper_source' => 'school', 'sort' => 'downloads']),
                 'query' => fn () => (clone $publicMaterials)->schoolPapers(),
             ],
             [
-                'key' => 'notes', 'title' => 'Notes', 'hint' => 'Chapter-wise notes and summaries',
-                'icon' => 'fa-note-sticky', 'tone' => 'orange', 'badge' => 'Notes', 'source_icon' => 'fa-book',
+                'key' => 'notes', 'lead' => 'Study', 'accent' => 'Notes', 'hint' => 'Chapter-wise notes and summaries',
+                'icon' => 'fa-note-sticky', 'theme' => 'notes', 'empty' => 'Notes will appear here soon.',
                 'url' => route('study-materials.notes', ['material_type' => 'notes', 'sort' => 'downloads']),
                 'query' => fn () => (clone $publicMaterials)->where('material_type', 'notes'),
             ],
         ];
 
         return array_map(function (array $group) use ($limit): array {
-            $group['items'] = ($group['query'])()
-                ->with(['educator:id,display_name,slug', 'user:id,name'])
+            $group['cards'] = ($group['query'])()
                 ->orderByDesc('views_count')
                 ->orderByDesc('downloads_count')
                 ->latest('id')
                 ->limit($limit)
-                ->get();
+                ->get()
+                ->map(fn (StudyMaterial $material): array => $this->materialCard($material))
+                ->all();
             unset($group['query']);
 
             return $group;
         }, $groups);
+    }
+
+    /**
+     * A study material as a colourful panel's card: its cover (small copy), title, subject as the
+     * pill, and the board or school, class and year.
+     *
+     * @return array{url: string, image: string, logo: null, title: string, pill: string, line: string, verified: bool}
+     */
+    private function materialCard(StudyMaterial $material): array
+    {
+        $image = $material->cardImageUrl();
+        $source = $material->material_type === 'question_papers' ? ($material->board_university ?: $material->school_name) : null;
+
+        return [
+            'url' => $material->publicUrl(),
+            'image' => $image ? ImageThumbnail::url($image) : '',
+            'logo' => null,
+            'title' => (string) $material->title,
+            'pill' => (string) ($material->subject ?: $material->materialTypeLabel()),
+            'line' => collect([$source, $material->class_course, $material->academic_year])->filter()->implode(' · '),
+            'verified' => false,
+        ];
     }
 
     /**

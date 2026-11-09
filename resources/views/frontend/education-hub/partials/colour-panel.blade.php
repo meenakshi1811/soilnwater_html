@@ -70,6 +70,11 @@
             </a>
         @endforeach
 
+        {{-- Nothing yet and no "List your …": a note --}}
+        @if(count($cards) === 0 && ! $join && filled($empty ?? null))
+            <p class="eh-cp-empty">{{ $empty }}</p>
+        @endif
+
         @if($freeSlots > 0)
             {{-- (the rest of the row; the whole row when nothing is listed yet) --}}
             <a href="{{ $join['url'] }}" class="eh-cp-join eh-cp-join--span-{{ $freeSlots }} eh-cp-join--fill {{ count($cards) === 0 ? 'eh-cp-join--empty' : '' }}" style="--eh-cp-free: {{ $freeSlots }}">
