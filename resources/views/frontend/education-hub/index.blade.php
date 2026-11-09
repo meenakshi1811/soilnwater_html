@@ -197,22 +197,30 @@
                     <div class="eh-teachers">
                         @foreach($topTeachers as $teacher)
                             @php $rating = (float) $teacher->average_rating; @endphp
+                            {{-- A card: photo (verified tick), name, subject, rating, city, View profile --}}
                             <a href="{{ $teacher->publicUrl() }}" class="eh-teacher">
-                                <img src="{{ $teacher->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="" class="eh-teacher__photo" loading="lazy" width="44" height="44">
-                                <span class="eh-teacher__body">
-                                    <strong>{{ $teacher->display_name ?: $teacher->roleLabel() }}</strong>
-                                    <small>{{ $teacher->primarySubject() ?: $teacher->professional_headline ?: $teacher->roleLabel() }}</small>
-                                    @if($rating > 0)
-                                        <span class="eh-stars" aria-label="Rated {{ number_format($rating, 1) }} out of 5">
-                                            @for($star = 1; $star <= 5; $star++)
-                                                <i class="fa-solid fa-star{{ $star <= round($rating) ? '' : ' is-empty' }}" aria-hidden="true"></i>
-                                            @endfor
-                                            <span>{{ number_format($rating, 1) }}</span>
-                                        </span>
-                                    @else
-                                        <span class="eh-stars eh-stars--new">New</span>
+                                <span class="eh-teacher__photo-wrap">
+                                    <img src="{{ $teacher->photoUrl() ?: asset('assets/images/logo_soilnwater.webp') }}" alt="" class="eh-teacher__photo" loading="lazy" width="72" height="72">
+                                    @if($teacher->isVerified())
+                                        <span class="eh-teacher__verified" title="Verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span class="visually-hidden">Verified</span></span>
                                     @endif
                                 </span>
+                                <strong class="eh-teacher__name">{{ $teacher->display_name ?: $teacher->roleLabel() }}</strong>
+                                <small class="eh-teacher__subject">{{ $teacher->primarySubject() ?: $teacher->professional_headline ?: $teacher->roleLabel() }}</small>
+                                @if($rating > 0)
+                                    <span class="eh-stars" aria-label="Rated {{ number_format($rating, 1) }} out of 5">
+                                        @for($star = 1; $star <= 5; $star++)
+                                            <i class="fa-solid fa-star{{ $star <= round($rating) ? '' : ' is-empty' }}" aria-hidden="true"></i>
+                                        @endfor
+                                        <span>{{ number_format($rating, 1) }}</span>
+                                    </span>
+                                @else
+                                    <span class="eh-stars eh-stars--new">New</span>
+                                @endif
+                                @if($teacher->locationLabel())
+                                    <span class="eh-teacher__place"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ $teacher->locationLabel() }}</span></span>
+                                @endif
+                                <span class="eh-teacher__cta">View profile</span>
                             </a>
                         @endforeach
                     </div>

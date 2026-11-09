@@ -502,55 +502,141 @@
 }
 
 /* Teachers */
+/* Top rated teachers: a card each, four a row (two on phones) */
 .eh-teachers {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .eh-teacher {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
   min-width: 0;
+  padding: 0.9rem 0.6rem 0.75rem;
+  border: 1px solid var(--eh-line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc 0, #fff 45%);
   color: inherit;
+  text-align: center;
   text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.eh-teacher:hover {
+  transform: translateY(-2px);
+  border-color: #bfdbfe;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
+  color: inherit;
+}
+
+.eh-teacher__photo-wrap {
+  position: relative;
+  margin-bottom: 0.4rem;
 }
 
 .eh-teacher__photo {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  display: block;
+  width: 72px;
+  height: 72px;
+  border: 3px solid #fff;
   border-radius: 50%;
   object-fit: cover;
   background: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
 }
 
-.eh-teacher__body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.eh-teacher__verified {
+  position: absolute;
+  right: -2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #fff;
+  font-size: 0.7rem;
 }
 
-.eh-teacher__body strong {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--eh-navy);
-  white-space: nowrap;
+.eh-teacher__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--eh-navy);
 }
 
-.eh-teacher__body small {
+.eh-teacher__subject {
+  max-width: 100%;
+  overflow: hidden;
   font-size: 0.75rem;
   color: var(--eh-muted);
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.eh-teacher:hover strong {
+.eh-teacher .eh-stars {
+  margin-top: 0.15rem;
+}
+
+.eh-teacher__place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  font-size: 0.7rem;
+  color: var(--eh-muted);
+}
+
+.eh-teacher__place i {
+  color: #16a34a;
+}
+
+.eh-teacher__place span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-teacher__cta {
+  margin-top: auto;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: #eff6ff;
   color: var(--eh-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.eh-teacher:hover .eh-teacher__cta {
+  background: var(--eh-blue);
+  color: #fff;
+}
+
+.eh-teacher:hover .eh-teacher__name {
+  color: var(--eh-blue);
+}
+
+@media (max-width: 767px) {
+  .eh-teachers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* space above the button (which sits at the bottom of the card) */
+.eh-teacher > .eh-stars,
+.eh-teacher__place {
+  margin-bottom: 0.45rem;
 }
 
 .eh-stars {
