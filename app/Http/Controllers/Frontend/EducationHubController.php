@@ -52,8 +52,11 @@ class EducationHubController extends Controller
             'stats' => [
                 ['label' => 'Study Materials', 'count' => (clone $publicMaterials)->count(), 'icon' => 'fa-file-lines', 'tone' => 'blue', 'url' => route('study-materials.notes')],
                 ['label' => 'Teachers & Tutors', 'count' => Educator::query()->approved()->count(), 'icon' => 'fa-chalkboard-user', 'tone' => 'green', 'url' => route('educator.index')],
-                ['label' => 'Institutions', 'count' => Institute::query()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('institutes.index')],
                 ['label' => 'Learners', 'count' => User::query()->where('role', 'student')->count(), 'icon' => 'fa-users', 'tone' => 'orange', 'url' => null],
+                // (each kind on its own: a second row)
+                ['label' => 'Schools', 'count' => Institute::query()->schools()->approved()->count(), 'icon' => 'fa-school', 'tone' => 'pink', 'url' => route('schools.index')],
+                ['label' => 'Colleges', 'count' => Institute::query()->colleges()->approved()->count(), 'icon' => 'fa-graduation-cap', 'tone' => 'teal', 'url' => route('colleges.index')],
+                ['label' => 'Institutes', 'count' => Institute::query()->institutes()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('institutes.index')],
             ],
             'trendingMaterials' => (clone $publicMaterials)
                 ->with(['educator:id,display_name,slug', 'user:id,name'])

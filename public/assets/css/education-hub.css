@@ -71,6 +71,8 @@
 .eh-tone--green { color: #16a34a; }
 .eh-tone--purple { color: #7c3aed; }
 .eh-tone--orange { color: #ea580c; }
+.eh-tone--pink { color: #db2777; }
+.eh-tone--teal { color: #0d9488; }
 
 .eh-card {
   background: var(--eh-card);
@@ -273,8 +275,8 @@
 
 .eh-stats {
   display: grid;
-  /* Each stat as wide as its label, spread across the card */
-  grid-template-columns: repeat(4, auto);
+  /* Each stat as wide as its label, spread across the card: two rows of three */
+  grid-template-columns: repeat(3, auto);
   justify-content: space-between;
   gap: 0.5rem 0.75rem;
   max-width: 40rem;
