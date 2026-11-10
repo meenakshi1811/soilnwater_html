@@ -319,6 +319,8 @@ Route::post('/colleges/{slug}/report', [ProfileReportController::class, 'college
 
 Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
 Route::get('/education-hub/notices', [EducationHubController::class, 'notices'])->name('education.notices');
+Route::get('/education-hub/jobs', [EducationHubController::class, 'jobs'])->name('education.jobs');
+Route::get('/education-hub/search', [EducationHubController::class, 'search'])->name('education.search');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');
 Route::get('/teachers-tutors/listings', [EducatorListingController::class, 'listings'])->name('educator.listings');
