@@ -52,10 +52,10 @@
     ];
 
     $heroChips = [
-        ['label' => 'Study Materials', 'icon' => 'fa-book-open', 'url' => route('study-materials.notes')],
-        ['label' => 'Find Teachers', 'icon' => 'fa-chalkboard-user', 'url' => route('educator.index')],
-        ['label' => 'Find Institutions', 'icon' => 'fa-building-columns', 'url' => route('schools.index')],
-        ['label' => 'Ask a Question', 'icon' => 'fa-circle-question', 'url' => route('discussions.index')],
+        ['label' => 'Study Materials', 'icon' => 'fa-book-open', 'tone' => 'blue', 'url' => route('study-materials.notes')],
+        ['label' => 'Find Teachers', 'icon' => 'fa-users', 'tone' => 'purple', 'url' => route('educator.index')],
+        ['label' => 'Find Institutions', 'icon' => 'fa-building-columns', 'tone' => 'indigo', 'url' => route('schools.index')],
+        ['label' => 'Ask a Question', 'icon' => 'fa-circle-question', 'tone' => 'orange', 'url' => route('discussions.index')],
     ];
 
     $features = [
@@ -65,10 +65,10 @@
         ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'icon' => 'fa-award', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('community.index', ['type' => 'student-corner'])],
     ];
 
-    // The hero's picture: a photo of students when one is added (hero-students.webp), else the student cut-out
+    // The hero's background photo (students on a campus): hero-students.webp when added, else hero-campus.webp
     $heroPhoto = file_exists(public_path('assets/images/education-hub/hero-students.webp'))
         ? asset('assets/images/education-hub/hero-students.webp')
-        : asset('assets/images/education-hub/hero-student-cutout.webp');
+        : asset('assets/images/education-hub/hero-campus.webp');
 
     // 1234 → 1.2K+, smaller numbers with a plus
     $statCount = fn (int $count): string => \App\Models\StudyMaterial::formatCompactCount($count).($count > 0 ? '+' : '');
@@ -86,7 +86,7 @@
                 <li class="eh-nav__item">
                     <details class="eh-nav__dropdown">
                         <summary class="eh-nav__link eh-nav__link--all">
-                            <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+                            <i class="fa-solid fa-bars" aria-hidden="true"></i>
                             <span>All Categories</span>
                             <i class="fa-solid fa-chevron-down eh-nav__caret" aria-hidden="true"></i>
                         </summary>
@@ -122,6 +122,8 @@
 
     {{-- Hero: heading, search, quick links, a photo of students and the numbers --}}
     <section class="eh-hero" aria-labelledby="ehHeroTitle">
+        {{-- the photo across the right, fading into the light background behind the text --}}
+        <div class="eh-hero__bg" style="--eh-hero-photo: url('{{ $heroPhoto }}')" aria-hidden="true"></div>
         <div class="eh-container eh-hero__inner">
             <div class="eh-hero__copy">
                 <h1 class="eh-hero__title" id="ehHeroTitle">Your Learning Journey <span>Starts Here!</span></h1>
@@ -131,27 +133,23 @@
                     <i class="fa-solid fa-magnifying-glass eh-search__icon" aria-hidden="true"></i>
                     <label for="ehSearch" class="visually-hidden">Search the Education Hub</label>
                     <input type="search" id="ehSearch" name="q" class="eh-search__input" placeholder="Search notes, teachers, courses, schools, colleges, jobs..." maxlength="150" autocomplete="off">
-                    <button type="submit" class="eh-search__btn">Search</button>
+                    <button type="submit" class="eh-search__btn"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search</button>
                 </form>
 
                 <div class="eh-chips">
                     @foreach($heroChips as $chip)
-                        <a href="{{ $chip['url'] }}" class="eh-chip"><i class="fa-solid {{ $chip['icon'] }}" aria-hidden="true"></i> {{ $chip['label'] }}</a>
+                        <a href="{{ $chip['url'] }}" class="eh-chip eh-chip--{{ $chip['tone'] }}"><i class="fa-solid {{ $chip['icon'] }}" aria-hidden="true"></i> {{ $chip['label'] }}</a>
                     @endforeach
                 </div>
-            </div>
-
-            <div class="eh-hero__photo">
-                <img src="{{ $heroPhoto }}" alt="Students learning together" width="520" height="420" fetchpriority="high">
             </div>
 
             <ul class="eh-stats" aria-label="On SoilnWater">
                 @foreach($stats as $stat)
                     <li>
                         <a href="{{ $stat['url'] }}" class="eh-stat">
-                            <span class="eh-icon eh-icon--square eh-icon--{{ $stat['tone'] }}"><i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i></span>
+                            <span class="eh-stat__icon eh-stat__icon--{{ $stat['tone'] }}"><i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i></span>
                             <span class="eh-stat__text">
-                                <strong class="eh-tone--{{ $stat['tone'] }}">{{ $statCount($stat['count']) }}</strong>
+                                <strong>{{ $statCount($stat['count']) }}</strong>
                                 <small>{{ $stat['label'] }}</small>
                             </span>
                         </a>

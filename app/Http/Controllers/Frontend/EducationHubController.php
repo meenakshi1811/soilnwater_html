@@ -48,8 +48,8 @@ class EducationHubController extends Controller
 
         return view('frontend.education-hub.index', [
             'stats' => [
-                ['label' => 'Study Materials', 'count' => (clone $publicMaterials)->count(), 'icon' => 'fa-book-open', 'tone' => 'green', 'url' => route('study-materials.notes')],
-                ['label' => 'Teachers & Tutors', 'count' => Educator::query()->approved()->count(), 'icon' => 'fa-chalkboard-user', 'tone' => 'blue', 'url' => route('educator.index')],
+                ['label' => 'Study Materials', 'count' => (clone $publicMaterials)->count(), 'icon' => 'fa-book-open', 'tone' => 'blue', 'url' => route('study-materials.notes')],
+                ['label' => 'Teachers & Tutors', 'count' => Educator::query()->approved()->count(), 'icon' => 'fa-users', 'tone' => 'green', 'url' => route('educator.index')],
                 ['label' => 'Institutions', 'count' => Institute::query()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('schools.index')],
                 ['label' => 'Jobs & Opportunities', 'count' => $this->openJobsQuery()->count(), 'icon' => 'fa-briefcase', 'tone' => 'orange', 'url' => route('education.jobs')],
             ],
