@@ -197,16 +197,22 @@ class EducationHubController extends Controller
             ->get()
             ->map(function (Educator $teacher): array {
                 $qualification = collect($teacher->qualifications ?? [])->pluck('degree')->filter()->take(2)->implode(', ');
-                $experience = (int) $teacher->years_experience > 0 ? $teacher->years_experience.'+ yrs' : null;
+                $experience = (int) $teacher->years_experience > 0 ? $teacher->years_experience.'+ yrs exp.' : null;
                 $classes = collect($teacher->classes ?? [])->filter()->values();
                 $subject = $teacher->primarySubject();
+                // "Class 9" … "Class 12" → "Classes 9–12"
+                $classRange = $classes->count() > 1
+                    ? (preg_match('/^Class\s+(.+)$/i', $classes->first(), $from) && preg_match('/^Class\s+(.+)$/i', $classes->last(), $to)
+                        ? 'Classes '.$from[1].'–'.$to[1]
+                        : $classes->first().'–'.$classes->last())
+                    : $classes->first();
 
                 return [
                     'name' => $teacher->display_name ?: $teacher->roleLabel(),
                     'photo' => $teacher->photoUrl() ?: asset('assets/images/logo_soilnwater.webp'),
                     'verified' => $teacher->isVerified(),
                     'subject' => $subject
-                        ? $subject.($classes->isNotEmpty() ? ' ('.($classes->count() > 1 ? $classes->first().'–'.$classes->last() : $classes->first()).')' : '')
+                        ? $subject.($classRange ? ' ('.$classRange.')' : '')
                         : ($teacher->professional_headline ?: $teacher->roleLabel()),
                     'detail' => collect([$qualification ?: null, $experience])->filter()->implode(' | '),
                     'rating' => (float) $teacher->average_rating,
@@ -217,39 +223,20 @@ class EducationHubController extends Controller
     }
 
     /**
-     * Educational Institutions: schools, colleges and training institutes, each with a photo of
-     * one of the top ones, what they cover, how many are listed and the listing.
+     * Educational Institutions: schools, colleges and training institutes, each with a building
+     * photo (public/assets/images/education-hub/place-*.webp), what they cover and the listing.
      *
      * @return list<array<string, mixed>>
      */
     private function institutionRows(): array
     {
         $rows = [
-            ['title' => 'Top Schools', 'hint' => 'CBSE, ICSE, State Boards', 'icon' => 'fa-school', 'tone' => 'blue', 'url' => route('schools.index'), 'query' => fn () => Institute::query()->schools()],
-            ['title' => 'Top Colleges', 'hint' => 'UG, PG & Professional Courses', 'icon' => 'fa-graduation-cap', 'tone' => 'purple', 'url' => route('colleges.index'), 'query' => fn () => Institute::query()->colleges()],
-            ['title' => 'Training Institutes', 'hint' => 'Coaching, Skills & Vocational', 'icon' => 'fa-building-columns', 'tone' => 'orange', 'url' => route('institutes.index'), 'query' => fn () => Institute::query()->institutes()],
+            ['title' => 'Top Schools', 'hint' => 'CBSE, ICSE, State Boards', 'photo' => 'school', 'icon' => 'fa-school', 'tone' => 'blue', 'url' => route('schools.index')],
+            ['title' => 'Top Colleges', 'hint' => 'UG, PG & Professional Courses', 'photo' => 'college', 'icon' => 'fa-graduation-cap', 'tone' => 'purple', 'url' => route('colleges.index')],
+            ['title' => 'Training Institutes', 'hint' => 'Coaching, Skills & Vocational', 'photo' => 'institute', 'icon' => 'fa-building-columns', 'tone' => 'orange', 'url' => route('institutes.index')],
         ];
 
-        return array_map(function (array $row): array {
-            $query = ($row['query'])()->approved();
-            unset($row['query']);
-            $row['count'] = (clone $query)->count();
-            // (a photo: the gallery's first, else a JPEG logo, which is nearly always a photo)
-            $row['image'] = null;
-            foreach ((clone $query)->orderByDesc('is_verified')->latest('approved_at')->limit(12)->get(['id', 'gallery', 'logo']) as $institution) {
-                $gallery = is_array($institution->gallery) ? array_values(array_filter($institution->gallery)) : [];
-                if ($gallery !== []) {
-                    $row['image'] = ImageThumbnail::url(asset($gallery[0]));
-                    break;
-                }
-                if (preg_match('/\.jpe?g$/i', (string) $institution->logo) === 1) {
-                    $row['image'] = ImageThumbnail::url(asset($institution->logo));
-                    break;
-                }
-            }
-
-            return $row;
-        }, $rows);
+        return array_map(fn (array $row): array => $row + ['image' => asset('assets/images/education-hub/place-'.$row['photo'].'.webp')], $rows);
     }
 
     /**

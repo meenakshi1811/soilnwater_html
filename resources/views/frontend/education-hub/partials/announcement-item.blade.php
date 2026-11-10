@@ -9,10 +9,13 @@
     <span class="eh-icon eh-icon--square eh-icon--{{ $kindTone }}"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i></span>
     <span class="eh-announcement__body">
       <strong>{{ $announcement['title'] }}</strong>
-      <small>{{ $announcement['source'] }} · {{ $kindOne }}</small>
+      <small>
+        <span class="eh-announcement__source" title="{{ $kindOne }}">{{ $announcement['source'] }}</span>
+        @if($announcement['date'])
+          <span class="eh-announcement__sep" aria-hidden="true">|</span>
+          <time datetime="{{ $announcement['date']->toDateString() }}">{{ $announcement['date']->format('d M Y') }}</time>
+        @endif
+      </small>
     </span>
-    @if($announcement['date'])
-      <time class="eh-announcement__date" datetime="{{ $announcement['date']->toDateString() }}">{{ $announcement['date']->format('j M Y') }}</time>
-    @endif
   </a>
 </li>

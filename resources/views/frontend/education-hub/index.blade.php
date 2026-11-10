@@ -58,11 +58,12 @@
         ['label' => 'Ask a Question', 'icon' => 'fa-circle-question', 'tone' => 'orange', 'url' => route('discussions.index')],
     ];
 
+    // (art: public/assets/images/education-hub/art-*.webp)
     $features = [
-        ['title' => 'Courses & Online Learning', 'text' => 'Academic, skill and professional courses.', 'icon' => 'fa-laptop-code', 'tone' => 'blue', 'button' => 'Explore Courses', 'url' => route('institutes.index')],
-        ['title' => 'Jobs & Careers', 'text' => 'Jobs, internships, apprenticeships and teaching opportunities.', 'icon' => 'fa-briefcase', 'tone' => 'purple', 'button' => 'Explore Jobs', 'url' => route('education.jobs')],
-        ['title' => 'Projects & Innovation', 'text' => 'Showcase science, engineering and creative projects.', 'icon' => 'fa-lightbulb', 'tone' => 'orange', 'button' => 'Explore Projects', 'url' => route('community.index', ['type' => 'science-technology'])],
-        ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'icon' => 'fa-award', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('community.index', ['type' => 'student-corner'])],
+        ['title' => 'Courses & Online Learning', 'text' => 'Academic, skill and professional courses.', 'art' => 'courses', 'tone' => 'blue', 'button' => 'Explore Courses', 'url' => route('institutes.index')],
+        ['title' => 'Jobs & Careers', 'text' => 'Jobs, internships, apprenticeships and teaching opportunities.', 'art' => 'jobs', 'tone' => 'purple', 'button' => 'Explore Jobs', 'url' => route('education.jobs')],
+        ['title' => 'Projects & Innovation', 'text' => 'Showcase science, engineering and creative projects.', 'art' => 'projects', 'tone' => 'orange', 'button' => 'Explore Projects', 'url' => route('community.index', ['type' => 'science-technology'])],
+        ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'art' => 'scholarships', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('community.index', ['type' => 'student-corner'])],
     ];
 
     // The hero's background photo (students on a campus): hero-students.webp when added, else hero-campus.webp
@@ -239,7 +240,7 @@
                     <ul class="eh-people">
                         @foreach($topTeachers as $teacher)
                             <li class="eh-person">
-                                <img src="{{ $teacher['photo'] }}" alt="" class="eh-person__photo" loading="lazy" width="48" height="48">
+                                <img src="{{ $teacher['photo'] }}" alt="" class="eh-person__photo" loading="lazy" width="60" height="60">
                                 <span class="eh-person__body">
                                     <a href="{{ $teacher['url'] }}" class="eh-person__name">
                                         {{ $teacher['name'] }}
@@ -247,17 +248,12 @@
                                             <i class="fa-solid fa-circle-check" aria-label="Verified"></i>
                                         @endif
                                     </a>
-                                    <small>{{ $teacher['subject'] }}</small>
+                                    <span class="eh-person__subject">{{ $teacher['subject'] }}</span>
                                     @if($teacher['detail'] !== '')
                                         <small>{{ $teacher['detail'] }}</small>
                                     @endif
-                                    @if($teacher['rating'] > 0)
-                                        <span class="eh-person__rating"><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format($teacher['rating'], 1) }}</span>
-                                    @else
-                                        <span class="eh-person__rating eh-person__rating--new">New</span>
-                                    @endif
                                 </span>
-                                <a href="{{ $teacher['url'] }}" class="eh-btn-sm eh-btn-sm--outline">Contact</a>
+                                <a href="{{ $teacher['url'] }}" class="eh-contact"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Contact</a>
                             </li>
                         @endforeach
                     </ul>
@@ -285,7 +281,6 @@
                                 <span class="eh-place__body">
                                     <strong>{{ $row['title'] }}</strong>
                                     <small>{{ $row['hint'] }}</small>
-                                    <small class="eh-place__count">{{ number_format($row['count']) }} listed</small>
                                 </span>
                                 <i class="fa-solid fa-chevron-right eh-place__arrow" aria-hidden="true"></i>
                             </a>
@@ -328,7 +323,7 @@
         <div class="eh-features">
             @foreach($features as $feature)
                 <a href="{{ $feature['url'] }}" class="eh-feature eh-feature--{{ $feature['tone'] }}">
-                    <span class="eh-feature__art"><i class="fa-solid {{ $feature['icon'] }}" aria-hidden="true"></i></span>
+                    <img src="{{ asset('assets/images/education-hub/art-'.$feature['art'].'.webp') }}" alt="" class="eh-feature__art" loading="lazy">
                     <span class="eh-feature__body">
                         <strong>{{ $feature['title'] }}</strong>
                         <small>{{ $feature['text'] }}</small>
@@ -338,18 +333,18 @@
             @endforeach
         </div>
 
-        {{-- Ask & discuss, join the community --}}
+        {{-- Ask & discuss, join the community: one strip, two halves --}}
         <div class="eh-banners">
             <div class="eh-banner eh-banner--green">
-                <span class="eh-banner__art"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+                <img src="{{ asset('assets/images/education-hub/art-ask.webp') }}" alt="" class="eh-banner__art" loading="lazy">
                 <span class="eh-banner__body">
-                    <strong>Ask &amp; Discuss <span>— Learn Together</span></strong>
+                    <strong>Ask &amp; Discuss <span>– Learn Together</span></strong>
                     <small>Ask academic questions, get expert answers, share ideas and discuss with the community.</small>
                 </span>
                 <a href="{{ route('discussions.index') }}" class="eh-banner__btn">Ask a Question <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             </div>
             <div class="eh-banner eh-banner--blue">
-                <span class="eh-banner__art"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+                <img src="{{ asset('assets/images/education-hub/art-community.webp') }}" alt="" class="eh-banner__art" loading="lazy">
                 <span class="eh-banner__body">
                     <strong>Join Our Learning Community</strong>
                     <small>Students • Parents • Teachers • Professionals • Hobbyists</small>
