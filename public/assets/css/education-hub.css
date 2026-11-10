@@ -17,6 +17,8 @@
   padding-bottom: 2.5rem;
   background: #f6f8f7;
   color: var(--eh-text);
+  /* never wider than the screen: nothing inside can make the page slide sideways */
+  overflow-x: clip;
 }
 
 /* Full width on every screen, with side padding */
@@ -631,12 +633,14 @@
 .eh-places > li {
   display: flex;
   flex: 1;
+  min-width: 0;
 }
 
 .eh-place {
   display: flex;
   flex: 1;
   align-items: center;
+  min-width: 0;
   gap: 0.9rem;
   padding: 0.55rem 0.9rem 0.55rem 0.55rem;
   border: 1px solid var(--eh-line);
@@ -1142,6 +1146,7 @@
     padding: 0.5rem 0.5rem;
     font-size: 0.76rem;
     text-align: center;
+    white-space: normal;
   }
 
   .eh-banners {
@@ -2209,5 +2214,7 @@
 
   .eh-stat__text small {
     font-size: 0.68rem;
+    white-space: normal;
+    line-height: 1.2;
   }
 }
