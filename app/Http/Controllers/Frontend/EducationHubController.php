@@ -31,15 +31,15 @@ class EducationHubController extends Controller
         'teacher' => ['Teachers & Tutors', 'fa-chalkboard-user', 'orange', 'Teacher'],
     ];
 
-    /** Trending Study Materials' tabs: key => [label, the material types it shows] */
+    /** Trending Study Materials' tabs: key => [label, the material types it shows, icon, the cards' picture tint] */
     public const TRENDING_TABS = [
-        'question_papers' => ['Question Papers', ['question_papers']],
-        'notes' => ['Study Notes', ['notes']],
-        'worksheets' => ['Worksheets', ['worksheets']],
-        'assignments' => ['Assignments', ['assignments']],
-        'sample_papers' => ['Solved Papers', ['sample_papers']],
-        'reference_books' => ['Reference Books', ['reference_books', 'study_guides']],
-        'videos' => ['Videos & Audio', ['videos', 'audio']],
+        'question_papers' => ['Question Papers', ['question_papers'], 'fa-file-lines', 'blue'],
+        'notes' => ['Study Notes', ['notes'], 'fa-file-pen', 'green'],
+        'worksheets' => ['Worksheets', ['worksheets'], 'fa-table-list', 'purple'],
+        'assignments' => ['Assignments', ['assignments'], 'fa-clipboard-list', 'orange'],
+        'sample_papers' => ['Solved Papers', ['sample_papers'], 'fa-file-circle-check', 'pink'],
+        'reference_books' => ['Reference Books', ['reference_books', 'study_guides'], 'fa-book', 'teal'],
+        'videos' => ['Videos & Audio', ['videos', 'audio'], 'fa-photo-film', 'sky'],
     ];
 
     public function index(): View
@@ -53,7 +53,7 @@ class EducationHubController extends Controller
                 ['label' => 'Institutions', 'count' => Institute::query()->approved()->count(), 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('schools.index')],
                 ['label' => 'Jobs & Opportunities', 'count' => $this->openJobsQuery()->count(), 'icon' => 'fa-briefcase', 'tone' => 'orange', 'url' => route('education.jobs')],
             ],
-            'trendingTabs' => $this->trendingTabs($publicMaterials, 6),
+            'trendingTabs' => $this->trendingTabs($publicMaterials, 10),
             'topTeachers' => $this->topTeachers(3),
             'institutionRows' => $this->institutionRows(),
             // (all active ones, newest first, moving upward in the box)
@@ -151,17 +151,19 @@ class EducationHubController extends Controller
 
     /**
      * Trending Study Materials by tab (question papers, notes, worksheets…): each tab's most viewed
-     * (then downloaded) as cards, a different six of them on each visit, and a link to all.
+     * (then downloaded) as cards for a sliding row, a different set on each visit, and a link to all.
      *
-     * @return list<array{key: string, label: string, url: string, cards: list<array<string, mixed>>}>
+     * @return list<array{key: string, label: string, icon: string, tint: string, url: string, cards: list<array<string, mixed>>}>
      */
     private function trendingTabs($publicMaterials, int $limit): array
     {
         $tabs = [];
-        foreach (self::TRENDING_TABS as $key => [$label, $types]) {
+        foreach (self::TRENDING_TABS as $key => [$label, $types, $icon, $tint]) {
             $tabs[] = [
                 'key' => $key,
                 'label' => $label,
+                'icon' => $icon,
+                'tint' => $tint,
                 'url' => route('study-materials.notes', ['material_type' => $types[0], 'sort' => 'downloads']),
                 'cards' => $this->freshPick(
                     (clone $publicMaterials)->whereIn('material_type', $types)
@@ -305,7 +307,7 @@ class EducationHubController extends Controller
             'image' => $image ? ImageThumbnail::url($image) : null,
             'file' => $material->fileTypeMeta(),
             'title' => (string) $material->title,
-            'meta' => collect([$source, $material->class_course])->filter()->implode(' · ') ?: $material->materialTypeLabel(),
+            'meta' => collect([$source, $material->class_course])->filter()->values()->all() ?: [$material->materialTypeLabel()],
             'views' => StudyMaterial::formatCompactCount((int) $material->views_count),
             'downloads' => StudyMaterial::formatCompactCount((int) $material->downloads_count),
         ];

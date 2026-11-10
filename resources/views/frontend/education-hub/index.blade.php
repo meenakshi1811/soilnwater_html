@@ -176,7 +176,7 @@
             </div>
         </section>
 
-        {{-- Trending Study Materials: a tab per kind, six cards each --}}
+        {{-- Trending Study Materials: a tab per kind, its cards in a row that slides (arrows) --}}
         <section class="eh-section" aria-labelledby="ehTrendingTitle">
             <div class="eh-section__head">
                 <h2 class="eh-section__title" id="ehTrendingTitle">Trending Study Materials</h2>
@@ -185,36 +185,41 @@
             <div class="eh-tabs" role="tablist" aria-label="Kinds of study material">
                 @foreach($trendingTabs as $tab)
                     <button type="button" class="eh-tab {{ $loop->first ? 'is-active' : '' }}" role="tab" id="ehTab-{{ $tab['key'] }}" aria-controls="ehPanel-{{ $tab['key'] }}" aria-selected="{{ $loop->first ? 'true' : 'false' }}" data-more-url="{{ $tab['url'] }}" @unless($loop->first) tabindex="-1" @endunless>
-                        {{ $tab['label'] }}
+                        <i class="fa-solid {{ $tab['icon'] }}" aria-hidden="true"></i> {{ $tab['label'] }}
                     </button>
                 @endforeach
             </div>
             @foreach($trendingTabs as $tab)
                 <div class="eh-tabpanel" role="tabpanel" id="ehPanel-{{ $tab['key'] }}" aria-labelledby="ehTab-{{ $tab['key'] }}" @unless($loop->first) hidden @endunless>
                     @if($tab['cards'] !== [])
-                        <div class="eh-materials">
-                            @foreach($tab['cards'] as $card)
-                                <a href="{{ $card['url'] }}" class="eh-material">
-                                    <span class="eh-material__media eh-material__media--{{ $card['file']['tone'] }}">
-                                        @if($card['image'])
-                                            <img src="{{ $card['image'] }}" alt="" loading="lazy" decoding="async">
-                                        @else
-                                            <i class="fa-solid {{ $card['file']['icon'] }}" aria-hidden="true"></i>
-                                        @endif
-                                    </span>
-                                    <span class="eh-material__body">
-                                        <span class="eh-material__head">
-                                            <span class="eh-material__file eh-material__file--{{ $card['file']['tone'] }}" title="{{ $card['file']['label'] }}"><i class="fa-solid {{ $card['file']['icon'] }}" aria-hidden="true"></i></span>
-                                            <strong class="eh-material__title">{{ $card['title'] }}</strong>
+                        <div class="eh-slider js-eh-slider">
+                            <button type="button" class="eh-slider__arrow eh-slider__arrow--prev js-eh-slide" data-dir="-1" aria-label="Previous {{ strtolower($tab['label']) }}"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                            <div class="eh-materials js-eh-slider-track">
+                                @foreach($tab['cards'] as $card)
+                                    <a href="{{ $card['url'] }}" class="eh-material">
+                                        <span class="eh-material__media eh-material__media--{{ $tab['tint'] }}">
+                                            @if($card['image'])
+                                                <img src="{{ $card['image'] }}" alt="" loading="lazy" decoding="async">
+                                            @else
+                                                <i class="fa-solid {{ $tab['icon'] }}" aria-hidden="true"></i>
+                                            @endif
                                         </span>
-                                        <span class="eh-material__meta">{{ $card['meta'] }}</span>
-                                        <span class="eh-material__foot">
-                                            <span><i class="fa-regular fa-eye" aria-hidden="true"></i> {{ $card['views'] }} views</span>
-                                            <span><i class="fa-solid fa-download" aria-hidden="true"></i> {{ $card['downloads'] }}</span>
+                                        <span class="eh-material__body">
+                                            <span class="eh-material__head">
+                                                <span class="eh-material__file eh-material__file--{{ $card['file']['tone'] }}">{{ $card['file']['label'] }}</span>
+                                                <strong class="eh-material__title">{{ $card['title'] }}</strong>
+                                            </span>
+                                            {{-- (no spaces between the parts: the • between them comes from the stylesheet) --}}
+                                            <span class="eh-material__meta">@foreach($card['meta'] as $part)<span>{{ $part }}</span>@endforeach</span>
+                                            <span class="eh-material__foot">
+                                                <span><i class="fa-regular fa-eye" aria-hidden="true"></i> {{ $card['views'] }} views</span>
+                                                <span><i class="fa-solid fa-download" aria-hidden="true"></i> {{ $card['downloads'] }}</span>
+                                            </span>
                                         </span>
-                                    </span>
-                                </a>
-                            @endforeach
+                                    </a>
+                                @endforeach
+                            </div>
+                            <button type="button" class="eh-slider__arrow eh-slider__arrow--next js-eh-slide" data-dir="1" aria-label="Next {{ strtolower($tab['label']) }}"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
                         </div>
                     @else
                         <p class="eh-empty">{{ $tab['label'] }} will appear here soon.</p>
@@ -442,6 +447,35 @@
                     select(next);
                     next.focus();
                 }
+            });
+        });
+
+        // Trending rows: the arrows slide by one card; an arrow fades at its end (and hides when all fit)
+        document.querySelectorAll('.js-eh-slider').forEach(function (slider) {
+            var track = slider.querySelector('.js-eh-slider-track');
+            var prev = slider.querySelector('[data-dir="-1"]');
+            var next = slider.querySelector('[data-dir="1"]');
+            var update = function () {
+                var max = track.scrollWidth - track.clientWidth - 2;
+                slider.classList.toggle('is-static', max <= 0);
+                prev.disabled = track.scrollLeft <= 2;
+                next.disabled = track.scrollLeft >= max;
+            };
+            slider.querySelectorAll('.js-eh-slide').forEach(function (arrow) {
+                arrow.addEventListener('click', function () {
+                    var card = track.querySelector('.eh-material');
+                    var step = card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0) : track.clientWidth;
+                    track.scrollBy({ left: step * Number(arrow.dataset.dir), behavior: 'smooth' });
+                });
+            });
+            track.addEventListener('scroll', update, { passive: true });
+            window.addEventListener('resize', update);
+            update();
+        });
+        // (a tab shown later: its arrows set up once visible)
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                window.dispatchEvent(new Event('resize'));
             });
         });
     })();
