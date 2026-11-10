@@ -965,8 +965,28 @@
 
 /* ---------- Small laptops and tablets ---------- */
 @media (max-width: 1199px) {
+  /* features: one row that slides sideways, like the categories */
   .eh-features {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(320px, 1fr);
+    margin-right: calc(-1 * var(--eh-gutter));
+    margin-left: calc(-1 * var(--eh-gutter));
+    padding: 0.3rem var(--eh-gutter) 0.9rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding: 0 var(--eh-gutter);
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .eh-feature {
+    scroll-snap-align: start;
+  }
+
+  .eh-feature:hover {
+    transform: none;
   }
 
   .eh-banners {
@@ -1139,7 +1159,11 @@
     font-size: 1rem;
   }
 
-  /* features: two by two, the picture on top */
+  /* features: a sliding row of narrow cards, the picture on top */
+  .eh-features {
+    grid-auto-columns: minmax(200px, 62%);
+  }
+
   .eh-feature {
     flex-direction: column;
     gap: 0.55rem;
