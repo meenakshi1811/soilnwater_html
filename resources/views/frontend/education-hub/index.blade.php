@@ -9,14 +9,14 @@
 @section('content')
 @php
     $categories = [
-        ['label' => 'School Education', 'icon' => 'fa-school', 'tone' => 'blue', 'url' => route('schools.index')],
+        ['label' => 'School Education', 'icon' => 'fa-book-open', 'tone' => 'blue', 'url' => route('schools.index')],
         ['label' => 'College & University', 'icon' => 'fa-graduation-cap', 'tone' => 'green', 'url' => route('colleges.index')],
         ['label' => 'Competitive Exams', 'icon' => 'fa-bullseye', 'tone' => 'purple', 'url' => route('institutes.index', ['type' => 'coaching'])],
         ['label' => 'Skill Development', 'icon' => 'fa-screwdriver-wrench', 'tone' => 'orange', 'url' => route('institutes.index', ['search' => 'skill'])],
         ['label' => 'Subjects', 'icon' => 'fa-atom', 'tone' => 'sky', 'url' => route('study-materials.library')],
-        ['label' => 'Courses & Online Learning', 'icon' => 'fa-laptop-code', 'tone' => 'rose', 'url' => route('institutes.index')],
+        ['label' => 'Courses & Online Learning', 'icon' => 'fa-laptop', 'badge' => 'fa-play', 'tone' => 'rose', 'url' => route('institutes.index')],
         ['label' => 'Scholarships & Opportunities', 'icon' => 'fa-trophy', 'tone' => 'amber', 'url' => route('education.jobs')],
-        ['label' => 'Community & Discussion', 'icon' => 'fa-people-group', 'tone' => 'teal', 'url' => route('community.index')],
+        ['label' => 'Community & Discussion', 'icon' => 'fa-users', 'tone' => 'teal', 'url' => route('community.index')],
     ];
 
     $hubNav = [
@@ -168,7 +168,13 @@
             <div class="eh-categories">
                 @foreach($categories as $category)
                     <a href="{{ $category['url'] }}" class="eh-category eh-category--{{ $category['tone'] }}">
-                        <span class="eh-category__icon"><i class="fa-solid {{ $category['icon'] }}" aria-hidden="true"></i></span>
+                        <span class="eh-category__icon" aria-hidden="true">
+                            <i class="fa-solid {{ $category['icon'] }}"></i>
+                            @isset($category['badge'])
+                                {{-- (a small icon on the big one's screen, e.g. play on the laptop) --}}
+                                <i class="fa-solid {{ $category['badge'] }} eh-category__badge"></i>
+                            @endisset
+                        </span>
                         <strong>{{ $category['label'] }}</strong>
                     </a>
                 @endforeach

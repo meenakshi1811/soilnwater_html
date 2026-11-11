@@ -1,7 +1,10 @@
-{{-- One notice in the Announcements & Events box: an icon by who posted it, title, who and when.
-     $copy: the ticker's second copy (hidden from screen readers and the keyboard). --}}
+{{-- One notice in the Announcements & Updates box: an icon by its topic (else by who posted it),
+     title, who and when. $copy: the ticker's second copy (hidden from screen readers and the keyboard). --}}
 @php
   [, $kindIcon, $kindTone, $kindOne] = \App\Http\Controllers\Frontend\EducationHubController::NOTICE_KINDS[$announcement['kind']];
+  if (! empty($announcement['topic'])) {
+      [, $kindIcon, $kindTone] = $announcement['topic'];
+  }
   $copy = $copy ?? false;
 @endphp
 <li>

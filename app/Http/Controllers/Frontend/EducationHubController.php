@@ -31,6 +31,19 @@ class EducationHubController extends Controller
         'teacher' => ['Teachers & Tutors', 'fa-chalkboard-user', 'orange', 'Teacher'],
     ];
 
+    /**
+     * What a notice is about, from words in its title (first match wins): [pattern, label, icon, tone].
+     * Its icon in Announcements & Updates; a notice matching none keeps the icon of who posted it.
+     */
+    public const NOTICE_TOPICS = [
+        ['/olympiad|competition|contest|quiz|hackathon|championship/i', 'Competition', 'fa-trophy', 'amber'],
+        ['/\bexam|date ?sheet|\bresults?\b|\btests?\b|\bboards?\b|time ?table/i', 'Examinations', 'fa-calendar-days', 'orange'],
+        ['/admission|enrol|apply|application/i', 'Admissions', 'fa-graduation-cap', 'purple'],
+        ['/webinar|workshop|seminar|event|\bfest|celebrat|annual day|sports day|\bmeet|ceremony|function/i', 'Event', 'fa-users', 'purple'],
+        ['/holiday|vacation|closed|leave/i', 'Holiday', 'fa-umbrella-beach', 'teal'],
+        ['/batch|class(es)? (start|begin)|registration|course/i', 'Batches & Courses', 'fa-book-open', 'blue'],
+    ];
+
     /** Trending Study Materials' tabs: key => [label, the material types it shows, icon, the cards' picture tint] */
     public const TRENDING_TABS = [
         'question_papers' => ['Question Papers', ['question_papers'], 'fa-file-lines', 'blue'],
@@ -378,7 +391,24 @@ class EducationHubController extends Controller
             ]);
 
         return $instituteNotices->concat($educatorNotices)
+            ->map(fn (array $notice): array => $notice + ['topic' => self::noticeTopic($notice['title'])])
             ->sortByDesc(fn (array $notice) => $notice['date']?->timestamp ?? 0)
             ->values();
+    }
+
+    /**
+     * A notice's topic from its title: [label, icon, tone], or null when no topic matches.
+     *
+     * @return array{0: string, 1: string, 2: string}|null
+     */
+    public static function noticeTopic(string $title): ?array
+    {
+        foreach (self::NOTICE_TOPICS as [$pattern, $label, $icon, $tone]) {
+            if (preg_match($pattern, $title) === 1) {
+                return [$label, $icon, $tone];
+            }
+        }
+
+        return null;
     }
 }
