@@ -66,10 +66,8 @@
         ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'art' => 'scholarships', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('community.index', ['type' => 'student-corner'])],
     ];
 
-    // The hero's background photo (students on a campus): hero-students.webp when added, else hero-campus.webp
-    $heroPhoto = file_exists(public_path('assets/images/education-hub/hero-students.webp'))
-        ? asset('assets/images/education-hub/hero-students.webp')
-        : asset('assets/images/education-hub/hero-campus.webp');
+    // The hero's banner: a campus panorama (books on the left, the campus, students on the right)
+    $heroPhoto = asset('assets/images/education-hub/hero-panorama.webp');
 
     // 1234 → 1.2K+, smaller numbers with a plus
     $statCount = fn (int $count): string => \App\Models\StudyMaterial::formatCompactCount($count).($count > 0 ? '+' : '');

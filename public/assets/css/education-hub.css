@@ -1844,19 +1844,23 @@
   background: linear-gradient(100deg, #ffffff 0%, #f3fbf5 35%, #e6f5ea 60%, #dff1e4 100%);
 }
 
-/* the photo: the right part, fading in from the left */
+/* the banner: the panorama across the whole hero (students on the right), a white veil on the
+   left under the heading and search so they stay easy to read */
 .eh-hero__bg {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  /* the photo at the hero's height (its own shape), its right part under the numbers card;
-     both sides fade into the background */
-  right: max(120px, 9%);
-  width: auto;
-  aspect-ratio: 684 / 488;
-  background: var(--eh-hero-photo) center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 16%, #000 34%, #000 86%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 16%, #000 34%, #000 86%, transparent 100%);
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.86) 26%, rgba(255, 255, 255, 0.45) 44%, rgba(255, 255, 255, 0) 58%),
+    var(--eh-hero-photo) right center / cover no-repeat;
+}
+
+/* laptops: the photo a little closer (from the top, so no heads are cut), which moves the
+   students left, clear of the numbers card */
+@media (min-width: 1200px) and (max-width: 1699px) {
+  .eh-hero__bg {
+    background-position: 0 0, right top;
+    background-size: auto, auto 128%;
+  }
 }
 
 .eh-hero__inner {
@@ -2064,19 +2068,24 @@
   }
 }
 
-/* Tablets: the menu on two lines, the photo behind a lighter veil */
+/* Tablets: the menu on two lines, the banner as a strip on top */
 @media (max-width: 1199px) {
   .eh-nav__list {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
 
+  /* the banner as a clear strip across the top (the students), the heading, search and numbers
+     under it on the light background */
   .eh-hero__bg {
-    right: 0;
-    width: 75%;
-    aspect-ratio: auto;
-    opacity: 0.55;
+    position: relative;
+    inset: auto;
+    height: clamp(130px, 26vw, 260px);
+    background:
+      linear-gradient(180deg, rgba(243, 251, 245, 0) 70%, #f3fbf5 100%),
+      var(--eh-hero-photo) 84% center / cover no-repeat;
   }
+
 }
 
 @media (max-width: 991px) {
@@ -2184,14 +2193,6 @@
     box-shadow: none;
   }
 
-  .eh-hero__bg {
-    right: 0;
-    width: 100%;
-    aspect-ratio: auto;
-    opacity: 0.28;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
 
   .eh-hero__inner {
     gap: 1rem;
