@@ -2356,3 +2356,134 @@
     line-height: 1.2;
   }
 }
+
+/* ---------- Big screens: teachers, institutions and announcements grow with the screen ----------
+   (the boxes get wide; their photos, text, tiles and buttons grow with them, so there is no empty
+   band between the text and the button or arrow) */
+@media (min-width: 1400px) {
+  .eh-columns {
+    gap: clamp(1.1rem, 1.3vw, 1.75rem);
+  }
+
+  .eh-panel {
+    padding: clamp(1.1rem, 1.3vw, 1.6rem) clamp(1.2rem, 1.45vw, 1.85rem);
+  }
+
+  .eh-panel__head {
+    margin-bottom: clamp(0.85rem, 0.9vw, 1.2rem);
+  }
+
+  .eh-panel__title {
+    font-size: clamp(1.08rem, 1.12vw, 1.45rem);
+  }
+
+  .eh-panel__title i {
+    font-size: 1.05em;
+  }
+
+  .eh-panel__more {
+    font-size: clamp(0.82rem, 0.82vw, 1.05rem);
+  }
+
+  /* teachers */
+  .eh-person {
+    gap: clamp(0.85rem, 1vw, 1.3rem);
+    padding: clamp(0.65rem, 0.75vw, 1rem) 0;
+  }
+
+  .eh-person__photo {
+    width: clamp(60px, 4.2vw, 88px);
+    height: clamp(60px, 4.2vw, 88px);
+  }
+
+  .eh-person__body {
+    gap: 0.2rem;
+  }
+
+  .eh-person__name {
+    font-size: clamp(0.95rem, 1.02vw, 1.3rem);
+  }
+
+  .eh-person__subject {
+    font-size: clamp(0.8rem, 0.86vw, 1.1rem);
+  }
+
+  .eh-person__body small {
+    font-size: clamp(0.75rem, 0.8vw, 1.02rem);
+  }
+
+  .eh-contact {
+    gap: 0.5rem;
+    padding: clamp(0.45rem, 0.5vw, 0.65rem) clamp(0.8rem, 0.95vw, 1.25rem);
+    border-radius: 10px;
+    font-size: clamp(0.8rem, 0.82vw, 1.05rem);
+  }
+
+  /* institutions */
+  .eh-places {
+    gap: clamp(0.75rem, 0.75vw, 1rem);
+  }
+
+  .eh-place {
+    gap: clamp(0.9rem, 1vw, 1.35rem);
+    padding: clamp(0.55rem, 0.55vw, 0.75rem) clamp(0.9rem, 1vw, 1.3rem) clamp(0.55rem, 0.55vw, 0.75rem) clamp(0.55rem, 0.55vw, 0.75rem);
+    border-radius: 14px;
+  }
+
+  .eh-place__photo {
+    width: clamp(104px, 7.6vw, 165px);
+    height: auto;
+    aspect-ratio: 104 / 58;
+    border-radius: 10px;
+  }
+
+  .eh-place__body {
+    gap: 0.25rem;
+  }
+
+  .eh-place__body strong {
+    font-size: clamp(0.95rem, 1.02vw, 1.3rem);
+  }
+
+  .eh-place__body small {
+    font-size: clamp(0.78rem, 0.84vw, 1.08rem);
+  }
+
+  .eh-place__arrow {
+    font-size: clamp(0.85rem, 0.85vw, 1.1rem);
+  }
+
+  /* announcements */
+  .eh-announcement {
+    gap: clamp(0.8rem, 1vw, 1.3rem);
+    padding: clamp(0.7rem, 0.85vw, 1.1rem) 0;
+  }
+
+  .eh-announcement .eh-icon--square {
+    width: clamp(48px, 3.4vw, 70px);
+    height: clamp(42px, 2.95vw, 60px);
+    border-radius: 12px;
+    font-size: clamp(1.2rem, 1.25vw, 1.65rem);
+  }
+
+  .eh-announcement__body {
+    gap: 0.3rem;
+  }
+
+  .eh-announcement__body strong {
+    font-size: clamp(0.86rem, 1vw, 1.25rem);
+  }
+
+  .eh-announcement__body small {
+    font-size: clamp(0.78rem, 0.84vw, 1.05rem);
+  }
+
+  /* room for five notices at the bigger size */
+  .eh-ticker {
+    max-height: clamp(345px, 25vw, 520px);
+  }
+
+  .eh-ticker.is-moving {
+    height: clamp(345px, 25vw, 520px);
+  }
+}
