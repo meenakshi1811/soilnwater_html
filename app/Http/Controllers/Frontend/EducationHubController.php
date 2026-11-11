@@ -67,7 +67,7 @@ class EducationHubController extends Controller
                 ['label' => 'Jobs & Opportunities', 'count' => $this->openJobsQuery()->count(), 'icon' => 'fa-briefcase', 'tone' => 'orange', 'url' => route('education.jobs')],
             ],
             'trendingTabs' => $this->trendingTabs($publicMaterials, 10),
-            'topTeachers' => $this->topTeachers(3),
+            'topTeachers' => $this->topTeachers(5),
             'institutionRows' => $this->institutionRows(),
             // (all active ones, newest first, moving upward in the box)
             'announcements' => $this->announcements()->take(50)->values(),
@@ -236,7 +236,7 @@ class EducationHubController extends Controller
     }
 
     /**
-     * Educational Institutions: schools, colleges and training institutes, each with a building
+     * Educational Institutions: schools, colleges, training institutes, universities and coaching centres, each with a building
      * photo (public/assets/images/education-hub/place-*.webp), what they cover and the listing.
      *
      * @return list<array<string, mixed>>
@@ -247,6 +247,8 @@ class EducationHubController extends Controller
             ['title' => 'Top Schools', 'hint' => 'CBSE, ICSE, State Boards', 'photo' => 'school', 'icon' => 'fa-school', 'tone' => 'blue', 'url' => route('schools.index')],
             ['title' => 'Top Colleges', 'hint' => 'UG, PG & Professional Courses', 'photo' => 'college', 'icon' => 'fa-graduation-cap', 'tone' => 'purple', 'url' => route('colleges.index')],
             ['title' => 'Training Institutes', 'hint' => 'Coaching, Skills & Vocational', 'photo' => 'institute', 'icon' => 'fa-building-columns', 'tone' => 'orange', 'url' => route('institutes.index')],
+            ['title' => 'Universities', 'hint' => 'Central, State & Deemed Universities', 'photo' => 'university', 'icon' => 'fa-building-columns', 'tone' => 'purple', 'url' => route('colleges.index', ['type' => 'university'])],
+            ['title' => 'Coaching Centres', 'hint' => 'JEE, NEET, UPSC & More', 'photo' => 'coaching', 'icon' => 'fa-chalkboard-user', 'tone' => 'orange', 'url' => route('institutes.index', ['type' => 'coaching'])],
         ];
 
         return array_map(fn (array $row): array => $row + ['image' => asset('assets/images/education-hub/place-'.$row['photo'].'.webp')], $rows);

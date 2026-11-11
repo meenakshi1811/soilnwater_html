@@ -299,8 +299,8 @@
                     <a href="{{ route('education.notices') }}" class="eh-panel__more">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                 </div>
                 @if($announcements->isNotEmpty())
-                    {{-- All active notices moving upward (more than four; paused on hover); the list twice so it loops --}}
-                    @php $tickerMoves = $announcements->count() > 4; @endphp
+                    {{-- All active notices moving upward (more than five; paused on hover); the list twice so it loops --}}
+                    @php $tickerMoves = $announcements->count() > 5; @endphp
                     <div class="eh-ticker {{ $tickerMoves ? 'is-moving' : '' }}" style="--eh-ticker-time: {{ max(12, $announcements->count() * 4) }}s">
                         <div class="eh-ticker__track">
                             <ul class="eh-announcements">

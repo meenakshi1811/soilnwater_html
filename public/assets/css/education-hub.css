@@ -723,7 +723,7 @@
 }
 
 /* announcements: a row each with a line under it (tinted icon by topic, title, who | when),
-   moving upward when there are more than four (see the ticker) */
+   moving upward when there are more than five (see the ticker) */
 .eh-announcements {
   display: flex;
   flex-direction: column;
@@ -1262,12 +1262,12 @@
    paused on hover or keyboard focus; still (and scrollable) for reduced motion. */
 .eh-ticker {
   position: relative;
-  max-height: 290px;
+  max-height: 345px;
   overflow: hidden;
 }
 
 .eh-ticker.is-moving {
-  height: 290px;
+  height: 345px;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%);
 }
@@ -1869,7 +1869,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.86) 26%, rgba(255, 255, 255, 0.45) 44%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.35) 44%, rgba(255, 255, 255, 0) 54%),
     var(--eh-hero-photo) right center / cover no-repeat;
 }
 
@@ -1882,6 +1882,14 @@
   }
 }
 
+/* very wide screens: the photo a touch closer too, the students nearer the text */
+@media (min-width: 1700px) {
+  .eh-hero__bg {
+    background-position: 0 0, right top;
+    background-size: auto, auto 112%;
+  }
+}
+
 .eh-hero__inner {
   position: relative;
   display: flex;
@@ -1889,7 +1897,7 @@
   justify-content: space-between;
   gap: 1.5rem;
   /* taller on wide screens, so the photo (at the hero's height) grows with it */
-  min-height: clamp(340px, 24vw, 470px);
+  min-height: clamp(340px, 24vw, 600px);
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
@@ -2073,6 +2081,75 @@
 
 .eh-stat:hover strong {
   color: #15803d;
+}
+
+/* big screens: the heading, text, search and buttons grow with the screen, so they fill the
+   left side instead of leaving a gap before the photo */
+@media (min-width: 1400px) {
+  .eh-hero__copy {
+    flex-basis: clamp(640px, 46vw, 1120px);
+  }
+
+  .eh-hero__title {
+    margin-bottom: 0.9rem;
+    font-size: clamp(2.75rem, 3.15vw, 5rem);
+  }
+
+  .eh-hero__text {
+    max-width: 36em;
+    margin-bottom: 1.5rem;
+    font-size: clamp(1.02rem, 1.12vw, 1.7rem);
+  }
+
+  .eh-search {
+    max-width: clamp(520px, 36vw, 940px);
+    margin-bottom: 1.15rem;
+    padding: 0.45rem;
+    border-radius: 12px;
+  }
+
+  .eh-search__input {
+    padding: 0.7rem 0.25rem;
+    font-size: clamp(0.9rem, 0.85vw, 1.3rem);
+  }
+
+  .eh-search__btn {
+    padding: 0.8rem 1.6rem;
+    font-size: clamp(0.92rem, 0.85vw, 1.3rem);
+  }
+
+  .eh-chips {
+    gap: 0.65rem;
+  }
+
+  .eh-chip {
+    padding: 0.65rem 0.95rem;
+    font-size: clamp(0.82rem, 0.8vw, 1.25rem);
+  }
+
+  .eh-stats {
+    flex-basis: clamp(225px, 15vw, 340px);
+    padding: 0.45rem 1.1rem;
+  }
+
+  .eh-stat {
+    gap: 0.9rem;
+    padding: 0.75rem 0;
+  }
+
+  .eh-stat__icon {
+    width: clamp(42px, 2.6vw, 60px);
+    height: clamp(42px, 2.6vw, 60px);
+    font-size: clamp(1.1rem, 1.1vw, 1.55rem);
+  }
+
+  .eh-stat__text strong {
+    font-size: clamp(1.3rem, 1.4vw, 2rem);
+  }
+
+  .eh-stat__text small {
+    font-size: clamp(0.76rem, 0.75vw, 1.05rem);
+  }
 }
 
 /* Small laptops: a tighter menu */
