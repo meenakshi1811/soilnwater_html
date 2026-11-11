@@ -1865,27 +1865,26 @@
 /* the banner: the panorama across the whole hero (students on the right), a white veil on the
    left under the heading and search so they stay easy to read */
 .eh-hero__bg {
+  /* the photo is 2172 x 422: shown at the hero's height (never above 422px, so never enlarged on
+     screens up to 2172px wide), moved a little left so the students sit clear of the numbers card;
+     the strip it leaves on the right fades into the background */
+  --eh-hero-shift: clamp(90px, 6vw, 160px);
   position: absolute;
   inset: 0;
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.35) 44%, rgba(255, 255, 255, 0) 54%),
-    var(--eh-hero-photo) right center / cover no-repeat;
+    linear-gradient(270deg, #e2f2e6 0, #e2f2e6 var(--eh-hero-shift), rgba(226, 242, 230, 0) calc(var(--eh-hero-shift) + 80px)),
+    var(--eh-hero-photo) right var(--eh-hero-shift) center / auto 100% no-repeat;
 }
 
-/* laptops: the photo a little closer (from the top, so no heads are cut), which moves the
-   students left, clear of the numbers card */
-@media (min-width: 1200px) and (max-width: 1699px) {
+/* screens wider than the photo (2172px plus the shift): its left edge fades into the white too */
+@media (min-width: 2300px) {
   .eh-hero__bg {
-    background-position: 0 0, right top;
-    background-size: auto, auto 128%;
-  }
-}
-
-/* very wide screens: the photo a touch closer too, the students nearer the text */
-@media (min-width: 1700px) {
-  .eh-hero__bg {
-    background-position: 0 0, right top;
-    background-size: auto, auto 112%;
+    background:
+      linear-gradient(90deg, #fff 0, #fff calc(100% - var(--eh-hero-shift) - 2172px), rgba(255, 255, 255, 0) calc(100% - var(--eh-hero-shift) - 2050px)),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.35) 44%, rgba(255, 255, 255, 0) 54%),
+      linear-gradient(270deg, #e2f2e6 0, #e2f2e6 var(--eh-hero-shift), rgba(226, 242, 230, 0) calc(var(--eh-hero-shift) + 80px)),
+      var(--eh-hero-photo) right var(--eh-hero-shift) center / auto 100% no-repeat;
   }
 }
 
@@ -1896,7 +1895,8 @@
   justify-content: space-between;
   gap: 1.5rem;
   /* taller on wide screens, so the photo (at the hero's height) grows with it */
-  min-height: clamp(340px, 24vw, 600px);
+  /* no taller than the photo (422px), so it is never stretched */
+  min-height: clamp(340px, 24vw, 422px);
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
@@ -2089,15 +2089,20 @@
     flex-basis: clamp(640px, 46vw, 1120px);
   }
 
+  .eh-hero__inner {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
   .eh-hero__title {
     margin-bottom: 0.9rem;
-    font-size: clamp(2.75rem, 3.15vw, 5rem);
+    font-size: clamp(2.75rem, 3.15vw, 3.6rem);
   }
 
   .eh-hero__text {
     max-width: 36em;
     margin-bottom: 1.5rem;
-    font-size: clamp(1.02rem, 1.12vw, 1.7rem);
+    font-size: clamp(1.02rem, 1.12vw, 1.3rem);
   }
 
   .eh-search {
@@ -2109,12 +2114,12 @@
 
   .eh-search__input {
     padding: 0.7rem 0.25rem;
-    font-size: clamp(0.9rem, 0.85vw, 1.3rem);
+    font-size: clamp(0.9rem, 0.85vw, 1.15rem);
   }
 
   .eh-search__btn {
     padding: 0.8rem 1.6rem;
-    font-size: clamp(0.92rem, 0.85vw, 1.3rem);
+    font-size: clamp(0.92rem, 0.85vw, 1.15rem);
   }
 
   .eh-chips {
@@ -2123,7 +2128,7 @@
 
   .eh-chip {
     padding: 0.65rem 0.95rem;
-    font-size: clamp(0.82rem, 0.8vw, 1.25rem);
+    font-size: clamp(0.82rem, 0.8vw, 1.1rem);
   }
 
   .eh-stats {
@@ -2133,17 +2138,17 @@
 
   .eh-stat {
     gap: 0.9rem;
-    padding: 0.75rem 0;
+    padding: 0.6rem 0;
   }
 
   .eh-stat__icon {
-    width: clamp(42px, 2.6vw, 60px);
-    height: clamp(42px, 2.6vw, 60px);
+    width: clamp(42px, 2.6vw, 52px);
+    height: clamp(42px, 2.6vw, 52px);
     font-size: clamp(1.1rem, 1.1vw, 1.55rem);
   }
 
   .eh-stat__text strong {
-    font-size: clamp(1.3rem, 1.4vw, 2rem);
+    font-size: clamp(1.3rem, 1.4vw, 1.7rem);
   }
 
   .eh-stat__text small {
