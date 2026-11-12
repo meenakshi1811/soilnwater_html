@@ -138,12 +138,13 @@ class InstituteListingController extends Controller
             ->forOwnerRole($ownerRole)
             ->with(['user:id,name,profile_image,role']);
 
+        // With the visitor's location (picked in the header, or the logged-in user's): each school's
+        // distance — none (null) for a school without a map pin, which still shows; only a "within"
+        // distance filter needs one
         if ($lat !== null && $lng !== null) {
             $distanceSql = '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))';
             $query->select('institutes.*')
-                ->selectRaw($distanceSql.' as distance_km', [$lat, $lng, $lat])
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude');
+                ->selectRaw($distanceSql.' as distance_km', [$lat, $lng, $lat]);
 
             if ($radius !== null && $radius > 0) {
                 $query->whereRaw($distanceSql.' <= ?', [$lat, $lng, $lat, $radius]);
@@ -174,8 +175,9 @@ class InstituteListingController extends Controller
 
         return match ($sort) {
             'name' => $query->orderBy('institution_name'),
+            // (nearest first; those without a map pin after them)
             'distance' => ($lat !== null && $lng !== null)
-                ? $query->orderBy('distance_km')
+                ? $query->orderByRaw('distance_km is null')->orderBy('distance_km')->latest('approved_at')
                 : $query->latest('approved_at'),
             default => $query->latest('approved_at'),
         };
