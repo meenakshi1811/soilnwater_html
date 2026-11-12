@@ -121,34 +121,53 @@ class EducationHubController extends Controller
         };
     }
 
-    /** Every open job of approved schools, colleges and institutes, newest first, by who posted it */
-    public function jobs(Request $request): View
+    /**
+     * Jobs & Careers (/education-hub/jobs): every open job of the approved schools, colleges and
+     * institutes, in the listing layout (filters, sort, more while scrolling).
+     */
+    public function jobs(Request $request): View|JsonResponse
     {
         $everything = $this->openJobsQuery()->get()->map(fn (InstituteJob $job): array => $this->jobCard($job));
-        $search = $this->searchTerm($request);
-        $all = $this->matching($everything, $search, ['title', 'department', 'institute', 'location', 'type']);
-        $kinds = array_diff_key(self::NOTICE_KINDS, ['teacher' => true]);
-        $kind = array_key_exists((string) $request->query('kind'), $kinds) ? (string) $request->query('kind') : null;
-        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
 
-        return view('frontend.education-hub.jobs', [
-            'jobs' => $this->paginate($shown, $request, $kind, 12, $search),
-            'kind' => $kind,
-            'kinds' => $kinds,
-            'search' => $search,
-            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
-            'totals' => [
-                'jobs' => $everything->count(),
-                'employers' => $everything->pluck('institute')->unique()->count(),
+        return $this->listingPage($request, $everything, [
+            'search' => ['title', 'department', 'institute', 'location', 'type'],
+            'filters' => [
+                'kind' => ['label' => 'Posted by', 'all' => 'All institutions', 'field' => 'kind', 'options' => array_map(fn ($kind) => $kind[0], array_diff_key(self::NOTICE_KINDS, ['teacher' => true]))],
+                'type' => ['label' => 'Job type', 'all' => 'All job types', 'field' => 'type_key', 'options' => collect(InstituteJob::EMPLOYMENT_TYPES)->mapWithKeys(fn ($type) => [$type => ucfirst(str_replace('-', ' ', $type))])->all()],
+            ],
+            'sorts' => [
+                'newest' => ['Newest first', fn (Collection $cards) => $cards],
+                'closing' => ['Closing soon', fn (Collection $cards) => $this->byDeadline($cards)],
+                'title' => ['Job title A–Z', fn (Collection $cards) => $cards->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)],
+            ],
+            'cards' => 'frontend.education-hub.partials.job-cards',
+            'page' => [
+                'key' => 'jobs',
+                'url' => route('education.jobs'),
+                'meta_title' => 'Jobs & Careers | Education Hub | SoilnWater',
+                'meta_description' => 'Teaching and staff jobs at schools, colleges and institutes on SoilnWater.',
+                'title' => 'Jobs & Careers',
+                'text' => 'Teaching and staff jobs, internships and apprenticeships at schools, colleges and institutes.',
+                'art' => 'jobs',
+                'tone' => 'purple',
+                'lead' => 'Find the right job.',
+                'placeholder' => 'Job, subject or institution...',
+                'section' => 'All Jobs',
+                'noun' => ['job', 'jobs'],
+                'stats' => [
+                    ['fa-briefcase', $everything->count(), $everything->count() === 1 ? 'open job' : 'open jobs'],
+                    ['fa-building-columns', $everything->pluck('institute_id')->unique()->count(), $everything->pluck('institute_id')->unique()->count() === 1 ? 'employer' : 'employers'],
+                ],
+                'empty' => ['fa-briefcase', 'No jobs found', 'Try another search or clear the filters. Schools, colleges and institutes post their openings from their dashboard.'],
             ],
         ]);
     }
 
     /**
      * Scholarships (/education-hub/scholarships): every open scholarship of the approved schools,
-     * colleges and institutes, the nearest last date first; tabs by who offers it and a search.
+     * colleges and institutes, the nearest last date first, in the listing layout.
      */
-    public function scholarships(Request $request): View
+    public function scholarships(Request $request): View|JsonResponse
     {
         $everything = InstituteScholarship::query()
             ->open()
@@ -160,21 +179,37 @@ class EducationHubController extends Controller
             ->latest('id')
             ->get()
             ->map(fn (InstituteScholarship $scholarship): array => $this->scholarshipCard($scholarship));
-        $search = $this->searchTerm($request);
-        $all = $this->matching($everything, $search, ['title', 'type', 'amount', 'for', 'criteria', 'institute', 'location']);
-        $kinds = array_diff_key(self::NOTICE_KINDS, ['teacher' => true]);
-        $kind = array_key_exists((string) $request->query('kind'), $kinds) ? (string) $request->query('kind') : null;
-        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
 
-        return view('frontend.education-hub.scholarships', [
-            'scholarships' => $this->paginate($shown, $request, $kind, 12, $search),
-            'kind' => $kind,
-            'kinds' => $kinds,
-            'search' => $search,
-            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
-            'totals' => [
-                'scholarships' => $everything->count(),
-                'providers' => $everything->pluck('institute_id')->unique()->count(),
+        return $this->listingPage($request, $everything, [
+            'search' => ['title', 'type', 'amount', 'for', 'criteria', 'institute', 'location'],
+            'filters' => [
+                'kind' => ['label' => 'Offered by', 'all' => 'All institutions', 'field' => 'kind', 'options' => array_map(fn ($kind) => $kind[0], array_diff_key(self::NOTICE_KINDS, ['teacher' => true]))],
+                'type' => ['label' => 'Scholarship type', 'all' => 'All types', 'field' => 'type_key', 'options' => array_map(fn ($type) => $type[0], InstituteScholarship::TYPES)],
+            ],
+            'sorts' => [
+                'closing' => ['Closing soon', fn (Collection $cards) => $cards],
+                'newest' => ['Newest first', fn (Collection $cards) => $cards->sortByDesc(fn (array $card) => $card['posted']?->timestamp ?? 0)],
+                'title' => ['Name A–Z', fn (Collection $cards) => $cards->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)],
+            ],
+            'cards' => 'frontend.education-hub.partials.scholarship-cards',
+            'page' => [
+                'key' => 'scholarships',
+                'url' => route('education.scholarships'),
+                'meta_title' => 'Scholarships | Education Hub | SoilnWater',
+                'meta_description' => 'Scholarships, fellowships and financial support offered by schools, colleges and institutes on SoilnWater.',
+                'title' => 'Scholarships',
+                'text' => 'Scholarships, fellowships and financial support from schools, colleges and institutes.',
+                'art' => 'scholarships',
+                'tone' => 'green',
+                'lead' => 'Find a scholarship for you.',
+                'placeholder' => 'Scholarship, class or institution...',
+                'section' => 'All Scholarships',
+                'noun' => ['scholarship', 'scholarships'],
+                'stats' => [
+                    ['fa-award', $everything->count(), $everything->count() === 1 ? 'open scholarship' : 'open scholarships'],
+                    ['fa-building-columns', $everything->pluck('institute_id')->unique()->count(), $everything->pluck('institute_id')->unique()->count() === 1 ? 'institution' : 'institutions'],
+                ],
+                'empty' => ['fa-award', 'No scholarships found', 'Try another search or clear the filters. Schools, colleges and institutes add their scholarships from their dashboard.'],
             ],
         ]);
     }
@@ -188,6 +223,7 @@ class EducationHubController extends Controller
             'kind' => in_array($institute->user?->role, ['school', 'college'], true) ? $institute->user->role : 'institute',
             'title' => (string) $scholarship->title,
             'type' => $scholarship->typeLabel(),
+            'type_key' => array_key_exists((string) $scholarship->scholarship_type, InstituteScholarship::TYPES) ? $scholarship->scholarship_type : 'other',
             'icon' => $scholarship->typeIcon(),
             'amount' => $scholarship->amount_label,
             'for' => $scholarship->eligible_for,
@@ -195,68 +231,133 @@ class EducationHubController extends Controller
             'criteria' => implode(' · ', $scholarship->lines('eligibility')),
             'start' => $scholarship->opensLater() ? $scholarship->application_start : null,
             'deadline' => $scholarship->application_deadline,
+            'posted' => $scholarship->published_at ?? $scholarship->created_at,
             'institute_id' => $institute->id,
             'institute' => $institute->publicDisplayName(),
             'logo' => $institute->logoUrl(),
             'verified' => (bool) $institute->is_verified,
             'location' => $institute->locationLabel(),
+            'city' => trim((string) $institute->city),
             'url' => $institute->publicSectionUrl('scholarships').'#sch-scholarship-'.$scholarship->id,
         ];
     }
 
     /**
      * Courses & Online Learning (/education-hub/courses): every course or program that a college,
-     * university or institute has added to its profile, with tabs by who offers it and a search.
+     * university or institute has added to its profile, in the listing layout.
      */
     public function courses(Request $request): View|JsonResponse
     {
         $everything = $this->allCourses();
+
+        return $this->listingPage($request, $everything, [
+            'search' => ['title', 'grades', 'description', 'institute', 'location'],
+            'filters' => [
+                'kind' => ['label' => 'Offered by', 'all' => 'All institutions', 'field' => 'kind', 'options' => array_map(fn ($kind) => $kind[0], self::COURSE_KINDS)],
+            ],
+            'sorts' => [
+                'recommended' => ['Recommended', fn (Collection $cards) => $cards],
+                'course' => ['Course name A–Z', fn (Collection $cards) => $cards->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)],
+                'institution' => ['Institution A–Z', fn (Collection $cards) => $cards->sortBy([['institute', 'asc'], ['title', 'asc']])],
+            ],
+            'cards' => 'frontend.education-hub.partials.course-cards',
+            'page' => [
+                'key' => 'courses',
+                'url' => route('education.courses'),
+                'meta_title' => 'Courses & Online Learning | Education Hub | SoilnWater',
+                'meta_description' => 'Courses and programs offered by colleges, universities and institutes on SoilnWater.',
+                'title' => 'Courses & Online Learning',
+                'text' => 'Academic, skill and professional courses from colleges, universities and institutes.',
+                'art' => 'courses',
+                'tone' => 'blue',
+                'lead' => 'Find the right course.',
+                'placeholder' => 'Course, subject or institution...',
+                'section' => 'All Courses',
+                'noun' => ['course', 'courses'],
+                'stats' => [
+                    ['fa-book-open', $everything->count(), $everything->count() === 1 ? 'course' : 'courses'],
+                    ['fa-building-columns', $everything->pluck('institute_id')->unique()->count(), $everything->pluck('institute_id')->unique()->count() === 1 ? 'institution' : 'institutions'],
+                ],
+                'empty' => ['fa-book-open', 'No courses found', 'Try another search or clear the filters. Colleges, universities and institutes add their courses on their profiles.'],
+            ],
+        ]);
+    }
+
+    /**
+     * A hub listing page (courses, jobs, scholarships): the search, the page's own filters (each a
+     * field of the cards), a city, a sort; 24 cards at a time. An AJAX request (filtering, sorting,
+     * the next page while scrolling) gets just the cards as JSON.
+     *
+     * @param  Collection<int, array<string, mixed>>  $everything  the page's cards, in its first sort's order
+     * @param  array{search: list<string>, filters: array<string, array{label: string, all: string, field: string, options: array<string, string>}>, sorts: array<string, array{0: string, 1: \Closure}>, cards: string, page: array<string, mixed>}  $options
+     */
+    private function listingPage(Request $request, Collection $everything, array $options): View|JsonResponse
+    {
         $search = $this->searchTerm($request);
-        $kind = array_key_exists((string) $request->query('kind'), self::COURSE_KINDS) ? (string) $request->query('kind') : null;
+        $chosen = [];
+        foreach ($options['filters'] as $name => $filter) {
+            $value = (string) $request->query($name, '');
+            $chosen[$name] = array_key_exists($value, $filter['options']) ? $value : null;
+        }
         $cities = $everything->pluck('city')->filter()->unique()->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
         $city = $cities->first(fn (string $name) => strcasecmp($name, trim((string) $request->query('city'))) === 0);
-        $sort = in_array($request->query('sort'), ['course', 'institution'], true) ? (string) $request->query('sort') : 'recommended';
+        $sorts = $options['sorts'];
+        $defaultSort = array_key_first($sorts);
+        $sort = array_key_exists((string) $request->query('sort'), $sorts) ? (string) $request->query('sort') : $defaultSort;
 
-        $shown = $this->matching($everything, $search, ['title', 'grades', 'description', 'institute', 'location'])
-            ->when($kind, fn (Collection $cards) => $cards->where('kind', $kind))
-            ->when($city, fn (Collection $cards) => $cards->filter(fn (array $card) => strcasecmp((string) $card['city'], $city) === 0))
-            ->when($sort === 'course', fn (Collection $cards) => $cards->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE))
-            ->when($sort === 'institution', fn (Collection $cards) => $cards->sortBy([['institute', 'asc'], ['title', 'asc']]))
-            ->values();
+        $shown = $this->matching($everything, $search, $options['search']);
+        foreach ($chosen as $name => $value) {
+            if ($value !== null) {
+                $shown = $shown->where($options['filters'][$name]['field'], $value);
+            }
+        }
+        if ($city !== null) {
+            $shown = $shown->filter(fn (array $card) => strcasecmp((string) ($card['city'] ?? ''), $city) === 0);
+        }
+        $shown = ($sorts[$sort][1])($shown)->values();
 
         $page = max(1, (int) $request->query('page', 1));
         $perPage = 24;
-        $courses = new LengthAwarePaginator(
+        $items = new LengthAwarePaginator(
             $shown->forPage($page, $perPage)->values(),
             $shown->count(),
             $perPage,
             $page,
-            ['path' => $request->url(), 'query' => array_filter(['q' => $search, 'kind' => $kind, 'city' => $city, 'sort' => $sort === 'recommended' ? null : $sort])]
+            ['path' => $request->url(), 'query' => array_filter(['q' => $search] + $chosen + ['city' => $city, 'sort' => $sort === $defaultSort ? null : $sort])]
         );
 
         // (filtering, sorting and the next cards while scrolling)
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'html' => view('frontend.education-hub.partials.course-cards', ['courses' => $courses])->render(),
-                'next_page_url' => $courses->nextPageUrl(),
-                'loaded_to' => $courses->lastItem() ?? 0,
-                'total' => $courses->total(),
+                'html' => view($options['cards'], ['items' => $items, 'page' => $options['page']])->render(),
+                'next_page_url' => $items->nextPageUrl(),
+                'loaded_to' => $items->lastItem() ?? 0,
+                'total' => $items->total(),
             ]);
         }
 
-        return view('frontend.education-hub.courses', [
-            'courses' => $courses,
-            'kind' => $kind,
-            'kinds' => self::COURSE_KINDS,
+        return view('frontend.education-hub.listing', [
+            'page' => $options['page'],
+            'items' => $items,
+            'cardsView' => $options['cards'],
             'search' => $search,
-            'city' => $city,
+            'filters' => $options['filters'],
+            'chosen' => $chosen,
             'cities' => $cities,
+            'city' => $city,
+            'sorts' => array_map(fn (array $sortOption) => $sortOption[0], $sorts),
             'sort' => $sort,
-            'totals' => [
-                'courses' => $everything->count(),
-                'providers' => $everything->pluck('institute_id')->unique()->count(),
-            ],
         ]);
+    }
+
+    /**
+     * The nearest last date first (those without one last), else in the order given
+     *
+     * @param  Collection<int, array<string, mixed>>  $cards
+     */
+    private function byDeadline(Collection $cards): Collection
+    {
+        return $cards->sortBy(fn (array $card) => $card['deadline']?->timestamp ?? PHP_INT_MAX);
     }
 
     /** Every active notice of approved schools, colleges, institutes and teachers, newest first, by kind */
@@ -546,9 +647,13 @@ class EducationHubController extends Controller
             'kind' => in_array($institute->user?->role, ['school', 'college'], true) ? $institute->user->role : 'institute',
             'title' => (string) $job->title,
             'type' => $job->employmentTypeLabel(),
+            'type_key' => in_array($job->employment_type, InstituteJob::EMPLOYMENT_TYPES, true) ? $job->employment_type : 'full-time',
             'department' => $job->department,
+            'institute_id' => $institute->id,
             'institute' => $institute->publicDisplayName(),
             'logo' => $institute->logoUrl(),
+            'verified' => (bool) $institute->is_verified,
+            'city' => trim((string) $institute->city),
             'location' => $job->location ?: $institute->locationLabel(),
             'experience' => $job->experience_label,
             'salary' => $job->salary_label,

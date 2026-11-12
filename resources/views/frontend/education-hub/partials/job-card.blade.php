@@ -1,49 +1,46 @@
-{{-- An open job: its type, title, who posted it, place, experience, salary, last date, and a link
-     to their jobs (where people apply) --}}
+{{-- An open job as a compact listing card: its type and when posted, the title, who posted it,
+     place, experience, salary, the last date, and a link to their jobs (where people apply) --}}
 @php
   [, $kindIcon, $kindTone, $kindOne] = \App\Http\Controllers\Frontend\EducationHubController::NOTICE_KINDS[$job['kind']];
 @endphp
-<a href="{{ $job['url'] }}" class="eh-job">
-  <span class="eh-job__top">
-    <span class="eh-job__type">{{ $job['type'] }}</span>
+<article class="vendors-compact-card hub-card hub-card--job">
+  <div class="hub-card__top">
+    <span class="hub-card__chip hub-card__chip--purple">{{ $job['type'] }}</span>
     @if($job['posted'])
-      <span class="eh-job__posted">{{ $job['posted']->diffForHumans(null, true) }} ago</span>
+      <span class="hub-card__when">{{ $job['posted']->diffForHumans(null, true) }} ago</span>
     @endif
-  </span>
-  <strong class="eh-job__title">{{ $job['title'] }}</strong>
+  </div>
+  <h3 class="hub-card__title"><a href="{{ $job['url'] }}">{{ $job['title'] }}</a></h3>
   @if(filled($job['department']))
-    <span class="eh-job__dept">{{ $job['department'] }}</span>
+    <p class="hub-card__sub">{{ $job['department'] }}</p>
   @endif
-  <span class="eh-job__org">
+  <p class="hub-card__org">
     @if($job['logo'])
-      <img src="{{ $job['logo'] }}" alt="" class="eh-job__logo" loading="lazy" width="28" height="28">
+      <img src="{{ $job['logo'] }}" alt="" class="hub-card__logo" loading="lazy" width="24" height="24">
     @else
-      <span class="eh-icon eh-icon--{{ $kindTone }} eh-job__logo"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i></span>
+      <span class="eh-icon eh-icon--{{ $kindTone }} hub-card__logo"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i></span>
     @endif
-    <span class="eh-job__org-text">
-      <span class="eh-job__org-name">{{ $job['institute'] }}</span>
-      <small>{{ $kindOne }}</small>
-    </span>
-  </span>
-  <span class="eh-job__meta">
+    <span class="hub-card__org-name">{{ $job['institute'] }}</span>
+    @if($job['verified'])
+      <i class="fa-solid fa-circle-check hub-card__verified" aria-label="Verified"></i>
+    @endif
+  </p>
+  <ul class="hub-card__facts">
     @if(filled($job['location']))
-      <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $job['location'] }}</span>
+      <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $job['location'] }}</li>
     @endif
     @if(filled($job['experience']))
-      <span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> {{ $job['experience'] }}</span>
+      <li><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> {{ $job['experience'] }}</li>
     @endif
     @if(filled($job['salary']))
-      <span><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> {{ $job['salary'] }}</span>
+      <li><i class="fa-solid fa-indian-rupee-sign" aria-hidden="true"></i> {{ $job['salary'] }}</li>
     @endif
-  </span>
-  <span class="eh-job__foot">
-    <span class="eh-job__deadline">
-      @if($job['deadline'])
-        <i class="fa-regular fa-calendar" aria-hidden="true"></i> Apply by {{ $job['deadline']->format('j M Y') }}
-      @else
-        <i class="fa-regular fa-calendar" aria-hidden="true"></i> Open till filled
-      @endif
+  </ul>
+  <div class="hub-card__foot">
+    <span class="hub-card__deadline">
+      <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+      {{ $job['deadline'] ? 'Apply by '.$job['deadline']->format('j M Y') : 'Open till filled' }}
     </span>
-    <span class="eh-job__cta">View &amp; apply <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-  </span>
-</a>
+    <a href="{{ $job['url'] }}" class="hub-card__cta hub-card__cta--purple" aria-label="View and apply: {{ $job['title'] }}">View &amp; apply <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</article>

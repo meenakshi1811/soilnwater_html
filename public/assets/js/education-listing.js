@@ -1,40 +1,39 @@
-// Education Hub › Courses: the filters, sort and search reload the cards without leaving the page
-// (and keep the address bar in step); more courses load as the visitor scrolls to the end.
+// Education Hub listing pages (courses, jobs, scholarships): the search, the filters and the sort
+// reload the cards without leaving the page (and keep the address bar in step); more cards load as
+// the visitor scrolls to the end. Fields are marked data-filter="<query name>".
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  var root = document.getElementById('coursesPageRoot');
+  var root = document.querySelector('[data-listing-root]');
   if (!root) return;
 
-  var grid = document.getElementById('coursesGrid');
-  var search = document.getElementById('coursesFilterSearch');
-  var kind = document.getElementById('coursesFilterKind');
-  var city = document.getElementById('coursesFilterCity');
-  var sort = document.getElementById('coursesSort');
-  var apply = document.getElementById('coursesApplyFilters');
-  var reset = document.getElementById('coursesResetFilters');
-  var summary = document.getElementById('coursesSummaryText');
-  var loading = document.getElementById('coursesLoadingText');
-  var sentinel = document.getElementById('coursesScrollSentinel');
+  var grid = root.querySelector('[data-listing-grid]');
+  var fields = Array.prototype.slice.call(root.querySelectorAll('[data-filter]'));
+  var search = root.querySelector('[data-filter="q"]');
+  var apply = root.querySelector('[data-listing-apply]');
+  var reset = root.querySelector('[data-listing-reset]');
+  var summary = root.querySelector('[data-listing-summary]');
+  var loading = root.querySelector('[data-listing-loading]');
+  var sentinel = root.querySelector('[data-listing-sentinel]');
   var indexUrl = root.dataset.indexUrl || window.location.pathname;
+  var defaultSort = root.dataset.defaultSort || '';
+  var nounOne = root.dataset.nounOne || 'result';
+  var nounMany = root.dataset.nounMany || 'results';
 
   var nextPageUrl = grid.dataset.nextPageUrl || '';
   var busy = false;
-  var request = 0; // (a newer filter change wins over an older one still loading)
+  var request = 0; // (a newer change wins over an older one still loading)
   var typingTimer;
 
-  // The address of the courses with the chosen filters (a page URL keeps its page number)
+  // The address with the chosen filters (a page URL keeps its page number)
   function urlFor(pageUrl) {
     var url = new URL(pageUrl || indexUrl, window.location.origin);
-    var params = url.searchParams;
-    var set = function (name, value, skip) {
-      if (value && value !== skip) params.set(name, value); else params.delete(name);
-    };
-    set('q', search ? search.value.trim() : '');
-    set('kind', kind ? kind.value : '');
-    set('city', city ? city.value : '');
-    set('sort', sort ? sort.value : '', 'recommended');
-    url.search = params.toString();
+    fields.forEach(function (field) {
+      var name = field.dataset.filter;
+      var value = (field.value || '').trim();
+      if (value && !(name === 'sort' && value === defaultSort)) url.searchParams.set(name, value);
+      else url.searchParams.delete(name);
+    });
     return url.toString();
   }
 
@@ -47,22 +46,21 @@ document.addEventListener('DOMContentLoaded', function () {
   function showSummary(payload) {
     if (!summary) return;
     summary.textContent = payload.total > 0
-      ? 'Showing 1 to ' + payload.loaded_to + ' of ' + Number(payload.total).toLocaleString('en-IN') + ' courses'
-      : 'No courses to show';
+      ? 'Showing 1 to ' + payload.loaded_to + ' of ' + Number(payload.total).toLocaleString('en-IN') + ' ' + (payload.total === 1 ? nounOne : nounMany)
+      : 'No ' + nounMany + ' to show';
   }
 
   function fetchJson(url) {
     return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' } })
       .then(function (response) {
-        if (!response.ok) throw new Error('Could not load courses');
+        if (!response.ok) throw new Error('Could not load ' + nounMany);
         return response.json();
       });
   }
 
   // The end of the list still on screen after a load (a tall screen): keep going
   function moreIfVisible() {
-    if (!nextPageUrl || !sentinel) return;
-    if (sentinel.getBoundingClientRect().top < window.innerHeight + 400) loadMore();
+    if (nextPageUrl && sentinel && sentinel.getBoundingClientRect().top < window.innerHeight + 400) loadMore();
   }
 
   // Filters changed: the first page again
@@ -107,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  [kind, city, sort].forEach(function (field) {
-    if (field) field.addEventListener('change', reload);
+  fields.forEach(function (field) {
+    if (field !== search) field.addEventListener('change', reload);
   });
 
   if (search) {
@@ -129,10 +127,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (reset) {
     reset.addEventListener('click', function () {
-      if (search) search.value = '';
-      if (kind) kind.value = '';
-      if (city) city.value = '';
-      if (sort) sort.value = 'recommended';
+      fields.forEach(function (field) {
+        field.value = field.dataset.filter === 'sort' ? defaultSort : '';
+      });
       reload();
     });
   }
