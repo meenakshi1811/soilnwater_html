@@ -67,8 +67,10 @@
           <dt class="col-sm-4">Academic year</dt><dd class="col-sm-8">{{ $material->academic_year ?: '—' }}</dd>
           <dt class="col-sm-4">Pages</dt><dd class="col-sm-8">{{ $material->pages ?: '—' }}</dd>
           <dt class="col-sm-4">Free download</dt><dd class="col-sm-8">{{ $material->is_free ? 'Yes' : 'No' }}</dd>
+          <dt class="col-sm-4">Last viewed</dt>
+          <dd class="col-sm-8">{{ \App\Models\StudyMaterial::dashboardTime($material->last_viewed_at, 'Not viewed yet') }}</dd>
           <dt class="col-sm-4">Updated</dt>
-          <dd class="col-sm-8">{{ optional($material->updated_at)?->timezone(config('app.timezone'))->format('d M Y, h:i A') ?: '—' }}</dd>
+          <dd class="col-sm-8">{{ \App\Models\StudyMaterial::dashboardTime($material->updated_at) }}</dd>
         </dl>
       </div>
 

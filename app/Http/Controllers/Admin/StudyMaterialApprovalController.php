@@ -46,6 +46,7 @@ class StudyMaterialApprovalController extends Controller
                 'class_course',
                 'status',
                 'created_at',
+                'last_viewed_at',
                 'updated_at',
             ])
             ->orderByDesc('updated_at');
@@ -92,11 +93,9 @@ class StudyMaterialApprovalController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$approve.$reject.$delete.'</div>';
             })
-            ->editColumn('updated_at', function (StudyMaterial $material): string {
-                return optional($material->updated_at)
-                    ? $material->updated_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
-                    : '—';
-            })
+            // Last viewed: when it was last opened on the site; Updated: its last edit (a view doesn't change it)
+            ->editColumn('last_viewed_at', fn (StudyMaterial $material): string => StudyMaterial::dashboardTime($material->last_viewed_at, 'Not viewed yet'))
+            ->editColumn('updated_at', fn (StudyMaterial $material): string => StudyMaterial::dashboardTime($material->updated_at))
             ->rawColumns(['uploaded_by', 'status_badge', 'actions'])
             ->make(true);
     }

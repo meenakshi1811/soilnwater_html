@@ -187,8 +187,8 @@ class StudyMaterialLibraryController extends Controller
             abort(404);
         }
 
-        // (counting a view isn't an edit: the "Updated" time stays the last edit's)
-        StudyMaterial::withoutTimestamps(fn () => $material->increment('views_count'));
+        // (a view is counted and its time kept as "Last viewed"; it isn't an edit, so "Updated" stays)
+        StudyMaterial::withoutTimestamps(fn () => $material->increment('views_count', 1, ['last_viewed_at' => now()]));
 
         $canAccessContent = $material->canAccessContent(auth()->user());
         $paymentState = $this->resolvePaymentState($material);

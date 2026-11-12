@@ -35,6 +35,7 @@
             <th>Type</th>
             <th>Subject / Class</th>
             <th>Status</th>
+            <th>Last Viewed</th>
             <th>Updated</th>
             <th class="text-end">Actions</th>
           </tr>
@@ -56,7 +57,7 @@
   var table = $('#studyMaterialsApprovalTable').DataTable({
     processing: true,
     serverSide: true,
-    order: [[5, 'desc']],
+    order: [[6, 'desc']],
     ajax: {
       url: @json(route('admin.study-materials.data')),
       data: function (d) {
@@ -69,6 +70,7 @@
       { data: 'type_label', name: 'material_type' },
       { data: 'subject_class', orderable: false, searchable: false },
       { data: 'status_badge', name: 'status', orderable: false },
+      { data: 'last_viewed_at', name: 'last_viewed_at', searchable: false },
       { data: 'updated_at', name: 'updated_at' },
       { data: 'actions', orderable: false, searchable: false }
     ]

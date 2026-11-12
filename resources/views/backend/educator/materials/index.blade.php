@@ -51,6 +51,7 @@
             <th>Subject</th>
             <th>Status</th>
             <th>Downloads</th>
+            <th>Last Viewed</th>
             <th>Updated</th>
             <th class="text-end">Actions</th>
           </tr>
@@ -73,7 +74,7 @@
   var table = $('#educatorMaterialsTable').DataTable({
     processing: true,
     serverSide: true,
-    order: [[5, 'desc']],
+    order: [[6, 'desc']],
     language: { emptyTable: 'No study materials yet.' },
     ajax: {
       url: @json(route($materialRoutePrefix.'.data')),
@@ -87,6 +88,7 @@
       { data: 'subject_display', name: 'subject' },
       { data: 'status_badge', name: 'status', orderable: false },
       { data: 'downloads_display', name: 'downloads_count' },
+      { data: 'last_viewed_at', name: 'last_viewed_at', searchable: false },
       { data: 'updated_at', name: 'updated_at' },
       { data: 'actions', orderable: false, searchable: false }
     ]

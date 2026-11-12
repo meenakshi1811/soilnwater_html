@@ -80,6 +80,7 @@ class StudyMaterial extends Model
             'is_verified' => 'boolean',
             'average_rating' => 'decimal:2',
             'approved_at' => 'datetime',
+            'last_viewed_at' => 'datetime',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
@@ -89,6 +90,12 @@ class StudyMaterial extends Model
     {
         // School and city for the notes page counts and filters (see StudyMaterialLocation)
         static::saving(fn (StudyMaterial $material) => StudyMaterialLocation::fill($material));
+    }
+
+    /** "12 Nov 2026, 12:06 PM" (site time), or a dash */
+    public static function dashboardTime(?\DateTimeInterface $time, string $none = '—'): string
+    {
+        return $time ? \Illuminate\Support\Carbon::instance($time)->timezone(config('app.timezone'))->format('d M Y, h:i A') : $none;
     }
 
     public function educator(): BelongsTo
