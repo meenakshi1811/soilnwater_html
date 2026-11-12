@@ -187,7 +187,8 @@ class StudyMaterialLibraryController extends Controller
             abort(404);
         }
 
-        $material->increment('views_count');
+        // (counting a view isn't an edit: the "Updated" time stays the last edit's)
+        StudyMaterial::withoutTimestamps(fn () => $material->increment('views_count'));
 
         $canAccessContent = $material->canAccessContent(auth()->user());
         $paymentState = $this->resolvePaymentState($material);
@@ -233,7 +234,7 @@ class StudyMaterialLibraryController extends Controller
 
         abort_unless(filled($material->file_path) && is_file(public_path($material->file_path)), 404);
 
-        $material->increment('downloads_count');
+        StudyMaterial::withoutTimestamps(fn () => $material->increment('downloads_count'));
 
         return $this->watermarkedFileDownload(
             public_path($material->file_path),
@@ -293,12 +294,12 @@ class StudyMaterialLibraryController extends Controller
         $exists = $material->bookmarkedBy()->where('user_id', $userId)->exists();
         if ($exists) {
             $material->bookmarkedBy()->detach($userId);
-            $material->decrement('saves_count');
+            StudyMaterial::withoutTimestamps(fn () => $material->decrement('saves_count'));
             $bookmarked = false;
             $message = 'Removed from saved.';
         } else {
             $material->bookmarkedBy()->attach($userId);
-            $material->increment('saves_count');
+            StudyMaterial::withoutTimestamps(fn () => $material->increment('saves_count'));
             $bookmarked = true;
             $message = 'Saved successfully.';
         }

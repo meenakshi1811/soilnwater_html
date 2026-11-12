@@ -712,10 +712,11 @@ class StudyMaterial extends Model
             ->selectRaw('COUNT(*) as total, COALESCE(AVG(rating), 0) as avg_rating')
             ->first();
 
-        $this->forceFill([
+        // (a visitor's review isn't an edit of the material: its "Updated" time stays as it was)
+        static::withoutTimestamps(fn () => $this->forceFill([
             'reviews_count' => (int) ($stats->total ?? 0),
             'average_rating' => round((float) ($stats->avg_rating ?? 0), 2),
-        ])->save();
+        ])->save());
     }
 
     public function scopeApproved(Builder $query): Builder
