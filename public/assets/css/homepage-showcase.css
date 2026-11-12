@@ -825,3 +825,14 @@ body:has(.homepage-featured-zoom[open]) {
     padding-right: 40px;
   }
 }
+
+/* Phones and tablets: the sections below the promo row are drawn only when they come near the
+   screen. Less of the page to lay out keeps swiping smooth — in particular the promo row, where an
+   analytics script asks the browser for the page layout on every finger movement. (The 380px is a
+   section's usual height until it has been shown once; after that the browser remembers it.) */
+@media (max-width: 991.98px) {
+  .homepage-desktop-panels > section:not(.homepage-showcase-section) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 380px;
+  }
+}
