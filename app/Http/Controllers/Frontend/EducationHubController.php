@@ -13,6 +13,7 @@ use App\Models\StudyMaterial;
 use App\Support\ImageThumbnail;
 use App\Support\InstituteCourseWings;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -207,20 +208,50 @@ class EducationHubController extends Controller
      * Courses & Online Learning (/education-hub/courses): every course or program that a college,
      * university or institute has added to its profile, with tabs by who offers it and a search.
      */
-    public function courses(Request $request): View
+    public function courses(Request $request): View|JsonResponse
     {
         $everything = $this->allCourses();
         $search = $this->searchTerm($request);
-        $all = $this->matching($everything, $search, ['title', 'grades', 'description', 'institute', 'location']);
         $kind = array_key_exists((string) $request->query('kind'), self::COURSE_KINDS) ? (string) $request->query('kind') : null;
-        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
+        $cities = $everything->pluck('city')->filter()->unique()->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
+        $city = $cities->first(fn (string $name) => strcasecmp($name, trim((string) $request->query('city'))) === 0);
+        $sort = in_array($request->query('sort'), ['course', 'institution'], true) ? (string) $request->query('sort') : 'recommended';
+
+        $shown = $this->matching($everything, $search, ['title', 'grades', 'description', 'institute', 'location'])
+            ->when($kind, fn (Collection $cards) => $cards->where('kind', $kind))
+            ->when($city, fn (Collection $cards) => $cards->filter(fn (array $card) => strcasecmp((string) $card['city'], $city) === 0))
+            ->when($sort === 'course', fn (Collection $cards) => $cards->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE))
+            ->when($sort === 'institution', fn (Collection $cards) => $cards->sortBy([['institute', 'asc'], ['title', 'asc']]))
+            ->values();
+
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 24;
+        $courses = new LengthAwarePaginator(
+            $shown->forPage($page, $perPage)->values(),
+            $shown->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => array_filter(['q' => $search, 'kind' => $kind, 'city' => $city, 'sort' => $sort === 'recommended' ? null : $sort])]
+        );
+
+        // (filtering, sorting and the next cards while scrolling)
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'html' => view('frontend.education-hub.partials.course-cards', ['courses' => $courses])->render(),
+                'next_page_url' => $courses->nextPageUrl(),
+                'loaded_to' => $courses->lastItem() ?? 0,
+                'total' => $courses->total(),
+            ]);
+        }
 
         return view('frontend.education-hub.courses', [
-            'courses' => $this->paginate($shown, $request, $kind, 12, $search),
+            'courses' => $courses,
             'kind' => $kind,
             'kinds' => self::COURSE_KINDS,
             'search' => $search,
-            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
+            'city' => $city,
+            'cities' => $cities,
+            'sort' => $sort,
             'totals' => [
                 'courses' => $everything->count(),
                 'providers' => $everything->pluck('institute_id')->unique()->count(),
@@ -322,6 +353,7 @@ class EducationHubController extends Controller
                     'logo' => $institute->logoUrl(),
                     'verified' => (bool) $institute->is_verified,
                     'location' => $institute->locationLabel(),
+                    'city' => trim((string) $institute->city),
                     'url' => $institute->publicSectionUrl('courses'),
                 ], InstituteCourseWings::cleanWings(data_get($institute->profile_meta, 'course_wings')));
             })

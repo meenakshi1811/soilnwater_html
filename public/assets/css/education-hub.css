@@ -3321,3 +3321,201 @@
     text-align: center;
   }
 }
+
+/* ===================== Courses page (/education-hub/courses): the shared listing layout ===================== */
+.courses-page__eyebrow {
+  text-decoration: none;
+}
+
+.courses-page__eyebrow:hover {
+  text-decoration: underline;
+}
+
+.courses-page .vendors-hero--compact {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.courses-page .vendors-hero--compact .vendors-hero__intro {
+  flex: 1;
+}
+
+.courses-page__art {
+  flex-shrink: 0;
+  width: 92px;
+  height: auto;
+  margin-right: 0.75rem;
+  filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.12));
+}
+
+.courses-page__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.courses-page__stats i {
+  margin-right: 0.15rem;
+  color: #1d6fd8;
+}
+
+.courses-page__stats strong {
+  color: #0f2a4a;
+}
+
+/* smaller cards than the schools: about four a row on a laptop */
+@media (min-width: 576px) {
+  .institutes-page.courses-page .courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+
+.courses-page .courses-grid {
+  transition: opacity 0.2s ease;
+}
+
+.courses-page.is-loading .courses-grid {
+  opacity: 0.55;
+}
+
+.course-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-2px);
+}
+
+/* (a course without a photo: its icon on the tint of who offers it) */
+.course-card__media {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.85) 0 16%, transparent 17%),
+    linear-gradient(135deg, #dbeafe, #eff6ff);
+  color: #2563eb;
+}
+
+.course-card__media--purple {
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.85) 0 16%, transparent 17%),
+    linear-gradient(135deg, #ede9fe, #f7f5ff);
+  color: #7c3aed;
+}
+
+.course-card__media--orange {
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.85) 0 16%, transparent 17%),
+    linear-gradient(135deg, #ffedd5, #fff8ef);
+  color: #ea580c;
+}
+
+.course-card__media img {
+  position: absolute;
+  inset: 0;
+}
+
+.course-card__icon {
+  font-size: 2rem;
+  opacity: 0.6;
+}
+
+.course-card__badge {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.16rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  color: #2563eb;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.course-card__badge--purple { color: #7c3aed; }
+.course-card__badge--orange { color: #ea580c; }
+
+.course-card .vendors-compact-card__category i {
+  margin-right: 0.15rem;
+}
+
+.course-card__org {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  font-weight: 600;
+  color: #334155;
+}
+
+.course-card__org span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.course-card__verified {
+  flex-shrink: 0;
+  color: #16a34a;
+}
+
+.course-card__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.courses-page__loading {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #64748b;
+}
+
+@media (max-width: 767px) {
+  .courses-page__art {
+    width: 58px;
+    margin-right: 0;
+  }
+
+  .course-card__text {
+    display: none;
+  }
+
+  /* phones: a shorter picture, the institution on a line of its own (the place is left out) */
+  .course-card .vendors-compact-card__media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .course-card .vendors-compact-card__location {
+    flex: 0 0 100%;
+  }
+
+  .course-card .vendors-compact-card__location:not(.course-card__org) {
+    display: none;
+  }
+
+  .course-card__icon {
+    font-size: 1.6rem;
+  }
+}

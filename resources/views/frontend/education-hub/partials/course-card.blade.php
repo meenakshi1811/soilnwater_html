@@ -1,46 +1,38 @@
-{{-- A course or program: its photo (or icon), who offers it, title, classes / duration line, a
-     short description, the institution (logo, name, place) and a link to its courses --}}
+{{-- A course or program, as a compact listing card: its photo (or icon), who offers it, title,
+     classes / duration, the institution and place, and a line of what it covers --}}
 @php
   [, $kindIcon, $kindTone, $kindOne] = \App\Http\Controllers\Frontend\EducationHubController::COURSE_KINDS[$course['kind']];
 @endphp
-<a href="{{ $course['url'] }}" class="eh-course">
-  <span class="eh-course__media eh-course__media--{{ $kindTone }}">
+<article class="vendors-compact-card course-card">
+  <a href="{{ $course['url'] }}" class="vendors-compact-card__media course-card__media course-card__media--{{ $kindTone }}" aria-label="{{ $course['title'] }} at {{ $course['institute'] }}">
     @if($course['image'])
-      <img src="{{ $course['image'] }}" alt="" loading="lazy" decoding="async">
+      <img src="{{ $course['image'] }}" alt="" class="vendors-compact-card__cover" loading="lazy" decoding="async">
     @else
-      <i class="fa-solid {{ $course['icon'] }}" aria-hidden="true"></i>
+      <i class="fa-solid {{ $course['icon'] }} course-card__icon" aria-hidden="true"></i>
     @endif
-    <span class="eh-course__badge eh-course__badge--{{ $kindTone }}"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i> {{ $kindOne }}</span>
-  </span>
-  <span class="eh-course__body">
-    <strong class="eh-course__title">{{ $course['title'] }}</strong>
+    <span class="course-card__badge course-card__badge--{{ $kindTone }}"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i> {{ $kindOne }}</span>
+  </a>
+  <div class="vendors-compact-card__body">
+    <h3 class="vendors-compact-card__name">
+      <a href="{{ $course['url'] }}">{{ $course['title'] }}</a>
+    </h3>
     @if(filled($course['grades']))
-      <span class="eh-course__grades"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $course['grades'] }}</span>
+      <div class="vendors-compact-card__meta">
+        <span class="vendors-compact-card__category"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $course['grades'] }}</span>
+      </div>
+    @endif
+    <p class="vendors-compact-card__location course-card__org">
+      <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+      <span>{{ $course['institute'] }}</span>
+      @if($course['verified'])
+        <i class="fa-solid fa-circle-check course-card__verified" aria-label="Verified"></i>
+      @endif
+    </p>
+    @if(filled($course['location']))
+      <p class="vendors-compact-card__location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $course['location'] }}</p>
     @endif
     @if(filled($course['description']))
-      <span class="eh-course__text">{{ $course['description'] }}</span>
+      <p class="course-card__text">{{ $course['description'] }}</p>
     @endif
-    <span class="eh-course__org">
-      @if($course['logo'])
-        <img src="{{ $course['logo'] }}" alt="" class="eh-course__logo" loading="lazy" width="34" height="34">
-      @else
-        <span class="eh-icon eh-icon--{{ $kindTone }} eh-course__logo"><i class="fa-solid {{ $kindIcon }}" aria-hidden="true"></i></span>
-      @endif
-      <span class="eh-course__org-text">
-        <span class="eh-course__org-name">
-          {{ $course['institute'] }}
-          @if($course['verified'])
-            <i class="fa-solid fa-circle-check" aria-label="Verified"></i>
-          @endif
-        </span>
-        @if(filled($course['location']))
-          <small><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $course['location'] }}</small>
-        @endif
-      </span>
-    </span>
-    <span class="eh-course__foot">
-      <span>View course</span>
-      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-    </span>
-  </span>
-</a>
+  </div>
+</article>
