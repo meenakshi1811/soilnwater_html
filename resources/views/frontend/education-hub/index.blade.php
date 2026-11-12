@@ -15,7 +15,7 @@
         ['label' => 'Skill Development', 'icon' => 'fa-screwdriver-wrench', 'tone' => 'orange', 'url' => route('institutes.index', ['search' => 'skill'])],
         ['label' => 'Subjects', 'icon' => 'fa-atom', 'tone' => 'sky', 'url' => route('study-materials.library')],
         ['label' => 'Courses & Online Learning', 'icon' => 'fa-laptop', 'badge' => 'fa-play', 'tone' => 'rose', 'url' => route('institutes.index')],
-        ['label' => 'Scholarships & Opportunities', 'icon' => 'fa-trophy', 'tone' => 'amber', 'url' => route('education.jobs')],
+        ['label' => 'Scholarships & Opportunities', 'icon' => 'fa-trophy', 'tone' => 'amber', 'url' => route('education.scholarships')],
         ['label' => 'Community & Discussion', 'icon' => 'fa-users', 'tone' => 'teal', 'url' => route('community.index')],
     ];
 
@@ -60,10 +60,11 @@
 
     // (art: public/assets/images/education-hub/art-*.webp)
     $features = [
-        ['title' => 'Courses & Online Learning', 'text' => 'Academic, skill and professional courses.', 'art' => 'courses', 'tone' => 'blue', 'button' => 'Explore Courses', 'url' => route('institutes.index')],
+        ['title' => 'Courses & Online Learning', 'text' => 'Academic, skill and professional courses.', 'art' => 'courses', 'tone' => 'blue', 'button' => 'Explore Courses', 'url' => route('education.courses')],
         ['title' => 'Jobs & Careers', 'text' => 'Jobs, internships, apprenticeships and teaching opportunities.', 'art' => 'jobs', 'tone' => 'purple', 'button' => 'Explore Jobs', 'url' => route('education.jobs')],
-        ['title' => 'Projects & Innovation', 'text' => 'Showcase science, engineering and creative projects.', 'art' => 'projects', 'tone' => 'orange', 'button' => 'Explore Projects', 'url' => route('community.index', ['type' => 'science-technology'])],
-        ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'art' => 'scholarships', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('community.index', ['type' => 'student-corner'])],
+        // (hidden for now; bring it back by removing the // below)
+        // ['title' => 'Projects & Innovation', 'text' => 'Showcase science, engineering and creative projects.', 'art' => 'projects', 'tone' => 'orange', 'button' => 'Explore Projects', 'url' => route('community.index', ['type' => 'science-technology'])],
+        ['title' => 'Scholarships', 'text' => 'Find scholarships, fellowships and financial support.', 'art' => 'scholarships', 'tone' => 'green', 'button' => 'View Scholarships', 'url' => route('education.scholarships')],
     ];
 
     // The hero's banner: a campus panorama (books on the left, the campus, students on the right)

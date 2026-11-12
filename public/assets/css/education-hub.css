@@ -805,7 +805,8 @@
 /* ---------- Courses, jobs, projects, scholarships: four tinted cards with an illustration ---------- */
 .eh-features {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* one column per card (three now: Courses, Jobs, Scholarships) */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.75rem;
   margin-top: 1.75rem;
 }
@@ -1578,14 +1579,14 @@
 .eh-job {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
   min-width: 0;
-  padding: 1rem 1.1rem;
+  padding: 1.15rem 1.2rem;
   border: 1px solid var(--eh-line);
-  border-left: 4px solid #16a34a;
-  border-radius: var(--eh-radius);
+  border-top: 3px solid #8b5cf6;
+  border-radius: 16px;
   background: #fff;
-  box-shadow: var(--eh-shadow);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   color: inherit;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1625,14 +1626,14 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-family: 'Manrope', sans-serif;
-  font-size: 1.02rem;
+  font-size: 1.06rem;
   font-weight: 800;
   line-height: 1.3;
-  color: var(--eh-navy);
+  color: #1e2a6e;
 }
 
 .eh-job:hover .eh-job__title {
-  color: var(--eh-blue);
+  color: #6d28d9;
 }
 
 .eh-job__dept {
@@ -1708,10 +1709,19 @@
 
 .eh-job__cta {
   flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  background: #f5f3ff;
+  color: #6d28d9;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--eh-blue);
   white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.eh-job:hover .eh-job__cta {
+  background: #7c3aed;
+  color: #fff;
 }
 
 .eh-job__cta i {
@@ -1721,6 +1731,12 @@
 
 .eh-job:hover .eh-job__cta i {
   transform: translateX(3px);
+}
+
+@media (min-width: 1600px) {
+  .eh-jobs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1199px) {
@@ -2490,5 +2506,818 @@
 
   .eh-ticker.is-moving {
     height: clamp(345px, 25vw, 520px);
+  }
+}
+
+/* ===================== Hub listing pages: Courses (/education-hub/courses) and Jobs ===================== */
+
+/* the header: a tinted banner with the page's illustration, its search and a few numbers */
+.eh-listhero {
+  --eh-lh-a: #e3f1fd;
+  --eh-lh-b: #f8fbff;
+  --eh-lh-fg: #1d6fd8;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.25rem;
+  padding: 1.75rem 2.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% -10%, rgba(255, 255, 255, 0.9) 0 16%, transparent 17%),
+    radial-gradient(circle at 78% 120%, rgba(255, 255, 255, 0.7) 0 14%, transparent 15%),
+    linear-gradient(120deg, var(--eh-lh-a) 0%, var(--eh-lh-b) 100%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.eh-listhero--purple {
+  --eh-lh-a: #f1ebfe;
+  --eh-lh-b: #fbf9ff;
+  --eh-lh-fg: #7c3aed;
+}
+
+.eh-listhero__copy {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 720px;
+}
+
+.eh-listhero__title {
+  margin: 0 0 0.4rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #1e2a6e;
+}
+
+.eh-listhero__text {
+  max-width: 40rem;
+  margin: 0 0 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.eh-listhero__search {
+  display: flex;
+  align-items: center;
+  max-width: 640px;
+  padding: 0.35rem;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+}
+
+.eh-listhero__search > i {
+  margin: 0 0.55rem 0 0.75rem;
+  color: #64748b;
+}
+
+.eh-listhero__search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.25rem;
+  border: 0;
+  background: transparent;
+  font-size: 0.92rem;
+  color: var(--eh-navy);
+  outline: none;
+}
+
+.eh-listhero__search input::placeholder {
+  color: #64748b;
+}
+
+.eh-listhero__search button {
+  flex-shrink: 0;
+  padding: 0.65rem 1.4rem;
+  border: 0;
+  border-radius: 9px;
+  background: var(--eh-lh-fg);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--eh-lh-fg) 30%, transparent);
+  cursor: pointer;
+}
+
+.eh-listhero__search button:hover {
+  filter: brightness(0.92);
+}
+
+.eh-listhero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  margin: 0.95rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+  color: #475569;
+}
+
+.eh-listhero__stats i {
+  margin-right: 0.2rem;
+  color: var(--eh-lh-fg);
+}
+
+.eh-listhero__stats strong {
+  color: #1e2a6e;
+}
+
+.eh-listhero__art {
+  position: relative;
+  flex-shrink: 0;
+  width: 130px;
+  height: auto;
+  margin-right: 1.5rem;
+  filter: drop-shadow(0 12px 18px rgba(15, 23, 42, 0.12));
+}
+
+.eh-listtabs {
+  margin-bottom: 1rem;
+}
+
+.eh-listnote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -0.25rem 0 1rem;
+  font-size: 0.88rem;
+  color: var(--eh-muted);
+}
+
+.eh-listnote a {
+  color: var(--eh-green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* course cards: four across on big screens, three on laptops, two on tablets, one on phones */
+.eh-courses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.eh-course {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--eh-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.eh-course:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.11);
+  color: inherit;
+}
+
+.eh-course__media {
+  --eh-cm-a: #dbeafe;
+  --eh-cm-b: #eff6ff;
+  --eh-cm-fg: #2563eb;
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 8;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.85) 0 18%, transparent 19%),
+    radial-gradient(circle at 12% 88%, rgba(255, 255, 255, 0.6) 0 14%, transparent 15%),
+    linear-gradient(135deg, var(--eh-cm-a), var(--eh-cm-b));
+  color: var(--eh-cm-fg);
+  font-size: 2.6rem;
+}
+
+.eh-course__media > i {
+  opacity: 0.6;
+}
+
+.eh-course__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eh-course__media--purple { --eh-cm-a: #ede9fe; --eh-cm-b: #f7f5ff; --eh-cm-fg: #7c3aed; }
+.eh-course__media--orange { --eh-cm-a: #ffedd5; --eh-cm-b: #fff8ef; --eh-cm-fg: #ea580c; }
+
+.eh-course__badge {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.eh-course__badge--purple { color: #7c3aed; }
+.eh-course__badge--orange { color: #ea580c; }
+
+.eh-course__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.eh-course__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #1e2a6e;
+}
+
+.eh-course:hover .eh-course__title {
+  color: var(--eh-green-dark);
+}
+
+.eh-course__grades {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.22rem 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-course__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.eh-course__org {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--eh-line);
+}
+
+.eh-course__logo {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--eh-line);
+  border-radius: 9px;
+  background: #fff;
+  object-fit: contain;
+  font-size: 0.85rem;
+}
+
+.eh-course__org-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.eh-course__org-name {
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--eh-text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-course__org-name i {
+  margin-left: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--eh-green);
+}
+
+.eh-course__org-text small {
+  overflow: hidden;
+  font-size: 0.74rem;
+  color: var(--eh-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-course__foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d6fd8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.eh-course__foot i {
+  font-size: 0.78rem;
+  transition: transform 0.2s ease;
+}
+
+.eh-course:hover .eh-course__foot {
+  background: #1d6fd8;
+  color: #fff;
+}
+
+.eh-course:hover .eh-course__foot i {
+  transform: translateX(3px);
+}
+
+/* nothing to show: a friendly card with a way back */
+.eh-listempty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 2.75rem 1.25rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+}
+
+.eh-listempty img {
+  width: 70px;
+  height: auto;
+  margin-bottom: 0.35rem;
+}
+
+.eh-listempty strong {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e2a6e;
+}
+
+.eh-listempty span {
+  max-width: 30rem;
+  font-size: 0.88rem;
+  color: var(--eh-muted);
+}
+
+.eh-listempty__btn {
+  margin-top: 0.6rem;
+  padding: 0.6rem 1.3rem;
+  border-radius: 9px;
+  background: var(--eh-green);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.eh-listempty__btn:hover {
+  background: var(--eh-green-dark);
+  color: #fff;
+}
+
+@media (min-width: 1400px) {
+  .eh-courses {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .eh-courses {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .eh-listhero {
+    padding: 1.4rem 1.5rem;
+  }
+
+  .eh-listhero__art {
+    width: 100px;
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .eh-listhero {
+    gap: 0.75rem;
+    padding: 1.1rem 1rem 1.15rem;
+    border-radius: 14px;
+  }
+
+  .eh-listhero__title {
+    padding-right: 64px;
+    font-size: 1.4rem;
+  }
+
+  .eh-listhero__text {
+    margin-bottom: 0.85rem;
+    font-size: 0.84rem;
+  }
+
+  /* the illustration small in the top corner */
+  .eh-listhero__art {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    width: 56px;
+    margin: 0;
+  }
+
+  .eh-listhero__search input {
+    font-size: 0.85rem;
+  }
+
+  .eh-listhero__search button {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.84rem;
+  }
+
+  .eh-listhero__stats {
+    gap: 0.35rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* the tabs in one row that slides sideways */
+  .eh-listtabs {
+    flex-wrap: nowrap;
+    margin-right: calc(-1 * var(--eh-gutter));
+    margin-left: calc(-1 * var(--eh-gutter));
+    padding: 0 var(--eh-gutter) 0.15rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .eh-listtabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .eh-listtabs .eh-notice-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .eh-course__media {
+    aspect-ratio: 16 / 6.5;
+  }
+}
+
+@media (max-width: 575px) {
+  .eh-courses {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eh-listhero__search > i {
+    display: none;
+  }
+}
+
+/* ---------- Scholarships page (/education-hub/scholarships) ---------- */
+.eh-listhero--green {
+  --eh-lh-a: #e3f6ea;
+  --eh-lh-b: #f8fdf9;
+  --eh-lh-fg: #15803d;
+}
+
+.eh-scholarships {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.eh-scholarship {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1.2rem 1.2rem 1.15rem;
+  overflow: hidden;
+  border: 1px solid var(--eh-line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fdf9 100%);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.eh-scholarship::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #15803d, #22c55e);
+}
+
+.eh-scholarship:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.11);
+  color: inherit;
+}
+
+.eh-scholarship__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.eh-scholarship__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.24rem 0.65rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.eh-scholarship__when {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--eh-muted);
+}
+
+.eh-scholarship__when--near {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #fff1e6;
+  color: #c2410c;
+}
+
+.eh-scholarship__when--soon {
+  color: #1d6fd8;
+}
+
+.eh-scholarship__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #1e2a6e;
+}
+
+.eh-scholarship:hover .eh-scholarship__title {
+  color: #15803d;
+}
+
+.eh-scholarship__amount {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.35rem 0.75rem;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fff8e6;
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-scholarship__amount i {
+  color: #d4a017;
+}
+
+.eh-scholarship__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.eh-scholarship__facts:empty {
+  display: none;
+}
+
+.eh-scholarship__facts i {
+  margin-right: 0.2rem;
+  color: #16a34a;
+}
+
+.eh-scholarship__criteria {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--eh-muted);
+}
+
+.eh-scholarship__org {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--eh-line);
+}
+
+.eh-scholarship__logo {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--eh-line);
+  border-radius: 9px;
+  background: #fff;
+  object-fit: contain;
+  font-size: 0.85rem;
+}
+
+.eh-scholarship__org-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.eh-scholarship__org-name {
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--eh-text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-scholarship__org-name i {
+  margin-left: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--eh-green);
+}
+
+.eh-scholarship__org-text small {
+  overflow: hidden;
+  font-size: 0.74rem;
+  color: var(--eh-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eh-scholarship__foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.eh-scholarship__foot i {
+  font-size: 0.78rem;
+  transition: transform 0.2s ease;
+}
+
+.eh-scholarship:hover .eh-scholarship__foot {
+  background: #15803d;
+  color: #fff;
+}
+
+.eh-scholarship:hover .eh-scholarship__foot i {
+  transform: translateX(3px);
+}
+
+@media (min-width: 1400px) {
+  .eh-scholarships {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .eh-scholarships {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .eh-scholarships {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Big screens: the three feature cards (Courses, Jobs, Scholarships) grow with the screen too */
+@media (min-width: 1400px) {
+  .eh-feature {
+    gap: clamp(1rem, 1.3vw, 1.75rem);
+    padding: clamp(1.2rem, 1.45vw, 1.9rem) clamp(1.15rem, 1.6vw, 2.1rem);
+  }
+
+  .eh-feature__art {
+    width: clamp(66px, 5vw, 104px);
+    height: clamp(72px, 5.4vw, 112px);
+  }
+
+  .eh-feature__body {
+    gap: 0.45rem;
+  }
+
+  .eh-feature__body strong {
+    font-size: clamp(1.12rem, 1.3vw, 1.65rem);
+  }
+
+  .eh-feature__body small {
+    margin-bottom: 0.6rem;
+    font-size: clamp(0.82rem, 0.92vw, 1.15rem);
+  }
+
+  .eh-feature__btn {
+    padding: clamp(0.55rem, 0.6vw, 0.8rem) clamp(1.15rem, 1.3vw, 1.7rem);
+    font-size: clamp(0.82rem, 0.85vw, 1.08rem);
+  }
+}
+
+/* Tablets: the three feature cards side by side (the picture on top), no sliding */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .eh-features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    gap: 1.1rem;
+    margin-right: 0;
+    margin-left: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .eh-feature {
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.1rem 1rem;
+  }
+
+  .eh-feature:hover {
+    transform: translateY(-3px);
+  }
+
+  .eh-feature__art {
+    width: 58px;
+    height: 62px;
+    object-position: left top;
+  }
+
+  .eh-feature__btn {
+    align-self: stretch;
+    text-align: center;
   }
 }

@@ -8,13 +8,16 @@ use App\Models\EducatorNotice;
 use App\Models\Institute;
 use App\Models\InstituteJob;
 use App\Models\InstituteNotice;
+use App\Models\InstituteScholarship;
 use App\Models\StudyMaterial;
 use App\Support\ImageThumbnail;
+use App\Support\InstituteCourseWings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -29,6 +32,13 @@ class EducationHubController extends Controller
         'college' => ['Colleges', 'fa-graduation-cap', 'purple', 'College'],
         'institute' => ['Institutes', 'fa-building-columns', 'green', 'Institute'],
         'teacher' => ['Teachers & Tutors', 'fa-chalkboard-user', 'orange', 'Teacher'],
+    ];
+
+    /** Who offers a course (the courses page's tabs): kind => [tab label, icon, tone, one of them] */
+    public const COURSE_KINDS = [
+        'college' => ['Colleges', 'fa-graduation-cap', 'purple', 'College'],
+        'university' => ['Universities', 'fa-building-columns', 'blue', 'University'],
+        'institute' => ['Institutes & Coaching', 'fa-chalkboard-user', 'orange', 'Institute'],
     ];
 
     /**
@@ -113,16 +123,108 @@ class EducationHubController extends Controller
     /** Every open job of approved schools, colleges and institutes, newest first, by who posted it */
     public function jobs(Request $request): View
     {
-        $all = $this->openJobsQuery()->get()->map(fn (InstituteJob $job): array => $this->jobCard($job));
+        $everything = $this->openJobsQuery()->get()->map(fn (InstituteJob $job): array => $this->jobCard($job));
+        $search = $this->searchTerm($request);
+        $all = $this->matching($everything, $search, ['title', 'department', 'institute', 'location', 'type']);
         $kinds = array_diff_key(self::NOTICE_KINDS, ['teacher' => true]);
         $kind = array_key_exists((string) $request->query('kind'), $kinds) ? (string) $request->query('kind') : null;
         $shown = $kind ? $all->where('kind', $kind)->values() : $all;
 
         return view('frontend.education-hub.jobs', [
-            'jobs' => $this->paginate($shown, $request, $kind),
+            'jobs' => $this->paginate($shown, $request, $kind, 12, $search),
             'kind' => $kind,
             'kinds' => $kinds,
+            'search' => $search,
             'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
+            'totals' => [
+                'jobs' => $everything->count(),
+                'employers' => $everything->pluck('institute')->unique()->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Scholarships (/education-hub/scholarships): every open scholarship of the approved schools,
+     * colleges and institutes, the nearest last date first; tabs by who offers it and a search.
+     */
+    public function scholarships(Request $request): View
+    {
+        $everything = InstituteScholarship::query()
+            ->open()
+            ->whereHas('institute', fn ($query) => $query->approved())
+            ->with('institute.user:id,role')
+            ->orderByRaw('application_deadline is null')
+            ->orderBy('application_deadline')
+            ->latest('published_at')
+            ->latest('id')
+            ->get()
+            ->map(fn (InstituteScholarship $scholarship): array => $this->scholarshipCard($scholarship));
+        $search = $this->searchTerm($request);
+        $all = $this->matching($everything, $search, ['title', 'type', 'amount', 'for', 'criteria', 'institute', 'location']);
+        $kinds = array_diff_key(self::NOTICE_KINDS, ['teacher' => true]);
+        $kind = array_key_exists((string) $request->query('kind'), $kinds) ? (string) $request->query('kind') : null;
+        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
+
+        return view('frontend.education-hub.scholarships', [
+            'scholarships' => $this->paginate($shown, $request, $kind, 12, $search),
+            'kind' => $kind,
+            'kinds' => $kinds,
+            'search' => $search,
+            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
+            'totals' => [
+                'scholarships' => $everything->count(),
+                'providers' => $everything->pluck('institute_id')->unique()->count(),
+            ],
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function scholarshipCard(InstituteScholarship $scholarship): array
+    {
+        $institute = $scholarship->institute;
+
+        return [
+            'kind' => in_array($institute->user?->role, ['school', 'college'], true) ? $institute->user->role : 'institute',
+            'title' => (string) $scholarship->title,
+            'type' => $scholarship->typeLabel(),
+            'icon' => $scholarship->typeIcon(),
+            'amount' => $scholarship->amount_label,
+            'for' => $scholarship->eligible_for,
+            'awards' => $scholarship->awards_count,
+            'criteria' => implode(' · ', $scholarship->lines('eligibility')),
+            'start' => $scholarship->opensLater() ? $scholarship->application_start : null,
+            'deadline' => $scholarship->application_deadline,
+            'institute_id' => $institute->id,
+            'institute' => $institute->publicDisplayName(),
+            'logo' => $institute->logoUrl(),
+            'verified' => (bool) $institute->is_verified,
+            'location' => $institute->locationLabel(),
+            'url' => $institute->publicSectionUrl('scholarships').'#sch-scholarship-'.$scholarship->id,
+        ];
+    }
+
+    /**
+     * Courses & Online Learning (/education-hub/courses): every course or program that a college,
+     * university or institute has added to its profile, with tabs by who offers it and a search.
+     */
+    public function courses(Request $request): View
+    {
+        $everything = $this->allCourses();
+        $search = $this->searchTerm($request);
+        $all = $this->matching($everything, $search, ['title', 'grades', 'description', 'institute', 'location']);
+        $kind = array_key_exists((string) $request->query('kind'), self::COURSE_KINDS) ? (string) $request->query('kind') : null;
+        $shown = $kind ? $all->where('kind', $kind)->values() : $all;
+
+        return view('frontend.education-hub.courses', [
+            'courses' => $this->paginate($shown, $request, $kind, 12, $search),
+            'kind' => $kind,
+            'kinds' => self::COURSE_KINDS,
+            'search' => $search,
+            'counts' => $all->countBy('kind')->all() + ['all' => $all->count()],
+            'totals' => [
+                'courses' => $everything->count(),
+                'providers' => $everything->pluck('institute_id')->unique()->count(),
+            ],
         ]);
     }
 
@@ -141,7 +243,7 @@ class EducationHubController extends Controller
         ]);
     }
 
-    private function paginate(Collection $items, Request $request, ?string $kind, int $perPage = 12): LengthAwarePaginator
+    private function paginate(Collection $items, Request $request, ?string $kind, int $perPage = 12, string $search = ''): LengthAwarePaginator
     {
         $page = max(1, (int) $request->query('page', 1));
 
@@ -150,8 +252,80 @@ class EducationHubController extends Controller
             $items->count(),
             $perPage,
             $page,
-            ['path' => $request->url(), 'query' => array_filter(['kind' => $kind])]
+            ['path' => $request->url(), 'query' => array_filter(['kind' => $kind, 'q' => $search])]
         );
+    }
+
+    /** The search box's words (?q=), trimmed and capped */
+    private function searchTerm(Request $request): string
+    {
+        return Str::limit(trim((string) $request->query('q', '')), 80, '');
+    }
+
+    /**
+     * The cards whose fields contain every word searched for (any case); all of them for no search.
+     *
+     * @param  Collection<int, array<string, mixed>>  $cards
+     * @param  list<string>  $fields
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function matching(Collection $cards, string $search, array $fields): Collection
+    {
+        $words = array_filter(preg_split('/\s+/', mb_strtolower($search)) ?: []);
+        if ($words === []) {
+            return $cards->values();
+        }
+
+        return $cards->filter(function (array $card) use ($words, $fields): bool {
+            $text = mb_strtolower(implode(' ', array_map(fn ($field) => (string) ($card[$field] ?? ''), $fields)));
+            foreach ($words as $word) {
+                if (! str_contains($text, $word)) {
+                    return false;
+                }
+            }
+
+            return true;
+        })->values();
+    }
+
+    /**
+     * Every course card: the courses & programs saved on the profiles of approved colleges,
+     * universities and institutes (verified ones first, then the newest), in each one's own order.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function allCourses(): Collection
+    {
+        return Institute::query()
+            ->approved()
+            ->whereHas('user', fn (Builder $query) => $query->whereIn('role', ['college', 'institute']))
+            ->whereNotNull('profile_meta')
+            ->with('user:id,role')
+            ->orderByDesc('is_verified')
+            ->latest('approved_at')
+            ->latest('id')
+            ->get()
+            ->flatMap(function (Institute $institute): array {
+                $kind = $institute->user?->role === 'college'
+                    ? ($institute->institution_type === 'university' ? 'university' : 'college')
+                    : 'institute';
+
+                return array_map(fn (array $wing): array => [
+                    'kind' => $kind,
+                    'title' => $wing['title'],
+                    'grades' => $wing['grades'],
+                    'description' => Str::limit($wing['description'], 150),
+                    'icon' => $wing['icon'],
+                    'image' => $wing['image'] !== '' ? ImageThumbnail::url(asset($wing['image'])) : null,
+                    'institute_id' => $institute->id,
+                    'institute' => $institute->publicDisplayName(),
+                    'logo' => $institute->logoUrl(),
+                    'verified' => (bool) $institute->is_verified,
+                    'location' => $institute->locationLabel(),
+                    'url' => $institute->publicSectionUrl('courses'),
+                ], InstituteCourseWings::cleanWings(data_get($institute->profile_meta, 'course_wings')));
+            })
+            ->values();
     }
 
     private function instituteMatch($query, string $like): void

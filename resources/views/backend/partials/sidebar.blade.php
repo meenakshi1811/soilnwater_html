@@ -784,6 +784,12 @@
                             </a>
                         </li>
                         <li>
+                            <a class="{{ request()->routeIs($providerPortal.'.scholarships.*') ? 'active' : '' }}" href="{{ $user->portalRoute('scholarships.index') }}">
+                                <i class="fa-solid fa-award"></i>
+                                <span>Scholarships</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="{{ request()->routeIs($providerPortal.'.engagement.*') ? 'active' : '' }}" href="{{ $user->portalRoute('engagement.index') }}">
                                 <i class="fa-solid fa-chart-line"></i>
                                 <span>Engagement</span>

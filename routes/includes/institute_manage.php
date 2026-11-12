@@ -9,6 +9,7 @@ use App\Http\Controllers\Institute\InstituteDiaryController;
 use App\Http\Controllers\Institute\InstituteDiaryHolidayController;
 use App\Http\Controllers\Institute\InstituteFeeStructureController;
 use App\Http\Controllers\Institute\InstituteJobController;
+use App\Http\Controllers\Institute\InstituteScholarshipController;
 use App\Http\Controllers\Institute\InstituteLeaveRuleController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
@@ -45,3 +46,7 @@ Route::post('/jobs', [InstituteJobController::class, 'store'])->name('jobs.store
 Route::put('/jobs/{job}', [InstituteJobController::class, 'update'])->name('jobs.update');
 Route::delete('/jobs/{job}', [InstituteJobController::class, 'destroy'])->name('jobs.destroy');
 Route::patch('/jobs/applications/{application}', [InstituteJobController::class, 'updateApplication'])->name('jobs.applications.update');
+Route::get('/scholarships', [InstituteScholarshipController::class, 'index'])->name('scholarships.index');
+Route::post('/scholarships', [InstituteScholarshipController::class, 'store'])->name('scholarships.store');
+Route::put('/scholarships/{scholarship}', [InstituteScholarshipController::class, 'update'])->name('scholarships.update');
+Route::delete('/scholarships/{scholarship}', [InstituteScholarshipController::class, 'destroy'])->name('scholarships.destroy');

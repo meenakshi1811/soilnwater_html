@@ -10,6 +10,7 @@ use App\Http\Controllers\Institute\InstituteLeaveRuleController;
 use App\Http\Controllers\Institute\InstituteNoticeController;
 use App\Http\Controllers\Institute\InstituteProfileController as PortalInstituteProfileController;
 use App\Http\Controllers\Institute\InstituteJobController;
+use App\Http\Controllers\Institute\InstituteScholarshipController;
 use App\Http\Controllers\Institute\InstitutePublicContentController;
 use App\Http\Controllers\Institute\InstitutePublicPageController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,10 @@ foreach (['school', 'college', 'institute'] as $role) {
         Route::put('/jobs/{job}', [InstituteJobController::class, 'update'])->middleware($role)->name('jobs.update');
         Route::delete('/jobs/{job}', [InstituteJobController::class, 'destroy'])->middleware($role)->name('jobs.destroy');
         Route::patch('/jobs/applications/{application}', [InstituteJobController::class, 'updateApplication'])->middleware($role)->name('jobs.applications.update');
+        Route::get('/scholarships', [InstituteScholarshipController::class, 'index'])->middleware($role)->name('scholarships.index');
+        Route::post('/scholarships', [InstituteScholarshipController::class, 'store'])->middleware($role)->name('scholarships.store');
+        Route::put('/scholarships/{scholarship}', [InstituteScholarshipController::class, 'update'])->middleware($role)->name('scholarships.update');
+        Route::delete('/scholarships/{scholarship}', [InstituteScholarshipController::class, 'destroy'])->middleware($role)->name('scholarships.destroy');
         Route::get('/engagement', [InstituteEngagementPortalController::class, 'index'])->middleware($role)->name('engagement.index');
         Route::get('/diary', [InstituteDiaryController::class, 'index'])->middleware($role)->name('diary.index');
         Route::get('/fee-structure', [InstituteFeeStructureController::class, 'edit'])->middleware($role)->name('fee-structure.edit');

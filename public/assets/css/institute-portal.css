@@ -593,3 +593,25 @@
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
+
+/* Scholarships form: its groups (Basics, Who can apply, How to apply, About) */
+.sch-form-group-title {
+  margin: 1.25rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sch-portal-form .sch-form-group-title:first-of-type {
+  margin-top: 0;
+}
+
+/* the scholarship being edited in the form */
+.sch-scholarship-manage-item.is-editing {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}

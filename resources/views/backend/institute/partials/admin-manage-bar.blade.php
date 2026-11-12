@@ -7,6 +7,7 @@
     'diary.index' => ['Diary', 'fa-book-bookmark'],
     'fee-structure.edit' => ['Fee structure', 'fa-indian-rupee-sign'],
     'jobs.index' => ['Jobs', 'fa-briefcase'],
+    'scholarships.index' => ['Scholarships', 'fa-award'],
   ];
 @endphp
 <div class="chart-card mb-4">

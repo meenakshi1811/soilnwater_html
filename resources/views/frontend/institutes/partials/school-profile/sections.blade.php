@@ -458,6 +458,56 @@
   </section>
 @endif
 
+{{-- Scholarships: on the profile a sliding row of short cards; on its own page every detail --}}
+@if($showSection('scholarships') && $profile->openScholarshipsCount() > 0)
+  @php
+    $scholarshipsPreview = $profile->openScholarships($isProfilePreview ? $previewLimits['scholarships'] : null);
+  @endphp
+  <section id="sch-scholarships" class="sch-card sch-section sch-scholarships-section">
+    <div class="sch-section__head">
+      <div>
+        <h2 class="sch-section__title mb-1">Scholarships</h2>
+        <p class="sch-section__lead mb-0">Scholarships this {{ strtolower($entityLabel ?? 'institution') }} offers: who can apply, what they give and how to apply.</p>
+      </div>
+      @include('frontend.institutes.partials.school-profile.section-view-all', [
+        'institute' => $institute,
+        'isProfilePreview' => $isProfilePreview,
+        'sectionKey' => 'scholarships',
+        'total' => $profile->openScholarshipsCount(),
+        'limit' => $previewLimits['scholarships'],
+        'label' => 'scholarships',
+        'inHead' => true,
+        'alwaysShow' => true,
+      ])
+    </div>
+    @if($isProfilePreview)
+      <div
+        class="sch-profile-carousel sch-scholarships-carousel card-carousel auto-ad-slider"
+        data-slide-by="card"
+        data-carousel-cols="{{ min(max($scholarshipsPreview->count(), 1), 3) }}"
+        data-show-arrows="true"
+        data-show-dots="false"
+        data-pause-on-hover="true"
+        aria-label="Scholarships carousel"
+      >
+        <div class="card-carousel-track">
+          @foreach($scholarshipsPreview as $scholarship)
+            <div class="card-carousel-item">
+              @include('frontend.institutes.partials.school-profile.scholarship-card', ['scholarship' => $scholarship, 'institute' => $institute])
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @else
+      <div class="sch-scholarships-list">
+        @foreach($scholarshipsPreview as $scholarship)
+          @include('frontend.institutes.partials.school-profile.scholarship-card', ['scholarship' => $scholarship, 'institute' => $institute, 'full' => true])
+        @endforeach
+      </div>
+    @endif
+  </section>
+@endif
+
 @if($showSection('notes-materials') && $profile->notesMaterialBooksCount() > 0)
   <section id="sch-notes-material" class="sch-card sch-section sch-books-section">
     <div class="sch-section__head sch-books-section__head">

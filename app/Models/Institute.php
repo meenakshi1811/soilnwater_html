@@ -154,6 +154,11 @@ class Institute extends Model
         return $this->hasMany(InstituteJob::class)->latest('published_at')->latest('id');
     }
 
+    public function scholarships(): HasMany
+    {
+        return $this->hasMany(InstituteScholarship::class)->latest('published_at')->latest('id');
+    }
+
     public function affiliatedEducators(): BelongsToMany
     {
         return $this->belongsToMany(Educator::class, 'educator_institute_affiliations')

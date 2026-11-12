@@ -20,8 +20,8 @@
 
     @include('frontend.institutes.partials.school-profile.sections', [
       'onlySection' => null,
-      // (Jobs & Careers comes under Admission Info, below)
-      'skipSections' => ['jobs'],
+      // (Jobs & Careers and Scholarships come under Admission Info, below)
+      'skipSections' => ['jobs', 'scholarships'],
       'isProfilePreview' => true,
       'profile' => $profile,
       'institute' => $institute,
@@ -59,13 +59,15 @@
       @endif
     </section>
 
-    @include('frontend.institutes.partials.school-profile.sections', [
-      'onlySection' => 'jobs',
-      'isProfilePreview' => true,
-      'profile' => $profile,
-      'institute' => $institute,
-      'entityLabel' => $entityLabel ?? 'School',
-      'listingContext' => $listingContext ?? 'schools',
-      'canEditInline' => $canEditInline ?? false,
-    ])
+    @foreach(['jobs', 'scholarships'] as $belowAdmission)
+      @include('frontend.institutes.partials.school-profile.sections', [
+        'onlySection' => $belowAdmission,
+        'isProfilePreview' => true,
+        'profile' => $profile,
+        'institute' => $institute,
+        'entityLabel' => $entityLabel ?? 'School',
+        'listingContext' => $listingContext ?? 'schools',
+        'canEditInline' => $canEditInline ?? false,
+      ])
+    @endforeach
 </div>

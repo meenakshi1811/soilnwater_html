@@ -227,7 +227,7 @@ Route::get('/schools/compare', [InstituteEngagementController::class, 'schoolCom
 Route::get('/schools/{slug}/diary', [InstituteProfileController::class, 'schoolDiary'])->name('schools.diary');
 Route::get('/schools/{slug}/fee-structure', [InstituteProfileController::class, 'schoolFeeStructure'])->name('schools.fee-structure');
 Route::get('/schools/{slug}/{section}', [InstituteProfileController::class, 'schoolSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs|scholarships')
     ->name('schools.section');
 Route::get('/schools/{slug}', [InstituteProfileController::class, 'schoolShow'])->name('schools.show');
 Route::post('/schools/{slug}/enquiry', [InstituteProfileController::class, 'schoolEnquiry'])->middleware('auth')->name('schools.enquiry');
@@ -284,7 +284,7 @@ Route::get('/institutes/compare', [InstituteEngagementController::class, 'instit
 Route::get('/institutes/{slug}/diary', [InstituteProfileController::class, 'instituteDiary'])->name('institutes.diary');
 Route::get('/institutes/{slug}/fee-structure', [InstituteProfileController::class, 'instituteFeeStructure'])->name('institutes.fee-structure');
 Route::get('/institutes/{slug}/{section}', [InstituteProfileController::class, 'instituteSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs|scholarships')
     ->name('institutes.section');
 Route::get('/institutes/{slug}', [InstituteProfileController::class, 'instituteShow'])->name('institutes.show');
 Route::post('/institutes/{slug}/enquiry', [InstituteProfileController::class, 'instituteEnquiry'])->middleware('auth')->name('institutes.enquiry');
@@ -304,7 +304,7 @@ Route::get('/colleges/compare', [InstituteEngagementController::class, 'collegeC
 Route::get('/colleges/{slug}/diary', [InstituteProfileController::class, 'collegeDiary'])->name('colleges.diary');
 Route::get('/colleges/{slug}/fee-structure', [InstituteProfileController::class, 'collegeFeeStructure'])->name('colleges.fee-structure');
 Route::get('/colleges/{slug}/{section}', [InstituteProfileController::class, 'collegeSection'])
-    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs')
+    ->where('section', 'notices|courses|facilities|faculty|gallery|achievements|results|books|notes-materials|question-papers|news|articles|events|reviews|jobs|scholarships')
     ->name('colleges.section');
 Route::get('/colleges/{slug}', [InstituteProfileController::class, 'collegeShow'])->name('colleges.show');
 Route::post('/colleges/{slug}/enquiry', [InstituteProfileController::class, 'collegeEnquiry'])->middleware('auth')->name('colleges.enquiry');
@@ -320,6 +320,8 @@ Route::post('/colleges/{slug}/report', [ProfileReportController::class, 'college
 Route::get('/education-hub', [EducationHubController::class, 'index'])->name('education.hub');
 Route::get('/education-hub/notices', [EducationHubController::class, 'notices'])->name('education.notices');
 Route::get('/education-hub/jobs', [EducationHubController::class, 'jobs'])->name('education.jobs');
+Route::get('/education-hub/courses', [EducationHubController::class, 'courses'])->name('education.courses');
+Route::get('/education-hub/scholarships', [EducationHubController::class, 'scholarships'])->name('education.scholarships');
 Route::get('/education-hub/search', [EducationHubController::class, 'search'])->name('education.search');
 
 Route::get('/teachers-tutors', [EducatorListingController::class, 'index'])->name('educator.index');

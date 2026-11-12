@@ -29,6 +29,7 @@ final class SchoolProfilePresenter
         'events' => 3,
         'reviews' => 3,
         'jobs' => 4,
+        'scholarships' => 3,
     ];
 
     /** @var Collection<int, StudyMaterial>|null the school's notes (loaded once) */
@@ -49,7 +50,21 @@ final class SchoolProfilePresenter
             'schoolClasses',
             'books',
             'jobs' => fn ($query) => $query->open()->latest('published_at')->latest('id'),
+            'scholarships' => fn ($query) => $query->open()->reorder()->orderByRaw('application_deadline is null')->orderBy('application_deadline')->latest('published_at'),
         ]);
+    }
+
+    /** Open scholarships, the nearest last date first (those without one last) */
+    public function openScholarships(?int $limit = null): Collection
+    {
+        $scholarships = $this->institute->scholarships;
+
+        return $limit !== null ? $scholarships->take($limit)->values() : $scholarships;
+    }
+
+    public function openScholarshipsCount(): int
+    {
+        return $this->institute->scholarships->count();
     }
 
     public function openJobs(?int $limit = null): Collection
@@ -823,6 +838,7 @@ final class SchoolProfilePresenter
             ['id' => 'sch-admission', 'label' => 'Admission Info', 'icon' => 'fa-door-open'],
             // (right under Admission Info, as on the page)
             ['id' => 'sch-jobs', 'label' => 'Jobs & Careers', 'icon' => 'fa-briefcase'],
+            ['id' => 'sch-scholarships', 'label' => 'Scholarships', 'icon' => 'fa-award'],
             // (its own page, like the diary)
             [
                 'id' => 'sch-fee-structure',
@@ -862,6 +878,7 @@ final class SchoolProfilePresenter
                 'sch-reviews' => $this->reviews() !== [] || ! $this->useAdminReviews(),
                 'sch-results' => $this->institute->topPerformers->isNotEmpty(),
                 'sch-jobs' => $this->openJobsCount() > 0,
+                'sch-scholarships' => $this->openScholarshipsCount() > 0,
                 'sch-notes-material' => $this->notesMaterialBooks()->isNotEmpty(),
                 'sch-question-papers' => $this->questionPaperBooks()->isNotEmpty(),
                 'sch-faculty' => $this->facultyMembers() !== [],
@@ -941,6 +958,10 @@ final class SchoolProfilePresenter
             'jobs' => [
                 'title' => 'Jobs & Careers',
                 'lead' => 'Open roles and career opportunities at this institution.',
+            ],
+            'scholarships' => [
+                'title' => 'Scholarships',
+                'lead' => 'Scholarships offered by this institution: who can apply, what they give and how to apply.',
             ],
         ];
     }
