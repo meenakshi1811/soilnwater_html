@@ -61,6 +61,7 @@ class InstituteProfileController extends Controller
         abort_unless(SchoolProfilePresenter::isValidSection($section), 404);
 
         $institute = $this->findApprovedProfile($slug, $ownerRole);
+        $this->recordView($institute);
         $catalog = SchoolProfilePresenter::sectionCatalog()[$section];
         $listingContext = SchoolInstituteHelper::listingContext($ownerRole);
         $entityLabel = SchoolInstituteHelper::label($ownerRole);
@@ -208,6 +209,7 @@ class InstituteProfileController extends Controller
     public function show(string $slug, string $ownerRole = 'school'): View
     {
         $institute = $this->findApprovedProfile($slug, $ownerRole);
+        $this->recordView($institute);
 
         $authUser = auth()->user();
         $engagement = $this->engagementState($institute, $authUser);
@@ -480,6 +482,21 @@ class InstituteProfileController extends Controller
             'helpful_vote' => $helpfulVote,
             'can_report' => (int) $institute->user_id !== (int) $user->id,
         ];
+    }
+
+    /**
+     * A visitor opened the public page: keep the time as "Last viewed" (the admin lists). The
+     * institution's own account and staff (admins, employees) opening it don't count, and it isn't
+     * an edit, so its "updated" time stays.
+     */
+    private function recordView(Institute $institute): void
+    {
+        $viewer = auth()->user();
+        if ($viewer && ((int) $viewer->id === (int) $institute->user_id || $viewer->isAdmin() || auth('employee')->check())) {
+            return;
+        }
+
+        Institute::withoutTimestamps(fn () => Institute::query()->whereKey($institute->id)->update(['last_viewed_at' => now()]));
     }
 
     private function findApprovedProfile(string $slug, string $ownerRole): Institute

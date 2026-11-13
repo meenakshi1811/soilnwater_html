@@ -63,6 +63,7 @@ class InstituteController extends Controller
                 'status',
                 'is_verified',
                 'approved_at',
+                'last_viewed_at',
                 'created_at',
             ]);
 
@@ -90,7 +91,9 @@ class InstituteController extends Controller
 
                 return '<span class="text-muted">—</span>';
             })
-            ->editColumn('created_at', fn (Institute $institute) => $institute->created_at?->format('Y-m-d') ?? '')
+            // Registered and Last viewed (its public page, by a visitor): date and time
+            ->editColumn('created_at', fn (Institute $institute) => $institute->created_at?->timezone(config('app.timezone'))->format('d M Y, h:i A') ?? '')
+            ->editColumn('last_viewed_at', fn (Institute $institute) => $institute->last_viewed_at?->timezone(config('app.timezone'))->format('d M Y, h:i A') ?? 'Not viewed yet')
             ->addColumn('actions', function (Institute $institute): string {
                 $approveBtn = $institute->status !== 'approved'
                     ? '<button type="button" class="btn btn-sm btn-success js-approve-institute" data-id="'.$institute->id.'" title="Approve"><i class="fa-solid fa-check"></i></button>'

@@ -16,6 +16,7 @@
       { data: 'status_badge', name: 'status', orderable: false },
       { data: 'public_page_link', name: 'status', orderable: false, searchable: false },
       { data: 'created_at', name: 'created_at' },
+      { data: 'last_viewed_at', name: 'last_viewed_at', searchable: false },
       { data: 'actions', orderable: false, searchable: false }
     ],
     order: [[7, 'desc']]

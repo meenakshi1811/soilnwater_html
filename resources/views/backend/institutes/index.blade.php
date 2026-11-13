@@ -34,6 +34,7 @@
                     <th>Status</th>
                     <th>Public page</th>
                     <th>Registered</th>
+                    <th>Last Viewed</th>
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>

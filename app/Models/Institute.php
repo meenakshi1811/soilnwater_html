@@ -71,6 +71,7 @@ class Institute extends Model
             'facility_images' => 'array',
             'gallery' => 'array',
             'profile_meta' => 'array',
+            'last_viewed_at' => 'datetime',
             'is_verified' => 'boolean',
             'converted_from_user' => 'boolean',
             'latitude' => 'decimal:7',
