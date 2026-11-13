@@ -54,6 +54,35 @@ class EnsureMarketplacePostingAccountApproved
             return redirect()->route('service_provider.pending')->with('status', $message);
         }
 
+        if ($user?->isEducator()) {
+            if ($user->educator?->isApproved()) {
+                return $next($request);
+            }
+
+            $message = 'Your teacher profile must be approved by admin before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route('educator.pending')->with('status', $message);
+        }
+
+        // Schools, colleges and institutes
+        if ($user?->isSchoolOrInstitute()) {
+            if ($user->institute?->isApproved()) {
+                return $next($request);
+            }
+
+            $message = 'Your '.$user->role.' profile must be approved by admin before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route($user->role.'.pending')->with('status', $message);
+        }
+
         if ($user?->isParent() && ! $user->hasParentProfileEnabled()) {
             $message = 'Your parent profile must be approved before you can post ads or offers.';
 

@@ -76,7 +76,7 @@
                 <span class="d-none d-md-inline">Home</span>
             </a>
             <a class="btn btn-sm admin-link admin-nav-lg-only {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
-            @if($isGeneralUser || $isAdmin || $isVendor || $isConsultant || $isServiceProvider)
+            @if($isGeneralUser || $isAdmin || $isVendor || $isConsultant || $isServiceProvider || $isEducator || (method_exists($user, 'isSchoolOrInstitute') && $user->isSchoolOrInstitute()))
                 <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
                 <a class="btn btn-sm admin-header-action-ad" href="{{ route('ads.create.size') }}">Post Ad</a>
             @endif

@@ -298,7 +298,11 @@ class User extends Authenticatable implements MustVerifyEmail
             || $this->isParent()
             || $this->isVendor()
             || $this->isConsultant()
-            || $this->isServiceProvider();
+            || $this->isServiceProvider()
+            // teachers and schools / colleges / institutes post their own too (once approved, see
+            // EnsureMarketplacePostingAccountApproved)
+            || $this->isEducator()
+            || $this->isSchoolOrInstitute();
     }
 
     public function isParentManagedChild(): bool

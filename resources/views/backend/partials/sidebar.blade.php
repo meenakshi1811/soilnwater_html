@@ -817,6 +817,18 @@
                     </ul>
                 </details>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('offers.*') || request()->routeIs('post-offer') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>My Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
 
         @elseif($isEmployee)
             <li>
