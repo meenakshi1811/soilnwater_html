@@ -217,7 +217,16 @@
             var lngInput = document.getElementById('offerLocationLng');
             var input = $location.get(0);
 
-            $location.on('input', function () {
+            // Only real typing invalidates a picked place. The Places helper fires a synthetic
+            // 'input' on this field right after a suggestion is picked (after the coordinates
+            // below are filled in), which must not wipe them. Listening on the field's column
+            // also catches typing in Google's own search box, which the helper puts in place of
+            // this field and which never sends events to it.
+            var locationColumn = input.closest('.col-md-6') || input.parentNode;
+            locationColumn.addEventListener('input', function (event) {
+                if (!event.isTrusted) {
+                    return;
+                }
                 if (latInput) latInput.value = '';
                 if (lngInput) lngInput.value = '';
             });
