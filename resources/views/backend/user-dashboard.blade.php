@@ -45,21 +45,21 @@
 
     <div class="section-label">Overview</div>
     <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-sm-6 col-lg-4">
             <div class="modern-stat-card ads">
                 <span>Total Ads</span>
                 <h3>{{ number_format($totalAds) }}</h3>
                 <small>Your posted advertisements</small>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-sm-6 col-lg-4">
             <div class="modern-stat-card offers">
                 <span>Total Offers</span>
                 <h3>{{ number_format($totalOffers) }}</h3>
                 <small>Active offers you have shared</small>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-12 col-lg-4">
             <div class="modern-stat-card products">
                 <span>Total Products</span>
                 <h3>{{ number_format($totalProducts) }}</h3>
@@ -117,10 +117,37 @@
         padding: 0.5rem 0.85rem;
     }
 
-    @media (max-width: 991.98px) {
+    /* Up to 1199px the intro sits above the buttons (beside them the title broke over two lines).
+       In this stacked layout the intro must not keep its 240px basis: in a column that is a
+       height, and it left a large empty gap above the buttons. */
+    @media (max-width: 1199.98px) {
+        .user-dashboard-hero.dashboard-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .user-dashboard-hero__intro {
+            flex: 0 0 auto;
+        }
+
         .user-dashboard-hero__actions {
             width: 100%;
-            flex-basis: 100%;
+            flex-basis: auto;
+            align-items: flex-start;
+        }
+
+        .user-dashboard-hero__profile-btn {
+            align-self: flex-start;
+        }
+
+        .user-dashboard-hero__convert-actions {
+            justify-content: flex-start;
+        }
+    }
+
+    /* Phones: every button full width, one under the other */
+    @media (max-width: 575.98px) {
+        .user-dashboard-hero__actions {
             align-items: stretch;
         }
 
@@ -129,25 +156,16 @@
         }
 
         .user-dashboard-hero__convert-actions {
-            justify-content: stretch;
-        }
-
-        .user-dashboard-hero__convert-actions form {
-            flex: 1 1 auto;
-        }
-
-        .user-dashboard-hero__convert-actions .btn {
-            width: 100%;
-        }
-    }
-
-    @media (max-width: 575.98px) {
-        .user-dashboard-hero__convert-actions {
             flex-direction: column;
         }
 
-        .user-dashboard-hero__convert-actions form {
+        .user-dashboard-hero__convert-actions form,
+        .user-dashboard-hero__convert-actions .btn {
             width: 100%;
+        }
+
+        .user-dashboard-hero__convert-actions .btn {
+            white-space: normal;
         }
     }
 </style>

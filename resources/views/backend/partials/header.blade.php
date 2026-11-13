@@ -44,6 +44,10 @@
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div class="admin-header-title-wrap d-flex align-items-center gap-2">
+            {{-- Phones and tablets: opens the side menu, which slides in from the left --}}
+            <button class="admin-sidebar-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open menu">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
             @if($user->profile_image)
                 <img src="{{ asset($user->profile_image) }}" alt="{{ $displayName }}" width="44" height="44" class="rounded-circle object-fit-cover">
             @endif
@@ -71,7 +75,7 @@
                 <i class="fa-solid fa-house"></i>
                 <span class="d-none d-md-inline">Home</span>
             </a>
-            <a class="btn btn-sm admin-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
+            <a class="btn btn-sm admin-link admin-nav-lg-only {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
             @if($isGeneralUser || $isAdmin || $isVendor || $isConsultant || $isServiceProvider)
                 <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
                 <a class="btn btn-sm admin-header-action-ad" href="{{ route('ads.create.size') }}">Post Ad</a>
@@ -121,7 +125,7 @@
             @if(! $isStudent && ! $isActingAsChild)
                 <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
             @endif
-            <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}">
+            <form method="POST" action="{{ $isEmployee ? route('employee.logout') : route('logout') }}" class="admin-nav-lg-only">
                 @csrf
                 <button type="submit" class="btn btn-sm admin-logout">Logout</button>
             </form>

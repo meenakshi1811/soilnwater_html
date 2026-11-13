@@ -79,7 +79,7 @@
 
 .admin-sidebar-menu a,
 .admin-sidebar-logout {
-    width: 80%;
+    width: 100%;
     border: 0;
     border-radius: 10px;
     color: #fff;
@@ -453,10 +453,120 @@
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
 }
 
+/* Menu button in the header: phones and tablets only (d-lg-none) */
+.admin-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 1.05rem;
+}
+
+.admin-sidebar-toggle:hover,
+.admin-sidebar-toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.24);
+}
+
 @media (max-width: 991.98px) {
     .admin-shell { flex-direction: column; }
-    .admin-sidebar { width: 100%; }
+
+    /* The side menu slides in from the left (Bootstrap offcanvas-lg) instead of filling the top of
+       every page; it scrolls on its own when the list is long */
+    .admin-sidebar {
+        /* Bootstrap sizes the slide-in menu from this variable (its own rule outranks a plain width) */
+        --bs-offcanvas-width: min(300px, 86vw);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-top: max(1rem, env(safe-area-inset-top, 0px));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    .admin-sidebar-drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .admin-sidebar-drawer-head img {
+        width: 96px;
+        height: auto;
+    }
+
+    .admin-sidebar-drawer-head .btn-close {
+        flex: 0 0 auto;
+        opacity: 0.9;
+    }
+
+    .admin-main,
+    .admin-main.container,
+    .admin-main.container-fluid {
+        width: 100%;
+    }
+
     .dashboard-hero { flex-direction: column; align-items: flex-start; }
+
+    /* Header: the title row (menu button + name), then one row of equal-height actions;
+       Dashboard and Logout are in the side menu */
+    .admin-nav-lg-only { display: none !important; }
+
+    .admin-header .container-fluid {
+        row-gap: 0.6rem !important;
+    }
+
+    .admin-header-title-wrap {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .admin-header-title-wrap > div {
+        min-width: 0;
+    }
+
+    .admin-header-title-wrap p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-nav {
+        width: 100%;
+        justify-content: flex-start !important;
+    }
+
+    .admin-nav > .btn,
+    .admin-nav .admin-notification-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        min-height: 36px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-main,
+    .admin-main.container,
+    .admin-main.container-fluid {
+        padding: 0.85rem 0.6rem !important;
+    }
+
+    .admin-panel {
+        padding: 0.9rem;
+        border-radius: 12px;
+    }
+
+    .admin-title {
+        font-size: 1.35rem;
+    }
 }
 
 .banner-dropzone {
@@ -1414,4 +1524,120 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+}
+
+
+/* ── Tables as cards on phones ──
+   Tables with the class "table-mobile-cards" show one card per row below 768px: the first
+   column (the title) on top, then "heading: value" lines, then the row's buttons. The headings
+   come from assets/js/mobile-table-cards.js (data-label on each cell). Sorting by column header
+   is not available in this layout; search, filters and paging still are. */
+@media (max-width: 767.98px) {
+    .table-mobile-cards,
+    .table-mobile-cards tbody,
+    .table-mobile-cards tr,
+    .table-mobile-cards td {
+        display: block;
+        width: 100% !important;
+    }
+
+    /* min-width: 0 cancels the wide minimums some tables keep for sideways scrolling on desktop */
+    .table-mobile-cards,
+    .table-mobile-cards.dataTable {
+        min-width: 0 !important;
+        border: 0 !important;
+        background: transparent;
+    }
+
+    .table-mobile-cards thead {
+        display: none;
+    }
+
+    .table-mobile-cards > tbody > tr {
+        margin-bottom: 0.85rem;
+        padding: 0.35rem 0.9rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .table-mobile-cards > tbody > tr > td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-width: 0 !important;
+        padding: 0.55rem 0 !important;
+        border: 0 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-align: right !important;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+
+    .table-mobile-cards > tbody > tr > td::before {
+        content: attr(data-label);
+        flex: 0 0 38%;
+        max-width: 38%;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .table-mobile-cards > tbody > tr > td > * {
+        max-width: 62%;
+    }
+
+    /* First column: the card's title, full width, no heading */
+    .table-mobile-cards > tbody > tr > td:first-child {
+        display: block;
+        padding-top: 0.7rem !important;
+        text-align: left !important;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .table-mobile-cards > tbody > tr > td:first-child::before,
+    .table-mobile-cards > tbody > tr > td:last-child::before {
+        content: none;
+    }
+
+    .table-mobile-cards > tbody > tr > td:first-child > *,
+    .table-mobile-cards > tbody > tr > td:last-child > * {
+        max-width: 100%;
+    }
+
+    /* Last column: the row's buttons, along the bottom of the card */
+    .table-mobile-cards > tbody > tr > td:last-child {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        border-bottom: 0 !important;
+        padding-bottom: 0.7rem !important;
+    }
+
+    /* Images (banners, previews) keep a sensible size inside the card */
+    .table-mobile-cards > tbody > tr > td img {
+        max-width: 140px;
+        height: auto;
+    }
+
+    /* "No data available" / "Loading" rows: plain centred text */
+    .table-mobile-cards > tbody > tr > td.dataTables_empty {
+        display: block;
+        text-align: center !important;
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #64748b;
+    }
+
+    /* Inside the card the row needs no sideways scrolling */
+    .table-responsive:has(.table-mobile-cards),
+    .dataTables_wrapper:has(> .table-mobile-cards) {
+        overflow-x: visible;
+    }
 }

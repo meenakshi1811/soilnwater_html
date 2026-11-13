@@ -41,7 +41,7 @@
         <div class="table-responsive">
             <table
                 id="userAdsTable"
-                class="table table-bordered align-middle w-100"
+                class="table table-bordered align-middle w-100 table-mobile-cards"
                 data-url="{{ route('ads.data') }}"
             >
                 <thead>

@@ -151,7 +151,14 @@
         background: rgba(255, 255, 255, 0.12);
     }
 </style>
-<aside class="admin-sidebar">
+<aside class="admin-sidebar offcanvas-lg offcanvas-start" id="adminSidebar" tabindex="-1" aria-label="Menu">
+    {{-- Phones and tablets: logo and close button at the top of the slide-in menu --}}
+    <div class="admin-sidebar-drawer-head d-lg-none">
+        <a href="{{ route('frontend.index') }}" title="Go to Index Page">
+            <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
+        </a>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebar" aria-label="Close menu"></button>
+    </div>
     <div class="admin-sidebar-logo d-none d-lg-flex">
         <a href="{{ route('frontend.index') }}" title="Go to Index Page">
             <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">

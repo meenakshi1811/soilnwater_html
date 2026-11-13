@@ -61,7 +61,7 @@
         <div class="table-responsive offers-table-wrap">
             <table
                 id="myOffersTable"
-                class="table table-bordered align-middle w-100"
+                class="table table-bordered align-middle w-100 table-mobile-cards"
                 data-url="{{ route('offers.data') }}"
                 data-show-url-base="{{ route('offers.index') }}"
                 data-update-url-base="{{ route('offers.index') }}"

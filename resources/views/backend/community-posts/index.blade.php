@@ -216,7 +216,7 @@
         </div>
 
         <div class="table-responsive">
-            <table id="myCommunityPostsTable" class="table table-bordered align-middle w-100"
+            <table id="myCommunityPostsTable" class="table table-bordered align-middle w-100 table-mobile-cards"
                 data-source-url="{{ route('community.posts.data') }}"
                 data-delete-base-url="{{ url('/dashboard/community-posts') }}">
                 <thead>

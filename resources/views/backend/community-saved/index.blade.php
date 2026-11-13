@@ -23,7 +23,7 @@
         </div>
 
         <div class="table-responsive">
-            <table id="communitySavedPostsTable" class="table table-bordered align-middle w-100"
+            <table id="communitySavedPostsTable" class="table table-bordered align-middle w-100 table-mobile-cards"
                 data-source-url="{{ route('community.saved.data') }}"
                 data-unsave-base-url="{{ url('/community') }}">
                 <thead>
