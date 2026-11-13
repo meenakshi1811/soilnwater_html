@@ -345,6 +345,8 @@
     flex: 0 0 min(72vw, 292px);
     width: min(72vw, 292px);
     max-width: 292px;
+    /* One card per swipe: a fast flick stops at the next card instead of flying past several */
+    scroll-snap-stop: always;
   }
 }
 
@@ -357,6 +359,9 @@
   max-width: none;
   overflow: hidden;
   margin: 0;
+  /* Keeps the row's layout and painting separate from the rest of the page, so page-wide layout
+     reads (the analytics script does one on every finger movement) don't make the swipe stutter */
+  contain: layout paint;
 }
 
 .homepage-featured-promo-rail__scroll {
@@ -367,7 +372,10 @@
   gap: 10px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x proximity;
+  /* Always come to rest on a card edge, never half-way between two cards */
+  scroll-snap-type: x mandatory;
+  /* A sideways swipe at either end of the row must not turn into the browser's back/forward gesture */
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }

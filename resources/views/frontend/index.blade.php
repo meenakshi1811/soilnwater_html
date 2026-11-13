@@ -2019,8 +2019,12 @@
 </script>
 <script>
   // Featured business row: prev/next arrows (tablet + desktop) instead of a visible scrollbar;
-  // each arrow shows only while there are more cards in its direction.
+  // each arrow shows only while there are more cards in its direction. The row also moves on
+  // by one card on its own (see autoplay below).
   document.addEventListener('DOMContentLoaded', function () {
+    const zoomDialog = document.getElementById('featuredZoomDialog');
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     document.querySelectorAll('.homepage-featured-promo-rail').forEach(function (rail) {
       const track = rail.querySelector('.homepage-featured-promo-rail__scroll');
       const prev = rail.querySelector('.homepage-featured-promo-rail__arrow--prev');
@@ -2039,16 +2043,68 @@
         next.hidden = track.scrollLeft >= max - 1;
       };
 
-      prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
-      next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+      // Autoplay: every few seconds move on one card, going back to the first after the last.
+      // It waits while the visitor is touching, hovering or keyboard-browsing the row, while the
+      // row is off screen or the tab is hidden, and while the larger-image popup is open; any
+      // swipe or arrow click restarts the wait. Off for visitors who ask for reduced motion.
+      const AUTOPLAY_DELAY = 3500;
+      let timer = null;
+      let hovering = false;
+      let touching = false;
+      let inView = true;
+
+      const schedule = function () {
+        clearTimeout(timer);
+        if (!reduceMotion) timer = setTimeout(advance, AUTOPLAY_DELAY);
+      };
+
+      const shouldWait = function () {
+        const active = document.activeElement;
+        return hovering || touching || !inView || document.hidden
+          || (zoomDialog && zoomDialog.open)
+          || (active && rail.contains(active) && active.matches(':focus-visible'));
+      };
+
+      function advance() {
+        const max = track.scrollWidth - track.clientWidth;
+        if (max > 1 && !shouldWait()) {
+          if (track.scrollLeft >= max - 2) {
+            track.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            track.scrollBy({ left: step(), behavior: 'smooth' });
+          }
+        }
+        schedule();
+      }
+
+      prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); schedule(); });
+      next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); schedule(); });
       track.addEventListener('scroll', update, { passive: true });
       window.addEventListener('resize', update);
       window.addEventListener('load', update);
       update();
+
+      track.addEventListener('touchstart', function () { touching = true; clearTimeout(timer); }, { passive: true });
+      ['touchend', 'touchcancel'].forEach(function (type) {
+        track.addEventListener(type, function () { touching = false; schedule(); }, { passive: true });
+      });
+      track.addEventListener('wheel', schedule, { passive: true });
+      rail.addEventListener('mouseenter', function () { hovering = true; });
+      rail.addEventListener('mouseleave', function () { hovering = false; schedule(); });
+      rail.addEventListener('keydown', schedule);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) schedule(); });
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          inView = entries[0].isIntersecting;
+          if (inView) schedule();
+        }, { threshold: 0.5 }).observe(rail);
+      }
+
+      schedule();
     });
 
     // Featured business image zoom (magnifier button on touch screens)
-    const zoomDialog = document.getElementById('featuredZoomDialog');
     if (zoomDialog && typeof zoomDialog.showModal === 'function') {
       const zoomImg = zoomDialog.querySelector('.homepage-featured-zoom__img');
       const zoomVisit = zoomDialog.querySelector('.homepage-featured-zoom__visit');
