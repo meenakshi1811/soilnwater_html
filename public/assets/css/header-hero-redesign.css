@@ -1547,6 +1547,12 @@
     display: inline-flex !important;
   }
 
+  /* While the menu is open its own close (×) button is shown; the menu button would otherwise sit
+     on top of "Sign In" and a tap there would close the menu instead */
+  .header.header-mobile-open .header-menu-toggle {
+    display: none !important;
+  }
+
   .header:not(.header--homepage) .header-inner {
     flex-wrap: wrap;
     row-gap: 10px;

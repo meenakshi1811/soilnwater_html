@@ -28,6 +28,13 @@
     top: 0;
     z-index: 110;
     width: 100%;
+    /* The page may draw under the phone's status bar / notch (viewport-fit=cover, full-screen and
+       edge-to-edge browsers). Keep the header below it, or the menu button sits under the signal
+       and battery icons and taps on it go to the phone instead. 0 on screens without one. */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    background: #fff;
   }
   .header {
     background: var(--white);
