@@ -2031,10 +2031,24 @@
       const next = rail.querySelector('.homepage-featured-promo-rail__arrow--next');
       if (!track || !prev || !next) return;
 
-      const step = function () {
-        const card = track.querySelector('.homepage-featured-promo-card');
-        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-        return card ? card.getBoundingClientRect().width + gap : track.clientWidth;
+      // Where the row rests on each card (its snap position): the card's start at the row's
+      // scroll padding, never past the end. Moving to these exact spots means the row arrives on
+      // a card and doesn't then jump to correct itself.
+      const cardStops = function () {
+        const max = track.scrollWidth - track.clientWidth;
+        const pad = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0;
+        const origin = track.getBoundingClientRect().left - track.scrollLeft;
+        return Array.prototype.map.call(track.querySelectorAll('.homepage-featured-promo-card'), function (card) {
+          return Math.max(0, Math.min(max, Math.round(card.getBoundingClientRect().left - origin - pad)));
+        });
+      };
+      const nextStop = function () {
+        const stop = cardStops().find(function (left) { return left > track.scrollLeft + 2; });
+        return stop === undefined ? null : stop;
+      };
+      const prevStop = function () {
+        const stops = cardStops().filter(function (left) { return left < track.scrollLeft - 2; });
+        return stops.length ? stops[stops.length - 1] : 0;
       };
 
       const update = function () {
@@ -2044,14 +2058,21 @@
       };
 
       // Autoplay: every few seconds move on one card, going back to the first after the last.
-      // It waits while the visitor is touching, hovering or keyboard-browsing the row, while the
-      // row is off screen or the tab is hidden, and while the larger-image popup is open; any
-      // swipe or arrow click restarts the wait. Off for visitors who ask for reduced motion.
+      // It waits while the visitor is touching, hovering or keyboard-browsing the row, for a few
+      // seconds after their own swipe or arrow click, while the row is still moving, while it is
+      // off screen or the tab is hidden, and while the larger-image popup is open. A touch stops
+      // an automatic move that is under way, so the finger never fights it. Off for visitors who
+      // ask for reduced motion.
       const AUTOPLAY_DELAY = 3500;
+      const QUIET_AFTER_VISITOR = 5000;
       let timer = null;
       let hovering = false;
       let touching = false;
       let inView = true;
+      let lastVisitorMove = 0;
+      let lastScroll = 0;
+      let autoMoving = false;
+      let autoMoveTimer = null;
 
       const schedule = function () {
         clearTimeout(timer);
@@ -2060,35 +2081,60 @@
 
       const shouldWait = function () {
         const active = document.activeElement;
+        const now = Date.now();
         return hovering || touching || !inView || document.hidden
+          || now - lastVisitorMove < QUIET_AFTER_VISITOR
+          || now - lastScroll < 400
           || (zoomDialog && zoomDialog.open)
           || (active && rail.contains(active) && active.matches(':focus-visible'));
+      };
+
+      const moveTo = function (left) {
+        track.scrollTo({ left: left, behavior: 'smooth' });
+      };
+
+      // The visitor took over: stop an automatic move where it is, and give them a quiet spell
+      const visitorMoved = function () {
+        lastVisitorMove = Date.now();
+        if (autoMoving) {
+          autoMoving = false;
+          clearTimeout(autoMoveTimer);
+          track.scrollTo({ left: track.scrollLeft, behavior: 'auto' });
+        }
       };
 
       function advance() {
         const max = track.scrollWidth - track.clientWidth;
         if (max > 1 && !shouldWait()) {
-          if (track.scrollLeft >= max - 2) {
-            track.scrollTo({ left: 0, behavior: 'smooth' });
-          } else {
-            track.scrollBy({ left: step(), behavior: 'smooth' });
-          }
+          const target = nextStop();
+          autoMoving = true;
+          clearTimeout(autoMoveTimer);
+          autoMoveTimer = setTimeout(function () { autoMoving = false; }, 900);
+          moveTo(target === null ? 0 : target);
         }
         schedule();
       }
 
-      prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); schedule(); });
-      next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); schedule(); });
-      track.addEventListener('scroll', update, { passive: true });
+      prev.addEventListener('click', function () { visitorMoved(); moveTo(prevStop()); schedule(); });
+      next.addEventListener('click', function () {
+        visitorMoved();
+        const target = nextStop();
+        if (target !== null) moveTo(target);
+        schedule();
+      });
+      track.addEventListener('scroll', function () {
+        lastScroll = Date.now();
+        update();
+      }, { passive: true });
       window.addEventListener('resize', update);
       window.addEventListener('load', update);
       update();
 
-      track.addEventListener('touchstart', function () { touching = true; clearTimeout(timer); }, { passive: true });
+      track.addEventListener('touchstart', function () { touching = true; clearTimeout(timer); visitorMoved(); }, { passive: true });
       ['touchend', 'touchcancel'].forEach(function (type) {
-        track.addEventListener(type, function () { touching = false; schedule(); }, { passive: true });
+        track.addEventListener(type, function () { touching = false; lastVisitorMove = Date.now(); schedule(); }, { passive: true });
       });
-      track.addEventListener('wheel', schedule, { passive: true });
+      track.addEventListener('wheel', function () { visitorMoved(); schedule(); }, { passive: true });
       rail.addEventListener('mouseenter', function () { hovering = true; });
       rail.addEventListener('mouseleave', function () { hovering = false; schedule(); });
       rail.addEventListener('keydown', schedule);
