@@ -19,13 +19,13 @@
         ['icon' => 'fa-tags', 'tone' => 'amber', 'title' => 'My Offers', 'subtitle' => 'View and post marketplace offers', 'url' => route('offers.index')],
         ['icon' => 'fa-rectangle-ad', 'tone' => 'sky', 'title' => 'My Ads', 'subtitle' => 'Create and manage your ads', 'url' => route('ads.index')],
         ['icon' => 'fa-chalkboard-user', 'tone' => 'orange', 'title' => 'Find Teachers / Tutors', 'subtitle' => 'Find the best teachers for your child', 'url' => route('educator.index')],
-        ['icon' => 'fa-school', 'tone' => 'purple', 'title' => 'Find Schools & Institutes', 'subtitle' => 'Discover schools and learning centres', 'url' => route('frontend.index')],
+        ['icon' => 'fa-school', 'tone' => 'purple', 'title' => 'Find Schools & Institutes', 'subtitle' => 'Discover schools and learning centres', 'url' => route('schools.index')],
         ['icon' => 'fa-book-open', 'tone' => 'blue', 'title' => 'Explore Study Materials', 'subtitle' => 'Notes, papers, videos and more', 'url' => route('study-materials.library')],
         ...($user->canPublishStudyMaterials() ? [
             ['icon' => 'fa-cloud-arrow-up', 'tone' => 'teal', 'title' => 'Upload Study Material', 'subtitle' => 'Share notes and resources for your child', 'url' => route('parent.materials.create')],
         ] : []),
         ['icon' => 'fa-circle-question', 'tone' => 'green', 'title' => 'Ask a Question', 'subtitle' => 'Get answers from educators & community', 'url' => route('community.posts.create')],
-        ['icon' => 'fa-graduation-cap', 'tone' => 'violet', 'title' => 'Find Courses', 'subtitle' => 'Browse courses for your child', 'url' => route('frontend.index')],
+        ['icon' => 'fa-graduation-cap', 'tone' => 'violet', 'title' => 'Find Courses', 'subtitle' => 'Browse courses for your child', 'url' => route('education.courses')],
         ['icon' => 'fa-compass', 'tone' => 'teal', 'title' => 'Career Guidance', 'subtitle' => 'Plan your child\'s future path', 'url' => route('frontend.index')],
     ];
 @endphp
