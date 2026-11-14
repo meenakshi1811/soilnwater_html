@@ -278,6 +278,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Institute::class);
     }
 
+    /** The push notification tokens of the user's app devices */
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
     public function isStudent(): bool
     {
         return $this->role === 'student';
