@@ -1065,3 +1065,13 @@ body.soilnwater-google-places-active .edu-profile-page .pac-container:not(:has(.
   font-size: 0.76rem;
   margin-top: 0.1rem;
 }
+
+/* School / institute search fields use Google's place widget, which draws its own box: drop the
+   copied .form-control box around it so it lines up with the other fields */
+.edu-profile-section gmp-place-autocomplete.form-control {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+}

@@ -771,9 +771,10 @@
         var usesAddressComponents = Boolean(stateInput || cityInput);
 
         bindAutocomplete(input, {
-            // The classic widget works on this field itself, so a name typed without picking a
-            // suggestion (or one Google doesn't list) is still submitted
-            preferLegacy: true,
+            // Google's newer place widget: the classic one (google.maps.places.Autocomplete) needs
+            // the legacy Places API, which is not enabled on the site's key, so it showed no
+            // suggestions. A name typed without picking a suggestion still reaches the real field
+            // (the widget copies typed text into it), so it is submitted as before.
             types: ['establishment'],
             addressComponents: usesAddressComponents,
             geometry: usesCoordinates || usesAddressComponents,
