@@ -20,13 +20,15 @@
       <span class="badge bg-light text-dark border">{{ $material->materialTypeLabel() }}</span>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      @if($status !== 'approved')
+      @if(($canApprove ?? true) && $status !== 'approved')
         <button type="button" class="btn btn-success js-approve" data-id="{{ $material->id }}">Approve</button>
       @endif
-      @if($status !== 'rejected')
+      @if(($canApprove ?? true) && $status !== 'rejected')
         <button type="button" class="btn btn-outline-warning js-reject" data-id="{{ $material->id }}">Reject</button>
       @endif
-      <button type="button" class="btn btn-outline-danger js-delete" data-id="{{ $material->id }}">Delete</button>
+      @if($canDelete ?? true)
+        <button type="button" class="btn btn-outline-danger js-delete" data-id="{{ $material->id }}">Delete</button>
+      @endif
       <a href="{{ route('admin.study-materials.index') }}" class="btn btn-light">Back to list</a>
     </div>
   </div>

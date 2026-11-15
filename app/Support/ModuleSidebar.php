@@ -137,7 +137,7 @@ final class ModuleSidebar
                         'icon' => 'fa-solid fa-book-open',
                         'active_routes' => ['admin.study-materials.*'],
                         'items' => [
-                            ['label' => 'All Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-list', 'module' => 'educators', 'action' => 'approve', 'active' => 'admin.study-materials.*'],
+                            ['label' => 'All Study Materials', 'route' => 'admin.study-materials.index', 'icon' => 'fa-solid fa-list', 'module' => 'study_materials', 'action' => 'read', 'active' => 'admin.study-materials.*'],
                         ],
                     ],
                     'schools' => [

@@ -24,6 +24,7 @@ final class ModulePermissions
             'consultants' => 'Consultants',
             'service_providers' => 'Services',
             'educators' => 'Teachers & Tutors',
+            'study_materials' => 'Study Materials',
             'schools' => 'Schools',
             'colleges' => 'Colleges',
             'institutes' => 'Institutes',
@@ -103,7 +104,7 @@ final class ModulePermissions
             'admin.service_providers.' => 'service_providers',
             'admin.service-provider-services.' => 'service_providers',
             'admin.educators.' => 'educators',
-            'admin.study-materials.' => 'educators',
+            'admin.study-materials.' => 'study_materials',
             'admin.schools.' => 'schools',
             'admin.colleges.' => 'colleges',
             'admin.institutes.' => 'institutes',
@@ -164,6 +165,11 @@ final class ModulePermissions
             'admin.foul-words.update' => 'write',
             'admin.foul-words.toggle-status' => 'write',
             'admin.foul-words.destroy' => 'delete',
+
+            // Study materials: viewing needs "read", approving or rejecting "approve"
+            'admin.study-materials.approve' => 'approve',
+            'admin.study-materials.reject' => 'approve',
+            'admin.study-materials.destroy' => 'delete',
         ];
 
         if (isset($overrides[$routeName])) {

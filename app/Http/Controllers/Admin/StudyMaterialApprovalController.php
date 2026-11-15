@@ -13,6 +13,7 @@ use App\Support\StudyMaterialUploadConfig;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -31,6 +32,9 @@ class StudyMaterialApprovalController extends Controller
 
     public function data(Request $request): JsonResponse
     {
+        $canApprove = $this->actorCan('approve');
+        $canDelete = $this->actorCan('delete');
+
         abort_unless($request->ajax(), 404);
 
         $query = StudyMaterial::query()
@@ -80,16 +84,16 @@ class StudyMaterialApprovalController extends Controller
 
                 return '<span class="badge bg-'.$badge.'">'.ucfirst($status).'</span>';
             })
-            ->addColumn('actions', function (StudyMaterial $material): string {
+            ->addColumn('actions', function (StudyMaterial $material) use ($canApprove, $canDelete): string {
                 $status = $material->status ?? 'pending';
                 $view = '<a href="'.route('admin.study-materials.show', $material).'" class="btn btn-sm btn-outline-secondary">View</a>';
-                $approve = $status !== 'approved'
+                $approve = $canApprove && $status !== 'approved'
                     ? '<button type="button" class="btn btn-sm btn-success js-approve" data-id="'.$material->id.'">Approve</button>'
                     : '';
-                $reject = $status !== 'rejected'
+                $reject = $canApprove && $status !== 'rejected'
                     ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject" data-id="'.$material->id.'">Reject</button>'
                     : '';
-                $delete = '<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$material->id.'">Delete</button>';
+                $delete = $canDelete ? '<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$material->id.'">Delete</button>' : '';
 
                 return '<div class="d-flex gap-2 justify-content-end flex-wrap">'.$view.$approve.$reject.$delete.'</div>';
             })
@@ -133,7 +137,21 @@ class StudyMaterialApprovalController extends Controller
 
         return view('backend.study-materials.show', [
             'material' => $study_material,
+            'canApprove' => $this->actorCan('approve'),
+            'canDelete' => $this->actorCan('delete'),
         ]);
+    }
+
+    /** The admin can do anything; an employee what their role allows on "Study Materials". */
+    private function actorCan(string $action): bool
+    {
+        $actor = Auth::guard('employee')->user() ?? Auth::guard('web')->user();
+
+        if ($actor && method_exists($actor, 'isAdmin') && $actor->isAdmin()) {
+            return true;
+        }
+
+        return $actor && method_exists($actor, 'canModule') && $actor->canModule('study_materials', $action);
     }
 
     public function download(StudyMaterial $study_material): BinaryFileResponse
