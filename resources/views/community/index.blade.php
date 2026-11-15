@@ -394,19 +394,26 @@
             <div class="community-hub-feed">
                 <div class="community-hub-posts-heading">
                     <h2>
-                        @if ($activeCategory && $activeType && isset($types[$activeType]))
+                        @if (request()->filled('search'))
+                            Search results for "{{ request()->string('search')->trim() }}"
+                            @if ($feedHub && ! isset($activeAuthor))
+                                <small class="text-muted fw-normal">in {{ ($activeType && isset($types[$activeType])) ? $types[$activeType]['label'] : $feedHub['label'] }}</small>
+                            @endif
+                        @elseif ($activeCategory && $activeType && isset($types[$activeType]))
                             {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
                         @elseif ($activeType && isset($types[$activeType]))
                             {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $types[$activeType]['label'] }} Posts
                         @elseif ($feedHub)
                             {{ $isAllPostsView ? 'All' : 'Latest' }} {{ $feedHub['label'] }} Posts
-                        @elseif (request()->filled('search'))
-                            Search results for "{{ request()->string('search')->trim() }}"
                         @else
                             Latest community posts
                         @endif
                     </h2>
-                    @if ($isAllPostsView && $feedHubKey)
+                    @if (request()->filled('search'))
+                        <a href="{{ isset($activeAuthor) ? route('community.authors.show', $sectionRouteParams) : route('community.all', array_filter(['hub' => $feedHubKey, 'type' => $activeType ?: null, 'category' => ($activeCategory ?? '') ?: null])) }}" class="community-hub-posts-heading__view-all">
+                            <i class="fa-solid fa-xmark"></i> Clear search
+                        </a>
+                    @elseif ($isAllPostsView && $feedHubKey)
                         <a href="{{ route($portalRoute, array_merge($sectionRouteParams, array_filter(['hub' => $feedHubKey, 'type' => $activeType ?: null]))) }}" class="community-hub-posts-heading__view-all">
                             <i class="fa-solid fa-arrow-left"></i> Back to {{ $feedHub['label'] ?? 'Community' }}
                         </a>

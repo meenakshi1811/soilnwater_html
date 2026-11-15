@@ -8220,7 +8220,10 @@ class CommunityPostController extends Controller
                     $builder
                         ->where('title', 'like', '%'.$search.'%')
                         ->orWhere('excerpt', 'like', '%'.$search.'%')
-                        ->orWhere('category', 'like', '%'.$search.'%');
+                        ->orWhere('category', 'like', '%'.$search.'%')
+                        // (the post's text and place too, from the search box on the Community pages)
+                        ->orWhere('body', 'like', '%'.$search.'%')
+                        ->orWhere('location', 'like', '%'.$search.'%');
                 });
             })
             ->when(

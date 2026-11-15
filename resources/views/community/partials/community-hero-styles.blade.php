@@ -121,6 +121,78 @@
         margin-top: 0.2rem;
     }
 
+    /* Search box */
+    .community-hero__search {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.25rem;
+        max-width: 640px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .community-hero__search-field {
+        align-items: center;
+        background: #fff;
+        border-radius: 999px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex: 1 1 auto;
+        gap: 0.55rem;
+        min-width: 0;
+        padding: 0 1rem;
+    }
+
+    .community-hero__search-field i {
+        color: #5b6b7a;
+        font-size: 0.95rem;
+    }
+
+    .community-hero__search-field input {
+        background: transparent;
+        border: 0;
+        color: #10263b;
+        flex: 1 1 auto;
+        font-size: 0.95rem;
+        min-height: 46px;
+        min-width: 0;
+        outline: none;
+    }
+
+    .community-hero__search-field:focus-within {
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.45), 0 6px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .community-hero__search-btn {
+        background: #16a34a;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        flex: 0 0 auto;
+        font-size: 0.92rem;
+        font-weight: 700;
+        padding: 0 1.3rem;
+    }
+
+    .community-hero__search-btn:hover {
+        background: #15803d;
+    }
+
+    @media (max-width: 575.98px) {
+        .community-hero__search {
+            margin-top: 0.85rem;
+        }
+
+        .community-hero__search-field input {
+            font-size: 16px; /* (no zoom-in on iPhone) */
+            min-height: 42px;
+        }
+
+        .community-hero__search-btn {
+            padding: 0 1rem;
+        }
+    }
+
     .community-hero__actions {
         align-items: center;
         display: flex;

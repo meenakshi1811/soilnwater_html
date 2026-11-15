@@ -4,6 +4,20 @@
     $activeHub = $activeHub ?? null;
     $hubStats = $hubStats ?? [];
     $publishedPostCount = isset($posts) ? (int) $posts->total() : 0;
+
+    // The search box: an author's page searches that author's posts; a listing searches all posts,
+    // keeping its section, type and category (a single post's page searches everything)
+    $searchAuthor = $activeAuthor ?? null;
+    $searchAction = $searchAuthor
+        ? route('community.authors.show', $searchAuthor->authorUniqueName())
+        : route('community.all');
+    $searchKeep = ($searchAuthor || request()->routeIs('community.show'))
+        ? []
+        : array_filter([
+            'hub' => $activeHub ?: null,
+            'type' => $activeType ?: null,
+            'category' => request()->string('category')->toString() ?: null,
+        ]);
 @endphp
 
 <section class="community-hero">
@@ -61,6 +75,19 @@
                 </div>
             @endif
         </div>
+        <form class="community-hero__search" action="{{ $searchAction }}" method="GET" role="search">
+            <label class="visually-hidden" for="communityHeroSearch">Search community posts</label>
+            <span class="community-hero__search-field">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="communityHeroSearch" type="search" name="search" value="{{ request()->string('search')->trim() }}"
+                    placeholder="{{ $searchAuthor ? 'Search '.($authorName ?: 'this author')."'s posts…" : 'Search posts, topics or places…' }}"
+                    autocomplete="off" enterkeyhint="search" required>
+            </span>
+            @foreach ($searchKeep as $keepName => $keepValue)
+                <input type="hidden" name="{{ $keepName }}" value="{{ $keepValue }}">
+            @endforeach
+            <button type="submit" class="community-hero__search-btn">Search</button>
+        </form>
         <div class="community-hero__actions">
             @auth
                 <a href="{{ route('community.saved.index') }}" class="community-hero__ghost">
