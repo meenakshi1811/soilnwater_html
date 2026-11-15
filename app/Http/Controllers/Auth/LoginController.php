@@ -837,18 +837,43 @@ class LoginController extends Controller
 
     protected function validateLogin(Request $request): void
     {
+        // An email address, or the phone number (an account the admin added without an email)
         $request->validate([
-            'login' => ['required', 'email'],
+            'login' => ['required', 'string', function (string $attribute, mixed $value, \Closure $fail): void {
+                if ($this->loginPhoneNumber((string) $value) === null && ! filter_var(trim((string) $value), FILTER_VALIDATE_EMAIL)) {
+                    $fail('Please enter a valid email address or phone number.');
+                }
+            }],
             'password' => ['required', 'string'],
         ]);
     }
 
     protected function credentials(Request $request): array
     {
-        return [
-            'email' => strtolower(trim((string) $request->input('login'))),
-            'password' => $request->input('password'),
-        ];
+        $login = (string) $request->input('login');
+        $phone = $this->loginPhoneNumber($login);
+
+        return $phone !== null
+            ? ['phone_number' => $phone, 'password' => $request->input('password')]
+            : ['email' => strtolower(trim($login)), 'password' => $request->input('password')];
+    }
+
+    /** The digits of a phone number typed to sign in (spaces, dashes and a leading + allowed), else null. */
+    private function loginPhoneNumber(string $login): ?string
+    {
+        $login = trim($login);
+        if ($login === '' || ! preg_match('/^\+?[0-9\s\-()]{10,20}$/', $login)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $login);
+
+        // "+91 98…" typed for a number saved without the country code
+        if (strlen($digits) === 12 && str_starts_with($digits, '91') && ! User::where('phone_number', $digits)->exists()) {
+            $digits = substr($digits, 2);
+        }
+
+        return strlen($digits) >= 10 && strlen($digits) <= 15 ? $digits : null;
     }
 
     private function findUserByLogin(string $login): ?User

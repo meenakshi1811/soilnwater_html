@@ -389,6 +389,8 @@
                     var user = response.user || {};
                     $('#userName').val(user.name || '');
                     $('#userEmail').val(user.email || '');
+                    // (only a general user must keep an email; others may sign in by phone)
+                    self.editRole = user.role || '';
                     $('#userPhone').val(user.phone_number || '');
                     $('#userWhatsapp').val(user.whatsapp_number || '');
                     $('#userAddress').val(user.address || '');
@@ -497,7 +499,12 @@
                 loadingText: 'Saving...',
                 rules: {
                     name: { required: true, minlength: 3 },
-                    email: { required: true, email: true },
+                    email: {
+                        required: function () {
+                            return !self.editRole || self.editRole === 'user';
+                        },
+                        email: true
+                    },
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     address: { required: true, maxlength: 500 },

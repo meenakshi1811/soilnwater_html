@@ -77,8 +77,8 @@
                             <form id="passwordLoginForm" method="POST" action="{{ route('login') }}" novalidate>
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="login" class="form-label">Email Address</label>
-                                    <input id="login" type="email" class="form-control" name="login" value="{{ old('login') }}" placeholder="Enter your email address" required autofocus>
+                                    <label for="login" class="form-label">Email Address or Phone Number</label>
+                                    <input id="login" type="text" class="form-control" name="login" value="{{ old('login') }}" placeholder="Enter your email address or phone number" autocomplete="username" required autofocus>
                                 </div>
 
                                 <div class="mb-3">

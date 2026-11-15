@@ -11,6 +11,11 @@
             return role === 'vendor' || role === 'consultant' || role === 'service_provider' || role === 'school' || role === 'college' || role === 'institute';
         },
 
+        // Business and education accounts: email and date of birth / incorporation are optional
+        isOptionalContactRole: function (role) {
+            return !!role && role !== 'user';
+        },
+
         isEducatorRole: function (role) {
             return role === 'teacher';
         },
@@ -48,6 +53,8 @@
             // (a school's or institute's picture is its logo)
             $('#createProfileImageLabel').text(role === 'school' || role === 'college' || role === 'institute' ? 'Logo' : 'Profile Image');
             $('#createGstNumberWrap').toggleClass('d-none', !showGst);
+            // (email and date of birth: required only for a general user)
+            $('#createUserForm .js-create-optional').toggleClass('d-none', !this.isOptionalContactRole(role));
             $('#createRoleWrap').toggleClass('d-none', !!this.lockedRole);
 
             if (!showBusiness) {
@@ -171,7 +178,12 @@
                 loadingText: 'Creating...',
                 rules: {
                     fullname: { required: true, minlength: 3, maxlength: 255 },
-                    email: { required: true, email: true },
+                    email: {
+                        required: function () {
+                            return !self.isOptionalContactRole(self.currentRole());
+                        },
+                        email: true
+                    },
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     address: { required: true, minlength: 5, maxlength: 500 },
@@ -203,12 +215,7 @@
                         },
                         date: true
                     },
-                    date_of_incorporation: {
-                        required: function () {
-                            return self.isBusinessRole(self.currentRole());
-                        },
-                        date: true
-                    },
+                    date_of_incorporation: { date: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#createPassword' }
                 },
@@ -218,7 +225,7 @@
                     has_gst: { required: 'Please select whether the account has a GST number.' },
                     gst_number: { required: 'GST number is required when GST is set to yes.' },
                     date_of_birth: { required: 'Date of birth is required for general user accounts.' },
-                    date_of_incorporation: { required: 'Date of incorporation is required for vendor, consultant, and service provider accounts.' },
+                    email: { required: 'Email address is required for general user accounts.' },
                     password_confirmation: { equalTo: 'Password confirmation does not match.' }
                 },
                 beforeSubmit: function () {

@@ -41,8 +41,9 @@
                             <input type="text" name="fullname" id="createFullname" class="form-control" autocomplete="name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="createEmail">Email Address</label>
+                            <label class="form-label" for="createEmail">Email Address <span class="text-muted fw-normal js-create-optional d-none">(optional)</span></label>
                             <input type="email" name="email" id="createEmail" class="form-control" autocomplete="email">
+                            <small class="text-muted d-none js-create-optional">Without an email, the account signs in with its phone number and password.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="createPhone">Phone Number</label>
@@ -82,13 +83,13 @@
                             <small class="text-muted">JPG, PNG, or WebP up to 2 MB. Leave empty to skip.</small>
                         </div>
                         <div class="col-md-6" id="createDateOfBirthWrap">
-                            <label class="form-label" for="createDateOfBirth">Date of Birth</label>
+                            <label class="form-label" for="createDateOfBirth">Date of Birth <span class="text-muted fw-normal js-create-optional d-none">(optional)</span></label>
                             <input type="date" name="date_of_birth" id="createDateOfBirth" class="form-control" max="{{ now()->subYears(18)->toDateString() }}">
                         </div>
                         <div class="col-12 d-none" id="createBusinessFields">
                             <div class="row g-3">
                                 <div class="col-md-6" id="createDateOfIncorporationWrap">
-                                    <label class="form-label" for="createDateOfIncorporation">Date of Incorporation</label>
+                                    <label class="form-label" for="createDateOfIncorporation">Date of Incorporation <span class="text-muted fw-normal">(optional)</span></label>
                                     <input type="date" name="date_of_incorporation" id="createDateOfIncorporation" class="form-control" max="{{ now()->toDateString() }}">
                                 </div>
                                 <div class="col-md-6">

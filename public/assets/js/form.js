@@ -1052,6 +1052,21 @@
         },
 
         initLoginForms: function () {
+            // The password login takes an email address or the phone number
+            if ($.validator && !$.validator.methods.emailOrPhone) {
+                $.validator.addMethod('emailOrPhone', function (value, element) {
+                    var v = $.trim(value || '');
+                    if (this.optional(element)) {
+                        return true;
+                    }
+                    if (/^\+?[0-9\s\-()]{10,20}$/.test(v)) {
+                        var digits = v.replace(/\D+/g, '');
+                        return digits.length >= 10 && digits.length <= 15;
+                    }
+                    return $.validator.methods.email.call(this, v, element);
+                });
+            }
+
             this.attachAjaxForm({
                 formSelector: '#passwordLoginForm',
                 buttonSelector: '#passwordSubmitBtn',
@@ -1059,13 +1074,13 @@
                 defaultText: 'Login with Password',
                 loadingText: 'Signing in...',
                 rules: {
-                    login: { required: true, email: true },
+                    login: { required: true, emailOrPhone: true },
                     password: { required: true, minlength: 8 }
                 },
                 messages: {
                     login: {
-                        required: 'Please enter your email address.',
-                        email: 'Please enter a valid email address.'
+                        required: 'Please enter your email address or phone number.',
+                        emailOrPhone: 'Please enter a valid email address or phone number.'
                     },
                     password: {
                         required: 'Please enter your password.',

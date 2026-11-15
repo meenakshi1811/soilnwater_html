@@ -96,6 +96,11 @@ class UserController extends Controller
                 return '<span class="badge '.$class.'">'.e($label).'</span>';
             })
             ->addColumn('email_display', function (User $user): string {
+                // (a business or education account added without an email)
+                if (blank($user->email)) {
+                    return '<span class="text-muted">—</span>';
+                }
+
                 $verificationBadge = $user->email_verified_at
                     ? '<span class="badge text-bg-success mt-1">Verified</span>'
                     : '<span class="badge text-bg-warning mt-1">Unverified</span>';
@@ -207,7 +212,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $validated['fullname'],
                 'full_name' => $validated['fullname'],
-                'email' => strtolower($validated['email']),
+                'email' => filled($validated['email'] ?? null) ? strtolower($validated['email']) : null,
                 'phone_number' => $validated['phone_number'],
                 'whatsapp_number' => $validated['whatsapp_number'],
                 'address' => $validated['address'],
@@ -341,7 +346,8 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            // (only a general user must have one; business and education accounts may sign in by phone)
+            'email' => [$user->role === 'user' ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone_number' => ['required', 'digits_between:10,15'],
             'whatsapp_number' => ['required', 'digits_between:10,15'],
             'address' => ['required', 'string', 'max:500'],
@@ -354,7 +360,7 @@ class UserController extends Controller
         $user->fill([
             'name' => $validated['name'],
             'full_name' => $validated['name'],
-            'email' => strtolower($validated['email']),
+            'email' => filled($validated['email'] ?? null) ? strtolower($validated['email']) : null,
             'phone_number' => $validated['phone_number'],
             'whatsapp_number' => $validated['whatsapp_number'],
             'address' => $validated['address'],
@@ -460,7 +466,7 @@ class UserController extends Controller
     {
         return $request->validate([
             'fullname' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'email' => ['nullable', 'required_if:role,user', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
@@ -474,8 +480,9 @@ class UserController extends Controller
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'date_of_birth' => ['nullable', 'required_if:role,user,teacher', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
-            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider,school,college,institute', 'date', 'before_or_equal:today'],
+            // (business and education accounts: no email or date needed; a general user still needs both)
+            'date_of_birth' => ['nullable', 'required_if:role,user', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'date_of_incorporation' => ['nullable', 'date', 'before_or_equal:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
@@ -484,9 +491,9 @@ class UserController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
             'has_gst.required_if' => 'Please select whether the account has a GST number.',
             'gst_number.required_if' => 'GST number is required when GST is set to yes.',
-            'date_of_birth.required_if' => 'Date of birth is required for general user and teacher / tutor accounts.',
+            'email.required_if' => 'Email address is required for general user accounts.',
+            'date_of_birth.required_if' => 'Date of birth is required for general user accounts.',
             'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',
-            'date_of_incorporation.required_if' => 'Date of incorporation is required for vendor, consultant, and service provider accounts.',
             'date_of_incorporation.before_or_equal' => 'Date of incorporation cannot be in the future.',
         ]);
     }
