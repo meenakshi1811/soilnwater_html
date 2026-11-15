@@ -1170,7 +1170,17 @@ class OfferPageController extends Controller
 
         $query = Offer::query()
             ->where('status', 'active')
-            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'))
+            // The search box: the title, the deal ("30% OFF"), coupon code, description or place
+            ->when($request->filled('search'), function (Builder $query) use ($request): void {
+                $like = '%'.trim($request->string('search')->toString()).'%';
+                $query->where(function (Builder $match) use ($like): void {
+                    $match->where('title', 'like', $like)
+                        ->orWhere('discount_tag', 'like', $like)
+                        ->orWhere('coupon_code', 'like', $like)
+                        ->orWhere('short_description', 'like', $like)
+                        ->orWhere('location', 'like', $like);
+                });
+            })
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
             ->when($request->filled('validity'), function (Builder $query) use ($request): void {

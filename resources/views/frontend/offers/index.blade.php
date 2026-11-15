@@ -19,6 +19,11 @@
         </header>
 
         <div class="om-filters" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
+            <div class="om-filter om-filter--search">
+                <label for="offersMarketFilterSearch" class="om-filter__label">Search</label>
+                <i class="fa-solid fa-magnifying-glass om-filter__icon" aria-hidden="true"></i>
+                <input id="offersMarketFilterSearch" type="search" class="form-control om-filter__input" placeholder="Search offers, coupons or places" value="{{ request('search') }}" autocomplete="off" enterkeyhint="search">
+            </div>
             <div class="om-filter">
                 <label for="offersMarketFilterCategory" class="om-filter__label">Category</label>
                 <select id="offersMarketFilterCategory" class="form-select om-filter__select">
@@ -198,6 +203,9 @@
         const categoryFilter = document.getElementById('offersMarketFilterCategory');
         const subcategoryFilter = document.getElementById('offersMarketFilterSubcategory');
         const validityFilter = document.getElementById('offersMarketFilterValidity');
+        const searchFilter = document.getElementById('offersMarketFilterSearch');
+        let reloadQueued = false;
+        let searchTimer;
         const categories = filtersWrap ? JSON.parse(filtersWrap.dataset.categories || '[]') : [];
         const initialSubcategoryId = '{{ (string) request('subcategory_id', '') }}';
         let nextPageUrl = offersGrid ? offersGrid.dataset.nextPageUrl || '' : '';
@@ -220,6 +228,7 @@
 
         function getCurrentFilters() {
             return {
+                search: searchFilter ? searchFilter.value.trim() : '',
                 category_id: categoryFilter ? (categoryFilter.value || '') : '',
                 subcategory_id: subcategoryFilter ? (subcategoryFilter.value || '') : '',
                 validity: validityFilter ? (validityFilter.value || 'valid') : 'valid',
@@ -278,7 +287,12 @@
         }
 
         async function reloadOffersFromStart() {
-            if (!offersGrid || isLoading) return;
+            if (!offersGrid) return;
+            // (a change while the cards are loading: load again with it once they arrive)
+            if (isLoading) {
+                reloadQueued = true;
+                return;
+            }
 
             isLoading = true;
             setLoadingState(true);
@@ -313,6 +327,10 @@
             } finally {
                 isLoading = false;
                 setLoadingState(false);
+                if (reloadQueued) {
+                    reloadQueued = false;
+                    reloadOffersFromStart();
+                }
             }
         }
 
@@ -375,6 +393,21 @@
         if (validityFilter) {
             validityFilter.addEventListener('change', function () {
                 reloadOffersFromStart();
+            });
+        }
+
+        // Search: the cards follow the typing (after a short pause), Enter searches at once
+        if (searchFilter) {
+            searchFilter.addEventListener('input', function () {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(reloadOffersFromStart, 350);
+            });
+            searchFilter.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    clearTimeout(searchTimer);
+                    reloadOffersFromStart();
+                }
             });
         }
 

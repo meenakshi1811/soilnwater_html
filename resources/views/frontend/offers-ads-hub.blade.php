@@ -12,6 +12,13 @@
         'title' => 'Grab the best deals',
         'highlight' => 'and local ads near you',
         'text' => 'Discounts and coupons from local businesses, plus classified ads and promotions, all in one place.',
+        'search' => [
+            'placeholder' => 'Search an offer, coupon, ad or place…',
+            'targets' => [
+                ['label' => 'Search offers', 'url' => route('frontend.offers.index'), 'icon' => 'fa-gift'],
+                ['label' => 'Search ads', 'url' => route('frontend.ads.index'), 'icon' => 'fa-rectangle-ad'],
+            ],
+        ],
         'stats' => [
             ['label' => 'Live offers', 'count' => $totals['offers'], 'icon' => 'fa-gift', 'tone' => 'orange'],
             ['label' => 'Live ads', 'count' => $totals['ads'], 'icon' => 'fa-rectangle-ad', 'tone' => 'cyan'],

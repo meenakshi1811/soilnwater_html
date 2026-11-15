@@ -1,7 +1,9 @@
 {{--
   Hub page shared by /businesses and /offers-and-ads: hero with counts, a card per module
   (counts, popular categories, links), how it works, and a call to action.
-  $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta
+  $hub: crumb, eyebrow, eyebrow_icon, title, highlight, text, stats, modules_lead, steps, cta, and
+        optionally search: {placeholder, targets: list of {label, url, icon}} — one box, a button
+        per target (the first is also what Enter does), each opening that page with ?search=
   $modules: title, tagline, description, icon, tone, stats, categories, categories_url, empty,
             url, primary, secondary, and optionally key, listings_title, listings_url, listings
             (shown as a "Featured …" panel in the homepage colours of bh-featured--{key});
@@ -31,6 +33,22 @@
         <span class="bh-eyebrow"><i class="fa-solid {{ $hub['eyebrow_icon'] }}" aria-hidden="true"></i> {{ $hub['eyebrow'] }}</span>
         <h1 class="bh-hero__title">{{ $hub['title'] }} <span>{{ $hub['highlight'] }}</span></h1>
         <p class="bh-hero__text">{{ $hub['text'] }}</p>
+        @if (! empty($hub['search']['targets']))
+          <form class="bh-search" action="{{ $hub['search']['targets'][0]['url'] }}" method="GET" role="search">
+            <label class="visually-hidden" for="bhHubSearch">{{ $hub['search']['placeholder'] }}</label>
+            <span class="bh-search__field">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <input id="bhHubSearch" type="search" name="search" placeholder="{{ $hub['search']['placeholder'] }}" autocomplete="off" enterkeyhint="search" required>
+            </span>
+            <span class="bh-search__buttons">
+              @foreach ($hub['search']['targets'] as $target)
+                <button type="submit" class="bh-search__btn {{ $loop->first ? 'is-primary' : '' }}" formaction="{{ $target['url'] }}">
+                  <i class="fa-solid {{ $target['icon'] }}" aria-hidden="true"></i> {{ $target['label'] }}
+                </button>
+              @endforeach
+            </span>
+          </form>
+        @endif
         <div class="bh-hero__jump">
           @foreach ($modules as $module)
             <a href="{{ $module['url'] }}" class="bh-jump bh-jump--{{ $module['tone'] }}">

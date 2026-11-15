@@ -53,7 +53,15 @@ class AdsMarketController extends Controller
             })
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
-            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'));
+            // The search box: the title, description or place
+            ->when($request->filled('search'), function (Builder $query) use ($request): void {
+                $like = '%'.trim($request->string('search')->toString()).'%';
+                $query->where(function (Builder $match) use ($like): void {
+                    $match->where('title', 'like', $like)
+                        ->orWhere('short_description', 'like', $like)
+                        ->orWhere('location', 'like', $like);
+                });
+            });
 
         // id breaks ties in the order, so every page splits the same way (no ad repeated or skipped)
         if ($lat !== null && $lng !== null) {

@@ -384,3 +384,76 @@
     display: none !important;
   }
 }
+
+/* The search box: first in the filter bar (its own line on phones, the widest box on wider screens) */
+.om-filter--search .om-filter__icon {
+  color: #94a3b8;
+  font-size: .82rem;
+}
+
+.om-filter__input.form-control {
+  min-width: 0;
+  color: #0f1111;
+  font-size: .84rem;
+  font-weight: 500;
+}
+
+.om-filter__input.form-control::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+@media (max-width: 767.98px) {
+  .om-filter--search {
+    grid-column: 1 / -1;
+  }
+
+  .om-filter--search .om-filter__icon {
+    position: absolute;
+    top: 50%;
+    left: .75rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .om-filter__input.form-control {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 .7rem 0 2.1rem;
+    border: 1px solid #d5dbe3;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .om-filter__input.form-control:focus {
+    border-color: var(--vendors-green);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, .12);
+  }
+}
+
+@media (min-width: 768px) {
+  .om-filter--search {
+    flex: 1 1 340px;
+    gap: .5rem;
+  }
+
+  /* (the magnifier says what it is; the name stays for screen readers) */
+  .om-filter--search .om-filter__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .om-filter__input.form-control {
+    flex: 1 1 auto;
+    height: 100%;
+    padding: 0 .6rem 0 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
