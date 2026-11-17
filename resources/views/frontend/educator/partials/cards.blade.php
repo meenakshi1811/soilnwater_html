@@ -10,7 +10,7 @@
   <article class="vendors-compact-card educators-card{{ $educator->is_verified ? ' is-verified' : '' }}">
     <a href="{{ $educator->publicUrl() }}" class="vendors-compact-card__media educators-card__media" aria-label="View {{ $educator->display_name }} profile">
       @if($educator->is_verified)
-        <span class="vendors-compact-card__badge educators-card__badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
+        <span class="vendors-compact-card__badge educators-card__badge" title="Profile reviewed by SoilnWater"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Reviewed</span>
       @elseif($educator->take_tuitions)
         <span class="vendors-compact-card__badge educators-card__badge educators-card__badge--tuition"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Tuition</span>
       @endif
@@ -33,17 +33,24 @@
       <div class="vendors-compact-card__meta">
         <span class="vendors-compact-card__category">{{ $subject }}</span>
         @if($educator->is_verified)
-          <span class="vendors-verified-badge vendors-verified-badge--sm"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
+          <span class="vendors-verified-badge vendors-verified-badge--sm" title="Profile reviewed by SoilnWater"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Reviewed</span>
         @endif
       </div>
       <p class="vendors-compact-card__location">
         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $location }}{{ $distance ? ' · '.$distance : '' }}
       </p>
       <p class="educators-card__headline">{{ \Illuminate\Support\Str::limit($educator->professional_headline ?: $educator->roleLabel(), 70) }}</p>
-      <div class="educators-card__stats">
-        <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> {{ number_format((int) $educator->materials_count) }} materials</span>
-        <span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> {{ number_format((int) $educator->students_taught) }} students</span>
-      </div>
+      {{-- (only figures that say something: no "0 materials · 0 students") --}}
+      @if((int) $educator->materials_count > 0 || (int) $educator->students_taught > 0)
+        <div class="educators-card__stats">
+          @if((int) $educator->materials_count > 0)
+            <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> {{ number_format((int) $educator->materials_count) }} {{ \Illuminate\Support\Str::plural('material', (int) $educator->materials_count) }}</span>
+          @endif
+          @if((int) $educator->students_taught > 0)
+            <span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> {{ number_format((int) $educator->students_taught) }} students</span>
+          @endif
+        </div>
+      @endif
     </div>
   </article>
 @empty

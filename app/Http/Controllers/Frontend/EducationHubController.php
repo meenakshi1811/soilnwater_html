@@ -517,7 +517,8 @@ class EducationHubController extends Controller
             ->get()
             ->map(function (Educator $teacher): array {
                 $qualification = collect($teacher->qualifications ?? [])->pluck('degree')->filter()->take(2)->implode(', ');
-                $experience = (int) $teacher->years_experience > 0 ? $teacher->years_experience.'+ yrs exp.' : null;
+                $years = $teacher->effectiveYearsExperience();
+                $experience = $years > 0 ? $years.'+ yrs exp.' : null;
                 $classes = collect($teacher->classes ?? [])->filter()->values();
                 $subject = $teacher->primarySubject();
                 // "Class 9" … "Class 12" → "Classes 9–12"

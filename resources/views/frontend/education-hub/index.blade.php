@@ -71,7 +71,8 @@
     $heroPhoto = asset('assets/images/education-hub/hero-panorama.webp');
 
     // 1234 → 1.2K+, smaller numbers with a plus
-    $statCount = fn (int $count): string => \App\Models\StudyMaterial::formatCompactCount($count).($count > 0 ? '+' : '');
+    // The actual number (no "+"), shortened only from a thousand up
+    $statCount = fn (int $count): string => \App\Models\StudyMaterial::formatCompactCount($count);
 @endphp
 
 <div class="eh-page">
@@ -238,7 +239,7 @@
         <div class="eh-columns">
             <section class="eh-card eh-panel" aria-labelledby="ehTeachersTitle">
                 <div class="eh-panel__head">
-                    <h2 class="eh-panel__title" id="ehTeachersTitle"><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> Top Teachers &amp; Tutors</h2>
+                    <h2 class="eh-panel__title" id="ehTeachersTitle"><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> Featured Teachers &amp; Tutors</h2>
                     <a href="{{ route('educator.index') }}" class="eh-panel__more">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                 </div>
                 @if($topTeachers !== [])
@@ -250,7 +251,7 @@
                                     <a href="{{ $teacher['url'] }}" class="eh-person__name">
                                         {{ $teacher['name'] }}
                                         @if($teacher['verified'])
-                                            <i class="fa-solid fa-circle-check" aria-label="Verified"></i>
+                                            <i class="fa-solid fa-circle-check" aria-label="Profile reviewed by SoilnWater" title="Profile reviewed by SoilnWater"></i>
                                         @endif
                                     </a>
                                     <span class="eh-person__subject">{{ $teacher['subject'] }}</span>

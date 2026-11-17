@@ -104,6 +104,10 @@ class EducatorProfileController extends Controller
             'youtube_url' => ['nullable', 'url', 'max:500'],
             'linkedin_url' => ['nullable', 'url', 'max:500'],
             'whatsapp_url' => ['nullable', 'url', 'max:500'],
+            // Which contact details the public page shows
+            'show_phone' => ['nullable', 'boolean'],
+            'show_whatsapp' => ['nullable', 'boolean'],
+            'show_email' => ['nullable', 'boolean'],
         ], ProfilePhoneNumbers::validationRules()), array_merge([
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
@@ -150,6 +154,9 @@ class EducatorProfileController extends Controller
         $validated['classes'] = EducatorSubjects::aggregateClasses($validated['subjects']);
         $validated['boards'] = EducatorSubjects::aggregateBoards($validated['subjects']);
         $validated['associated_with_school'] = $request->boolean('associated_with_school');
+        $validated['show_phone'] = $request->boolean('show_phone');
+        $validated['show_whatsapp'] = $request->boolean('show_whatsapp');
+        $validated['show_email'] = $request->boolean('show_email');
         if (! $validated['associated_with_school']) {
             $validated['associated_institute'] = null;
             $validated['institute_latitude'] = null;

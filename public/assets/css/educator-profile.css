@@ -3415,3 +3415,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Work history: whether a role is the teacher's current one */
+.edu-role-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.edu-role-tag--current {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* A short note under a section title (e.g. schools listed by the teacher) */
+.edu-section__note {
+  margin: -0.25rem 0 0.85rem;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.edu-section__note i {
+  margin-right: 0.25rem;
+}

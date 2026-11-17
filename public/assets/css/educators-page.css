@@ -235,3 +235,15 @@
     font-size: .64rem;
   }
 }
+
+/* What "Profile reviewed" means, under the listing title */
+.educators-reviewed-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.educators-reviewed-note i {
+  color: #16a34a;
+  margin-right: 0.2rem;
+}

@@ -37,8 +37,21 @@
   $showTuitionDetails = $educator->hasPublishedTuitionDetails();
   $tuitionPointLabel = $educator->tuitionPointAddressLabel();
   $affiliatedInstitutes = $educator->affiliatedInstitutes ?? collect();
+  $isOwnerView = (bool) ($canEditInline ?? false);
+  // One experience figure for the whole page (never below the subject rows or work history)
+  $yearsExperience = $educator->effectiveYearsExperience();
+  $studentsTaught = (int) $educator->students_taught;
+  $hasSuccessRate = $educator->success_rate !== null && (float) $educator->success_rate > 0;
+  // Sections with nothing in them are left out for visitors (the owner still sees them, to fill in)
+  $showCourses = $coursesPreview->isNotEmpty() || $isOwnerView;
+  $showStudyMaterials = $studyMaterialsPreview->isNotEmpty() || $isOwnerView;
+  $showAchievements = $achievements->isNotEmpty() || $isOwnerView;
+  $showCertifications = $certifications->isNotEmpty() || $isOwnerView;
+  // Contact details the teacher chose to show (the enquiry form is always there)
+  $publicPhones = ($educator->show_phone ?? true) ? $educator->phoneNumbersList() : [];
+  $publicEmail = ($educator->show_email ?? true) ? $educator->email : null;
+  $publicWhatsapp = ($educator->show_whatsapp ?? true) ? $educator->whatsapp : null;
   $showLocationSidebar = $educator->locationLabel()
-    || filled($educator->residential_address)
     || filled($educator->associated_institute)
     || $affiliatedInstitutes->isNotEmpty()
     || filled($tuitionPointLabel)
@@ -53,10 +66,8 @@
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
     ['id' => 'edu-experience', 'label' => 'Experience & Education', 'icon' => 'fa-briefcase'],
-    ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap'],
-    ['id' => 'edu-study-materials', 'label' => 'Study Material', 'icon' => 'fa-folder-open'],
-    ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper'],
-    ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images'],
+    ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap', 'show_when' => $showCourses],
+    ['id' => 'edu-study-materials', 'label' => 'Study Material', 'icon' => 'fa-folder-open', 'show_when' => $showStudyMaterials],
     ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'show_when' => $showTuitionDetails],
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
     ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
@@ -155,7 +166,7 @@
               <h1 class="edu-overview__name">
                 {{ $educator->display_name }}
                 @if($educator->isVerified())
-                  <i class="fa-solid fa-star" aria-hidden="true" title="Verified educator"></i>
+                  <i class="fa-solid fa-star" aria-hidden="true" title="Profile reviewed by SoilnWater"></i>
                 @endif
                 {!! $eduPencil('overview', 'Photo & headline') !!}
               </h1>
@@ -178,20 +189,28 @@
                 <span>(<span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews)</span>
               </div>
 
-              <div class="edu-overview__stats">
-                <div class="edu-overview__stat">
-                  <strong>{{ $educator->years_experience }}+</strong>
-                  <span>Years</span>
+              @if($yearsExperience > 0 || $studentsTaught > 0 || $hasSuccessRate)
+                <div class="edu-overview__stats">
+                  @if($yearsExperience > 0)
+                    <div class="edu-overview__stat">
+                      <strong>{{ $yearsExperience }}+</strong>
+                      <span>Years</span>
+                    </div>
+                  @endif
+                  @if($studentsTaught > 0)
+                    <div class="edu-overview__stat">
+                      <strong>{{ number_format($studentsTaught) }}</strong>
+                      <span>Students</span>
+                    </div>
+                  @endif
+                  @if($hasSuccessRate)
+                    <div class="edu-overview__stat">
+                      <strong>{{ number_format((float) $educator->success_rate, 2) }}%</strong>
+                      <span>Success Rate</span>
+                    </div>
+                  @endif
                 </div>
-                <div class="edu-overview__stat">
-                  <strong>{{ number_format($educator->students_taught) }}</strong>
-                  <span>Students</span>
-                </div>
-                <div class="edu-overview__stat">
-                  <strong>{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
-                  <span>Success Rate</span>
-                </div>
-              </div>
+              @endif
             </div>
 
             <div class="edu-overview__actions-col">
@@ -269,6 +288,7 @@
         @if($affiliatedInstitutes->isNotEmpty())
         <section class="edu-section" id="edu-affiliations">
           <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Associated Schools &amp; Institutes{!! $eduPencil('affiliations', 'Schools & institutes') !!}</h2>
+          <p class="edu-section__note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Schools and institutes listed by the teacher. A listing here is not an endorsement by the school or institute.</p>
           <div class="edu-affiliations-grid">
             @foreach($affiliatedInstitutes as $institute)
               <a href="{{ $institute->publicUrl() }}" class="edu-affiliation-card">
@@ -367,28 +387,38 @@
         <section class="edu-section" id="edu-experience">
           <h2 class="edu-section__title"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Experience &amp; Education{!! $eduPencil('experience', 'Experience & education') !!}</h2>
 
-          <div class="edu-exp-stats">
-            <div class="edu-exp-stat">
-              <i class="fa-solid fa-clock" aria-hidden="true"></i>
-              <strong>{{ $educator->years_experience }}+</strong>
-              <span>Years Experience</span>
+          @if($yearsExperience > 0 || $studentsTaught > 0 || $hasSuccessRate || (int) $educator->approved_materials_count > 0)
+            <div class="edu-exp-stats">
+              @if($yearsExperience > 0)
+                <div class="edu-exp-stat">
+                  <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                  <strong>{{ $yearsExperience }}+</strong>
+                  <span>Years Experience</span>
+                </div>
+              @endif
+              @if($studentsTaught > 0)
+                <div class="edu-exp-stat">
+                  <i class="fa-solid fa-users" aria-hidden="true"></i>
+                  <strong>{{ number_format($studentsTaught) }}</strong>
+                  <span>Students Taught</span>
+                </div>
+              @endif
+              @if($hasSuccessRate)
+                <div class="edu-exp-stat">
+                  <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                  <strong>{{ number_format((float) $educator->success_rate, 2) }}%</strong>
+                  <span>Success Rate</span>
+                </div>
+              @endif
+              @if((int) $educator->approved_materials_count > 0)
+                <div class="edu-exp-stat">
+                  <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                  <strong>{{ number_format($educator->approved_materials_count) }}</strong>
+                  <span>Materials</span>
+                </div>
+              @endif
             </div>
-            <div class="edu-exp-stat">
-              <i class="fa-solid fa-users" aria-hidden="true"></i>
-              <strong>{{ number_format($educator->students_taught) }}</strong>
-              <span>Students Taught</span>
-            </div>
-            <div class="edu-exp-stat">
-              <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-              <strong>{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
-              <span>Success Rate</span>
-            </div>
-            <div class="edu-exp-stat">
-              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
-              <strong>{{ number_format($educator->approved_materials_count) }}</strong>
-              <span>Materials</span>
-            </div>
-          </div>
+          @endif
 
           <div class="edu-exp-grid">
             <div>
@@ -396,6 +426,11 @@
               @forelse($experiences as $exp)
                 <div class="edu-timeline-item">
                   <strong>{{ $exp['title'] ?? 'Experience' }}</strong>
+                  @if(\App\Models\Educator::experienceIsCurrent($exp))
+                    <span class="edu-role-tag edu-role-tag--current">Current</span>
+                  @elseif(filled($exp['end_year'] ?? null) || filled($exp['start_year'] ?? null))
+                    <span class="edu-role-tag">Former</span>
+                  @endif
                   <span class="text-muted">{{ collect([$exp['organization'] ?? null, \App\Models\Educator::experienceDurationLabel($exp) ?: null])->filter()->implode(' · ') }}</span>
                   @if(!empty($exp['description']))
                     <p class="mb-0 mt-1">{{ $exp['description'] }}</p>
@@ -423,6 +458,7 @@
         </section>
 
         {{-- 5. Courses --}}
+        @if($showCourses)
         <section class="edu-section" id="edu-courses">
           <div class="edu-section__head">
             <h2 class="edu-section__title"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Courses{!! $eduPencil('materials', 'Courses & material') !!}</h2>
@@ -451,11 +487,13 @@
               </div>
             </div>
           @else
-            <p class="edu-empty">No courses published yet.</p>
+            <p class="edu-empty">No courses yet. Only you can see this section until you add one: upload study guides, videos, reference books, papers or assignments and they appear here once approved.</p>
           @endif
         </section>
+        @endif
 
         {{-- Study Material --}}
+        @if($showStudyMaterials)
         <section class="edu-section" id="edu-study-materials">
           <div class="edu-section__head">
             <h2 class="edu-section__title"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Study Material{!! $eduPencil('materials', 'Courses & material') !!}</h2>
@@ -484,21 +522,12 @@
               </div>
             </div>
           @else
-            <p class="edu-empty">No study materials published yet.</p>
+            <p class="edu-empty">No study materials yet. Only you can see this section until you add some: uploads appear here once approved.</p>
           @endif
         </section>
+        @endif
 
-        {{-- Articles --}}
-        <section class="edu-section" id="edu-articles">
-          <h2 class="edu-section__title"><i class="fa-solid fa-newspaper" aria-hidden="true"></i> Articles</h2>
-          <p class="edu-empty">No articles published yet.</p>
-        </section>
-
-        {{-- 12. Gallery --}}
-        <section class="edu-section" id="edu-gallery">
-          <h2 class="edu-section__title"><i class="fa-solid fa-images" aria-hidden="true"></i> Gallery</h2>
-          <p class="edu-empty">No gallery photos yet.</p>
-        </section>
+        {{-- (Articles and Gallery: left out until teachers can add to them) --}}
 
         @if($showTuitionDetails)
         {{-- 14. Fees & Packages --}}
@@ -944,7 +973,7 @@
 
         @if($showLocationSidebar)
         <div class="edu-sidebar-card edu-sidebar-card--location">
-          @if($educator->locationLabel() || filled($educator->residential_address))
+          @if($educator->locationLabel())
             <div class="edu-sidebar-detail">
               <h4 class="edu-sidebar-detail__label">Location</h4>
               @if($educator->locationLabel())
@@ -952,9 +981,6 @@
                   <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                   {{ $educator->locationLabel() }}
                 </p>
-              @endif
-              @if(filled($educator->residential_address))
-                <p class="edu-sidebar-detail__sub">{{ $educator->residential_address }}</p>
               @endif
             </div>
           @endif
@@ -1021,11 +1047,11 @@
         <div class="edu-sidebar-card edu-sidebar-card--contact">
           <h3><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact &amp; Enquiry</h3>
           <ul class="edu-sidebar-list">
-            @if($educator->phoneNumbersList() !== [])<li><span>Phone</span><span>@include('frontend.partials.profile-phone-links', ['phones' => $educator->phoneNumbersList(), 'asList' => true])</span></li>@endif
-            @if($educator->email)<li><span>Email</span><span>{{ $educator->email }}</span></li>@endif
-            @if($educator->whatsapp)<li><span>WhatsApp</span><span>{{ $educator->whatsapp }}</span></li>@endif
+            @if($publicPhones !== [])<li><span>Phone</span><span>@include('frontend.partials.profile-phone-links', ['phones' => $publicPhones, 'asList' => true])</span></li>@endif
+            @if($publicEmail)<li><span>Email</span><span>{{ $publicEmail }}</span></li>@endif
+            @if($publicWhatsapp)<li><span>WhatsApp</span><span>{{ $publicWhatsapp }}</span></li>@endif
           </ul>
-          @if($educator->phoneNumbersList() === [] && !$educator->email && !$educator->whatsapp && ! $educator->hasSocialLinks())
+          @if($publicPhones === [] && ! $publicEmail && ! $publicWhatsapp && ! $educator->hasSocialLinks())
             <p class="edu-empty mb-0">Contact details not published.</p>
           @endif
           @include('frontend.educator.partials.social-links', ['educator' => $educator])
@@ -1036,21 +1062,27 @@
 
         <div class="edu-sidebar-card">
           <h3><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Teaching Stats</h3>
-          <div class="edu-stat-row">
-            <i class="fa-solid fa-clock" aria-hidden="true"></i>
-            <span>Experience</span>
-            <strong>{{ $educator->years_experience }} yrs</strong>
-          </div>
-          <div class="edu-stat-row">
-            <i class="fa-solid fa-users" aria-hidden="true"></i>
-            <span>Students taught</span>
-            <strong>{{ number_format($educator->students_taught) }}</strong>
-          </div>
-          <div class="edu-stat-row">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-            <span>Success rate</span>
-            <strong>{{ $educator->success_rate !== null ? $educator->success_rate.'%' : '—' }}</strong>
-          </div>
+          @if($yearsExperience > 0)
+            <div class="edu-stat-row">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              <span>Experience</span>
+              <strong>{{ $yearsExperience }}+ yrs</strong>
+            </div>
+          @endif
+          @if($studentsTaught > 0)
+            <div class="edu-stat-row">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              <span>Students taught</span>
+              <strong>{{ number_format($studentsTaught) }}</strong>
+            </div>
+          @endif
+          @if($hasSuccessRate)
+            <div class="edu-stat-row">
+              <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+              <span>Success rate</span>
+              <strong>{{ $educator->success_rate }}%</strong>
+            </div>
+          @endif
           <div class="edu-stat-row">
             <i class="fa-solid fa-star" aria-hidden="true"></i>
             <span>Rating</span>
@@ -1063,23 +1095,27 @@
           </div>
         </div>
 
+        @if($showAchievements)
         <div class="edu-sidebar-card">
           <h3><i class="fa-solid fa-trophy" aria-hidden="true"></i> Achievements{!! $eduPencil('achievements', 'Achievements') !!}</h3>
           @forelse($achievements as $item)
             <div class="edu-cert-item"><i class="fa-solid fa-trophy" aria-hidden="true"></i> {{ $item }}</div>
           @empty
-            <p class="edu-empty mb-0">No achievements listed.</p>
+            <p class="edu-empty mb-0">No achievements listed. Only you can see this until you add one.</p>
           @endforelse
         </div>
+        @endif
 
+        @if($showCertifications)
         <div class="edu-sidebar-card">
           <h3><i class="fa-solid fa-award" aria-hidden="true"></i> Certifications{!! $eduPencil('achievements', 'Achievements') !!}</h3>
           @forelse($certifications as $item)
             <div class="edu-cert-item"><i class="fa-solid fa-certificate" aria-hidden="true"></i> {{ $item }}</div>
           @empty
-            <p class="edu-empty mb-0">No certifications listed.</p>
+            <p class="edu-empty mb-0">No certifications listed. Only you can see this until you add one.</p>
           @endforelse
         </div>
+        @endif
       </aside>
     </div>
   </div>

@@ -484,7 +484,7 @@
                             <span>{{ $fileMeta['label'] }}</span>
                         </span>
                         @if($material->is_verified || $material->educator?->isVerified())
-                            <span class="sm-show-summary__verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                            <span class="sm-show-summary__verified" title="Reviewed and approved by SoilnWater"><i class="fa-solid fa-circle-check"></i> Reviewed</span>
                         @endif
                     </div>
 

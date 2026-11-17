@@ -390,6 +390,20 @@
             </div>
           </div>
 
+          <div class="edu-contact-visibility mb-3">
+            <label class="form-label mb-1">Contact details on your public page</label>
+            <p class="text-muted small mb-2">Choose what visitors can see. They can always send you an enquiry through the page. Your home address is never shown, only your city / area.</p>
+            <div class="d-flex flex-wrap gap-3">
+              @foreach (['show_phone' => 'Phone number', 'show_whatsapp' => 'WhatsApp number', 'show_email' => 'Email address'] as $visField => $visLabel)
+                <div class="form-check form-switch">
+                  <input type="hidden" name="{{ $visField }}" value="0">
+                  <input class="form-check-input" type="checkbox" role="switch" id="edu_{{ $visField }}" name="{{ $visField }}" value="1" @checked(old($visField, $educator->{$visField} ?? true))>
+                  <label class="form-check-label" for="edu_{{ $visField }}">Show {{ strtolower($visLabel) }}</label>
+                </div>
+              @endforeach
+            </div>
+          </div>
+
           <div class="edu-social-grid">
             <div class="edu-social-input">
               <i class="fa-brands fa-facebook edu-social-input__icon"></i>

@@ -60,7 +60,7 @@
                     By <a href="{{ $item->educator?->publicUrl() ?: '#' }}">{{ $item->educator?->display_name ?: 'Community Member' }}</a>
                 </div>
                 @if($item->educator?->isVerified())
-                    <span class="sm-note-card__verified"><i class="fa-solid fa-circle-check"></i> Verified Teacher</span>
+                    <span class="sm-note-card__verified" title="Profile reviewed by SoilnWater"><i class="fa-solid fa-circle-check"></i> Reviewed teacher</span>
                 @endif
                 <div class="sm-note-card__stars" aria-label="Rating {{ number_format($rating, 1) }} out of 5">
                     @for($star = 1; $star <= 5; $star++)

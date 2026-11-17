@@ -4,12 +4,13 @@
 @section('meta_description', 'Browse all approved teachers and tutors with filters for subject, city, ratings and tuition.')
 
 @php
+  // The actual number (no "+"), shortened only from a thousand up
   $formatStat = function (int $count): string {
       if ($count >= 1000) {
-          return number_format($count / 1000, $count >= 10000 ? 0 : 1).'K+';
+          return number_format($count / 1000, $count >= 10000 ? 0 : 1).'K';
       }
 
-      return number_format($count).'+';
+      return number_format($count);
   };
   $joinUrl = route('register', ['role' => 'teacher']);
   $locationDisplay = auth()->user()?->city ?: 'Your Location';
@@ -107,7 +108,7 @@
             <label class="vendors-filter-check">
               <input type="checkbox" id="educatorsMarketFilterVerified" @checked(request()->boolean('verified'))>
               <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-              Verified only
+              Reviewed profiles only
             </label>
             <label class="vendors-filter-check">
               <input type="checkbox" id="educatorsMarketFilterTuitions" @checked(request('takes_tuitions') === '1' || request()->boolean('takes_tuitions'))>
@@ -172,6 +173,7 @@
           </span>
           <h1>Browse Teachers &amp; Tutors</h1>
           <p>Scroll to load more. Use filters to narrow by subject, city and ratings.</p>
+          <p class="educators-reviewed-note"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> <strong>Profile reviewed</strong> means SoilnWater has checked and approved the profile. Qualifications and experience are as stated by the teacher.</p>
         </div>
         <div class="vendors-hero__stats">
           <div class="vendors-stat">
@@ -185,7 +187,7 @@
             <span class="vendors-stat__icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
             <div class="vendors-stat__text">
               <strong>{{ $formatStat($educatorStats['verified']) }}</strong>
-              <span>Verified</span>
+              <span>Profiles reviewed</span>
             </div>
           </div>
         </div>
@@ -221,7 +223,7 @@
         <div class="vendors-cta__icon" aria-hidden="true"><i class="fa-solid fa-chalkboard-user"></i></div>
         <div class="vendors-cta__copy">
           <h3>Are you a teacher or tutor?</h3>
-          <p>Create your professional profile and reach students on SoilnWater.</p>
+          <p>Create your professional teaching profile. Showcase your qualifications, experience, subjects and tuition details to students and parents.</p>
         </div>
         <div class="vendors-cta__actions">
           <a href="{{ $joinUrl }}" class="vendors-cta__primary">Join as Teacher / Tutor</a>

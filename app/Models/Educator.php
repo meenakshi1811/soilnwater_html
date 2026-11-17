@@ -36,6 +36,9 @@ class Educator extends Model
         'phone',
         'phone_numbers',
         'whatsapp',
+        'show_phone',
+        'show_whatsapp',
+        'show_email',
         'email',
         'video_profile_url',
         'video_profile_path',
@@ -108,6 +111,9 @@ class Educator extends Model
             'take_tuitions' => 'boolean',
             'associated_with_school' => 'boolean',
             'is_verified' => 'boolean',
+            'show_phone' => 'boolean',
+            'show_whatsapp' => 'boolean',
+            'show_email' => 'boolean',
             'is_available_now' => 'boolean',
             'converted_from_user' => 'boolean',
             'institute_latitude' => 'decimal:7',
@@ -249,7 +255,9 @@ class Educator extends Model
             return $this->roleLabel();
         }
 
-        return $this->isTutor() ? 'Verified Tutor' : 'Verified Experienced Teacher';
+        // "Profile reviewed": SoilnWater has checked and approved the profile (identity and
+        // qualifications are as stated by the teacher, so the page doesn't call them "verified")
+        return ($this->isTutor() ? 'Tutor' : 'Teacher').' · Profile reviewed';
     }
 
     public function publicProfileMetaDescription(): string
@@ -554,6 +562,55 @@ class Educator extends Model
         }
 
         return ['', '', false];
+    }
+
+    /**
+     * Total teaching experience in years for the public page: the figure the teacher entered, but
+     * never less than what their own subject rows or work history show (so the page can't say
+     * "0 years" next to "18 years of English" or a job from 1999). 0 when nothing is known.
+     */
+    public function effectiveYearsExperience(): int
+    {
+        $years = max(0, (int) $this->years_experience);
+
+        foreach ((array) ($this->subjects ?? []) as $subject) {
+            if (is_array($subject)) {
+                $raw = $subject['years_experience'] ?? $subject['years'] ?? $subject['experience'] ?? '';
+                if (preg_match('/\d+/', (string) $raw, $m)) {
+                    $years = max($years, min(80, (int) $m[0]));
+                }
+            }
+        }
+
+        // Work history: from the earliest start year to the latest end (or today for a current role)
+        $currentYear = (int) now()->format('Y');
+        $earliest = null;
+        $latest = null;
+        foreach ((array) ($this->experiences ?? []) as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $start = (int) ($item['start_year'] ?? 0);
+            if ($start < 1950 || $start > $currentYear) {
+                continue;
+            }
+            $isCurrent = filter_var($item['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $end = $isCurrent ? $currentYear : (int) ($item['end_year'] ?? 0);
+            $end = ($end >= $start && $end <= $currentYear) ? $end : $start;
+            $earliest = $earliest === null ? $start : min($earliest, $start);
+            $latest = $latest === null ? $end : max($latest, $end);
+        }
+        if ($earliest !== null) {
+            $years = max($years, $latest - $earliest);
+        }
+
+        return $years;
+    }
+
+    /** Whether a work-history entry is the teacher's current role */
+    public static function experienceIsCurrent(array $item): bool
+    {
+        return filter_var($item['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
     }
 
     public static function formatExperienceDuration(string $startYear, string $endYear, bool $isCurrent): string
