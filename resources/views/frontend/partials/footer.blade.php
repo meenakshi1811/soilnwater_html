@@ -4,7 +4,6 @@
       <div class="footer-logo">
         <img class="footer-logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
       </div>
-      <p class="footer-tagline">India's trusted local &amp; national marketplace connecting buyers, sellers, and services across every category.</p>
       {{--
       <div class="footer-socials">
         <a href="https://www.facebook.com" target="_blank" rel="noopener" class="social-btn" aria-label="Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
