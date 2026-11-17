@@ -43,6 +43,13 @@ return [
         'peid' => env('MESSAGE_PEID'),
     ],
 
+    // Push notifications to the app (Firebase Cloud Messaging): the path of the Firebase project's
+    // service account key file (kept outside public/), e.g. storage/app/firebase-credentials.json
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

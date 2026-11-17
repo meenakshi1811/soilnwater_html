@@ -25,6 +25,9 @@ class PortalNotificationService
         }
 
         $user->notify(new PortalNotification($title, $message, $url, $category, $meta));
+
+        // The same notice on the user's phone, opening the page it is about
+        PushNotificationService::toUser($user, $title, $message, $url, ['category' => $category]);
     }
 
     public static function notifyAdminsOfApprovalRequest(string $itemType, string $itemName, ?string $url = null): void
