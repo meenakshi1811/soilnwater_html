@@ -342,10 +342,14 @@
                   $icon = \App\Support\SubjectPresentation::iconFor($name, $index);
                 @endphp
                 @if($name !== '')
-                  <article class="edu-subject-card edu-subject-card--detailed">
-                    <span class="edu-subject-card__icon edu-subject-card__icon--secondary">
-                      <i class="fa-solid {{ $icon }}" aria-hidden="true"></i>
-                    </span>
+                  <article class="edu-subject-card edu-subject-card--detailed{{ ($subject['image'] ?? '') !== '' ? ' has-image' : '' }}">
+                    @if(($subject['image'] ?? '') !== '')
+                      <img src="{{ asset($subject['image']) }}" alt="{{ $name }}" class="edu-subject-card__image" loading="lazy">
+                    @else
+                      <span class="edu-subject-card__icon edu-subject-card__icon--secondary">
+                        <i class="fa-solid {{ $icon }}" aria-hidden="true"></i>
+                      </span>
+                    @endif
                     <strong class="edu-subject-card__title">{{ $name }}</strong>
                     @if($subjectYears !== '')
                       <p class="edu-subject-card__exp">{{ $subjectYears }} yrs experience</p>

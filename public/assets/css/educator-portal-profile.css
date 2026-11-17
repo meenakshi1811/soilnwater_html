@@ -1075,3 +1075,19 @@ body.soilnwater-google-places-active .edu-profile-page .pac-container:not(:has(.
   box-shadow: none;
   min-height: 0;
 }
+
+/* Subject form card: the subject's picture (preview + upload) */
+.edu-profile-page .edu-subject-image-field__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.edu-profile-page .edu-subject-image-field__preview {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  flex: 0 0 auto;
+}

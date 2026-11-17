@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Educator;
+use Illuminate\Http\UploadedFile;
 
 class EducatorSubjects
 {
@@ -25,6 +26,7 @@ class EducatorSubjects
                         'classes' => [],
                         'boards' => [],
                         'years_experience' => '',
+                        'image' => '',
                     ];
                 }
 
@@ -38,11 +40,100 @@ class EducatorSubjects
                     'classes' => self::normalizeStringList($item['classes'] ?? null, $item['class'] ?? null),
                     'boards' => self::normalizeStringList($item['boards'] ?? null, $item['board'] ?? null),
                     'years_experience' => trim((string) ($item['years_experience'] ?? $item['years'] ?? $item['experience'] ?? '')),
+                    // A picture for the subject's card (a path under public/), or ''
+                    'image' => self::cleanImagePath($item['image'] ?? ''),
                 ];
             })
             ->filter()
             ->values()
             ->all();
+    }
+
+    private static function cleanImagePath(mixed $path): string
+    {
+        $path = trim((string) $path);
+
+        return ($path !== '' && str_starts_with($path, 'uploads/educators/subjects/') && ! str_contains($path, '..')) ? $path : '';
+    }
+
+    /**
+     * Subject pictures from the profile form, before fromFormSubmission(): a new upload replaces a
+     * subject's picture, "remove" clears it, otherwise it keeps the one it had. Only pictures the
+     * teacher's subjects already had are accepted from the form (no other paths).
+     *
+     * @param  array<int|string, mixed>  $submitted  the form's subjects rows
+     * @param  array<int|string, mixed>  $uploads  $request->file('subjects')
+     * @param  list<array<string, mixed>>  $previous  the subjects as saved before
+     * @return array<int|string, mixed>
+     */
+    public static function withImages(array $submitted, array $uploads, array $previous): array
+    {
+        $allowed = array_values(array_filter(array_column(self::normalizeList($previous), 'image')));
+
+        foreach ($submitted as $key => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $path = trim((string) ($row['image'] ?? ''));
+            if (! in_array($path, $allowed, true)) {
+                $path = '';
+            }
+            if (filter_var($row['remove_image'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                $path = '';
+            }
+
+            $file = is_array($uploads[$key] ?? null) ? ($uploads[$key]['image_file'] ?? null) : null;
+            if ($file instanceof UploadedFile && $file->isValid() && trim((string) ($row['name'] ?? '')) !== '') {
+                $path = EducatorFileUploader::storeImage($file, 'subjects');
+            }
+
+            $row['image'] = $path;
+            unset($row['image_file'], $row['remove_image']);
+            $submitted[$key] = $row;
+        }
+
+        return $submitted;
+    }
+
+    /**
+     * Pictures the subjects had before that the new list no longer uses (to delete their files).
+     *
+     * @param  list<array<string, mixed>>  $previous
+     * @param  list<array<string, mixed>>  $current
+     * @return list<string>
+     */
+    public static function unusedImages(array $previous, array $current): array
+    {
+        $used = array_filter(array_column(self::normalizeList($current), 'image'));
+
+        return array_values(array_diff(array_filter(array_column(self::normalizeList($previous), 'image')), $used));
+    }
+
+    /**
+     * For a form without picture fields (the public page's inline editor): each subject keeps the
+     * picture of the saved subject with the same name.
+     *
+     * @param  list<array<string, mixed>>  $subjects
+     * @param  list<array<string, mixed>>  $previous
+     * @return list<array<string, mixed>>
+     */
+    public static function keepImagesByName(array $subjects, array $previous): array
+    {
+        $byName = [];
+        foreach (self::normalizeList($previous) as $old) {
+            if ($old['image'] !== '') {
+                $byName[mb_strtolower($old['name'])] = $old['image'];
+            }
+        }
+
+        foreach ($subjects as $i => $subject) {
+            if (($subject['image'] ?? '') === '' && isset($byName[mb_strtolower((string) ($subject['name'] ?? ''))])) {
+                $subjects[$i]['image'] = $byName[mb_strtolower((string) $subject['name'])];
+            }
+        }
+
+        return $subjects;
     }
 
     /**
@@ -76,6 +167,7 @@ class EducatorSubjects
                     'classes' => $classes,
                     'boards' => $boards,
                     'years_experience' => $item['years_experience'] ?? '',
+                    'image' => $item['image'] ?? '',
                 ];
             })
             ->all();
@@ -188,6 +280,7 @@ class EducatorSubjects
             'classes' => [],
             'boards' => [],
             'years_experience' => '',
+            'image' => '',
         ];
     }
 

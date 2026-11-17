@@ -40,6 +40,26 @@
       <small class="text-muted">Multiple boards allowed — one per line.</small>
     </div>
   </div>
+  @php $subjectImage = $normalizedSubject['image'] ?? ''; @endphp
+  <div class="mt-3 edu-subject-image-field">
+    <label class="form-label">Subject image <span class="text-muted fw-normal">(optional)</span></label>
+    <div class="edu-subject-image-field__row">
+      @if($subjectImage !== '')
+        <img src="{{ asset($subjectImage) }}" alt="" class="edu-subject-image-field__preview">
+      @endif
+      <div class="flex-grow-1">
+        <input type="hidden" name="subjects[{{ $index }}][image]" value="{{ $subjectImage }}">
+        <input type="file" name="subjects[{{ $index }}][image_file]" class="form-control" accept="image/jpeg,image/png,image/webp">
+        <small class="text-muted">Shown on this subject's card on your public profile. JPG, PNG or WebP up to 2 MB.</small>
+        @if($subjectImage !== '')
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" name="subjects[{{ $index }}][remove_image]" value="1" id="subjectRemoveImage{{ $index }}">
+            <label class="form-check-label" for="subjectRemoveImage{{ $index }}">Remove this image</label>
+          </div>
+        @endif
+      </div>
+    </div>
+  </div>
   <div class="mt-3">
     <label class="form-label">Years of experience (this subject)</label>
     <input

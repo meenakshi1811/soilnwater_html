@@ -3444,3 +3444,14 @@
 .edu-section__note i {
   margin-right: 0.25rem;
 }
+
+/* Subjects & Classes: a subject's own picture across the top of its card (in place of the icon) */
+.edu-subject-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  background: #eef2f7;
+}

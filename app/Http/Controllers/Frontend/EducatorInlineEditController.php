@@ -117,7 +117,11 @@ class EducatorInlineEditController extends Controller
             'subjects.*.years_experience' => ['nullable', 'string', 'max:20'],
         ]);
 
-        $subjects = EducatorSubjects::fromFormSubmission($validated['subjects'] ?? []);
+        // (this form has no picture fields: each subject keeps its picture)
+        $subjects = EducatorSubjects::keepImagesByName(
+            EducatorSubjects::fromFormSubmission($validated['subjects'] ?? []),
+            is_array($educator->subjects) ? $educator->subjects : []
+        );
         $educator->update([
             'subjects' => $subjects,
             'classes' => EducatorSubjects::aggregateClasses($subjects),

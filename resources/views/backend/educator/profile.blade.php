@@ -507,6 +507,9 @@ window.eduAffiliationRoutes = {
       `<small class="text-muted">Multiple classes allowed — one per line.</small></div><div><label class="form-label">Boards</label>` +
       `<textarea class="form-control" name="subjects[${i}][boards_lines]" rows="3" placeholder="One board per line"></textarea>` +
       `<small class="text-muted">Multiple boards allowed — one per line.</small></div></div>` +
+      `<div class="mt-3 edu-subject-image-field"><label class="form-label">Subject image <span class="text-muted fw-normal">(optional)</span></label>` +
+      `<input type="file" name="subjects[${i}][image_file]" class="form-control" accept="image/jpeg,image/png,image/webp">` +
+      `<small class="text-muted">Shown on this subject's card on your public profile. JPG, PNG or WebP up to 2 MB.</small></div>` +
       `<div class="mt-3"><label class="form-label">Years of experience (this subject)</label>` +
       `<input type="text" name="subjects[${i}][years_experience]" class="form-control" placeholder="e.g. 8"></div></div>`,
     qualification: (i) => `<div class="edu-repeat-row edu-repeat-row--qualification js-repeat-row"><input type="text" name="qualifications[${i}][degree]" class="form-control" placeholder="Degree"><div class="edu-repeat-field-stack"><input type="text" name="qualifications[${i}][institution]" class="form-control js-school-institute-search" autocomplete="off" placeholder="Search school or institute"><small class="edu-field-hint">Search via Google.</small></div><input type="text" name="qualifications[${i}][year]" class="form-control" placeholder="Year"><button type="button" class="btn btn-outline-danger edu-btn-remove js-remove-row" title="Remove">&times;</button></div>`,

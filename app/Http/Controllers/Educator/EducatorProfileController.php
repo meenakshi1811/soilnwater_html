@@ -80,6 +80,10 @@ class EducatorProfileController extends Controller
             'subjects.*.boards' => ['nullable', 'array'],
             'subjects.*.boards.*' => ['nullable', 'string', 'max:80'],
             'subjects.*.years_experience' => ['nullable', 'string', 'max:20'],
+            // A picture for each subject's card
+            'subjects.*.image' => ['nullable', 'string', 'max:255'],
+            'subjects.*.image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'subjects.*.remove_image' => ['nullable', 'boolean'],
             'subjects.*.classes_lines' => ['nullable', 'string', 'max:2000'],
             'subjects.*.boards_lines' => ['nullable', 'string', 'max:2000'],
             'qualifications' => ['nullable', 'array'],
@@ -113,6 +117,9 @@ class EducatorProfileController extends Controller
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old.',
             'profile_photo.required' => 'A profile image is required for teacher / tutor profiles.',
+            'subjects.*.image_file.image' => 'A subject image must be a JPG, PNG or WebP picture.',
+            'subjects.*.image_file.mimes' => 'A subject image must be a JPG, PNG or WebP picture.',
+            'subjects.*.image_file.max' => 'A subject image can be up to 2 MB.',
         ], ProfilePhoneNumbers::validationMessages()));
 
         $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
@@ -150,7 +157,12 @@ class EducatorProfileController extends Controller
         $validated['teaching_modes'] = EducatorProfileLists::strings($validated['teaching_modes'] ?? []);
         $validated['achievements'] = EducatorProfileLists::strings($validated['achievements'] ?? []);
         $validated['certifications'] = EducatorProfileLists::strings($validated['certifications'] ?? []);
-        $validated['subjects'] = EducatorSubjects::fromFormSubmission($validated['subjects'] ?? []);
+        $previousSubjects = is_array($educator->subjects) ? $educator->subjects : [];
+        $validated['subjects'] = EducatorSubjects::fromFormSubmission(EducatorSubjects::withImages(
+            $validated['subjects'] ?? [],
+            (array) $request->file('subjects', []),
+            $previousSubjects
+        ));
         $validated['classes'] = EducatorSubjects::aggregateClasses($validated['subjects']);
         $validated['boards'] = EducatorSubjects::aggregateBoards($validated['subjects']);
         $validated['associated_with_school'] = $request->boolean('associated_with_school');
@@ -189,6 +201,11 @@ class EducatorProfileController extends Controller
             'password',
             'success_rate',
         ])->all());
+
+        // Subject pictures that were replaced, removed or whose subject was removed
+        foreach (EducatorSubjects::unusedImages($previousSubjects, $educator->subjects ?? []) as $unusedImage) {
+            EducatorFileUploader::deleteIfExists($unusedImage);
+        }
 
         // Only the owner editing their own profile is logged out to re-verify a changed number;
         // an admin editing on their behalf keeps their admin session.
