@@ -40,13 +40,14 @@
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "tc65hkaj5f");
     </script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJ8QTYE9ED"></script>
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6V1KSBF6E1"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'G-CJ8QTYE9ED');
+        gtag('config', 'G-6V1KSBF6E1');
     </script>
     @if($isEducatorModulePage)
         <link rel="stylesheet" href="{{ asset('assets/css/educator-module.css') }}?v={{ now()->timestamp }}">
