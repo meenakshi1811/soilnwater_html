@@ -52,6 +52,7 @@ class Educator extends Model
         'experiences',
         'achievements',
         'certifications',
+        'gallery',
         'availability',
         'teaching_modes',
         'service_area',
@@ -99,6 +100,7 @@ class Educator extends Model
             'experiences' => 'array',
             'achievements' => 'array',
             'certifications' => 'array',
+            'gallery' => 'array',
             'availability' => 'array',
             'teaching_modes' => 'array',
             'service_area' => 'array',
@@ -282,6 +284,32 @@ class Educator extends Model
     public function isVerified(): bool
     {
         return (bool) $this->is_verified && $this->isApproved();
+    }
+
+    /** Maximum number of photos in a teacher's gallery */
+    public const GALLERY_MAX = 20;
+
+    /** @return list<string> the gallery's image paths (under public/) */
+    public function galleryImages(): array
+    {
+        return array_values(array_filter(
+            (array) ($this->gallery ?? []),
+            fn ($path) => is_string($path) && str_starts_with($path, 'uploads/educators/gallery/')
+        ));
+    }
+
+    /**
+     * The teacher's articles: their published Community posts of the "Articles" type (written and
+     * approved in Community), newest first.
+     */
+    public function publishedArticlesQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return CommunityPost::query()
+            ->where('user_id', $this->user_id)
+            ->where('content_type', 'articles')
+            ->publiclyListed()
+            ->visibleOnAuthorProfile()
+            ->latest('published_at');
     }
 
     public function photoUrl(): ?string

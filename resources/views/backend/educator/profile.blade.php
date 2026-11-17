@@ -68,6 +68,9 @@
       <a href="#edu-section-account" class="edu-profile-nav__link is-active"><i class="fa-solid fa-user"></i> Account</a>
       <a href="#edu-section-about" class="edu-profile-nav__link"><i class="fa-solid fa-chalkboard"></i> About & teaching</a>
       <a href="#edu-section-subjects" class="edu-profile-nav__link"><i class="fa-solid fa-book"></i> Subjects</a>
+      <a href="#edu-section-materials" class="edu-profile-nav__link"><i class="fa-solid fa-folder-open"></i> Courses & material</a>
+      <a href="#edu-section-articles" class="edu-profile-nav__link"><i class="fa-solid fa-newspaper"></i> Articles</a>
+      <a href="#edu-section-gallery" class="edu-profile-nav__link"><i class="fa-solid fa-images"></i> Gallery</a>
       <a href="#edu-section-socials" class="edu-profile-nav__link"><i class="fa-solid fa-share-nodes"></i> Socials</a>
     </nav>
 
@@ -368,6 +371,91 @@
               ])
             @endforeach
           </div>
+        </section>
+
+        @php
+          $isManagedByAdmin = (bool) ($managedEducator ?? null);
+          $materialCounts = $educator->studyMaterials()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+          $approvedMaterials = (int) ($materialCounts['approved'] ?? 0);
+          $pendingMaterials = (int) ($materialCounts['pending'] ?? 0);
+          $approvedCourses = $educator->coursesQuery()->count();
+          $articleCount = $educator->user_id ? $educator->publishedArticlesQuery()->count() : 0;
+          $galleryPhotos = $educator->galleryImages();
+        @endphp
+
+        {{-- Courses & Study Material: uploaded on the Study Material pages (files, type, class…) --}}
+        <section id="edu-section-materials" class="edu-profile-section">
+          <header class="edu-profile-section__head">
+            <span class="edu-profile-section__icon edu-profile-section__icon--blue"><i class="fa-solid fa-folder-open" aria-hidden="true"></i></span>
+            <div>
+              <h3 class="edu-profile-section__title">Courses &amp; Study Material</h3>
+              <p class="edu-profile-section__desc">Notes, question papers, worksheets, study guides, videos and other material, uploaded with their files. Approved ones appear on your public profile: study guides, videos, reference books, papers, worksheets and assignments under Courses, everything under Study Material.</p>
+            </div>
+          </header>
+          <div class="edu-content-stats">
+            <span><strong>{{ $approvedCourses }}</strong> {{ \Illuminate\Support\Str::plural('course', $approvedCourses) }} on your profile</span>
+            <span><strong>{{ $approvedMaterials }}</strong> approved {{ \Illuminate\Support\Str::plural('material', $approvedMaterials) }}</span>
+            @if($pendingMaterials > 0)<span class="is-pending"><strong>{{ $pendingMaterials }}</strong> waiting for approval</span>@endif
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            @if($isManagedByAdmin)
+              <a href="{{ route('admin.study-materials.index') }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-list me-1" aria-hidden="true"></i> Study materials (approval)</a>
+              <span class="text-muted small align-self-center">The teacher uploads material from their own account.</span>
+            @else
+              <a href="{{ route('educator.materials.create') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1" aria-hidden="true"></i> Upload course / study material</a>
+              <a href="{{ route('educator.materials.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-list me-1" aria-hidden="true"></i> Manage my materials</a>
+            @endif
+          </div>
+        </section>
+
+        {{-- Articles: the teacher's Community posts of the "Articles" type --}}
+        <section id="edu-section-articles" class="edu-profile-section">
+          <header class="edu-profile-section__head">
+            <span class="edu-profile-section__icon edu-profile-section__icon--violet"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span>
+            <div>
+              <h3 class="edu-profile-section__title">Articles</h3>
+              <p class="edu-profile-section__desc">Write articles in Community (choose the "Articles" type). Once published they appear in the Articles section of your public profile.</p>
+            </div>
+          </header>
+          <div class="edu-content-stats">
+            <span><strong>{{ $articleCount }}</strong> published {{ \Illuminate\Support\Str::plural('article', $articleCount) }}</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            @if($isManagedByAdmin)
+              <span class="text-muted small">The teacher writes articles from their own account.</span>
+            @else
+              <a href="{{ route('community.posts.create', ['type' => 'articles']) }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen-to-square me-1" aria-hidden="true"></i> Write an article</a>
+              <a href="{{ route('community.posts.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-list me-1" aria-hidden="true"></i> Manage my posts</a>
+            @endif
+          </div>
+        </section>
+
+        {{-- Gallery: photos on the public profile --}}
+        <section id="edu-section-gallery" class="edu-profile-section">
+          <header class="edu-profile-section__head">
+            <span class="edu-profile-section__icon edu-profile-section__icon--green"><i class="fa-solid fa-images" aria-hidden="true"></i></span>
+            <div>
+              <h3 class="edu-profile-section__title">Gallery</h3>
+              <p class="edu-profile-section__desc">Photos of your classes, events, awards or teaching space (up to {{ \App\Models\Educator::GALLERY_MAX }}). They appear in the Gallery section of your public profile.</p>
+            </div>
+          </header>
+          @if($galleryPhotos !== [])
+            <div class="edu-gallery-manage">
+              @foreach($galleryPhotos as $photoIndex => $photo)
+                <label class="edu-gallery-manage__item">
+                  <img src="{{ asset($photo) }}" alt="">
+                  <span class="edu-gallery-manage__remove">
+                    <input type="checkbox" name="gallery_remove[]" value="{{ $photo }}"> Remove
+                  </span>
+                </label>
+              @endforeach
+            </div>
+          @else
+            <p class="text-muted small mb-2">No photos yet.</p>
+          @endif
+          <label class="form-label mt-2" for="eduGalleryFiles">Add photos</label>
+          <input type="file" id="eduGalleryFiles" name="gallery_files[]" class="form-control" accept="image/jpeg,image/png,image/webp" multiple>
+          <small class="text-muted">Choose one or more pictures (JPG, PNG or WebP, up to 4 MB each). They're added when you click Save changes; tick "Remove" on a photo to delete it.</small>
         </section>
 
         <section id="edu-section-socials" class="edu-profile-section">

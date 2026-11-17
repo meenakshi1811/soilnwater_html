@@ -46,6 +46,11 @@
   $showCourses = $coursesPreview->isNotEmpty() || $isOwnerView;
   $showStudyMaterials = $studyMaterialsPreview->isNotEmpty() || $isOwnerView;
   $showAchievements = $achievements->isNotEmpty() || $isOwnerView;
+  $articlesPreview = collect($articles ?? []);
+  $galleryPhotos = $educator->galleryImages();
+  $showArticles = $articlesPreview->isNotEmpty() || $isOwnerView;
+  $showGallery = $galleryPhotos !== [] || $isOwnerView;
+  $profileEditUrl = route('educator.profile.edit');
   $showCertifications = $certifications->isNotEmpty() || $isOwnerView;
   // Contact details the teacher chose to show (the enquiry form is always there)
   $publicPhones = ($educator->show_phone ?? true) ? $educator->phoneNumbersList() : [];
@@ -68,6 +73,8 @@
     ['id' => 'edu-experience', 'label' => 'Experience & Education', 'icon' => 'fa-briefcase'],
     ['id' => 'edu-courses', 'label' => 'Courses', 'icon' => 'fa-graduation-cap', 'show_when' => $showCourses],
     ['id' => 'edu-study-materials', 'label' => 'Study Material', 'icon' => 'fa-folder-open', 'show_when' => $showStudyMaterials],
+    ['id' => 'edu-articles', 'label' => 'Articles', 'icon' => 'fa-newspaper', 'show_when' => $showArticles],
+    ['id' => 'edu-gallery', 'label' => 'Gallery', 'icon' => 'fa-images', 'show_when' => $showGallery],
     ['id' => 'edu-fees', 'label' => 'Fees & Packages', 'icon' => 'fa-indian-rupee-sign', 'show_when' => $showTuitionDetails],
     ['id' => 'edu-question', 'label' => 'Ask a Question', 'icon' => 'fa-circle-question'],
     ['id' => 'edu-reviews', 'label' => 'Students & Reviews', 'icon' => 'fa-star'],
@@ -473,7 +480,7 @@
               </div>
             </div>
           @else
-            <p class="edu-empty">No courses yet. Only you can see this section until you add one: upload study guides, videos, reference books, papers or assignments and they appear here once approved.</p>
+            <p class="edu-empty">No courses yet. Only you can see this section until you add one: <a href="{{ route('educator.materials.create') }}">upload study guides, videos, reference books, papers or assignments</a> and they appear here once approved.</p>
           @endif
         </section>
         @endif
@@ -508,12 +515,67 @@
               </div>
             </div>
           @else
-            <p class="edu-empty">No study materials yet. Only you can see this section until you add some: uploads appear here once approved.</p>
+            <p class="edu-empty">No study materials yet. Only you can see this section until you add some: <a href="{{ route('educator.materials.create') }}">upload study material</a> and it appears here once approved.</p>
           @endif
         </section>
         @endif
 
-        {{-- (Articles and Gallery: left out until teachers can add to them) --}}
+        {{-- Articles: the teacher's published Community articles --}}
+        @if($showArticles)
+        <section class="edu-section" id="edu-articles">
+          <div class="edu-section__head">
+            <h2 class="edu-section__title"><i class="fa-solid fa-newspaper" aria-hidden="true"></i> Articles</h2>
+            @if(($articlesTotal ?? 0) > $articlesPreview->count())
+              <a href="{{ route('community.authors.show', ['uniqueName' => $educator->user->authorUniqueName(), 'type' => 'articles']) }}" class="edu-section__link">
+                View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            @endif
+          </div>
+          @if($articlesPreview->isNotEmpty())
+            <div class="edu-articles-list">
+              @foreach($articlesPreview as $article)
+                @php $articleImage = $article->featuredImageUrl(); @endphp
+                <a href="{{ route('community.show', $article) }}" class="edu-article-card">
+                  @if($articleImage)
+                    <img src="{{ $articleImage }}" alt="" class="edu-article-card__image" loading="lazy">
+                  @else
+                    <span class="edu-article-card__image edu-article-card__image--placeholder"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span>
+                  @endif
+                  <span class="edu-article-card__body">
+                    <strong class="edu-article-card__title">{{ $article->title }}</strong>
+                    @if(filled($article->excerpt))
+                      <span class="edu-article-card__excerpt">{{ \Illuminate\Support\Str::limit(strip_tags($article->excerpt), 120) }}</span>
+                    @endif
+                    @if($article->published_at)
+                      <span class="edu-article-card__date">{{ $article->published_at->format('d M Y') }}</span>
+                    @endif
+                  </span>
+                </a>
+              @endforeach
+            </div>
+          @else
+            <p class="edu-empty">No articles yet. Only you can see this section until you publish one: <a href="{{ route('community.posts.create', ['type' => 'articles']) }}">write an article in Community</a> (type "Articles") and it appears here.</p>
+          @endif
+        </section>
+        @endif
+
+        {{-- Gallery: photos the teacher added in their profile --}}
+        @if($showGallery)
+        <section class="edu-section" id="edu-gallery">
+          <h2 class="edu-section__title"><i class="fa-solid fa-images" aria-hidden="true"></i> Gallery</h2>
+          @if($galleryPhotos !== [])
+            <div class="edu-gallery-grid">
+              @foreach($galleryPhotos as $photo)
+                <a href="{{ asset($photo) }}" class="edu-gallery-grid__item" target="_blank" rel="noopener">
+                  <img src="{{ asset($photo) }}" alt="Photo from {{ $educator->display_name }}" loading="lazy">
+                </a>
+              @endforeach
+            </div>
+          @else
+            <p class="edu-empty">No photos yet. Only you can see this section until you add some: <a href="{{ $profileEditUrl }}#edu-section-gallery">add photos in your profile</a>.</p>
+          @endif
+        </section>
+        @endif
 
         @if($showTuitionDetails)
         {{-- 14. Fees & Packages --}}

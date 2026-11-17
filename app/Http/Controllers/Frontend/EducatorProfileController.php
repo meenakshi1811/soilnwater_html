@@ -42,6 +42,8 @@ class EducatorProfileController extends Controller
         $coursesQuery = $educator->coursesQuery();
         $coursesTotal = (clone $coursesQuery)->count();
         $courses = $coursesQuery->latest()->limit(6)->get();
+        $articlesTotal = $educator->user_id ? (clone $educator->publishedArticlesQuery())->count() : 0;
+        $articles = $articlesTotal > 0 ? $educator->publishedArticlesQuery()->limit(6)->get() : collect();
 
         $profileReviewsPage = $this->profileReviewsPaginated($educator, 0, 5);
         $profileReviews = $profileReviewsPage['items'];
@@ -68,6 +70,8 @@ class EducatorProfileController extends Controller
             'studyMaterialsTotal',
             'courses',
             'coursesTotal',
+            'articles',
+            'articlesTotal',
             'profileReviews',
             'profileReviewsTotal',
             'profileReviewsHasMore',

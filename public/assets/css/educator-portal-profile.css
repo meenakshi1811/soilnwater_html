@@ -1091,3 +1091,54 @@ body.soilnwater-google-places-active .edu-profile-page .pac-container:not(:has(.
   border: 1px solid #e2e8f0;
   flex: 0 0 auto;
 }
+
+.edu-profile-page .edu-profile-section__icon--blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Courses & material / Articles: the counts line */
+.edu-profile-page .edu-content-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.edu-profile-page .edu-content-stats strong {
+  color: #0f172a;
+}
+
+.edu-profile-page .edu-content-stats .is-pending strong {
+  color: #b45309;
+}
+
+/* Gallery: the current photos, each with a "Remove" tick */
+.edu-profile-page .edu-gallery-manage {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.edu-profile-page .edu-gallery-manage__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.edu-profile-page .edu-gallery-manage__item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.edu-profile-page .edu-gallery-manage__remove {
+  font-size: 0.8rem;
+  color: #b91c1c;
+}

@@ -108,6 +108,11 @@ class EducatorProfileController extends Controller
             'youtube_url' => ['nullable', 'url', 'max:500'],
             'linkedin_url' => ['nullable', 'url', 'max:500'],
             'whatsapp_url' => ['nullable', 'url', 'max:500'],
+            // Gallery: new photos and the ones to remove
+            'gallery_files' => ['nullable', 'array', 'max:'.Educator::GALLERY_MAX],
+            'gallery_files.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'gallery_remove' => ['nullable', 'array'],
+            'gallery_remove.*' => ['string', 'max:255'],
             // Which contact details the public page shows
             'show_phone' => ['nullable', 'boolean'],
             'show_whatsapp' => ['nullable', 'boolean'],
@@ -120,6 +125,10 @@ class EducatorProfileController extends Controller
             'subjects.*.image_file.image' => 'A subject image must be a JPG, PNG or WebP picture.',
             'subjects.*.image_file.mimes' => 'A subject image must be a JPG, PNG or WebP picture.',
             'subjects.*.image_file.max' => 'A subject image can be up to 2 MB.',
+            'gallery_files.max' => 'The gallery can have up to '.Educator::GALLERY_MAX.' photos.',
+            'gallery_files.*.image' => 'Gallery photos must be JPG, PNG or WebP pictures.',
+            'gallery_files.*.mimes' => 'Gallery photos must be JPG, PNG or WebP pictures.',
+            'gallery_files.*.max' => 'Each gallery photo can be up to 4 MB.',
         ], ProfilePhoneNumbers::validationMessages()));
 
         $phoneNumbers = ProfilePhoneNumbers::normalize($validated['phone_numbers']);
@@ -157,6 +166,22 @@ class EducatorProfileController extends Controller
         $validated['teaching_modes'] = EducatorProfileLists::strings($validated['teaching_modes'] ?? []);
         $validated['achievements'] = EducatorProfileLists::strings($validated['achievements'] ?? []);
         $validated['certifications'] = EducatorProfileLists::strings($validated['certifications'] ?? []);
+        // Gallery: drop the photos marked for removal (only this teacher's own), add the new ones
+        $galleryBefore = $educator->galleryImages();
+        $galleryRemove = array_values(array_intersect($galleryBefore, (array) ($validated['gallery_remove'] ?? [])));
+        $galleryKept = array_values(array_diff($galleryBefore, $galleryRemove));
+        $galleryNew = array_values(array_filter((array) $request->file('gallery_files', []), fn ($file) => $file instanceof \Illuminate\Http\UploadedFile && $file->isValid()));
+        if (count($galleryKept) + count($galleryNew) > Educator::GALLERY_MAX) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'gallery_files' => 'The gallery can have up to '.Educator::GALLERY_MAX.' photos. Remove some before adding more.',
+            ]);
+        }
+        foreach ($galleryNew as $galleryFile) {
+            $galleryKept[] = EducatorFileUploader::storeImage($galleryFile, 'gallery');
+        }
+        $validated['gallery'] = $galleryKept;
+        unset($validated['gallery_files'], $validated['gallery_remove']);
+
         $previousSubjects = is_array($educator->subjects) ? $educator->subjects : [];
         $validated['subjects'] = EducatorSubjects::fromFormSubmission(EducatorSubjects::withImages(
             $validated['subjects'] ?? [],
@@ -201,6 +226,10 @@ class EducatorProfileController extends Controller
             'password',
             'success_rate',
         ])->all());
+
+        foreach ($galleryRemove as $removedPhoto) {
+            EducatorFileUploader::deleteIfExists($removedPhoto);
+        }
 
         // Subject pictures that were replaced, removed or whose subject was removed
         foreach (EducatorSubjects::unusedImages($previousSubjects, $educator->subjects ?? []) as $unusedImage) {
