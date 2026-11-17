@@ -6,19 +6,66 @@
 @endpush
 
 @section('content')
+@php
+    $registerRoles = ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'school', 'college', 'institute', 'student'];
+    $selectedRole = (string) old('role', in_array(request('role'), $registerRoles, true) ? request('role') : '');
+    $introGroups = [
+        'vendor' => 'business', 'consultant' => 'business', 'service_provider' => 'business',
+        'teacher' => 'teacher',
+        'school' => 'institution', 'college' => 'institution', 'institute' => 'institution',
+        'student' => 'student',
+    ];
+    $activeIntro = $introGroups[$selectedRole] ?? 'general';
+    $registerIntros = [
+        'general' => [
+            'pill' => 'SOILNWATER',
+            'title' => 'Create your SoilnWater account.',
+            'text' => 'One account for local businesses and services, education, offers and the community on SoilnWater.',
+            'points' => ['Find local businesses, services and offers', 'Learn with study materials, teachers and schools', 'Take part in community discussions'],
+        ],
+        'business' => [
+            'pill' => 'SOILNWATER BUSINESS',
+            'title' => 'Create your business account.',
+            'text' => 'List your business, products or services so customers in your area can find you.',
+            'points' => ['A business profile and public page', 'Post offers, discounts and ads', 'Receive and answer enquiries'],
+        ],
+        'teacher' => [
+            'pill' => 'SOILNWATER EDUCATION',
+            'title' => 'Create your Teacher / Tutor account.',
+            'text' => 'Build your professional teaching profile and showcase your expertise.',
+            'points' => ['Showcase your qualifications and experience', 'List the subjects and classes you teach', 'Show tuition fees and batch details', 'Upload and share study materials'],
+        ],
+        'institution' => [
+            'pill' => 'SOILNWATER EDUCATION',
+            'title' => 'Create your school, college or institute account.',
+            'text' => 'Give your institution a public profile that students and parents can find.',
+            'points' => ['Profile, photos and facilities', 'Courses, admissions, scholarships and jobs', 'Notices and enquiries in one place'],
+        ],
+        'student' => [
+            'pill' => 'SOILNWATER EDUCATION',
+            'title' => 'Create your student account.',
+            'text' => 'Study materials, teachers, courses and exams in one place.',
+            'points' => ['Notes, question papers and worksheets', 'Find teachers, tutors and schools', 'Courses, scholarships and opportunities'],
+        ],
+    ];
+@endphp
 <section class="register-page-wrap">
     <div class="container">
         <div class="register-layout">
+            {{-- The intro follows the role picked (a link like /register?role=teacher picks it ahead) --}}
             <aside class="register-intro">
-                <span class="intro-pill">SOILNWATER</span>
-                <h1>Build your trusted marketplace profile.</h1>
-                <p>Create your account to connect with verified agricultural buyers and sellers across local and national markets.</p>
-
-                <ul class="intro-points">
-                    <li><i class="fa-solid fa-circle-check"></i> Verified user onboarding</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Faster order and inquiry management</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Secure account access controls</li>
-                </ul>
+                @foreach ($registerIntros as $introKey => $intro)
+                    <div class="register-intro__variant {{ $introKey === $activeIntro ? '' : 'd-none' }}" data-intro="{{ $introKey }}">
+                        <span class="intro-pill">{{ $intro['pill'] }}</span>
+                        <h1>{{ $intro['title'] }}</h1>
+                        <p>{{ $intro['text'] }}</p>
+                        <ul class="intro-points">
+                            @foreach ($intro['points'] as $point)
+                                <li><i class="fa-solid fa-circle-check"></i> {{ $point }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
             </aside>
 
             <div class="card auth-card register-form-card">
@@ -102,24 +149,24 @@
                             <label for="role" class="form-label">Select Role</label>
                             <select id="role" class="form-select @error('role') is-invalid @enderror" name="role" required>
                                 <option value="">Choose your role</option>
-                                <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
-                                <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
-                                <!-- <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
-                                <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option> -->
-                                <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
-                                <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
-                                <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
-                                <option value="school" {{ old('role') === 'school' ? 'selected' : '' }}>School</option>
-                            <option value="college" {{ old('role') === 'college' ? 'selected' : '' }}>College / University</option>
-                                <option value="institute" {{ old('role') === 'institute' ? 'selected' : '' }}>Institute (Coaching / Training)</option>
-                                <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
+                                <option value="user" {{ $selectedRole === 'user' ? 'selected' : '' }}>User</option>
+                                <option value="vendor" {{ $selectedRole === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                                <!-- <option value="builder" {{ $selectedRole === 'builder' ? 'selected' : '' }}>Builder</option>
+                                <option value="developer" {{ $selectedRole === 'developer' ? 'selected' : '' }}>Developer</option> -->
+                                <option value="consultant" {{ $selectedRole === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                                <option value="service_provider" {{ $selectedRole === 'service_provider' ? 'selected' : '' }}>Service</option>
+                                <option value="teacher" {{ $selectedRole === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
+                                <option value="school" {{ $selectedRole === 'school' ? 'selected' : '' }}>School</option>
+                            <option value="college" {{ $selectedRole === 'college' ? 'selected' : '' }}>College / University</option>
+                                <option value="institute" {{ $selectedRole === 'institute' ? 'selected' : '' }}>Institute (Coaching / Training)</option>
+                                <option value="student" {{ $selectedRole === 'student' ? 'selected' : '' }}>Student</option>
                             </select>
                             @error('role')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'student', 'school', 'college', 'institute'], true) ? '' : 'd-none' }}">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array($selectedRole, ['user', 'vendor', 'consultant', 'service_provider', 'teacher', 'student', 'school', 'college', 'institute'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, services, and teachers / tutors, this image will also appear on the public profile.</small>
@@ -177,14 +224,15 @@
                                 class="form-control @error('date_of_birth') is-invalid @enderror"
                                 name="date_of_birth"
                                 value="{{ old('date_of_birth') }}"
-                                max="{{ old('role') === 'student' ? now()->subYears(16)->toDateString() : now()->subYears(18)->toDateString() }}"
+                                max="{{ $selectedRole === 'student' ? now()->subYears(16)->toDateString() : now()->subYears(18)->toDateString() }}"
                                 data-student-max="{{ now()->subYears(16)->toDateString() }}"
                                 data-default-max="{{ now()->subYears(18)->toDateString() }}"
                                 required
                             >
                             <small id="dateOfBirthHint" class="text-muted">
-                                {{ old('role') === 'student' ? 'Students must be at least 16 years old to register.' : 'You must be at least 18 years old to register.' }}
+                                {{ $selectedRole === 'student' ? 'Students must be at least 16 years old to register.' : 'You must be at least 18 years old to register.' }}
                             </small>
+                            <small class="text-muted d-block">Used only to confirm age eligibility. It is not shown on your public profile.</small>
                             @error('date_of_birth')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
@@ -249,16 +297,16 @@
                         <label for="google_role" class="form-label">Select Role</label>
                         <select id="google_role" class="form-select @error('role') is-invalid @enderror" name="role" required>
                             <option value="">Choose your role</option>
-                            <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
-                            <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
-                            <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
-                            <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
-                            <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
-                            <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
-                            <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
-                            <option value="school" {{ old('role') === 'school' ? 'selected' : '' }}>School</option>
-                            <option value="college" {{ old('role') === 'college' ? 'selected' : '' }}>College / University</option>
-                            <option value="institute" {{ old('role') === 'institute' ? 'selected' : '' }}>Institute (Coaching / Training)</option>
+                            <option value="user" {{ $selectedRole === 'user' ? 'selected' : '' }}>User</option>
+                            <option value="vendor" {{ $selectedRole === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                            <option value="builder" {{ $selectedRole === 'builder' ? 'selected' : '' }}>Builder</option>
+                            <option value="developer" {{ $selectedRole === 'developer' ? 'selected' : '' }}>Developer</option>
+                            <option value="consultant" {{ $selectedRole === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                            <option value="service_provider" {{ $selectedRole === 'service_provider' ? 'selected' : '' }}>Service</option>
+                            <option value="teacher" {{ $selectedRole === 'teacher' ? 'selected' : '' }}>Teacher / Tutor</option>
+                            <option value="school" {{ $selectedRole === 'school' ? 'selected' : '' }}>School</option>
+                            <option value="college" {{ $selectedRole === 'college' ? 'selected' : '' }}>College / University</option>
+                            <option value="institute" {{ $selectedRole === 'institute' ? 'selected' : '' }}>Institute (Coaching / Training)</option>
                         </select>
                         @error('role')
                             <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
@@ -345,4 +393,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+(function () {
+    // The intro panel follows the role picked
+    var select = document.getElementById('role');
+    if (!select) return;
+    var groups = {vendor: 'business', consultant: 'business', service_provider: 'business', teacher: 'teacher',
+        school: 'institution', college: 'institution', institute: 'institution', student: 'student'};
+    select.addEventListener('change', function () {
+        var key = groups[select.value] || 'general';
+        document.querySelectorAll('.register-intro__variant').forEach(function (el) {
+            el.classList.toggle('d-none', el.getAttribute('data-intro') !== key);
+        });
+    });
+})();
+</script>
 @endpush
