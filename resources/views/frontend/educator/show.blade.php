@@ -189,28 +189,20 @@
                 <span>(<span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews)</span>
               </div>
 
-              @if($yearsExperience > 0 || $studentsTaught > 0 || $hasSuccessRate)
-                <div class="edu-overview__stats">
-                  @if($yearsExperience > 0)
-                    <div class="edu-overview__stat">
-                      <strong>{{ $yearsExperience }}+</strong>
-                      <span>Years</span>
-                    </div>
-                  @endif
-                  @if($studentsTaught > 0)
-                    <div class="edu-overview__stat">
-                      <strong>{{ number_format($studentsTaught) }}</strong>
-                      <span>Students</span>
-                    </div>
-                  @endif
-                  @if($hasSuccessRate)
-                    <div class="edu-overview__stat">
-                      <strong>{{ number_format((float) $educator->success_rate, 2) }}%</strong>
-                      <span>Success Rate</span>
-                    </div>
-                  @endif
+              <div class="edu-overview__stats">
+                <div class="edu-overview__stat">
+                  <strong>{{ $yearsExperience }}+</strong>
+                  <span>Years</span>
                 </div>
-              @endif
+                <div class="edu-overview__stat">
+                  <strong>{{ number_format($studentsTaught) }}</strong>
+                  <span>Students</span>
+                </div>
+                <div class="edu-overview__stat">
+                  <strong>{{ $hasSuccessRate ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
+                  <span>Success Rate</span>
+                </div>
+              </div>
             </div>
 
             <div class="edu-overview__actions-col">
@@ -387,38 +379,28 @@
         <section class="edu-section" id="edu-experience">
           <h2 class="edu-section__title"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Experience &amp; Education{!! $eduPencil('experience', 'Experience & education') !!}</h2>
 
-          @if($yearsExperience > 0 || $studentsTaught > 0 || $hasSuccessRate || (int) $educator->approved_materials_count > 0)
-            <div class="edu-exp-stats">
-              @if($yearsExperience > 0)
-                <div class="edu-exp-stat">
-                  <i class="fa-solid fa-clock" aria-hidden="true"></i>
-                  <strong>{{ $yearsExperience }}+</strong>
-                  <span>Years Experience</span>
-                </div>
-              @endif
-              @if($studentsTaught > 0)
-                <div class="edu-exp-stat">
-                  <i class="fa-solid fa-users" aria-hidden="true"></i>
-                  <strong>{{ number_format($studentsTaught) }}</strong>
-                  <span>Students Taught</span>
-                </div>
-              @endif
-              @if($hasSuccessRate)
-                <div class="edu-exp-stat">
-                  <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-                  <strong>{{ number_format((float) $educator->success_rate, 2) }}%</strong>
-                  <span>Success Rate</span>
-                </div>
-              @endif
-              @if((int) $educator->approved_materials_count > 0)
-                <div class="edu-exp-stat">
-                  <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
-                  <strong>{{ number_format($educator->approved_materials_count) }}</strong>
-                  <span>Materials</span>
-                </div>
-              @endif
+          <div class="edu-exp-stats">
+            <div class="edu-exp-stat">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              <strong>{{ $yearsExperience }}+</strong>
+              <span>Years Experience</span>
             </div>
-          @endif
+            <div class="edu-exp-stat">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              <strong>{{ number_format($studentsTaught) }}</strong>
+              <span>Students Taught</span>
+            </div>
+            <div class="edu-exp-stat">
+              <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+              <strong>{{ $hasSuccessRate ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
+              <span>Success Rate</span>
+            </div>
+            <div class="edu-exp-stat">
+              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+              <strong>{{ number_format((int) $educator->approved_materials_count) }}</strong>
+              <span>Materials</span>
+            </div>
+          </div>
 
           <div class="edu-exp-grid">
             <div>
@@ -1062,27 +1044,21 @@
 
         <div class="edu-sidebar-card">
           <h3><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Teaching Stats</h3>
-          @if($yearsExperience > 0)
-            <div class="edu-stat-row">
-              <i class="fa-solid fa-clock" aria-hidden="true"></i>
-              <span>Experience</span>
-              <strong>{{ $yearsExperience }}+ yrs</strong>
-            </div>
-          @endif
-          @if($studentsTaught > 0)
-            <div class="edu-stat-row">
-              <i class="fa-solid fa-users" aria-hidden="true"></i>
-              <span>Students taught</span>
-              <strong>{{ number_format($studentsTaught) }}</strong>
-            </div>
-          @endif
-          @if($hasSuccessRate)
-            <div class="edu-stat-row">
-              <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-              <span>Success rate</span>
-              <strong>{{ $educator->success_rate }}%</strong>
-            </div>
-          @endif
+          <div class="edu-stat-row">
+            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+            <span>Experience</span>
+            <strong>{{ $yearsExperience }}+ yrs</strong>
+          </div>
+          <div class="edu-stat-row">
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
+            <span>Students taught</span>
+            <strong>{{ number_format($studentsTaught) }}</strong>
+          </div>
+          <div class="edu-stat-row">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <span>Success rate</span>
+            <strong>{{ $hasSuccessRate ? $educator->success_rate.'%' : '—' }}</strong>
+          </div>
           <div class="edu-stat-row">
             <i class="fa-solid fa-star" aria-hidden="true"></i>
             <span>Rating</span>
