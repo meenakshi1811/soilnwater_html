@@ -175,14 +175,16 @@ class PushNotificationService
         // (read once per key file and process)
         static $cache = [];
 
-        $path = trim((string) config('services.firebase.credentials'));
-        if ($path === '') {
+        $setting = trim((string) config('services.firebase.credentials'));
+        if ($setting === '') {
             return null;
         }
-        if (array_key_exists($path, $cache)) {
-            return $cache[$path];
+        if (array_key_exists($setting, $cache)) {
+            return $cache[$setting];
         }
-        $cache[$path] = null;
+        $cache[$setting] = null;
+        // (a relative path is from the project folder, e.g. storage/app/firebase-credentials.json)
+        $path = $setting;
         if (! str_starts_with($path, '/') && ! preg_match('#^[A-Za-z]:[\\\\/]#', $path)) {
             $path = base_path($path);
         }
@@ -204,7 +206,7 @@ class PushNotificationService
             return null;
         }
 
-        return $cache[$path] = [
+        return $cache[$setting] = [
             'project_id' => $projectId,
             'client_email' => (string) $json['client_email'],
             'private_key' => (string) $json['private_key'],
