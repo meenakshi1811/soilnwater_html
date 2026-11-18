@@ -1,7 +1,7 @@
-{{-- A "Courses & Programs Offered" card: its photo (or icon), title, classes and description --}}
+{{-- A "Courses & Programs Offered" card, like a facility card: its photo (or icon) on top, then title, classes and description --}}
 <article class="sch-course-card">
   @if(filled($wing['image'] ?? null))
-    <img src="{{ asset($wing['image']) }}" alt="" class="sch-course-card__image" loading="lazy" decoding="async">
+    <img src="{{ asset($wing['image']) }}" alt="{{ $wing['title'] }}" class="sch-course-card__image" loading="lazy" decoding="async">
   @else
     <span class="sch-course-card__icon"><i class="fa-solid {{ $wing['icon'] }}" aria-hidden="true"></i></span>
   @endif
