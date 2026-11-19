@@ -41,11 +41,12 @@
   // One experience figure for the whole page (never below the subject rows or work history)
   $yearsExperience = $educator->effectiveYearsExperience();
   $studentsTaught = (int) $educator->students_taught;
-  $hasSuccessRate = $educator->success_rate !== null && (float) $educator->success_rate > 0;
   // Sections with nothing in them are left out for visitors (the owner still sees them, to fill in)
   $showCourses = $coursesPreview->isNotEmpty() || $isOwnerView;
   $showStudyMaterials = $studyMaterialsPreview->isNotEmpty() || $isOwnerView;
   $showAchievements = $achievements->isNotEmpty() || $isOwnerView;
+  $reviewsCount = (int) $educator->reviews_count;
+  $hasReviews = $reviewsCount > 0;
   $articlesPreview = collect($articles ?? []);
   $galleryPhotos = $educator->galleryImages();
   $showArticles = $articlesPreview->isNotEmpty() || $isOwnerView;
@@ -188,12 +189,15 @@
                 <p class="edu-overview__tagline">{{ $educator->publicTagline() }}</p>
               @endif
 
-              <div class="edu-overview__rating">
-                @for($s = 1; $s <= 5; $s++)
-                  <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
-                @endfor
+              {{-- Stars and count only once there are reviews (shown by the page script after the first one) --}}
+              <div class="edu-overview__rating js-edu-rating-block{{ $hasReviews ? '' : ' d-none' }}">
+                <span class="js-edu-stars">
+                  @for($s = 1; $s <= 5; $s++)
+                    <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
+                  @endfor
+                </span>
                 <strong class="js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
-                <span>(<span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews)</span>
+                <span>(<span class="js-edu-reviews-count">{{ number_format($reviewsCount) }}</span> <span class="js-edu-reviews-word">{{ \Illuminate\Support\Str::plural('review', $reviewsCount) }}</span>)</span>
               </div>
 
               <div class="edu-overview__stats">
@@ -204,10 +208,6 @@
                 <div class="edu-overview__stat">
                   <strong>{{ number_format($studentsTaught) }}</strong>
                   <span>Students</span>
-                </div>
-                <div class="edu-overview__stat">
-                  <strong>{{ $hasSuccessRate ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
-                  <span>Success Rate</span>
                 </div>
               </div>
             </div>
@@ -400,11 +400,6 @@
               <i class="fa-solid fa-users" aria-hidden="true"></i>
               <strong>{{ number_format($studentsTaught) }}</strong>
               <span>Students Taught</span>
-            </div>
-            <div class="edu-exp-stat">
-              <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-              <strong>{{ $hasSuccessRate ? number_format((float) $educator->success_rate, 2).'%' : '—' }}</strong>
-              <span>Success Rate</span>
             </div>
             <div class="edu-exp-stat">
               <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
@@ -854,18 +849,18 @@
             data-reviews-total="{{ (int) ($profileReviewsTotal ?? 0) }}"
             data-reviews-preview-limit="5"
           >
-            <div class="edu-reviews-summary">
+            <div class="edu-reviews-summary js-edu-rating-block{{ $hasReviews ? '' : ' d-none' }}">
               <div class="edu-reviews-summary__score">
                 <strong class="edu-reviews-summary__value js-edu-avg-rating">{{ number_format((float) $educator->average_rating, 1) }}</strong>
                 <span class="edu-reviews-summary__out-of">out of 5</span>
               </div>
-              <div class="edu-reviews-summary__stars" aria-label="{{ number_format((float) $educator->average_rating, 1) }} out of 5 stars">
+              <div class="edu-reviews-summary__stars js-edu-stars" aria-label="{{ number_format((float) $educator->average_rating, 1) }} out of 5 stars">
                 @for($s = 1; $s <= 5; $s++)
                   <i class="fa-{{ $s <= (int) round((float) $educator->average_rating) ? 'solid' : 'regular' }} fa-star" aria-hidden="true"></i>
                 @endfor
               </div>
               <p class="edu-reviews-summary__meta mb-0">
-                Based on <span class="js-edu-reviews-count">{{ number_format($educator->reviews_count) }}</span> reviews
+                Based on <span class="js-edu-reviews-count">{{ number_format($reviewsCount) }}</span> <span class="js-edu-reviews-word">{{ \Illuminate\Support\Str::plural('review', $reviewsCount) }}</span>
                 <span class="edu-reviews-summary__note">(profile + study materials)</span>
               </p>
             </div>
@@ -1120,16 +1115,13 @@
             <span>Students taught</span>
             <strong>{{ number_format($studentsTaught) }}</strong>
           </div>
-          <div class="edu-stat-row">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-            <span>Success rate</span>
-            <strong>{{ $hasSuccessRate ? $educator->success_rate.'%' : '—' }}</strong>
-          </div>
+          @if($hasReviews)
           <div class="edu-stat-row">
             <i class="fa-solid fa-star" aria-hidden="true"></i>
             <span>Rating</span>
             <strong>{{ number_format((float) $educator->average_rating, 1) }}/5</strong>
           </div>
+          @endif
           <div class="edu-stat-row">
             <i class="fa-solid fa-heart" aria-hidden="true"></i>
             <span>Followers</span>

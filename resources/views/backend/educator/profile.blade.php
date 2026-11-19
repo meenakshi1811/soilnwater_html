@@ -338,11 +338,6 @@
                 <div class="edu-stat-field__label"><i class="fa-solid fa-user-graduate"></i> Students taught</div>
                 <input type="number" name="students_taught" class="form-control" min="0" value="{{ old('students_taught', $educator->students_taught) }}">
               </div>
-              <div class="edu-stat-field">
-                <div class="edu-stat-field__label"><i class="fa-solid fa-chart-line"></i> Success rate %</div>
-                <input type="text" class="form-control" value="{{ $educator->success_rate !== null ? number_format((float) $educator->success_rate, 2).'%' : '—' }}" readonly disabled>
-                <small class="text-muted">Calculated from profile and material reviews.</small>
-              </div>
             </div>
 
           </div>

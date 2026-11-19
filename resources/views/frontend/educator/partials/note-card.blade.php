@@ -16,7 +16,9 @@
         @if($note->pages)
           <span><i class="fa-solid fa-file" aria-hidden="true"></i> {{ number_format($note->pages) }} pages</span>
         @endif
-        <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $note->average_rating, 1) }}</span>
+        @if((int) $note->reviews_count > 0)
+          <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $note->average_rating, 1) }} ({{ number_format((int) $note->reviews_count) }})</span>
+        @endif
         <span><i class="fa-solid fa-download" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($note->downloads_count) }}</span>
       </div>
     </div>

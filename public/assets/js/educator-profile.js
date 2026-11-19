@@ -50,21 +50,28 @@ document.addEventListener('DOMContentLoaded', function () {
             el.textContent = averageRating;
         });
 
+        var count = Number(reviewsCount || 0);
+
         document.querySelectorAll('.js-edu-reviews-count').forEach(function (el) {
-            el.textContent = Number(reviewsCount || 0).toLocaleString();
+            el.textContent = count.toLocaleString();
         });
 
-        var ratingWrap = document.querySelector('.edu-overview__rating');
-        if (!ratingWrap) {
-            return;
-        }
+        document.querySelectorAll('.js-edu-reviews-word').forEach(function (el) {
+            el.textContent = count === 1 ? 'review' : 'reviews';
+        });
 
-        var stars = ratingWrap.querySelectorAll('i.fa-star');
+        // Stars and count are hidden until the teacher has a review
+        document.querySelectorAll('.js-edu-rating-block').forEach(function (el) {
+            el.classList.toggle('d-none', count < 1);
+        });
+
         var filled = Math.round(parseFloat(averageRating) || 0);
 
-        stars.forEach(function (star, index) {
-            star.className = 'fa-' + (index + 1 <= filled ? 'solid' : 'regular') + ' fa-star';
-            star.setAttribute('aria-hidden', 'true');
+        document.querySelectorAll('.js-edu-stars').forEach(function (wrap) {
+            wrap.querySelectorAll('i.fa-star').forEach(function (star, index) {
+                star.className = 'fa-' + (index + 1 <= filled ? 'solid' : 'regular') + ' fa-star';
+                star.setAttribute('aria-hidden', 'true');
+            });
         });
     }
 

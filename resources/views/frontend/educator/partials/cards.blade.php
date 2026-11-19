@@ -26,10 +26,13 @@
       <h3 class="vendors-compact-card__name">
         <a href="{{ $educator->publicUrl() }}">{{ $educator->display_name }}</a>
       </h3>
-      <div class="vendors-compact-card__rating">
-        <span class="vendors-rating"><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format((float) $educator->average_rating, 1) }}</span>
-        <span class="vendors-rating-count">({{ number_format((int) $educator->reviews_count) }})</span>
-      </div>
+      {{-- (stars only for teachers with reviews: no "0.0 (0)") --}}
+      @if((int) $educator->reviews_count > 0)
+        <div class="vendors-compact-card__rating">
+          <span class="vendors-rating"><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format((float) $educator->average_rating, 1) }}</span>
+          <span class="vendors-rating-count">({{ number_format((int) $educator->reviews_count) }})</span>
+        </div>
+      @endif
       <div class="vendors-compact-card__meta">
         <span class="vendors-compact-card__category">{{ $subject }}</span>
         @if($educator->is_verified)

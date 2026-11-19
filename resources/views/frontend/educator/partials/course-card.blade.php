@@ -22,7 +22,9 @@
       @endif
       <div class="edu-course-card__price">{{ $course->is_free ? 'Free' : 'Premium' }}</div>
       <div class="edu-course-card__meta">
-        <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $course->average_rating, 1) }}</span>
+        @if((int) $course->reviews_count > 0)
+          <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $course->average_rating, 1) }} ({{ number_format((int) $course->reviews_count) }})</span>
+        @endif
         <span><i class="fa-solid fa-users" aria-hidden="true"></i> {{ \App\Models\StudyMaterial::formatCompactCount($course->downloads_count) }}</span>
       </div>
     </div>
