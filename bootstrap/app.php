@@ -38,6 +38,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Every AJAX response carries the current CSRF token (it changes on login), see csrf-refresh.js
+        $middleware->web(prepend: \App\Http\Middleware\ShareFreshCsrfToken::class);
+
         $middleware->redirectGuestsTo(function ($request) {
             if ($request->is('employee') || $request->is('employee/*')) {
                 return route('employee.login');

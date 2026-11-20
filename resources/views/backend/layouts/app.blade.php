@@ -13,6 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ asset('assets/js/csrf-refresh.js') }}?v={{ filemtime(public_path('assets/js/csrf-refresh.js')) }}"></script>
     <title>@yield('title', 'Admin Dashboard') | SoilnWater</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

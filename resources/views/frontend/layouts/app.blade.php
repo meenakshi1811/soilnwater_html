@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <script src="{{ asset('assets/js/csrf-refresh.js') }}?v={{ filemtime(public_path('assets/js/csrf-refresh.js')) }}"></script>
   <title>@yield('meta_title', 'SoilnWater – Local & National Marketplace')</title>
   <meta name="description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   @hasSection('meta_keywords')

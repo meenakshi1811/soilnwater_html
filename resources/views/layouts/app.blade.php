@@ -6,6 +6,7 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ asset('assets/js/csrf-refresh.js') }}?v={{ filemtime(public_path('assets/js/csrf-refresh.js')) }}"></script>
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 

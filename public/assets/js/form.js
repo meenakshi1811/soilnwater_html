@@ -282,7 +282,7 @@
                 });
             }
 
-            var submitViaAjax = function () {
+            var sendRequest = function (isRetry) {
                     self.clearFormErrors($form);
                     if ($alert.length) {
                         $alert.addClass('d-none').text('');
@@ -296,7 +296,13 @@
 
                     var hasFileInputs = $form.find('input[type="file"]').length > 0;
                     var isMultipart = (($form.attr('enctype') || '').toLowerCase() === 'multipart/form-data');
+                    // (the token changes on login, so read the current one now; see csrf-refresh.js)
+                    var currentToken = (window.SnwCsrf && window.SnwCsrf.token()) || csrfToken;
+                    if (currentToken) {
+                        $form.find('input[name="_token"]').val(currentToken);
+                    }
                     var requestData = (hasFileInputs || isMultipart) ? new FormData($form.get(0)) : $form.serialize();
+                    var retrying = false;
 
                     $.ajax({
                         url: $form.attr('action'),
@@ -307,7 +313,7 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken || ''
+                            'X-CSRF-TOKEN': currentToken || ''
                         }
                     }).done(function (response) {
                         if (typeof config.onSuccess === 'function') {
@@ -317,6 +323,30 @@
 
                         self.showAlert($alert, 'success', response.message || 'Request successful.');
                     }).fail(function (xhr) {
+                        // Refused for an old CSRF token (after a login, or an expired session): the
+                        // response carries the current token, so send it once more with that
+                        var freshToken = xhr.status === 419 ? (xhr.getResponseHeader('X-CSRF-TOKEN') || '') : '';
+                        if (freshToken && !isRetry) {
+                            if (window.SnwCsrf) {
+                                window.SnwCsrf.set(freshToken);
+                            }
+                            csrfToken = freshToken;
+                            retrying = true;
+                            sendRequest(true);
+                            return;
+                        }
+
+                        if (xhr.status === 419) {
+                            var expiredMessage = 'Your session has expired. Please refresh the page and try again.';
+                            if (typeof config.onError === 'function') {
+                                config.onError(xhr, expiredMessage, { form: $form, button: $button, alert: $alert });
+                                return;
+                            }
+
+                            self.showAlert($alert, 'danger', expiredMessage);
+                            return;
+                        }
+
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             self.renderFieldErrors($form, xhr.responseJSON.errors);
                             var validationMessage = config.validationMessage || 'Please fix the highlighted fields and try again.';
@@ -340,8 +370,14 @@
 
                         self.showAlert($alert, 'danger', message);
                     }).always(function () {
-                        self.setButtonLoading($button, false, loadingText, defaultText);
+                        if (!retrying) {
+                            self.setButtonLoading($button, false, loadingText, defaultText);
+                        }
                     });
+            };
+
+            var submitViaAjax = function () {
+                sendRequest(false);
             };
 
             if ($.fn && typeof $.fn.validate === 'function') {
