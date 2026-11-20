@@ -19,6 +19,7 @@ use App\Models\ServiceProviderServiceInquiry;
 use App\Models\Vendor;
 use App\Models\VendorProductInquiry;
 use App\Support\AdSizes;
+use App\Support\AuthActor;
 use App\Support\ModulePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
@@ -43,7 +44,7 @@ class UserAdController extends Controller
     {
         $ads = UserAd::query()
             ->with(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name'])
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', AuthActor::ownerUserId() ?? 0)
             ->latest()
             ->paginate(12);
 
@@ -488,7 +489,7 @@ class UserAdController extends Controller
         } elseif ($isStaff && method_exists($user, 'canModule') && $user->canModule('ads', 'read')) {
             // Staff employees with ads.read see the full ads listing.
         } else {
-            $ads->where('user_id', $user?->id);
+            $ads->where('user_id', AuthActor::ownerUserId() ?? 0);
         }
 
         $sizes = AdSizes::all();
@@ -923,7 +924,18 @@ class UserAdController extends Controller
 
         $pricing = $this->buildPricingDetails($totalBasePricePerDay, $validated['valid_until']);
 
-        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId, $isSponsoredSize) {
+        // Owner (users table): the signed-in user, or for employees the admin team (see AuthActor),
+        // as for offers. An employee's own id is not a users id.
+        $ownerId = AuthActor::ownerUserId();
+        if ($ownerId === null) {
+            $message = 'No admin account is available to own this ad.';
+
+            return ($request->ajax() || $request->expectsJson())
+                ? response()->json(['message' => $message], 422)
+                : back()->withErrors(['title' => $message])->withInput();
+        }
+
+        $ad = DB::transaction(function () use ($ownerId, $sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId, $isSponsoredSize) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
@@ -938,7 +950,7 @@ class UserAdController extends Controller
                 : ($user->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false);
 
             return UserAd::create([
-                'user_id' => $user->id,
+                'user_id' => $ownerId,
                 'ad_template_id' => null,
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
@@ -1236,7 +1248,7 @@ class UserAdController extends Controller
         // Paid sizes are openable by regular users whenever pricing is configured
         // (category price, module price, or a flat amount). Payment is collected after
         // submission via the payment modal + admin approval flow, not before opening.
-        if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
+        if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isStaff())) {
             return ! empty($size['category_prices'] ?? [])
                 || ! empty($size['module_prices'] ?? [])
                 || (float) ($size['amount'] ?? 0) > 0;
@@ -1255,7 +1267,7 @@ class UserAdController extends Controller
         return collect(AdSizes::visibleFor($user))
             ->mapWithKeys(function (array $size, string $type) use ($user) {
                 $isPaid = (bool) ($size['is_paid'] ?? false);
-                $hasAccess = ! $isPaid || (bool) ($user?->isAdmin());
+                $hasAccess = ! $isPaid || (bool) ($user?->isStaff());
 
                 return [$type => $hasAccess];
             })->all();
