@@ -6,6 +6,10 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use App\Support\AppDeviceToken;
 use App\Support\AuthActor;
 use App\Support\ManagedEducator;
 use App\Support\ManagedInstitute;
@@ -26,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Link / unlink the app's push token when someone logs in or out in the app's WebView
+        Event::listen(Login::class, [AppDeviceToken::class, 'onLogin']);
+        Event::listen(Logout::class, [AppDeviceToken::class, 'onLogout']);
+
         View::composer(['backend.layouts.app', 'backend.partials.sidebar', 'backend.partials.sidebar-module-menus'], function (): void {
             AuthActor::shouldUseActiveGuard();
         });
