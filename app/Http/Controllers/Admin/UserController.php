@@ -101,23 +101,19 @@ class UserController extends Controller
                     return '<span class="text-muted">—</span>';
                 }
 
-                $verificationBadge = $user->email_verified_at
-                    ? '<span class="badge text-bg-success mt-1">Verified</span>'
-                    : '<span class="badge text-bg-warning mt-1">Unverified</span>';
-
                 return '<div class="d-flex flex-column">'
                     . '<span>'.e($user->email).'</span>'
-                    . $verificationBadge
+                    . $this->verificationControl($user, 'email')
                     . '</div>';
             })
             ->addColumn('phone_display', function (User $user): string {
-                $verificationBadge = $user->phone_verified_at
-                    ? '<span class="badge text-bg-success mt-1">Verified</span>'
-                    : '<span class="badge text-bg-warning mt-1">Unverified</span>';
+                if (blank($user->phone_number)) {
+                    return '<span class="text-muted">—</span>';
+                }
 
                 return '<div class="d-flex flex-column">'
                     . '<span>'.e((string) $user->phone_number).'</span>'
-                    . $verificationBadge
+                    . $this->verificationControl($user, 'phone')
                     . '</div>';
             })
             ->addColumn('location', function (User $user): string {
@@ -448,6 +444,61 @@ class UserController extends Controller
                 : 'User has been deactivated.',
             'is_active' => $user->is_active,
         ]);
+    }
+
+    /**
+     * Marks the user's email or phone number as verified (or unverified again) by hand, for when
+     * they couldn't verify it themselves.
+     */
+    public function toggleVerification(Request $request, User $user, string $type): JsonResponse
+    {
+        $column = $type === 'email' ? 'email_verified_at' : 'phone_verified_at';
+        $label = $type === 'email' ? 'Email' : 'Phone number';
+        $value = $type === 'email' ? $user->email : $user->phone_number;
+
+        if (blank($value)) {
+            return response()->json([
+                'message' => 'This user has no '.strtolower($label).' to verify.',
+            ], 422);
+        }
+
+        if ($request->user() && $request->user()->id === $user->id) {
+            return response()->json([
+                'message' => 'You cannot change the verification of your own account.',
+            ], 422);
+        }
+
+        $user->{$column} = $user->{$column} ? null : now();
+        $user->save();
+
+        $verified = ! is_null($user->{$column});
+
+        return response()->json([
+            'message' => $verified
+                ? $label.' has been marked as verified.'
+                : $label.' has been marked as unverified. The user will need to verify it again.',
+            'verified' => $verified,
+            'type' => $type,
+        ]);
+    }
+
+    /** The Verified / Unverified badge with the switch to change it */
+    private function verificationControl(User $user, string $type): string
+    {
+        $verified = $type === 'email' ? (bool) $user->email_verified_at : (bool) $user->phone_verified_at;
+        $label = $type === 'email' ? 'email' : 'phone number';
+        $badge = $verified
+            ? '<span class="badge text-bg-success">Verified</span>'
+            : '<span class="badge text-bg-warning">Unverified</span>';
+        $title = $verified ? 'Mark '.$label.' as unverified' : 'Verify '.$label.' manually';
+
+        return '<div class="d-flex align-items-center gap-2 mt-1">'
+            . $badge
+            . '<div class="form-check form-switch m-0" title="'.e($title).'">'
+            . '<input class="form-check-input js-toggle-verification" type="checkbox" role="switch" aria-label="'.e($title).'"'
+            . ' data-id="'.$user->id.'" data-type="'.$type.'"'.($verified ? ' checked' : '').'>'
+            . '</div>'
+            . '</div>';
     }
 
     public function destroy(User $user): JsonResponse

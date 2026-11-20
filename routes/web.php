@@ -812,6 +812,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin.or.module')->group(fun
             Route::put('/{user}/password', [UserController::class, 'updatePassword'])->name('password');
             Route::patch('/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('toggle-block');
             Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
+            Route::patch('/{user}/toggle-verification/{type}', [UserController::class, 'toggleVerification'])
+                ->whereIn('type', ['email', 'phone'])
+                ->name('toggle-verification');
             Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
 

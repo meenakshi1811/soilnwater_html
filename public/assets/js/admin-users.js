@@ -461,6 +461,41 @@
                 });
             });
 
+            $(document).on('change', '.js-toggle-verification', function () {
+                var $toggle = $(this);
+                var id = $toggle.data('id');
+                var type = $toggle.data('type');
+                var willVerify = $toggle.is(':checked');
+                var label = type === 'email' ? 'email' : 'phone number';
+
+                if (!willVerify && !confirm('Mark this ' + label + ' as unverified? The user will need to verify it again.')) {
+                    $toggle.prop('checked', true);
+                    return;
+                }
+
+                $toggle.prop('disabled', true);
+
+                $.ajax({
+                    url: '/admin/users/' + id + '/toggle-verification/' + type,
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    FormHelper.showToast(response.verified ? 'success' : 'warning', response.message || 'Updated.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                }).fail(function (xhr) {
+                    $toggle.prop('checked', !willVerify).prop('disabled', false);
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to update verification.';
+                    FormHelper.showToast('danger', message);
+                });
+            });
+
             $(document).on('click', '.js-delete-user', function () {
                 var id = $(this).data('id');
                 if (!confirm('Delete this user? Related vendor, consultant or service provider records may also be removed.')) {
