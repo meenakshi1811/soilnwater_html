@@ -27,7 +27,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Panel' : 'Consultant Panel' }}</p>
-            <h2 class="admin-title mb-0">{{ $consultant->publicDisplayName() }}</h2>
+            <h2 class="admin-title mb-0" id="storeTitlePreview">{{ $consultant->publicDisplayName() }}</h2>
             <p class="text-muted small mb-0">
                 @if($isAdmin)
                     Edit this consultant page as admin. Publishing goes live immediately — no approval needed.
@@ -90,7 +90,6 @@
 
         <input type="text" name="hero_main_heading" value="{{ old('hero_main_heading', $consultant->hero_main_heading) }}" data-sync-input="hero-main" hidden>
         <input type="text" name="hero_sub_heading" value="{{ old('hero_sub_heading', $consultant->hero_sub_heading) }}" data-sync-input="hero-sub" hidden>
-        <input type="text" name="display_name" value="{{ old('display_name', $consultant->display_name) }}" data-sync-input="display-name" hidden>
         <input type="text" name="phone" value="{{ old('phone', $consultant->phone) }}" data-sync-input="phone" hidden>
         <input type="email" name="email" value="{{ old('email', $consultant->email) }}" data-sync-input="email" hidden>
         <input type="text" name="city" value="{{ old('city', $consultant->city) }}" data-sync-input="city" hidden>
@@ -140,6 +139,14 @@
                     </nav>
                 </div>
             </header>
+            {{-- The name at the top of the page (and in the page title); empty = the company name --}}
+            <div class="px-3 pb-3">
+                <label class="form-label small text-muted mb-1" for="storeDisplayNameInput">Page name (shown at the top of the consultant page)</label>
+                <input type="text" name="display_name" id="storeDisplayNameInput" class="form-control form-control-sm" style="max-width:560px;"
+                    value="{{ old('display_name', $consultant->display_name) }}" maxlength="255"
+                    placeholder="{{ $consultant->company_name }}" data-company-name="{{ $consultant->company_name }}">
+                <small class="text-muted">Leave empty to use the company name{{ filled($consultant->company_name) ? ' ('.$consultant->company_name.')' : '' }}.</small>
+            </div>
             <div class="vendor-store-url-row px-3 pb-3">
                 <label class="form-label small text-muted mb-1">Your consultant link</label>
                 <div class="input-group input-group-sm" style="max-width:560px; width:100%;">

@@ -813,10 +813,79 @@
     }
 
     
+    /**
+     * Mend cards that pasting split apart: text pasted with its formatting (e.g. from a chat app) can
+     * leave text loose in the card and a second, empty card stacked in the same column, which shows as
+     * a tall empty box. Each column keeps one card: its image, then one body holding all the text.
+     */
+    function repairImageTextCardColumns(contentEditable) {
+        var changed = false;
+
+        // Clipboard markers (<!--StartFragment--> / <!--EndFragment-->)
+        var walker = document.createTreeWalker(contentEditable, NodeFilter.SHOW_COMMENT);
+        var comments = [];
+        while (walker.nextNode()) comments.push(walker.currentNode);
+        comments.forEach(function (node) { node.remove(); changed = true; });
+
+        contentEditable.querySelectorAll('.vendor-image-text-card-col').forEach(function (col) {
+            var cards = Array.from(col.querySelectorAll('.vendor-image-text-card, .prod-card'))
+                .filter(function (card) { return card.parentElement && !card.parentElement.closest('.vendor-image-text-card, .prod-card'); });
+            if (cards.length === 0) return;
+
+            var mainCard = cards.find(function (card) { return card.querySelector('[data-card-image-slot]'); }) || cards[0];
+            var body = mainCard.querySelector(':scope > .prod-card-body');
+            if (!body) {
+                body = document.createElement('div');
+                body.className = 'prod-card-body';
+                mainCard.appendChild(body);
+                changed = true;
+            }
+
+            // Loose text in the card (outside its body) goes into the body, in order
+            var loose = Array.from(mainCard.childNodes).filter(function (node) {
+                if (node === body) return false;
+                if (node.nodeType === Node.ELEMENT_NODE && node.matches('img[data-card-image-slot], img')) return false;
+
+                return !(node.nodeType === Node.TEXT_NODE && node.textContent.trim() === '');
+            });
+            if (loose.length) {
+                var holder = document.createElement('span');
+                loose.forEach(function (node) { holder.appendChild(node); });
+                body.insertBefore(holder, body.firstChild);
+                changed = true;
+            }
+
+            // Any other card in the column: keep its text in the main card, then remove it
+            cards.forEach(function (card) {
+                if (card === mainCard) return;
+                var otherBody = card.querySelector('.prod-card-body') || card;
+                if (otherBody.textContent.trim() !== '') {
+                    while (otherBody.firstChild) body.appendChild(otherBody.firstChild);
+                }
+                card.remove();
+                changed = true;
+            });
+
+            // Anything else stranded in the column (outside the card)
+            Array.from(col.childNodes).forEach(function (node) {
+                if (node === mainCard || node.contains(mainCard)) return;
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === '') {
+                    node.remove();
+
+                    return;
+                }
+                body.appendChild(node);
+                changed = true;
+            });
+        });
+
+        return changed;
+    }
+
     function ensureImageTextCards(contentEditable) {
         if (!contentEditable) return false;
 
-        var changed = false;
+        var changed = repairImageTextCardColumns(contentEditable);
         var cards = Array.from(contentEditable.querySelectorAll('[data-card-image-slot]'));
         cards.forEach(function (img, index) {
             var slot = index + 1;
@@ -1489,7 +1558,18 @@
         var html = e.clipboardData?.getData('text/html') || '';
         var text = e.clipboardData?.getData('text/plain') || '';
 
-        if (html) {
+        // Inside a card, paste plain text: formatted blocks would split the card in two
+        var inCard = (function () {
+            var selection = window.getSelection();
+            var node = selection && selection.rangeCount ? selection.getRangeAt(0).startContainer : null;
+            var element = node && (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+
+            return !!(element && element.closest('.vendor-image-text-card, .vendor-image-text-card-col'));
+        })();
+
+        if (inCard) {
+            document.execCommand('insertText', false, text || textFromHtml(html));
+        } else if (html) {
             document.execCommand('insertHTML', false, sanitizePastedHtml(html));
         } else {
             document.execCommand('insertText', false, text);
@@ -1517,6 +1597,14 @@
             if (e.target.matches('[data-hero-editable]')) updateHeroWordCounter(e.target.dataset.syncTarget, e.target.innerHTML);
         }
         if (e.target.matches('[data-lite-editor-target]')) syncLiteEditor(e.target);
+        if (e.target.id === 'storeDisplayNameInput') {
+            // Store name: shown live in the page title and the header preview (empty = company name)
+            var storeName = e.target.value.trim() || e.target.dataset.companyName || '';
+            ['storeTitlePreview', 'storeNamePreview'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = storeName;
+            });
+        }
         if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
     });
 
