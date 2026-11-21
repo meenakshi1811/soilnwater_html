@@ -131,6 +131,14 @@ class PostOfferController extends Controller
             (int) ($validated['subcategory_id'] ?? 0)
         );
 
+        // Admin and employees post straight away: their offers are live, with no approval step
+        if ($this->isStaff($request->user())) {
+            $validated['status'] = 'active';
+            $validated['approval_status'] = 'approved';
+            $validated['approval_reviewed_at'] = now();
+            $validated['approval_reviewed_by'] = AuthActor::usersTableId();
+        }
+
         $offer = Offer::create($validated);
 
         $requiresPayment = $appliedOfferPrice > 0 && ! $this->isStaff($request->user());
@@ -147,14 +155,10 @@ class PostOfferController extends Controller
         }
 
         if ($this->isStaff($request->user())) {
-            $offer->update([
-                'approval_status' => $offer->status === 'active' ? 'approved' : 'pending',
-                'approval_reviewed_at' => $offer->status === 'active' ? now() : null,
-                'approval_reviewed_by' => $offer->status === 'active' ? AuthActor::usersTableId() : null,
-            ]);
-        } else {
-            PortalNotificationService::notifyAdminsOfApprovalRequest('Offer', $offer->title, route('offers.index'));
+            return response()->json(['message' => 'Offer posted and live!']);
         }
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Offer', $offer->title, route('offers.index'));
 
         return response()->json(['message' => 'Offer posted successfully!']);
     }

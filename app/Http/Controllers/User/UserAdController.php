@@ -678,6 +678,24 @@ class UserAdController extends Controller
             ]);
         }
 
+        // Admin and employees: no approval step for their edits (a pending ad the admin team owns goes
+        // live; a user's pending ad still waits for the Approve button)
+        if ($request->user()->isStaff()) {
+            if ($ad->status === 'pending' && (int) $ad->user_id === (int) AuthActor::ownerUserId()) {
+                $ad->fill(['status' => 'approved', 'reviewed_by' => AuthActor::usersTableId(), 'reviewed_at' => now()]);
+            }
+            $ad->save();
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Ad updated.',
+                    'redirect_url' => route('ads.index'),
+                ]);
+            }
+
+            return redirect()->route('ads.index')->with('success', 'Ad updated.');
+        }
+
         $ad->save();
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated ad', $ad->title, route('admin.ads.submissions.show', $ad));
@@ -935,7 +953,10 @@ class UserAdController extends Controller
                 : back()->withErrors(['title' => $message])->withInput();
         }
 
-        $ad = DB::transaction(function () use ($ownerId, $sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId, $isSponsoredSize) {
+        // Admin and employees post straight away: their ads are approved, with no approval step
+        $postedByStaff = (bool) ($user?->isStaff());
+
+        $ad = DB::transaction(function () use ($ownerId, $sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId, $isSponsoredSize, $postedByStaff) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
@@ -963,7 +984,9 @@ class UserAdController extends Controller
                 'location' => $validated['location'],
                 'location_lat' => $validated['location_lat'],
                 'location_lng' => $validated['location_lng'],
-                'status' => 'pending',
+                'status' => $postedByStaff ? 'approved' : 'pending',
+                'reviewed_by' => $postedByStaff ? AuthActor::usersTableId() : null,
+                'reviewed_at' => $postedByStaff ? now() : null,
                 'fields_json' => $fields,
                 'rendered_html' => $renderedHtml,
                 'final_image' => $finalImagePath,
@@ -996,6 +1019,18 @@ class UserAdController extends Controller
             }
 
             return redirect()->route('ads.index')->with('success', 'Your ad has been saved. Complete the payment to submit it for verification.');
+        }
+
+        if ($postedByStaff) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Ad posted and live.',
+                    'redirect_url' => route('ads.index'),
+                    'id' => $ad->id,
+                ]);
+            }
+
+            return redirect()->route('ads.index')->with('success', 'Ad posted and live.');
         }
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Ad', $ad->title, route('admin.ads.submissions.show', $ad));
