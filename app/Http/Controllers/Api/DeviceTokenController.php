@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Support\AppDeviceToken;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,23 +42,36 @@ class DeviceTokenController extends Controller
         // A request posted by another website must not link the token to the visitor
         $fromThisSite = AppDeviceToken::isFromThisSite($request);
         $user = $fromThisSite ? Auth::guard('web')->user() : null;
-        $device = DeviceToken::query()->firstOrNew(['token' => $validated['token']]);
-        $created = ! $device->exists;
 
-        $device->fill([
-            'platform' => $validated['platform'] ?? $device->platform ?? 'android',
-            'device_id' => $validated['device_id'] ?? $device->device_id,
-            'device_name' => $validated['device_name'] ?? $device->device_name,
-            'app_version' => $validated['app_version'] ?? $device->app_version,
-            'last_seen_at' => now(),
-        ]);
+        $save = function () use ($validated, $user): DeviceToken {
+            $device = DeviceToken::query()->firstOrNew(['token' => $validated['token']]);
 
-        // A logged-in request (re)links the token to that user; a guest one keeps any link
-        if ($user) {
-            $device->user_id = $user->id;
+            $device->fill([
+                'platform' => $validated['platform'] ?? $device->platform ?? 'android',
+                'device_id' => $validated['device_id'] ?? $device->device_id,
+                'device_name' => $validated['device_name'] ?? $device->device_name,
+                'app_version' => $validated['app_version'] ?? $device->app_version,
+                'last_seen_at' => now(),
+            ]);
+
+            // A logged-in request (re)links the token to that user; a guest one keeps any link
+            if ($user) {
+                $device->user_id = $user->id;
+            }
+
+            $device->save();
+
+            return $device;
+        };
+
+        // The app may send the same new token twice at once (its background worker and its
+        // WebView): the second insert then hits the unique token, so it updates that row instead
+        try {
+            $device = $save();
+        } catch (UniqueConstraintViolationException) {
+            $device = $save();
         }
-
-        $device->save();
+        $created = $device->wasRecentlyCreated;
 
         $response = response()->json([
             'success' => true,
