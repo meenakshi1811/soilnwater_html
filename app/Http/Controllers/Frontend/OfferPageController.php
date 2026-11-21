@@ -404,7 +404,8 @@ class OfferPageController extends Controller
                 'icon' => 'fa-store',
                 'image' => 'assets/images/businesses-popup/vendors.webp',
                 'categories' => $chips($this->topVendorCategories(6), 'frontend.vendors.listings'),
-                'url' => route('frontend.vendors.index'),
+                // The Explore button opens the module's listing page (all of them, with filters)
+                'url' => route('frontend.vendors.listings'),
                 'view_all_url' => route('frontend.vendors.listings'),
             ],
             [
@@ -415,7 +416,7 @@ class OfferPageController extends Controller
                 'icon' => 'fa-users',
                 'image' => 'assets/images/businesses-popup/consultants.webp',
                 'categories' => $chips($this->topConsultantCategories(6), 'frontend.consultants.listings', 'Consultants'),
-                'url' => route('frontend.consultants.index'),
+                'url' => route('frontend.consultants.listings'),
                 'view_all_url' => route('frontend.consultants.listings'),
             ],
             [
@@ -426,7 +427,7 @@ class OfferPageController extends Controller
                 'icon' => 'fa-screwdriver-wrench',
                 'image' => 'assets/images/businesses-popup/services.webp',
                 'categories' => $chips($this->topServiceProviderCategories(6), 'frontend.service_providers.listings', 'Services'),
-                'url' => route('frontend.service_providers.index'),
+                'url' => route('frontend.service_providers.listings'),
                 'view_all_url' => route('frontend.service_providers.listings'),
             ],
         ];
