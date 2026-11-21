@@ -2637,3 +2637,47 @@ body:has(#discussionFab) .vendor-whatsapp-float {
         overflow: hidden;
     }
 }
+
+/* Image + text cards: the same look for every card's text, whatever it was pasted from (pasted text
+   brings its own background, font and spacing) */
+.vendor-image-text-card .prod-card-body {
+    color: #1b2b44;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.vendor-image-text-card .prod-card-body * {
+    background: transparent !important;
+    font-family: inherit !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+}
+
+.vendor-image-text-card .prod-card-body p {
+    margin: 0;
+}
+
+/* A card that pasting split (text loose in the card, an empty card stacked under it): hide the empty
+   one and pad the loose text like a card body. Saving the page in the editor mends it for good. */
+.vendor-image-text-card-col > .vendor-image-text-card + .vendor-image-text-card:not(:has(img)):has(> .prod-card-body:only-child > .recent-ad-meta:only-child:empty) {
+    display: none !important;
+}
+
+.vendor-image-text-card:not(:has(> .prod-card-body)) {
+    padding: 0 14px 13px !important;
+    color: #1b2b44;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.vendor-image-text-card:not(:has(> .prod-card-body)) > img[data-card-image-slot] {
+    width: calc(100% + 28px) !important;
+    max-width: none;
+    margin: 0 -14px 12px;
+}
+
+.vendor-image-text-card:not(:has(> .prod-card-body)) * {
+    background: transparent !important;
+    font-family: inherit !important;
+    white-space: normal !important;
+}

@@ -1873,3 +1873,183 @@
   }
 
 }
+
+/* ===== A store's "All products" page (store/{slug}/products) ===== */
+.store-products-hero {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.store-products-hero__logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid var(--vendors-border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.store-products-hero__logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.store-products-count {
+  display: inline-flex;
+  align-items: center;
+  margin-left: .35rem;
+  padding: .05rem .5rem;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.store-products-summary {
+  color: var(--vendors-muted);
+  font-size: .85rem;
+}
+
+.store-products-grid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.store-product-card__media {
+  aspect-ratio: 1 / 1;
+  background: #f6f8fa;
+}
+
+.store-product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.store-product-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #9aa8b6;
+  font-size: 2rem;
+}
+
+.store-product-card__deal {
+  background: #dc2626;
+  color: #fff;
+}
+
+.store-product-card .vendors-compact-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.store-product-card__eyebrow {
+  margin: 0;
+  overflow: hidden;
+  color: #2e7d32;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.store-product-card .vendors-compact-card__name a {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.store-product-card__price {
+  margin: 0;
+  color: var(--vendors-navy);
+  font-size: .98rem;
+  font-weight: 800;
+}
+
+.store-product-card__price del {
+  margin-left: .3rem;
+  color: var(--vendors-muted);
+  font-size: .78rem;
+  font-weight: 500;
+}
+
+.store-product-card__price--ask {
+  color: var(--vendors-muted);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.store-product-card__btn {
+  margin-top: auto;
+  padding: .42rem .6rem;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: .8rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background .2s ease, color .2s ease;
+}
+
+.store-product-card__btn:hover {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.store-products-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.store-products-pagination nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Phones: the listing cards' compact row layout is for vendors; a product keeps its lines stacked */
+@media (max-width: 767.98px) {
+  .store-product-card .vendors-compact-card__body {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: .25rem;
+  }
+
+  .store-product-card .vendors-compact-card__body > * {
+    flex: 0 0 auto;
+    order: 0;
+  }
+
+  .store-product-card .vendors-compact-card__body > .store-product-card__btn {
+    margin-top: .35rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .store-products-hero__logo {
+    display: none;
+  }
+
+  .store-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

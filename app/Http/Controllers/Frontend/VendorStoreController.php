@@ -60,21 +60,87 @@ class VendorStoreController extends Controller
         ]);
     }
 
-    // The store is one page now: its old products, about and contact pages lead to its sections
+    /** Sort options of the store's products page */
+    private const PRODUCT_SORTS = [
+        'recent' => 'Newest first',
+        'price_low' => 'Price: low to high',
+        'price_high' => 'Price: high to low',
+        'discount' => 'Biggest discount',
+        'name' => 'Name (A-Z)',
+    ];
 
-    public function products(string $slug): RedirectResponse
+    /**
+     * All the store's products ("View all products"), in the listing pages' layout: filters on the
+     * left (search, category, on offer), sort, a card each, 24 a page.
+     */
+    public function products(Request $request, string $slug): View
     {
-        return $this->redirectToSection($slug, 'biz-products');
+        $vendor = $this->resolveVendor($slug);
+        $preview = $this->staffPreviewMode($vendor);
+
+        $storeProducts = fn () => VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved');
+
+        // The store's categories, with how many products each
+        $categoryCounts = $storeProducts()
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, count(*) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+        $categories = Category::query()
+            ->whereIn('id', $categoryCounts->keys())
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name, 'count' => (int) $categoryCounts[$category->id]]);
+
+        $search = trim($request->string('search')->toString());
+        $categoryId = $request->integer('category_id') ?: null;
+        $onOffer = $request->boolean('deals');
+        $sort = array_key_exists((string) $request->query('sort'), self::PRODUCT_SORTS) ? (string) $request->query('sort') : 'recent';
+
+        $products = $storeProducts()
+            ->when($search !== '', function ($query) use ($search): void {
+                $like = '%'.$search.'%';
+                $query->where(fn ($match) => $match->where('name', 'like', $like)
+                    ->orWhere('brand', 'like', $like)
+                    ->orWhere('sku', 'like', $like)
+                    ->orWhere('description', 'like', $like));
+            })
+            ->when($categoryId, fn ($query) => $query->where(fn ($match) => $match->where('category_id', $categoryId)->orWhere('subcategory_id', $categoryId)))
+            ->when($onOffer, fn ($query) => $query->where('discount_percent', '>', 0))
+            ->when(in_array($sort, ['price_low', 'price_high'], true), fn ($query) => $query
+                // (products without a price last)
+                ->orderByRaw('CASE WHEN final_price > 0 THEN 0 ELSE 1 END')
+                ->orderBy('final_price', $sort === 'price_low' ? 'asc' : 'desc'))
+            ->when($sort === 'discount', fn ($query) => $query->orderByDesc('discount_percent'))
+            ->when($sort === 'name', fn ($query) => $query->orderBy('name'))
+            ->latest('updated_at')
+            ->paginate(24)
+            ->withQueryString();
+
+        return view('frontend.store.products', [
+            'vendor' => $vendor,
+            'preview' => $preview,
+            'products' => $products,
+            'totalProducts' => (int) $categoryCounts->sum() + $storeProducts()->whereNull('category_id')->count(),
+            'categories' => $categories,
+            'categoryNames' => Category::query()->whereIn('id', $products->getCollection()->pluck('category_id')->filter()->unique())->pluck('name', 'id')->all(),
+            'sorts' => self::PRODUCT_SORTS,
+            'filters' => ['search' => $search, 'category_id' => $categoryId, 'deals' => $onOffer, 'sort' => $sort],
+        ]);
     }
+
+    // The old category pages open the products page with that category chosen
 
     public function categoryProducts(string $slug, Category $category): RedirectResponse
     {
-        return $this->redirectToSection($slug, 'biz-products', $category->id);
+        return redirect()->route('store.products.index', ['slug' => $slug, 'category_id' => $category->id]);
     }
 
     public function subcategoryProducts(string $slug, Category $category, Category $subcategory): RedirectResponse
     {
-        return $this->redirectToSection($slug, 'biz-products', $category->id);
+        return redirect()->route('store.products.index', ['slug' => $slug, 'category_id' => $subcategory->id]);
     }
 
     public function productShow(string $slug, VendorProduct $product): View
@@ -387,8 +453,11 @@ class VendorStoreController extends Controller
                         ->where('status', 'approved')
                         ->whereIn('category_id', $categoryIds)
                         ->latest('updated_at')
-                        ->select(['id', 'vendor_id', 'name', 'images', 'category_id', 'updated_at']);
+                        ->select(['id', 'vendor_id', 'name', 'images', 'category_id', 'subcategory_id', 'updated_at']);
                 },
+                // (the card shows the category, as on the vendor listing page)
+                'products.category:id,name',
+                'products.subcategory:id,name',
                 'branches:id,vendor_id,branch_name,address,city,state,is_primary',
                 'bannerSlides:id,vendor_id,image_path,sort_order',
             ])

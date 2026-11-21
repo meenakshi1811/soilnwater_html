@@ -49,7 +49,8 @@
 
 .biz-container {
   width: 100%;
-  max-width: 1480px;
+  /* (full width on big screens too; the grids below add columns instead of stretching cards) */
+  max-width: none;
   margin: 0 auto;
   padding: 0 var(--biz-gutter);
 }
@@ -2534,4 +2535,154 @@ a.biz-contact__value:hover,
   body:has(.biz-actionbar) .discussion-fab {
     bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* Big screens: the page uses the full width, so lists get more columns rather than bigger cards */
+@media (min-width: 1800px) {
+  .biz-grid {
+    grid-template-columns: 240px minmax(0, 1fr) 320px;
+  }
+
+  .biz-items,
+  .biz-sponsored__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .biz-items--four {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2300px) {
+  .biz-items,
+  .biz-sponsored__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .biz-items--four {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* The store's products: one row that slides (four in view on laptops, more on big screens, two on phones) */
+.biz-items--row {
+  --biz-row-gap: 1rem;
+  --biz-row-count: 4;
+  display: flex;
+  gap: var(--biz-row-gap);
+  padding: 2px 2px 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.biz-items--row::-webkit-scrollbar {
+  display: none;
+}
+
+.biz-items--row > .biz-item {
+  flex: 0 0 calc((100% - (var(--biz-row-count) - 1) * var(--biz-row-gap)) / var(--biz-row-count));
+  scroll-snap-align: start;
+}
+
+/* (no lift on hover inside the row: it would be cut off at the top) */
+.biz-items--row > .biz-item:hover {
+  transform: none;
+}
+
+.biz-section__head--split .biz-section__link {
+  flex-shrink: 0;
+}
+
+@media (min-width: 1800px) {
+  .biz-items--row {
+    --biz-row-count: 5;
+  }
+}
+
+@media (min-width: 2300px) {
+  .biz-items--row {
+    --biz-row-count: 6;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .biz-items--row {
+    --biz-row-count: 3;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .biz-items--row {
+    --biz-row-gap: .6rem;
+    --biz-row-count: 2;
+  }
+}
+
+/* Image + text cards on the profile page: one sliding row of equal cards (the same width and height;
+   four in view on laptops, more on big screens, two on phones), not vendor-store.css's wrapping grid */
+.biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) {
+  --biz-card-gap: 14px;
+  --biz-card-count: 4;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch;
+  gap: var(--biz-card-gap) !important;
+}
+
+.biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) > [class*="col-"] {
+  display: flex;
+  flex: 0 0 calc((100% - (var(--biz-card-count) - 1) * var(--biz-card-gap)) / var(--biz-card-count)) !important;
+  width: auto !important;
+}
+
+.biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) > [class*="col-"] > .vendor-image-text-card {
+  width: 100%;
+}
+
+/* (no lift on hover inside the row: it would be cut off at the top) */
+.biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) .vendor-image-text-card:hover {
+  transform: none;
+}
+
+@media (min-width: 1800px) {
+  .biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) {
+    --biz-card-count: 5;
+  }
+}
+
+@media (min-width: 2300px) {
+  .biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) {
+    --biz-card-count: 6;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) {
+    --biz-card-count: 3;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .biz-builder.vendor-store-section .content-body .row.biz-carousel__track:has([data-card-image-slot]) {
+    --biz-card-gap: 10px;
+    --biz-card-count: 2;
+  }
+}
+
+/* Similar vendors: the vendor listing page's cards (vendors-page.css), whose colours are set on its page */
+.vendor-store-similar-vendors-section {
+  --vendors-green: var(--secondary, #2e7d32);
+  --vendors-green-dark: #1b5e20;
+  --vendors-green-soft: var(--green-pale, #e8f5e9);
+  --vendors-navy: var(--blue-dark, #16324f);
+  --vendors-muted: #66788f;
+  --vendors-border: #e5eaf1;
+  --vendors-shadow: var(--shadow, 0 8px 24px rgba(15, 23, 42, 0.06));
+}
+
+.biz-similar-row--listing .biz-similar-row__item > .vendors-compact-card {
+  width: 100%;
 }

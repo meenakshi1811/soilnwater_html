@@ -237,7 +237,7 @@
                     <section class="biz-section">
                         <header class="biz-section__head biz-section__head--split">
                             <h2 class="biz-section__title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> More from this store</h2>
-                            <a href="{{ $biz['url'] }}#biz-products" class="biz-section__link">See all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                            <a href="{{ route('store.products.index', $vendor->slug) }}" class="biz-section__link">See all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </header>
                         <div class="biz-items biz-items--four">
                             @include('frontend.business-profile.partials.product-cards', ['products' => $similarProducts, 'slug' => $vendor->slug, 'categoryNames' => []])

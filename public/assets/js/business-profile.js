@@ -278,6 +278,9 @@
 
     page.querySelectorAll('.biz-extra [data-biz-carousel]').forEach(initPictureRow);
 
+    // The store's products: one sliding row
+    page.querySelectorAll('[data-biz-offer-row]').forEach(initPictureRow);
+
     // Copy the profile link
     document.querySelectorAll('[data-biz-copy]').forEach(function (button) {
         button.addEventListener('click', function () {

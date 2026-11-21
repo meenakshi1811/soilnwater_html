@@ -23,9 +23,13 @@
         'count' => $products->count(),
         'chips' => BusinessProfilePage::categoryChips($products, fn ($product) => [$product->category_id, $categoryNames[$product->category_id] ?? null]),
         'partial' => 'frontend.business-profile.partials.product-cards',
-        'data' => ['products' => $products, 'slug' => $vendor->slug, 'categoryNames' => $categoryNames],
+        // One sliding row of the newest products; "View all products" opens the full list
+        'data' => ['products' => $products->take(12), 'slug' => $vendor->slug, 'categoryNames' => $categoryNames],
         'empty' => 'No products listed yet.',
         'limit' => 12,
+        'row' => true,
+        'viewAllUrl' => route('store.products.index', $vendor->slug),
+        'viewAllLabel' => 'View all products',
     ];
     $bizEnquiry = [
         'action' => route('store.enquiry', $vendor->slug),

@@ -214,7 +214,7 @@
             <main class="biz-main">
                 {{-- Services / products --}}
                 <section class="biz-section" id="{{ $bizOffer['id'] }}" data-biz-filter-scope>
-                    <header class="biz-section__head">
+                    <header class="biz-section__head {{ ! empty($bizOffer['viewAllUrl']) ? 'biz-section__head--split' : '' }}">
                         <div>
                             <h2 class="biz-section__title">
                                 <i class="fa-solid {{ $bizOffer['icon'] }}" aria-hidden="true"></i>
@@ -223,9 +223,19 @@
                             </h2>
                             <p class="biz-section__lead">{{ $bizOffer['lead'] }}</p>
                         </div>
+                        @if(! empty($bizOffer['viewAllUrl']) && $bizOffer['count'] > 0)
+                            <a href="{{ $bizOffer['viewAllUrl'] }}" class="biz-section__link">
+                                {{ $bizOffer['viewAllLabel'] ?? 'View all' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        @endif
                     </header>
 
-                    @if($bizOffer['count'] > 0)
+                    @if($bizOffer['count'] > 0 && ! empty($bizOffer['row']))
+                        {{-- One row that slides (arrows, swipe; business-profile.js) --}}
+                        <div class="biz-items biz-items--row" data-biz-offer-row data-biz-carousel="{{ strtolower($bizOffer['navLabel']) }}">
+                            @include($bizOffer['partial'], $bizOffer['data'])
+                        </div>
+                    @elseif($bizOffer['count'] > 0)
                         @if($bizOffer['chips']->count() > 1)
                             <div class="biz-chips" role="group" aria-label="Filter by category">
                                 <button type="button" class="biz-chip is-active" data-biz-filter="">All <span>{{ $bizOffer['count'] }}</span></button>
