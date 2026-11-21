@@ -2686,3 +2686,150 @@ a.biz-contact__value:hover,
 .biz-similar-row--listing .biz-similar-row__item > .vendors-compact-card {
   width: 100%;
 }
+
+/* Image + text cards: five lines of text (set by business-profile.js), then "Read more" (popup) */
+.biz-builder .vendor-image-text-card .prod-card-body.biz-card-text--folded {
+  flex: 0 0 auto !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+  /* (a light fade at the very bottom only, so all five lines stay readable) */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 8px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 8px), transparent);
+}
+
+.biz-card-readmore {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: .35rem;
+  margin: auto 14px 13px;
+  padding: .35rem 0 0;
+  border: 0;
+  background: none;
+  color: var(--biz-accent, #2e7d32);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.biz-card-readmore i {
+  font-size: .75rem;
+  transition: transform .2s ease;
+}
+
+.biz-card-readmore:hover i,
+.biz-card-readmore:focus-visible i {
+  transform: translateX(3px);
+}
+
+.biz-card-modal .modal-content {
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.biz-card-modal__title {
+  margin: 0;
+  color: #1b2b44;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.biz-card-modal__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.biz-card-modal__image {
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.biz-card-modal__image[hidden] + .biz-card-modal__text {
+  grid-column: 1 / -1;
+}
+
+.biz-card-modal__text {
+  color: #1b2b44;
+  font-size: .95rem;
+  line-height: 1.65;
+}
+
+/* (pasted text: drop its own backgrounds and fonts, as in the cards) */
+.biz-card-modal__text * {
+  background: transparent !important;
+  font-family: inherit !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.biz-card-modal__text p {
+  margin: 0 0 .5rem;
+}
+
+.biz-card-modal__text ul,
+.biz-card-modal__text ol {
+  margin: .4rem 0 .6rem;
+  padding-left: 1.2rem;
+}
+
+@media (max-width: 767.98px) {
+  .biz-card-modal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .biz-card-modal__image {
+    max-height: 45vh;
+  }
+
+  .biz-card-readmore {
+    margin: auto 10px 10px;
+    font-size: .8rem;
+  }
+}
+
+/* Header without a banner: the logo sits inside the card (not pulled up over a cover) */
+.biz-hero--no-cover {
+  background:
+    radial-gradient(circle at 100% 0%, var(--biz-accent-soft, #e8f5e9), transparent 45%),
+    var(--biz-card, #fff);
+}
+
+.biz-hero--no-cover .biz-hero__body {
+  align-items: center;
+  padding: 1.5rem 1.75rem;
+}
+
+.biz-hero--no-cover .biz-hero__logo {
+  width: 120px;
+  height: 120px;
+  margin-top: 0;
+  border: 1px solid var(--biz-border);
+  border-radius: 22px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+}
+
+.biz-hero--no-cover .biz-hero__identity {
+  padding-top: 0;
+}
+
+@media (max-width: 767.98px) {
+  .biz-hero--no-cover .biz-hero__body {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .biz-hero--no-cover .biz-hero__logo {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto;
+    border-radius: 18px;
+  }
+
+  .biz-hero--no-cover .biz-hero__identity {
+    padding-top: .75rem;
+  }
+}

@@ -156,51 +156,13 @@
             </div>
         </div>
 
-        <div class="vendor-editor-panel mb-4">
-            <div class="vendor-editor-panel-head">
-                <i class="fa-solid fa-panorama text-primary"></i>
-                <div>
-                    <strong>Hero banner</strong>
-                    <p class="mb-0 small text-muted">Upload banner images and customize the main heading text below.</p>
-                </div>
-            </div>
-            <section class="vendor-store-hero">
-                @if($vendor->bannerSlides->count())
-                    <div id="storeHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
-                        <div class="carousel-inner h-100" id="bannerSlidesList">
-                            @foreach($vendor->bannerSlides as $i => $slide)
-                                <div class="carousel-item {{ $i === 0 ? 'active' : '' }} vendor-banner-slide" data-id="{{ $slide->id }}" style="background-image:url('{{ asset($slide->image_path) }}')">
-                                    <button type="button" class="btn btn-danger btn-sm vendor-slide-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @else
-                    <div class="carousel-inner h-100" id="bannerSlidesList"></div>
-                @endif
-
-                <div class="hero-overlay">
-                    <div class="container">
-                        <label class="btn btn-warning btn-sm fw-bold mb-0">
-                            <i class="fa-solid fa-upload me-1"></i> Upload banner images
-                            <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
-                        </label>
-                        <small class="text-white ms-2" id="bannerUploadStatus">No new files selected</small>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="vendor-banner-thumbs-wrap mb-4">
-            <div class="small text-muted mb-2"><i class="fa-solid fa-images me-1"></i> Banner thumbnails — click to preview, × to remove</div>
-            <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
-        </div>
+        {{-- (no banner: the public page header shows the logo and details) --}}
 
         <div class="vendor-form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <h5 class="mb-0">Hero heading text</h5>
-                    <p class="text-muted small mb-0">This text will appear below the banner thumbnails and on the frontend as a separate section.</p>
+                    <p class="text-muted small mb-0">This text appears on your public page as a separate section.</p>
                 </div>
             </div>
             <div class="vendor-section-style-panel mb-3">

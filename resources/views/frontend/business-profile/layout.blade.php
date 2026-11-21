@@ -72,8 +72,8 @@
 
 @section('meta_title', $biz['name'].' · '.$biz['typeLabel'].' | SoilnWater')
 @section('meta_description', $metaDescription)
-@if($biz['banners']->isNotEmpty() || $biz['logo'])
-    @section('meta_image', $biz['banners']->first() ?: $biz['logo'])
+@if($biz['logo'])
+    @section('meta_image', $biz['logo'])
 @endif
 
 @push('styles')
@@ -96,39 +96,8 @@
             <span class="biz-breadcrumb__current" aria-current="page">{{ $biz['name'] }}</span>
         </nav>
 
-        {{-- Header: cover, logo, name, details and actions --}}
-        <section class="biz-hero {{ $biz['logo'] ? 'biz-hero--has-logo' : '' }}" id="biz-overview">
-            <div class="biz-hero__cover {{ $biz['banners']->isEmpty() ? 'biz-hero__cover--plain' : '' }}">
-                @if($biz['banners']->isNotEmpty())
-                    <div id="bizCoverCarousel" class="carousel slide carousel-fade h-100" @if($biz['banners']->count() > 1) data-bs-ride="carousel" data-bs-interval="5000" @endif>
-                        <div class="carousel-inner h-100">
-                            @foreach($biz['banners'] as $banner)
-                                <div class="carousel-item h-100 {{ $loop->first ? 'active' : '' }}">
-                                    <span class="biz-hero__backdrop" style="background-image: url('{{ $banner }}')" aria-hidden="true"></span>
-                                    <img src="{{ $banner }}" alt="{{ $biz['name'] }} banner {{ $loop->iteration }}" class="biz-hero__image" @if(! $loop->first) loading="lazy" @endif>
-                                </div>
-                            @endforeach
-                        </div>
-                        @if($biz['banners']->count() > 1)
-                            <div class="carousel-indicators biz-hero__dots">
-                                @foreach($biz['banners'] as $banner)
-                                    <button type="button" data-bs-target="#bizCoverCarousel" data-bs-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}" @if($loop->first) aria-current="true" @endif aria-label="Banner {{ $loop->iteration }}"></button>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                @else
-                    <span class="biz-hero__watermark" aria-hidden="true"><i class="fa-solid {{ $biz['typeIcon'] }}"></i></span>
-                @endif
-                @if($biz['logo'])
-                    {{-- Phones: the logo in place of the banner --}}
-                    <div class="biz-hero__cover-logo">
-                        {{-- (a wide logo is shown whole; a photo or square one fills the tile) --}}
-                        <img src="{{ $biz['logo'] }}" alt="{{ $biz['name'] }} logo" onload="this.classList.toggle('is-wide', this.naturalWidth > this.naturalHeight * 1.4)">
-                    </div>
-                @endif
-            </div>
-
+        {{-- Header: logo, name, details and actions (no banner) --}}
+        <section class="biz-hero biz-hero--no-cover" id="biz-overview">
             <div class="biz-hero__body">
                 <div class="biz-hero__logo">
                     @if($biz['logo'])
@@ -273,8 +242,8 @@
                 @if($showAbout)
                     <section class="biz-section biz-builder vendor-store-page" id="biz-about">
                         <h2 class="biz-section__title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About {{ $biz['name'] }}</h2>
-                        {{-- Four lines, then "Read more" --}}
-                        <div class="biz-collapsible" data-biz-collapsible>
+                        {{-- Six lines, then "Read more" --}}
+                        <div class="biz-collapsible" data-biz-collapsible="6">
                             @if($biz['taglineHtml'] !== '')
                                 <div class="biz-about__lead">{!! $biz['taglineHtml'] !!}</div>
                             @endif

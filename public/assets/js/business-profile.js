@@ -135,7 +135,8 @@
         }
     });
 
-    // Long text (about, text sections, a product's description) shows four lines, then "Read more"
+    // Long text (about, text sections, a product's description) shows four lines (or the number in
+    // data-biz-collapsible, e.g. six for About), then "Read more"
     function lineHeightOf(box) {
         var text = box.querySelector('p, li, div:not([class]), span') || box;
         var style = getComputedStyle(text);
@@ -146,7 +147,8 @@
     page.querySelectorAll('[data-biz-collapsible]').forEach(function (box) {
         var button = box.parentElement.querySelector('[data-biz-readmore]');
         if (!button) return;
-        var foldedHeight = Math.round(lineHeightOf(box) * 4);
+        var lines = parseInt(box.getAttribute('data-biz-collapsible'), 10) || 4;
+        var foldedHeight = Math.round(lineHeightOf(box) * lines);
         if (box.scrollHeight <= foldedHeight + 8) return;
 
         function fold(folded) {
@@ -280,6 +282,111 @@
 
     // The store's products: one sliding row
     page.querySelectorAll('[data-biz-offer-row]').forEach(initPictureRow);
+
+    // Image + text cards: five lines of text, then "Read more", which shows the card in a popup
+    var CARD_TEXT_LINES = 5;
+    var cardModal = null;
+
+    function cardPopup() {
+        if (cardModal) return cardModal;
+        cardModal = document.createElement('div');
+        cardModal.className = 'modal fade biz-card-modal';
+        cardModal.tabIndex = -1;
+        cardModal.setAttribute('aria-hidden', 'true');
+        cardModal.setAttribute('aria-labelledby', 'bizCardModalTitle');
+        cardModal.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<h2 class="modal-title biz-card-modal__title" id="bizCardModalTitle"></h2>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="biz-card-modal__grid">' +
+                            '<img class="biz-card-modal__image" alt="">' +
+                            '<div class="biz-card-modal__text"></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(cardModal);
+
+        return cardModal;
+    }
+
+    function openCard(card, body, sectionTitle) {
+        if (!window.bootstrap || !window.bootstrap.Modal) return false;
+        var modal = cardPopup();
+        var image = card.querySelector('img[data-card-image-slot], img');
+        var heading = body.querySelector('.offer-coupon-title, .card-title, h1, h2, h3, h4, h5, h6');
+        var modalImage = modal.querySelector('.biz-card-modal__image');
+        var text = modal.querySelector('.biz-card-modal__text');
+
+        modal.querySelector('.biz-card-modal__title').textContent = (heading ? heading.textContent : sectionTitle).trim();
+        modalImage.hidden = !image;
+        if (image) {
+            modalImage.src = image.currentSrc || image.src;
+            modalImage.alt = image.alt || '';
+        }
+        text.innerHTML = '';
+        Array.prototype.forEach.call(body.childNodes, function (node) {
+            text.appendChild(node.cloneNode(true));
+        });
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+
+        return true;
+    }
+
+    page.querySelectorAll('[data-biz-gallery-section]').forEach(function (section) {
+        var sectionTitle = (section.querySelector('.biz-section__title') || {}).textContent || '';
+
+        section.querySelectorAll('.vendor-image-text-card').forEach(function (card) {
+            if (card.offsetParent === null && getComputedStyle(card).display === 'none') return; // (an empty split card)
+
+            // Text pasted loose in the card goes into a card body, so it is padded and folded like the others
+            var body = card.querySelector(':scope > .prod-card-body');
+            if (!body) {
+                body = document.createElement('div');
+                body.className = 'prod-card-body';
+                Array.prototype.slice.call(card.childNodes).forEach(function (node) {
+                    if (node.nodeType === 1 && node.matches('img')) return;
+                    body.appendChild(node);
+                });
+                card.appendChild(body);
+                card.classList.add('biz-card--mended');
+            }
+            if (body.textContent.trim() === '') return;
+
+            // (the line height of the text itself: pasted text can be set larger than the card's)
+            var style = getComputedStyle(body);
+            var walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+                acceptNode: function (node) { return node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP; }
+            });
+            var firstText = walker.nextNode();
+            var textStyle = getComputedStyle(firstText && firstText.parentElement ? firstText.parentElement : body);
+            var lineHeight = parseFloat(textStyle.lineHeight);
+            if (isNaN(lineHeight)) lineHeight = parseFloat(textStyle.fontSize) * 1.5;
+            var folded = Math.round(parseFloat(style.paddingTop) + lineHeight * CARD_TEXT_LINES);
+            if (body.scrollHeight <= folded + parseFloat(style.paddingBottom) + 4) return;
+
+            body.classList.add('biz-card-text--folded');
+            body.style.maxHeight = folded + 'px';
+
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'biz-card-readmore';
+            button.innerHTML = 'Read more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+            button.addEventListener('click', function () {
+                if (!openCard(card, body, sectionTitle)) {
+                    // (no popup available: unfold in place)
+                    body.classList.remove('biz-card-text--folded');
+                    body.style.maxHeight = '';
+                    button.remove();
+                }
+            });
+            card.appendChild(button);
+        });
+    });
 
     // Copy the profile link
     document.querySelectorAll('[data-biz-copy]').forEach(function (button) {
