@@ -3548,3 +3548,56 @@
 .edu-gallery-grid__item:hover img {
   transform: scale(1.02);
 }
+
+/* Experience: an associated school/institute on SoilnWater links to its profile */
+.edu-exp-org-link {
+  color: var(--edu-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.edu-exp-org-link:hover {
+  text-decoration: underline;
+}
+
+.edu-exp-institute {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+  border: 1px solid var(--edu-border, #e2e8f0);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--edu-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edu-exp-institute:hover {
+  border-color: var(--edu-primary);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.edu-exp-institute i {
+  font-size: 0.7rem;
+}
+
+.edu-exp-institute__logo {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.edu-exp-institute__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: var(--edu-primary);
+  font-size: 0.75rem;
+}

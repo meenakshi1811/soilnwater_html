@@ -37,6 +37,31 @@
   $showTuitionDetails = $educator->hasPublishedTuitionDetails();
   $tuitionPointLabel = $educator->tuitionPointAddressLabel();
   $affiliatedInstitutes = $educator->affiliatedInstitutes ?? collect();
+
+  // Associated schools/institutes are shown in Experience: an entry whose organisation is one of them
+  // links to its profile; the others are listed as entries of their own
+  $orgKey = fn ($name): string => \Illuminate\Support\Str::of((string) $name)->lower()->replaceMatches('/[^\pL\pN]+/u', ' ')->squish()->toString();
+  $institutesByName = $affiliatedInstitutes->keyBy(fn ($institute) => $orgKey($institute->displayName()));
+  $experienceEntries = $experiences->map(function ($exp) use ($institutesByName, $orgKey) {
+      $key = $orgKey($exp['organization'] ?? '');
+
+      return ['exp' => $exp, 'institute' => $key !== '' ? $institutesByName->get($key) : null];
+  });
+  $linkedInstituteIds = $experienceEntries->pluck('institute')->filter()->pluck('id')->all();
+  $experienceEntries = $experienceEntries->concat(
+      $affiliatedInstitutes
+          ->reject(fn ($institute) => in_array($institute->id, $linkedInstituteIds, true))
+          ->map(fn ($institute) => [
+              'exp' => [
+                  'title' => $institute->pivot->role_title ?: 'Teacher',
+                  'organization' => $institute->displayName(),
+                  'subject' => $institute->pivot->subject,
+                  'city' => $institute->city,
+              ],
+              'institute' => $institute,
+              'associated' => true,
+          ])
+  )->values();
   $isOwnerView = (bool) ($canEditInline ?? false);
   // One experience figure for the whole page (never below the subject rows or work history)
   $yearsExperience = $educator->effectiveYearsExperience();
@@ -67,7 +92,6 @@
     ['id' => 'edu-overview', 'label' => 'Profile Overview', 'icon' => 'fa-user'],
   ])
     ->when($notices->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-notices', 'label' => 'Notice Board', 'icon' => 'fa-bullhorn']))
-    ->when($affiliatedInstitutes->isNotEmpty(), fn ($items) => $items->push(['id' => 'edu-affiliations', 'label' => 'Associated Schools & Institutes', 'icon' => 'fa-school']))
     ->push(
     ['id' => 'edu-about', 'label' => 'About Me', 'icon' => 'fa-circle-info'],
     ['id' => 'edu-subjects', 'label' => 'Subjects & Classes', 'icon' => 'fa-book'],
@@ -284,38 +308,7 @@
         </section>
         @endif
 
-        @if($affiliatedInstitutes->isNotEmpty())
-        <section class="edu-section" id="edu-affiliations">
-          <h2 class="edu-section__title"><i class="fa-solid fa-school" aria-hidden="true"></i> Associated Schools &amp; Institutes{!! $eduPencil('affiliations', 'Schools & institutes') !!}</h2>
-          <p class="edu-section__note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Schools and institutes listed by the teacher. A listing here is not an endorsement by the school or institute.</p>
-          <div class="edu-affiliations-grid">
-            @foreach($affiliatedInstitutes as $institute)
-              <a href="{{ $institute->publicUrl() }}" class="edu-affiliation-card">
-                <span class="edu-affiliation-card__logo-wrap">
-                  @if($institute->logoUrl())
-                    <img src="{{ $institute->logoUrl() }}" alt="" class="edu-affiliation-card__logo">
-                  @else
-                    <span class="edu-affiliation-card__logo edu-affiliation-card__logo--placeholder"><i class="fa-solid fa-school" aria-hidden="true"></i></span>
-                  @endif
-                </span>
-                <span class="edu-affiliation-card__body">
-                  <span class="edu-affiliation-card__eyebrow">{{ \App\Support\SchoolInstituteHelper::label($institute->user?->role) }}</span>
-                  <span class="edu-affiliation-card__name">{{ $institute->displayName() }}</span>
-                  @if($institute->pivot->role_title || $institute->pivot->subject)
-                    <span class="edu-affiliation-card__meta">
-                      {{ collect([$institute->pivot->role_title, $institute->pivot->subject])->filter()->implode(' · ') }}
-                    </span>
-                  @endif
-                  @if($institute->city)
-                    <span class="edu-affiliation-card__city"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $institute->city }}</span>
-                  @endif
-                </span>
-                <span class="edu-affiliation-card__cta">View profile <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-              </a>
-            @endforeach
-          </div>
-        </section>
-        @endif
+        {{-- (Associated schools & institutes: shown in Experience) --}}
 
         {{-- 2. About Me --}}
         <section class="edu-section" id="edu-about">
@@ -410,18 +403,45 @@
 
           <div class="edu-exp-grid">
             <div>
-              <h4>Experience</h4>
-              @forelse($experiences as $exp)
-                <div class="edu-timeline-item">
+              <h4>Experience{!! $eduPencil('affiliations', 'Schools & institutes') !!}</h4>
+              @forelse($experienceEntries as $entry)
+                @php
+                  $exp = $entry['exp'];
+                  $linkedInstitute = $entry['institute'];
+                  $isAssociated = (bool) ($entry['associated'] ?? false);
+                  $duration = $isAssociated ? null : (\App\Models\Educator::experienceDurationLabel($exp) ?: null);
+                @endphp
+                <div class="edu-timeline-item {{ $linkedInstitute ? 'edu-timeline-item--institute' : '' }}">
                   <strong>{{ $exp['title'] ?? 'Experience' }}</strong>
-                  @if(\App\Models\Educator::experienceIsCurrent($exp))
+                  @if(! $isAssociated && \App\Models\Educator::experienceIsCurrent($exp))
                     <span class="edu-role-tag edu-role-tag--current">Current</span>
-                  @elseif(filled($exp['end_year'] ?? null) || filled($exp['start_year'] ?? null))
+                  @elseif(! $isAssociated && (filled($exp['end_year'] ?? null) || filled($exp['start_year'] ?? null)))
                     <span class="edu-role-tag">Former</span>
                   @endif
-                  <span class="text-muted">{{ collect([$exp['organization'] ?? null, \App\Models\Educator::experienceDurationLabel($exp) ?: null])->filter()->implode(' · ') }}</span>
+                  <span class="text-muted">
+                    @if($linkedInstitute)
+                      <a href="{{ $linkedInstitute->publicUrl() }}" class="edu-exp-org-link">{{ $exp['organization'] }}</a>
+                    @else
+                      {{ $exp['organization'] ?? '' }}
+                    @endif
+                    @foreach(collect([$exp['subject'] ?? null, $duration, $exp['city'] ?? null])->filter() as $part)
+                      @if(filled($exp['organization'] ?? null) || ! $loop->first) · @endif{{ $part }}
+                    @endforeach
+                  </span>
                   @if(!empty($exp['description']))
                     <p class="mb-0 mt-1">{{ $exp['description'] }}</p>
+                  @endif
+                  @if($linkedInstitute)
+                    {{-- The school/institute is on SoilnWater: a link to its profile --}}
+                    <a href="{{ $linkedInstitute->publicUrl() }}" class="edu-exp-institute">
+                      @if($linkedInstitute->logoUrl())
+                        <img src="{{ $linkedInstitute->logoUrl() }}" alt="" class="edu-exp-institute__logo" loading="lazy">
+                      @else
+                        <span class="edu-exp-institute__logo edu-exp-institute__logo--placeholder"><i class="fa-solid fa-school" aria-hidden="true"></i></span>
+                      @endif
+                      <span>View {{ strtolower(\App\Support\SchoolInstituteHelper::label($linkedInstitute->user?->role)) }} profile</span>
+                      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </a>
                   @endif
                 </div>
               @empty
