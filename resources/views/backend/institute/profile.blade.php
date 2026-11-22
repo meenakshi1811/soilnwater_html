@@ -93,10 +93,18 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="board_affiliation">Board / affiliation *</label>
-                        <input type="text" class="form-control" id="board_affiliation" name="board_affiliation" value="{{ old('board_affiliation', $institute->board_affiliation) }}" placeholder="CBSE, ICSE, State Board..." required>
-                    </div>
+                    {{-- Colleges and institutes: the university they are affiliated to; schools: their board --}}
+                    @if($institute->usesUniversityAffiliation())
+                        <div class="col-md-6">
+                            <label class="form-label" for="university_affiliation">Affiliated university *</label>
+                            <input type="text" class="form-control" id="university_affiliation" name="university_affiliation" value="{{ old('university_affiliation', $institute->university_affiliation) }}" placeholder="e.g. HNB Garhwal University, Uttarakhand Technical University" maxlength="255" required>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <label class="form-label" for="board_affiliation">Board <span class="text-muted small">(optional)</span></label>
+                            <input type="text" class="form-control" id="board_affiliation" name="board_affiliation" value="{{ old('board_affiliation', $institute->board_affiliation) }}" placeholder="CBSE, ICSE, State Board... (leave empty for play / junior schools)" maxlength="255">
+                        </div>
+                    @endif
                 </div>
                 <div class="mb-3 mt-3">
                     <label class="form-label" for="tagline">Tagline *</label>
@@ -106,6 +114,8 @@
                     <label class="form-label" for="about">About *</label>
                     <textarea class="form-control" id="about" name="about" rows="5" required minlength="10">{{ old('about', $institute->about) }}</textarea>
                 </div>
+                {{-- (a college has no classes/grades offered or Class XI & XII streams) --}}
+                @unless($institute->isCollegeProfile())
                 <div class="mb-3 inst-profile-section">
                     <div class="inst-profile-section__head">
                         <label class="form-label mb-0" for="grades_section_enabled">Grades / classes offered</label>
@@ -129,6 +139,7 @@
                         <button type="button" class="btn btn-sm btn-outline-secondary js-section-control" id="addGradeRow" data-section="grades">+ Add grade</button>
                     </div>
                 </div>
+                @endunless
                 {{-- The "Courses & Programs Offered" cards and the Class XI & XII streams on the public page --}}
                 <div class="mb-3 inst-profile-section">
                     <div class="inst-profile-section__head">
@@ -146,6 +157,7 @@
                     </template>
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="addCourseWingRow">+ Add course / program</button>
 
+                    @unless($institute->isCollegeProfile())
                     <label class="form-label d-block mt-3 mb-1">Streams in Class XI &amp; XII</label>
                     <div id="streamsWrap" class="inst-stream-rows">
                         @foreach ($streamsList ?: [''] as $stream)
@@ -162,6 +174,7 @@
                         </div>
                     </template>
                     <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="addStreamRow">+ Add stream</button>
+                    @endunless
                 </div>
                 <div class="mb-3 inst-profile-section">
                     <div class="inst-profile-section__head">

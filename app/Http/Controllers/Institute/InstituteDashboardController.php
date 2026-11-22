@@ -53,7 +53,7 @@ class InstituteDashboardController extends Controller
                 [
                     'label' => 'Institution type',
                     'value' => $institute->institutionTypeLabel(),
-                    'detail' => $institute->board_affiliation ?: 'Board not set',
+                    'detail' => $institute->affiliationValue() ?: ($institute->usesUniversityAffiliation() ? 'University not set' : 'No board added'),
                     'url' => SchoolInstituteHelper::routeForPrefix($portalPrefix, 'profile.edit'),
                     'icon' => 'fa-school',
                 ],
@@ -74,7 +74,8 @@ class InstituteDashboardController extends Controller
             $institute->institution_name,
             $institute->logo,
             $institute->institution_type,
-            $institute->board_affiliation,
+            // (the university counts for colleges and institutes; a school's board is optional)
+            ...($institute->usesUniversityAffiliation() ? [$institute->university_affiliation] : []),
             $institute->city,
             $institute->pincode,
             $institute->address,

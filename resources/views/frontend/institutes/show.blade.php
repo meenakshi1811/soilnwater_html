@@ -54,8 +54,8 @@
             <div class="flex-grow-1">
                 <div class="school-hero-badges mb-2">
                     <span class="school-hero-badge">{{ $institute->institutionTypeLabel() }}</span>
-                    @if($institute->board_affiliation)
-                        <span class="school-hero-badge school-hero-badge--muted">{{ $institute->board_affiliation }}</span>
+                    @if($institute->affiliationValue())
+                        <span class="school-hero-badge school-hero-badge--muted">{{ $institute->affiliationValue() }}</span>
                     @endif
                 </div>
                 <h1>{{ $institute->displayName() }}</h1>
@@ -108,11 +108,11 @@
                     </div>
                 </div>
             @endif
-            @if($institute->board_affiliation)
+            @if($institute->affiliationValue())
                 <div class="col-6 col-md-4 col-xl-2">
                     <div class="school-stat-card">
-                        <span class="school-stat-card__value">{{ $institute->board_affiliation }}</span>
-                        <span class="school-stat-card__label">Board</span>
+                        <span class="school-stat-card__value">{{ $institute->affiliationValue() }}</span>
+                        <span class="school-stat-card__label">{{ $institute->affiliationLabel() }}</span>
                     </div>
                 </div>
             @endif

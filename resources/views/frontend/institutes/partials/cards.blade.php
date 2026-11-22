@@ -22,8 +22,8 @@
       </h3>
       <div class="vendors-compact-card__meta">
         <span class="vendors-compact-card__category">{{ $institute->institutionTypeLabel() }}</span>
-        @if($institute->board_affiliation)
-          <span class="institutes-card__board">{{ $institute->board_affiliation }}</span>
+        @if($institute->affiliationValue())
+          <span class="institutes-card__board">{{ $institute->affiliationValue() }}</span>
         @endif
       </div>
       <p class="vendors-compact-card__location">

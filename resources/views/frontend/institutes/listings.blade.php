@@ -27,7 +27,7 @@
   data-preview-listing="0"
 >
   <div class="vendors-page__layout">
-    @include('frontend.institutes.partials.filters-sidebar', compact('cities', 'boards', 'hasLocation', 'locationDisplay'))
+    @include('frontend.institutes.partials.filters-sidebar', compact('cities', 'boards', 'hasLocation', 'locationDisplay') + ['usesUniversity' => \App\Models\Institute::roleUsesUniversity(\App\Support\SchoolInstituteHelper::roleForListing($listingContext))])
 
     <main class="vendors-main">
       <section class="vendors-hero vendors-hero--compact">

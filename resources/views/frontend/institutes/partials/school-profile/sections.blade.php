@@ -16,6 +16,8 @@
     : '';
 
   $classes = $institute->schoolClasses;
+  // (a college has no classes/grades offered)
+  $gradeEntries = $institute->isCollegeProfile() ? [] : $institute->gradesOfferedEntries();
   $achievements = $institute->achievements;
   $performers = $institute->topPerformers;
   $gallery = $profile->galleryItems();
@@ -66,7 +68,7 @@
 @endphp
 
 {{-- (the school's own course cards, or the standard ones until it saves its own) --}}
-@if($showSection('courses') && ($courseWingsPreview !== [] || $classes->isNotEmpty() || $institute->gradesOfferedEntries() !== []))
+@if($showSection('courses') && ($courseWingsPreview !== [] || $classes->isNotEmpty() || $gradeEntries !== []))
   <section id="sch-courses" class="sch-card sch-section">
     <div class="sch-section__head">
       <h2 class="sch-section__title mb-0">Courses &amp; Programs Offered</h2>{!! $inlinePencil('courses') !!}
@@ -154,7 +156,7 @@
           </div>
         @endif
       </div>
-    @elseif($institute->gradesOfferedEntries() !== [])
+    @elseif($gradeEntries !== [])
       @include('frontend.institutes.partials.school-profile.classes-offered', ['institute' => $institute])
     @endif
   </section>

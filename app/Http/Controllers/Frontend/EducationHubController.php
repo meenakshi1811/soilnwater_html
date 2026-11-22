@@ -466,7 +466,8 @@ class EducationHubController extends Controller
         $query->where('institution_name', 'like', $like)
             ->orWhere('display_name', 'like', $like)
             ->orWhere('city', 'like', $like)
-            ->orWhere('board_affiliation', 'like', $like);
+            ->orWhere('board_affiliation', 'like', $like)
+            ->orWhere('university_affiliation', 'like', $like);
     }
 
     /**

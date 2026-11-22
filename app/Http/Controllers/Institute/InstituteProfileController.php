@@ -41,7 +41,9 @@ class InstituteProfileController extends Controller
         $user = ManagedInstitute::owner($request);
         $byAdmin = ManagedInstitute::fromAdmin($request) !== null;
 
-        $gradesSectionEnabled = $request->boolean('grades_section_enabled');
+        // (a college has no classes/grades offered or Class XI & XII streams)
+        $isCollege = $institute->isCollegeProfile();
+        $gradesSectionEnabled = ! $isCollege && $request->boolean('grades_section_enabled');
         $facilitiesSectionEnabled = $request->boolean('facilities_section_enabled');
         $gallerySectionEnabled = $request->boolean('gallery_section_enabled');
 
@@ -82,8 +84,11 @@ class InstituteProfileController extends Controller
         }
         $request->merge([
             'course_wings' => InstituteCourseWings::filledRows($wingRows),
-            'streams' => InstituteCourseWings::cleanStreams($request->input('streams', [])),
+            'streams' => $isCollege ? [] : InstituteCourseWings::cleanStreams($request->input('streams', [])),
         ]);
+
+        // Colleges and institutes give their university; schools their board
+        $usesUniversity = \App\Models\Institute::roleUsesUniversity($user?->role);
 
         $validated = $request->validate(array_merge([
             'institution_name' => ['required', 'string', 'max:255'],
@@ -99,7 +104,9 @@ class InstituteProfileController extends Controller
             'brochure' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
             'remove_brochure' => ['nullable', 'boolean'],
             'institution_type' => ['required', 'string', 'in:school,college,university,coaching,other'],
-            'board_affiliation' => ['required', 'string', 'max:255'],
+            // (optional: play schools and junior schools may not have a board)
+            'board_affiliation' => ['nullable', 'string', 'max:255'],
+            'university_affiliation' => [Rule::requiredIf($usesUniversity), 'nullable', 'string', 'max:255'],
             'grades_section_enabled' => ['nullable', 'boolean'],
             'facilities_section_enabled' => ['nullable', 'boolean'],
             'gallery_section_enabled' => ['nullable', 'boolean'],
@@ -144,7 +151,7 @@ class InstituteProfileController extends Controller
         ], ProfilePhoneNumbers::validationRules(), $emailsInForm ? ProfileEmails::validationRules() : [], $detailsInForm ? InstituteProfileDetails::validationRules($byAdmin) : [], InstituteGrades::validationRules($gradesSectionEnabled)), array_merge([
             'contact_person.required' => 'Please enter the contact person name.',
             'institution_type.required' => 'Please select an institution type.',
-            'board_affiliation.required' => 'Please enter board or affiliation.',
+            'university_affiliation.required' => 'Please enter the university it is affiliated to.',
             'tagline.required' => 'Please enter a tagline.',
             'about.required' => 'Please enter the about section.',
             'about.min' => 'About must be at least 10 characters.',
@@ -226,6 +233,12 @@ class InstituteProfileController extends Controller
         if ($detailsInForm) {
             $profileMeta = InstituteProfileDetails::toMeta($validated['details'] ?? [], $byAdmin, $profileMeta);
         }
+        // (a college has no Class XI & XII streams, co-education line or board result)
+        if ($isCollege) {
+            $profileMeta['streams'] = [];
+            $profileMeta['co_educational_label'] = '';
+            $profileMeta['board_result_percent'] = '';
+        }
 
         $institute->update([
             'institution_name' => $validated['institution_name'],
@@ -247,7 +260,10 @@ class InstituteProfileController extends Controller
             'longitude' => $validated['longitude'] ?? null,
             'place_id' => $validated['place_id'] ?? null,
             'institution_type' => $validated['institution_type'] ?? null,
-            'board_affiliation' => $validated['board_affiliation'] ?? null,
+            // (the other one is kept as it was)
+            ...($usesUniversity
+                ? ['university_affiliation' => $validated['university_affiliation'] ?? null]
+                : ['board_affiliation' => $validated['board_affiliation'] ?? null]),
             'grades_offered' => $gradesSectionEnabled
                 ? InstituteGrades::fromValidated($validated['grades_offered'] ?? [])
                 : [],

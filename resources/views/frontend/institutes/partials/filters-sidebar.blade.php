@@ -12,7 +12,7 @@
       <label for="institutesMarketFilterSearch">Search</label>
       <div class="vendors-filter-search-wrap">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-        <input id="institutesMarketFilterSearch" class="form-control" placeholder="School name, board or city..." value="{{ request('search', request('q')) }}">
+        <input id="institutesMarketFilterSearch" class="form-control" placeholder="{{ ($usesUniversity ?? false) ? 'Name, university or city...' : 'School name, board or city...' }}" value="{{ request('search', request('q')) }}">
       </div>
     </div>
 
@@ -37,9 +37,9 @@
     </div>
 
     <div class="vendors-filter-group">
-      <label for="institutesMarketFilterBoard">Board / affiliation</label>
+      <label for="institutesMarketFilterBoard">{{ ($usesUniversity ?? false) ? 'University' : 'Board' }}</label>
       <select id="institutesMarketFilterBoard" class="form-select">
-        <option value="">All boards</option>
+        <option value="">{{ ($usesUniversity ?? false) ? 'All universities' : 'All boards' }}</option>
         @foreach ($boards as $board)
           <option value="{{ $board }}" @selected((string) request('board') === (string) $board)>{{ $board }}</option>
         @endforeach

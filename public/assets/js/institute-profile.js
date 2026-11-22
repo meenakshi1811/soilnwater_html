@@ -454,7 +454,9 @@
                 institution_name: { required: true, maxlength: 255 },
                 contact_person: { required: true, maxlength: 255 },
                 institution_type: { required: true },
-                board_affiliation: { required: true, maxlength: 255 },
+                // (one of the two is in the form: board for schools (optional), university for colleges and institutes)
+                board_affiliation: { maxlength: 255 },
+                university_affiliation: { required: true, maxlength: 255 },
                 tagline: { required: true, maxlength: 255 },
                 about: { required: true, minlength: 10 },
                 whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
@@ -477,7 +479,7 @@
                 institution_name: { required: 'Please enter the institution name.' },
                 contact_person: { required: 'Please enter the contact person name.' },
                 institution_type: { required: 'Please select an institution type.' },
-                board_affiliation: { required: 'Please enter board or affiliation.' },
+                university_affiliation: { required: 'Please enter the university it is affiliated to.' },
                 tagline: { required: 'Please enter a tagline.' },
                 about: {
                     required: 'Please enter the about section.',

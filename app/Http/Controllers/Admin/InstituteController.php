@@ -147,6 +147,7 @@ class InstituteController extends Controller
                 'slug' => $institute->slug,
                 'institution_type' => $institute->institution_type,
                 'board_affiliation' => $institute->board_affiliation,
+                'university_affiliation' => $institute->university_affiliation,
                 'tagline' => $institute->tagline,
                 'about' => $institute->about,
                 'phone' => $institute->primaryPhoneNumber() ?? $institute->phone,
@@ -175,7 +176,9 @@ class InstituteController extends Controller
             'contact_person' => ['nullable', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('institutes', 'slug')->ignore($institute->id)],
             'institution_type' => ['required', 'string', 'in:school,college,university,coaching,other'],
+            // (the form has one of the two: board for schools, university for colleges and institutes)
             'board_affiliation' => ['nullable', 'string', 'max:255'],
+            'university_affiliation' => ['nullable', 'string', 'max:255'],
             'tagline' => ['nullable', 'string', 'max:255'],
             'about' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'regex:/^[0-9]{10,15}$/'],

@@ -82,10 +82,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="instituteBoard">Board / affiliation</label>
-                            <input type="text" name="board_affiliation" id="instituteBoard" class="form-control" placeholder="e.g. CBSE">
-                        </div>
+                        @if(\App\Models\Institute::roleUsesUniversity($ownerRole ?? 'institute'))
+                            <div class="col-md-6">
+                                <label class="form-label" for="instituteUniversity">Affiliated university</label>
+                                <input type="text" name="university_affiliation" id="instituteUniversity" class="form-control" placeholder="e.g. HNB Garhwal University" maxlength="255">
+                            </div>
+                        @else
+                            <div class="col-md-6">
+                                <label class="form-label" for="instituteBoard">Board</label>
+                                <input type="text" name="board_affiliation" id="instituteBoard" class="form-control" placeholder="e.g. CBSE" maxlength="255">
+                            </div>
+                        @endif
                         <div class="col-12">
                             <label class="form-label" for="instituteTagline">Tagline</label>
                             <input type="text" name="tagline" id="instituteTagline" class="form-control">

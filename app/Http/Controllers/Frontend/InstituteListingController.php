@@ -132,6 +132,8 @@ class InstituteListingController extends Controller
         $board = trim((string) $request->input('board', ''));
         $radius = $request->filled('radius') ? (float) $request->input('radius') : null;
         $sort = (string) $request->input('sort', 'recent');
+        // ("board" filter: the university for colleges and institutes, the board for schools)
+        $affiliationColumn = $this->affiliationColumn($ownerRole);
 
         $query = Institute::query()
             ->approved()
@@ -157,6 +159,7 @@ class InstituteListingController extends Controller
                     ->orWhere('display_name', 'like', '%'.$search.'%')
                     ->orWhere('tagline', 'like', '%'.$search.'%')
                     ->orWhere('board_affiliation', 'like', '%'.$search.'%')
+                    ->orWhere('university_affiliation', 'like', '%'.$search.'%')
                     ->orWhere('city', 'like', '%'.$search.'%');
             });
         }
@@ -170,7 +173,7 @@ class InstituteListingController extends Controller
         }
 
         if ($board !== '') {
-            $query->where('board_affiliation', 'like', '%'.$board.'%');
+            $query->where($affiliationColumn, 'like', '%'.$board.'%');
         }
 
         return match ($sort) {
@@ -235,15 +238,23 @@ class InstituteListingController extends Controller
      */
     private function availableBoards(string $ownerRole = 'school'): Collection
     {
+        $column = $this->affiliationColumn($ownerRole);
+
         return Institute::query()
             ->approved()
             ->forOwnerRole($ownerRole)
-            ->whereNotNull('board_affiliation')
-            ->where('board_affiliation', '!=', '')
+            ->whereNotNull($column)
+            ->where($column, '!=', '')
             ->distinct()
-            ->orderBy('board_affiliation')
-            ->pluck('board_affiliation')
+            ->orderBy($column)
+            ->pluck($column)
             ->filter()
             ->values();
+    }
+
+    /** Colleges and institutes are filtered by university, schools by board */
+    private function affiliationColumn(string $ownerRole): string
+    {
+        return Institute::roleUsesUniversity($ownerRole) ? 'university_affiliation' : 'board_affiliation';
     }
 }

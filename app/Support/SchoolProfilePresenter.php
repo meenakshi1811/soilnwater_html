@@ -195,9 +195,15 @@ final class SchoolProfilePresenter
     public function subtitleLine(): string
     {
         $parts = array_filter([
-            $this->institute->board_affiliation ? $this->institute->board_affiliation.' Affiliated' : null,
-            $this->meta('co_educational_label', InstituteProfileDetails::default('co_educational_label', $this->forSchool())),
-            $this->gradesRangeLabel(),
+            // ("CBSE Affiliated" for a school, "Affiliated to HNB Garhwal University" for a college or institute)
+            $this->institute->affiliationValue()
+                ? ($this->institute->usesUniversityAffiliation()
+                    ? 'Affiliated to '.$this->institute->affiliationValue()
+                    : $this->institute->affiliationValue().' Affiliated')
+                : null,
+            // (a college has no co-education line or classes)
+            $this->forCollege() ? null : $this->meta('co_educational_label', InstituteProfileDetails::default('co_educational_label', $this->forSchool())),
+            $this->forCollege() ? null : $this->gradesRangeLabel(),
         ]);
 
         return implode(' | ', $parts);
@@ -222,12 +228,17 @@ final class SchoolProfilePresenter
         return $this->institute->establishedYear();
     }
 
+    /** The board (school) or university (college, institute), with the affiliation number; "" if neither */
     public function affiliationLabel(): string
     {
-        $board = $this->institute->board_affiliation ?: 'CBSE';
+        $affiliation = $this->institute->affiliationValue();
         $number = $this->meta('affiliation_number') ?: $this->institute->government_certificate_number;
 
-        return $number ? $board.' ('.$number.')' : $board;
+        if ($affiliation === null) {
+            return $number ? (string) $number : '';
+        }
+
+        return $number ? $affiliation.' ('.$number.')' : $affiliation;
     }
 
     public function schoolCode(): string
@@ -245,6 +256,11 @@ final class SchoolProfilePresenter
     private function forSchool(): bool
     {
         return $this->institute->user?->isSchool() ?? true;
+    }
+
+    private function forCollege(): bool
+    {
+        return $this->institute->isCollegeProfile();
     }
 
     /**
@@ -322,8 +338,13 @@ final class SchoolProfilePresenter
         return $teachers > 0 ? $teachers : InstituteProfileDetails::default('faculty_count');
     }
 
+    /** ('' for a college: no board result) */
     public function boardResultPercent(): string
     {
+        if ($this->forCollege()) {
+            return '';
+        }
+
         return trim((string) $this->meta('board_result_percent', InstituteProfileDetails::default('board_result_percent')));
     }
 
@@ -364,6 +385,11 @@ final class SchoolProfilePresenter
     /** @return list<string> */
     public function streams(): array
     {
+        // (a college has no Class XI & XII streams)
+        if ($this->forCollege()) {
+            return [];
+        }
+
         return InstituteCourseWings::streams($this->meta('streams'), $this->forSchool());
     }
 
@@ -397,7 +423,7 @@ final class SchoolProfilePresenter
     {
         $saved = $this->meta($key);
 
-        return is_array($saved) ? array_values($saved) : (array) InstituteProfileDetails::default($key);
+        return is_array($saved) ? array_values($saved) : (array) InstituteProfileDetails::default($key, $this->forSchool());
     }
 
     /** @return list<string> */
@@ -431,8 +457,8 @@ final class SchoolProfilePresenter
             ['icon' => 'fa-location-dot', 'label' => 'Location', 'value' => $this->institute->locationLabel() ?: '—'],
             ['icon' => 'fa-tree', 'label' => 'Campus Area', 'value' => trim((string) $this->meta('campus_area', InstituteProfileDetails::default('campus_area')))],
             ['icon' => 'fa-language', 'label' => 'Medium of Instruction', 'value' => trim((string) $this->meta('medium_of_instruction', InstituteProfileDetails::default('medium_of_instruction')))],
-            ['icon' => 'fa-certificate', 'label' => 'Board', 'value' => $this->institute->board_affiliation ?: '—'],
-            ['icon' => 'fa-layer-group', 'label' => 'Grades Offered', 'value' => $this->gradesRangeLabel()],
+            ['icon' => 'fa-certificate', 'label' => $this->institute->affiliationLabel(), 'value' => $this->institute->affiliationValue() ?? ''],
+            ['icon' => 'fa-layer-group', 'label' => 'Grades Offered', 'value' => $this->forCollege() ? '' : $this->gradesRangeLabel()],
             ['icon' => 'fa-phone', 'label' => 'Contact Number', 'value' => implode(', ', $this->institute->phoneNumbersList()) ?: '—'],
         ], fn (array $item) => $item['value'] !== ''));
     }

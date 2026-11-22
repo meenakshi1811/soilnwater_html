@@ -101,7 +101,8 @@ final class InstituteProfileDetails
                 'Modern Infrastructure & Smart Learning',
                 'Holistic Development Programmes',
                 'Safe & Secure Campus Environment',
-                'Strong Board Results Year-on-Year',
+                // (a college or institute has no board results)
+                $forSchool ? 'Strong Board Results Year-on-Year' : 'Strong Results Year-on-Year',
             ],
             'admission' => [
                 'lead' => 'Admissions are open for select grades. Send an enquiry or contact the admission office during operating hours.',

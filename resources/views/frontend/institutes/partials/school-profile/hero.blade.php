@@ -52,7 +52,9 @@
         @if($profile->establishedYear())
           <div><span>Founded</span><strong>{{ $profile->establishedYear() }}</strong></div>
         @endif
-        <div><span>Affiliation</span><strong>{{ $profile->affiliationLabel() }}</strong></div>
+        @if($profile->affiliationLabel() !== '')
+          <div><span>{{ $institute->usesUniversityAffiliation() ? 'University' : 'Affiliation' }}</span><strong>{{ $profile->affiliationLabel() }}</strong></div>
+        @endif
         @if($profile->schoolCode() !== '—')
           <div><span>{{ $entityLabel ?? 'School' }} Code</span><strong>{{ $profile->schoolCode() }}</strong></div>
         @endif

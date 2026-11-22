@@ -25,7 +25,7 @@
                 <h5 class="mb-3">Profile details</h5>
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Type</dt><dd class="col-sm-8">{{ $institute->institutionTypeLabel() }}</dd>
-                    <dt class="col-sm-4">Board</dt><dd class="col-sm-8">{{ $institute->board_affiliation ?: '—' }}</dd>
+                    <dt class="col-sm-4">{{ $institute->affiliationLabel() }}</dt><dd class="col-sm-8">{{ $institute->affiliationValue() ?: '—' }}</dd>
                     <dt class="col-sm-4">Contact person</dt><dd class="col-sm-8">{{ $institute->contact_person ?: '—' }}</dd>
                     <dt class="col-sm-4">Phone / WhatsApp</dt><dd class="col-sm-8">{{ $institute->phone ?: '—' }} / {{ $institute->whatsapp ?: '—' }}</dd>
                     <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $institute->email ?: '—' }}</dd>

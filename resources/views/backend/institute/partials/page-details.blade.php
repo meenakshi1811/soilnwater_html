@@ -16,6 +16,10 @@
     'operating_hours' => ['Operating hours', 'e.g. Mon – Sat: 08:00 AM – 04:00 PM', null],
     'board_result_percent' => ['Board result', 'e.g. 98% Board Result (2025)', 'Shown in the numbers strip.'],
   ];
+  // (a college has no co-education line under its name or board result)
+  if ($institute->isCollegeProfile()) {
+      unset($detailTextFields['co_educational_label'], $detailTextFields['board_result_percent']);
+  }
 @endphp
 <div class="border-top pt-4 mt-4 inst-page-details">
   <input type="hidden" name="details_in_form" value="1">

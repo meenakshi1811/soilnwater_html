@@ -75,6 +75,7 @@
     slug: '#instituteSlug',
     institution_type: '#instituteType',
     board_affiliation: '#instituteBoard',
+    university_affiliation: '#instituteUniversity',
     tagline: '#instituteTagline',
     about: '#instituteAbout',
     phone: '#institutePhone',

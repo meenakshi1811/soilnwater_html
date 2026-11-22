@@ -32,9 +32,9 @@
                     @endforeach
                 </tr>
                 <tr>
-                    <th scope="row">Board / type</th>
+                    <th scope="row">{{ $items->first()?->institute?->usesUniversityAffiliation() ? 'University / type' : 'Board / type' }}</th>
                     @foreach($items as $item)
-                        <td>{{ $item->institute->board_affiliation ?: $item->institute->institutionTypeLabel() }}</td>
+                        <td>{{ $item->institute->affiliationValue() ?: $item->institute->institutionTypeLabel() }}</td>
                     @endforeach
                 </tr>
                 <tr>

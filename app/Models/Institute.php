@@ -37,6 +37,7 @@ class Institute extends Model
         'longitude',
         'institution_type',
         'board_affiliation',
+        'university_affiliation',
         'grades_offered',
         'facilities',
         'facility_images',
@@ -355,6 +356,44 @@ class Institute extends Model
     public function locationLabel(): string
     {
         return collect([$this->city, $this->state])->filter()->implode(', ');
+    }
+
+    /**
+     * A college's profile has no school lines: no classes/grades offered, Class XI & XII streams,
+     * board result or co-education line.
+     */
+    public function isCollegeProfile(): bool
+    {
+        $this->loadMissing('user');
+
+        return $this->user?->role === 'college';
+    }
+
+    /** Colleges and institutes are affiliated to a university; schools to a board (CBSE, ICSE, State Board…) */
+    public static function roleUsesUniversity(?string $role): bool
+    {
+        return in_array($role, ['college', 'institute'], true);
+    }
+
+    public function usesUniversityAffiliation(): bool
+    {
+        $this->loadMissing('user');
+
+        return self::roleUsesUniversity($this->user?->role);
+    }
+
+    /** "University" (college, institute) or "Board" (school) */
+    public function affiliationLabel(): string
+    {
+        return $this->usesUniversityAffiliation() ? 'University' : 'Board';
+    }
+
+    /** The affiliated university (college, institute) or board (school), if given */
+    public function affiliationValue(): ?string
+    {
+        $value = $this->usesUniversityAffiliation() ? $this->university_affiliation : $this->board_affiliation;
+
+        return filled($value) ? trim((string) $value) : null;
     }
 
     public function institutionTypeLabel(): string
