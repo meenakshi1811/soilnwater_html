@@ -49,15 +49,66 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
+    /** The page someone was on when they opened the login (where they go back after logging in) */
+    private const RETURN_PAGE_KEY = 'login.return_to';
+
+    /**
+     * Where to go after logging in, when no protected page sent them to the login: admin and staff to
+     * their dashboard; users and businesses back to the page they came from, or the homepage.
+     */
     protected function redirectTo(): string
     {
         $user = Auth::user();
+        $returnPage = session()->pull(self::RETURN_PAGE_KEY);
 
-        if ($user) {
+        if ($user && $user->isStaff()) {
             return UserDashboard::url($user);
         }
 
-        return '/home';
+        return is_string($returnPage) && $returnPage !== '' ? $returnPage : route('frontend.index');
+    }
+
+    /** The login page: remembers the page it was opened from */
+    public function showLoginForm(Request $request)
+    {
+        $this->rememberReturnPage($request);
+
+        return view('auth.login');
+    }
+
+    /** Where the login sends them: the protected page they were sent from, else redirectTo() */
+    private function afterLoginUrl(Request $request): string
+    {
+        // (a login from a popup on a page: back to that page)
+        if (! $request->session()->has(self::RETURN_PAGE_KEY)) {
+            $this->rememberReturnPage($request);
+        }
+
+        return redirect()->intended($this->redirectPath())->getTargetUrl();
+    }
+
+    /**
+     * Remember the referring page of this site, unless it is a login, sign-up, password, verification
+     * or employee page (going back there after logging in makes no sense).
+     */
+    private function rememberReturnPage(Request $request): void
+    {
+        $referer = (string) $request->headers->get('referer', '');
+        if ($referer === '') {
+            return;
+        }
+
+        $host = parse_url($referer, PHP_URL_HOST);
+        $path = '/'.ltrim((string) (parse_url($referer, PHP_URL_PATH) ?? '/'), '/');
+        if (! is_string($host) || strcasecmp($host, $request->getHost()) !== 0) {
+            return;
+        }
+
+        if (preg_match('#^/(login|logout|register|password|email|verification|auth|employee|admin)(/|$)#i', $path)) {
+            return;
+        }
+
+        $request->session()->put(self::RETURN_PAGE_KEY, $referer);
     }
 
     /**
@@ -130,7 +181,7 @@ class LoginController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Login successful.',
-                'redirect' => $this->redirectPath(),
+                'redirect' => $this->afterLoginUrl($request),
             ]);
         }
 
@@ -367,7 +418,7 @@ class LoginController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Login successful.',
-                'redirect' => $this->redirectPath(),
+                'redirect' => $this->afterLoginUrl($request),
             ]);
         }
 
