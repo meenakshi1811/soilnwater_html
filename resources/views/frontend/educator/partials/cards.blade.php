@@ -3,6 +3,8 @@
     $photo = $educator->photoUrl() ?: asset('assets/images/logo_soilnwater.webp');
     $subject = $educator->primarySubject() ?: $educator->roleLabel();
     $location = $educator->locationLabel() ?: 'India';
+    // (the same experience figure as on the teacher's profile)
+    $yearsExperience = $educator->effectiveYearsExperience();
     $distance = isset($educator->distance_km) && ($hasLocation ?? false)
       ? number_format((float) $educator->distance_km, 1).' km'
       : null;
@@ -42,6 +44,12 @@
       <p class="vendors-compact-card__location">
         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $location }}{{ $distance ? ' · '.$distance : '' }}
       </p>
+      @if($yearsExperience > 0)
+        <p class="educators-card__experience">
+          <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+          {{ $yearsExperience }}+ {{ \Illuminate\Support\Str::plural('year', $yearsExperience) }} experience
+        </p>
+      @endif
       <p class="educators-card__headline">{{ \Illuminate\Support\Str::limit($educator->professional_headline ?: $educator->roleLabel(), 70) }}</p>
       {{-- (only figures that say something: no "0 materials · 0 students") --}}
       @if((int) $educator->materials_count > 0 || (int) $educator->students_taught > 0)

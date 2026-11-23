@@ -162,6 +162,8 @@ final class HomepageEducationKnowledgeCards
     private static function fromEducator(Educator $educator): array
     {
         $rating = (float) ($educator->average_rating ?? 0);
+        $reviews = (int) ($educator->reviews_count ?? 0);
+        $years = $educator->effectiveYearsExperience();
 
         return [
             'url' => $educator->publicUrl(),
@@ -170,8 +172,10 @@ final class HomepageEducationKnowledgeCards
             'title' => $educator->display_name ?: $educator->roleLabel(),
             'description' => Str::limit(strip_tags((string) ($educator->professional_headline ?: $educator->publicTagline() ?: $educator->roleLabel())), 120),
             'location' => self::shortLocation($educator->locationLabel() ?: 'India'),
-            'rating_score' => $rating > 0 ? round($rating, 1) : 4.3,
-            'rating_count' => max((int) $educator->reviews_count, 48),
+            // (a teacher's stars only from real reviews: none shown without any)
+            'rating_score' => $reviews > 0 ? round($rating, 1) : 0,
+            'rating_count' => $reviews,
+            'experience' => $years > 0 ? $years.'+ '.Str::plural('year', $years).' experience' : '',
             'category_label' => $educator->isTutor() ? 'Tutor' : 'Teacher',
             'category_tone' => 'red',
             'category_icon' => 'fa-chalkboard-user',

@@ -63,6 +63,12 @@
                                     <span class="homepage-education-knowledge-card__reviews">({{ number_format($card['rating_count']) }})</span>
                                 @endif
                             </div>
+                            @if(filled($card['experience'] ?? null))
+                                <p class="homepage-education-knowledge-card__experience">
+                                    <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                                    {{ $card['experience'] }}
+                                </p>
+                            @endif
                             @if(filled($card['location']))
                                 <p class="homepage-education-knowledge-card__location">
                                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
