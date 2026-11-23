@@ -1,6 +1,8 @@
 @php
-  // The acting employee on community pages, otherwise the signed-in account
-  $user = \App\Support\AuthActor::viewer();
+  // The acting employee on community pages, otherwise the signed-in account: a user, or an employee
+  // (signed in through the employee portal: still signed in on the public pages)
+  $user = \App\Support\AuthActor::viewer() ?? \Illuminate\Support\Facades\Auth::guard('employee')->user();
+  $isSignedIn = $user !== null;
   $isEmployeeViewer = $user instanceof \App\Models\Employee;
   $dashboardUrl = $isEmployeeViewer ? $user->dashboardUrl() : \App\Support\UserDashboard::url($user);
   $logoutUrl = $isEmployeeViewer ? route('employee.logout') : route('logout');
@@ -16,7 +18,7 @@
 
   <div class="header-right-cluster">
     <div class="header-actions header-actions-desktop">
-    @auth
+    @if($isSignedIn)
       <div class="dropdown user-menu-dropdown">
         <button
           class="btn-login dropdown-toggle user-menu-toggle"
@@ -33,8 +35,8 @@
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
           <li><a class="dropdown-item" href="{{ route('employee.login') }}">Employee portal</a></li>
-          <li><a class="dropdown-item" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a></li>
-          <li><a class="dropdown-item" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
+          <li><a class="dropdown-item" href="{{ $isSignedIn ? route('post-offer') : route('login') }}">Post Offer</a></li>
+          <li><a class="dropdown-item" href="{{ $isSignedIn ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
           @if($user->isVendor() && ! $user->vendor?->is_premium)
             <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'vendor') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
           @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
@@ -53,7 +55,7 @@
     @else
       <a class="btn-login btn-login--outline" href="{{ route('login') }}">Sign In</a>
       <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
-    @endauth
+    @endif
     </div>
   </div>
   </div>
@@ -68,11 +70,11 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    @auth
+    @if($isSignedIn)
       <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
       <a class="btn-offer" href="{{ route('employee.login') }}">Employee portal</a>
-      <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
-      <a class="btn-offer" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
+      <a class="btn-offer" href="{{ $isSignedIn ? route('post-offer') : route('login') }}">Post Offer</a>
+      <a class="btn-offer" href="{{ $isSignedIn ? route('ads.create.size') : route('login') }}">Post Ad</a>
       @if($user->isVendor() && ! $user->vendor?->is_premium)
         <a class="btn-offer" href="{{ route('frontend.premium.show', 'vendor') }}">Get Premium</a>
       @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
@@ -87,7 +89,7 @@
     @else
       <a class="btn-login" href="{{ route('login') }}">Sign In</a>
       <a class="btn-signup" href="{{ route('register') }}">Sign Up</a>
-    @endauth
+    @endif
   </div>
 </header>
 
