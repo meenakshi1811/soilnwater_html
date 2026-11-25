@@ -3,6 +3,8 @@
   // (signed in through the employee portal: still signed in on the public pages)
   $user = \App\Support\AuthActor::viewer() ?? \Illuminate\Support\Facades\Auth::guard('employee')->user();
   $isSignedIn = $user !== null;
+  // ("Employee portal" only for staff: for anyone else it just opens the employee login)
+  $showEmployeePortal = $isSignedIn && ($user->isAdmin() || $user->isEmployee());
   $isEmployeeViewer = $user instanceof \App\Models\Employee;
   $dashboardUrl = $isEmployeeViewer ? $user->dashboardUrl() : \App\Support\UserDashboard::url($user);
   $logoutUrl = $isEmployeeViewer ? route('employee.logout') : route('logout');
@@ -34,7 +36,9 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
-          <li><a class="dropdown-item" href="{{ route('employee.login') }}">Employee portal</a></li>
+          @if($showEmployeePortal)
+            <li><a class="dropdown-item" href="{{ route('employee.login') }}">Employee portal</a></li>
+          @endif
           <li><a class="dropdown-item" href="{{ $isSignedIn ? route('post-offer') : route('login') }}">Post Offer</a></li>
           <li><a class="dropdown-item" href="{{ $isSignedIn ? route('ads.create.size') : route('login') }}">Post Ad</a></li>
           @if($user->isVendor() && ! $user->vendor?->is_premium)
@@ -72,7 +76,9 @@
     </div>
     @if($isSignedIn)
       <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
-      <a class="btn-offer" href="{{ route('employee.login') }}">Employee portal</a>
+      @if($showEmployeePortal)
+        <a class="btn-offer" href="{{ route('employee.login') }}">Employee portal</a>
+      @endif
       <a class="btn-offer" href="{{ $isSignedIn ? route('post-offer') : route('login') }}">Post Offer</a>
       <a class="btn-offer" href="{{ $isSignedIn ? route('ads.create.size') : route('login') }}">Post Ad</a>
       @if($user->isVendor() && ! $user->vendor?->is_premium)

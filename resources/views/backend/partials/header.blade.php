@@ -12,20 +12,23 @@
     $dashboardUrl = $user->dashboardUrl();
     $dashboardActive = $user->isDashboardRouteActive();
     $panelTitle = $user->panelTitle();
-    $profileUrl = $isGeneralUser || $isStudent
-        ? route('user.profile.edit')
-        : ($isVendor ? route('vendor.profile.edit')
-            : ($isConsultant ? route('consultant.profile.edit')
-                : ($isServiceProvider ? route('service_provider.profile.edit')
-                    : ($isEducator ? route('educator.profile.edit')
-                        : ($isEmployee ? route('employee.profile.edit') : route('admin.profile.edit'))))));
-    $profileActive = ($isGeneralUser || $isStudent)
-        ? request()->routeIs('user.profile.*')
-        : ($isVendor ? request()->routeIs('vendor.profile.*')
-            : ($isConsultant ? request()->routeIs('consultant.profile.*')
-                : ($isServiceProvider ? request()->routeIs('service_provider.profile.*')
-                    : ($isEducator ? request()->routeIs('educator.profile.*')
-                        : ($isEmployee ? request()->routeIs('employee.profile.*') : request()->routeIs('admin.profile.*'))))));
+    // Each account's own profile page. (Before, any other account — school, college, institute,
+    // parent, child — got the admin profile, which sent them to the employee login.)
+    $isSchoolOrInstitute = $user instanceof \App\Models\User && $user->isSchoolOrInstitute();
+    $isParentAccount = $user instanceof \App\Models\User && $user->isParent();
+    [$profileUrl, $profileActive] = match (true) {
+        $isAdmin => [route('admin.profile.edit'), request()->routeIs('admin.profile.*')],
+        $isEmployee => [route('employee.profile.edit'), request()->routeIs('employee.profile.*')],
+        $isGeneralUser || $isStudent => [route('user.profile.edit'), request()->routeIs('user.profile.*')],
+        $isVendor => [route('vendor.profile.edit'), request()->routeIs('vendor.profile.*')],
+        $isConsultant => [route('consultant.profile.edit'), request()->routeIs('consultant.profile.*')],
+        $isServiceProvider => [route('service_provider.profile.edit'), request()->routeIs('service_provider.profile.*')],
+        $isEducator => [route('educator.profile.edit'), request()->routeIs('educator.profile.*')],
+        $isSchoolOrInstitute => [$user->portalRoute('profile.edit'), request()->routeIs($user->portalRoutePrefix().'.profile.*')],
+        // (a parent's profile form is on their dashboard)
+        $isParentAccount => [route('parent.dashboard'), request()->routeIs('parent.dashboard')],
+        default => [$dashboardUrl, $dashboardActive],
+    };
     $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
         || ($isConsultant && $user->consultant?->is_premium)
         || ($isServiceProvider && $user->serviceProvider?->is_premium);
