@@ -2024,6 +2024,18 @@
   document.addEventListener('DOMContentLoaded', function () {
     const zoomDialog = document.getElementById('featuredZoomDialog');
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Test switch: opening the site with ?autoplay=off turns the row's autoplay off on this device
+    // (phone browser or the app) until it is opened with ?autoplay=on
+    const autoplayOff = (function () {
+      try {
+        const choice = new URLSearchParams(window.location.search).get('autoplay');
+        if (choice === 'off') window.localStorage.setItem('snw_autoplay_off', '1');
+        if (choice === 'on') window.localStorage.removeItem('snw_autoplay_off');
+        return window.localStorage.getItem('snw_autoplay_off') === '1';
+      } catch (e) {
+        return false;
+      }
+    })();
 
     document.querySelectorAll('.homepage-featured-promo-rail').forEach(function (rail) {
       const track = rail.querySelector('.homepage-featured-promo-rail__scroll');
@@ -2062,7 +2074,7 @@
       // seconds after their own swipe or arrow click, while the row is still moving, while it is
       // off screen or the tab is hidden, and while the larger-image popup is open. A touch stops
       // an automatic move that is under way, so the finger never fights it. Off for visitors who
-      // ask for reduced motion.
+      // ask for reduced motion, and on a device switched off with ?autoplay=off (see above).
       const AUTOPLAY_DELAY = 3500;
       const QUIET_AFTER_VISITOR = 5000;
       let timer = null;
@@ -2076,7 +2088,7 @@
 
       const schedule = function () {
         clearTimeout(timer);
-        if (!reduceMotion) timer = setTimeout(advance, AUTOPLAY_DELAY);
+        if (!reduceMotion && !autoplayOff) timer = setTimeout(advance, AUTOPLAY_DELAY);
       };
 
       const shouldWait = function () {
