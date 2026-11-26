@@ -135,10 +135,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
-    // Desktop: ads are drawn at this share of their ad size, as on staging (a Square Large
-    // 900×900 ad at 526×526, the size staging's ads were made at; the others in proportion).
-    // Full page ads are drawn at their own size, the biggest on the page.
-    const DESKTOP_AD_SCALE = 526 / 900;
+    // Desktop: every ad is drawn at the exact size chosen for it when it was created (its ad
+    // size in the database: Square Large 900×900, Horizontal 900×600, Vertical Rectangle 600×900,
+    // Full page 900×1200, …), only scaled down, keeping its shape, when wider than the grid.
+    const DESKTOP_AD_SCALE = 1;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
@@ -414,8 +414,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         });
     }
 
-    // Desktop: every ad is drawn at DESKTOP_AD_SCALE of its ad size from the database, and
-    // scaled down further, keeping its shape, only when wider than the grid
+    // Desktop: every ad is drawn at its ad size from the database (DESKTOP_AD_SCALE), scaled
+    // down, keeping its shape, only when wider than the grid
     function getPackedCardDims(card, packWidth) {
         const dims = getDims(card);
         let cardW = dims.w;
