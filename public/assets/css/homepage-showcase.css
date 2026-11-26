@@ -345,8 +345,9 @@
     flex: 0 0 min(72vw, 292px);
     width: min(72vw, 292px);
     max-width: 292px;
-    /* One card per swipe: a fast flick stops at the next card instead of flying past several */
-    scroll-snap-stop: always;
+    /* No "scroll-snap-stop: always" (one card per swipe) here: in the Android app's WebView it made
+       swipes stop short or snap back in portrait. The row now scrolls like it does in landscape and
+       on tablets — free swiping that still comes to rest on a card edge. */
   }
 }
 
