@@ -135,10 +135,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
-    // Desktop: every ad is drawn at the exact size chosen for it when it was created (its ad
-    // size in the database: Square Large 900×900, Horizontal 900×600, Vertical Rectangle 600×900,
-    // Full page 900×1200, …), only scaled down, keeping its shape, when wider than the grid.
-    const DESKTOP_AD_SCALE = 1;
+    // Desktop: every ad is drawn at 526/900 (about 58%) of the size chosen for it when it was
+    // created, so all sizes keep their shape and proportions to each other (Square Large 900×900
+    // at 526×526, Horizontal 900×600 at 526×351, Vertical Rectangle 600×900 at 351×526, Full page
+    // 900×1200 at 526×701, …); at full size a Horizontal ad covered most of a laptop screen.
+    const DESKTOP_AD_SCALE = 526 / 900;
     const TITLE_H = 0;
     const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
@@ -421,7 +422,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         let cardW = dims.w;
         let cardH = dims.h;
 
-        if (!isStackedLayout() && card.dataset.adFullPage !== '1') {
+        if (!isStackedLayout()) {
             cardW = Math.max(1, Math.round(cardW * DESKTOP_AD_SCALE));
             cardH = Math.max(1, Math.round(cardH * DESKTOP_AD_SCALE));
         }
@@ -1637,6 +1638,21 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         grid.classList.remove('is-mobile-layout');
         const state = getGridState(grid);
+
+        // A card or sponsored tile placed for a wider grid (e.g. before the page's scrollbar
+        // appeared) would now stick out past the right edge: lay everything out again instead
+        if (keepPinnedFillers) {
+            const overflows = Array.from(grid.querySelectorAll('.ad-card')).some(function (card) {
+                const left = parseInt(card.style.left, 10);
+                const width = parseInt(card.style.width, 10);
+
+                return !isNaN(left) && !isNaN(width) && left + width > packWidth + 1;
+            });
+
+            if (overflows) {
+                keepPinnedFillers = false;
+            }
+        }
 
         if (keepPinnedFillers) {
             preserveUsedFillerKeysFromGrid(grid);
