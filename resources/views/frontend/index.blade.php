@@ -2037,6 +2037,35 @@
       }
     })();
 
+    // Android app: its pull-to-refresh takes over a sideways swipe on these cards as soon as the
+    // finger drifts slightly downward, but only while the page is at the very top. In portrait that
+    // is exactly where the cards sit (in landscape the page is always scrolled a little to reach
+    // them, which is why swiping was smooth there). So in the app the page is kept 1px off the top:
+    // on load, when the visitor comes to rest at the top, and when a finger lands on the cards.
+    // A real pull-down still refreshes: the pull first uses up that 1px.
+    const inApp = @json(filled(request()->cookie(\App\Support\AppDeviceToken::COOKIE)))
+      || /; wv\)/.test(navigator.userAgent)
+      || /Android.*Version\/\d+(\.\d+)* Chrome\//.test(navigator.userAgent);
+    const keepOffTop = function () {
+      if (window.scrollY < 1 && document.documentElement.scrollHeight - window.innerHeight > 2) {
+        window.scrollTo(0, 1);
+      }
+    };
+    if (inApp) {
+      let fingerDown = false;
+      let restTimer = null;
+      document.addEventListener('touchstart', function () { fingerDown = true; }, { passive: true, capture: true });
+      ['touchend', 'touchcancel'].forEach(function (type) {
+        document.addEventListener(type, function () { fingerDown = false; }, { passive: true, capture: true });
+      });
+      window.addEventListener('scroll', function () {
+        clearTimeout(restTimer);
+        restTimer = setTimeout(function () { if (!fingerDown) keepOffTop(); }, 350);
+      }, { passive: true });
+      window.addEventListener('load', keepOffTop);
+      keepOffTop();
+    }
+
     document.querySelectorAll('.homepage-featured-promo-rail').forEach(function (rail) {
       const track = rail.querySelector('.homepage-featured-promo-rail__scroll');
       const prev = rail.querySelector('.homepage-featured-promo-rail__arrow--prev');
@@ -2142,7 +2171,12 @@
       window.addEventListener('load', update);
       update();
 
-      track.addEventListener('touchstart', function () { touching = true; clearTimeout(timer); visitorMoved(); }, { passive: true });
+      track.addEventListener('touchstart', function () {
+        if (inApp) keepOffTop();
+        touching = true;
+        clearTimeout(timer);
+        visitorMoved();
+      }, { passive: true });
       ['touchend', 'touchcancel'].forEach(function (type) {
         track.addEventListener(type, function () { touching = false; lastVisitorMove = Date.now(); schedule(); }, { passive: true });
       });
